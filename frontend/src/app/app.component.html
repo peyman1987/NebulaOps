@@ -1,0 +1,27 @@
+<main class="shell">
+    <section class="hero">
+        <div><p class="eyebrow">Cloud Dashboard</p>
+            <h1>NebulaOps Platform</h1>
+            <p>Angular + Spring Boot + MongoDB + Kafka. Event-driven SaaS workflow orchestration with cloud-native
+                delivery.</p></div>
+        <div class="status-card"><span>Live Architecture</span><strong>MongoDB · Kafka · K8s</strong></div>
+    </section>
+    <section class="metrics">
+        <article><span>Total tasks</span><strong>{{ total() }}</strong></article>
+        <article><span>Completed</span><strong>{{ done() }}</strong></article>
+        <article><span>Critical events</span><strong>{{ critical() }}</strong></article>
+    </section>
+    <section cdkDropListGroup class="board">
+        <div *ngFor="let col of columns" class="column">
+            <h2>{{ col.replace('_', ' ') }}</h2>
+            <div (cdkDropListDropped)="drop($event,col)" [cdkDropListData]="columnTasks(col)" cdkDropList
+                 class="dropzone">
+                <article *ngFor="let task of columnTasks(col)" cdkDrag class="task">
+                    <div class="task-top"><strong>{{ task.id }}</strong><span
+                            [class]="'priority '+task.priority.toLowerCase()">{{ task.priority }}</span></div>
+                    <p>{{ task.title }}</p><small>{{ task.owner }}</small>
+                </article>
+            </div>
+        </div>
+    </section>
+</main>

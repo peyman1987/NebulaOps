@@ -1,0 +1,32 @@
+{ { - if .Values.frontend.enabled } }
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nebulaops-frontend
+  namespace: { { .Values.global.namespace } }
+spec:
+  replicas: { { .Values.frontend.replicas } }
+  selector:
+    matchLabels: { app: nebulaops-frontend }
+  template:
+    metadata:
+      labels: { app: nebulaops-frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: { { .Values.frontend.image } }
+          imagePullPolicy: { { .Values.global.imagePullPolicy } }
+          ports:
+            - containerPort: { { .Values.frontend.port } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nebulaops-frontend
+  namespace: { { .Values.global.namespace } }
+spec:
+  selector: { app: nebulaops-frontend }
+  ports:
+    - port: { { .Values.frontend.servicePort } }
+      targetPort: { { .Values.frontend.port } }
+  { { - end } }

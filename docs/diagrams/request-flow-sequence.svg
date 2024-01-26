@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" role="img"
+     aria-labelledby="title desc">
+    <title id="title">NebulaOps request sequence</title>
+    <desc id="desc">End to end flow from Angular through gateway, services, Kafka, Redis, RabbitMQ and observability.
+    </desc>
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+        </marker>
+        <style>
+            .box{fill:#f8fafc;stroke:#334155;stroke-width:2;rx:14}.store{fill:#ecfeff;stroke:#0891b2;stroke-width:2}.queue{fill:#fff7ed;stroke:#ea580c;stroke-width:2}.obs{fill:#f0fdf4;stroke:#16a34a;stroke-width:2}.t{font:600
+            16px Arial,sans-serif;fill:#0f172a}.s{font:13px
+            Arial,sans-serif;fill:#334155}.line{stroke:#334155;stroke-width:2;fill:none;marker-end:url(#arrow)}.dash{stroke-dasharray:6
+            6}
+        </style>
+    </defs>
+    <rect width="1180" height="520" fill="#ffffff"/>
+    <text x="40" y="42" class="t" font-size="24">Request flow: task creation with async processing</text>
+    <rect class="box" x="40" y="82" width="150" height="74"/>
+    <text x="70" y="115" class="t">Angular SPA</text>
+    <text x="72" y="138" class="s">localhost:4200</text>
+    <rect class="box" x="250" y="82" width="160" height="74"/>
+    <text x="282" y="115" class="t">Gateway</text>
+    <text x="278" y="138" class="s">routes /api/**</text>
+    <rect class="box" x="470" y="82" width="160" height="74"/>
+    <text x="505" y="115" class="t">Task API</text>
+    <text x="500" y="138" class="s">Spring Boot</text>
+    <rect class="store" x="690" y="82" width="150" height="74"/>
+    <text x="724" y="115" class="t">MongoDB</text>
+    <text x="720" y="138" class="s">task docs</text>
+    <rect class="queue" x="470" y="240" width="160" height="74"/>
+    <text x="515" y="273" class="t">Kafka</text>
+    <text x="488" y="296" class="s">domain events</text>
+    <rect class="box" x="690" y="240" width="150" height="74"/>
+    <text x="712" y="273" class="t">Notification</text>
+    <text x="724" y="296" class="s">consumer</text>
+    <rect class="store" x="900" y="82" width="150" height="74"/>
+    <text x="942" y="115" class="t">Redis</text>
+    <text x="932" y="138" class="s">hot cache</text>
+    <rect class="queue" x="900" y="240" width="150" height="74"/>
+    <text x="927" y="273" class="t">RabbitMQ</text>
+    <text x="928" y="296" class="s">work queue</text>
+    <rect class="box" x="900" y="380" width="150" height="74"/>
+    <text x="917" y="413" class="t">Go Worker</text>
+    <text x="928" y="436" class="s">jobs/events</text>
+    <rect class="obs" x="470" y="380" width="370" height="74"/>
+    <text x="585" y="413" class="t">Prometheus + Grafana</text>
+    <text x="580" y="436" class="s">/actuator/prometheus and service health</text>
+    <path class="line" d="M190 119 H250"/>
+    <text x="201" y="105" class="s">POST /api/tasks</text>
+    <path class="line" d="M410 119 H470"/>
+    <text x="420" y="105" class="s">proxy</text>
+    <path class="line" d="M630 119 H690"/>
+    <text x="642" y="105" class="s">save</text>
+    <path class="line" d="M550 156 V240"/>
+    <text x="560" y="203" class="s">publish</text>
+    <path class="line" d="M630 277 H690"/>
+    <text x="642" y="263" class="s">consume</text>
+    <path class="line" d="M840 119 H900"/>
+    <text x="850" y="105" class="s">cache reads</text>
+    <path class="line" d="M765 156 C765 210 890 203 975 240"/>
+    <text x="810" y="201" class="s">enqueue jobs</text>
+    <path class="line" d="M975 314 V380"/>
+    <text x="985" y="352" class="s">pull</text>
+    <path class="line dash" d="M550 380 V314"/>
+    <path class="line dash" d="M765 380 V314"/>
+    <path class="line dash" d="M975 380 C870 350 720 350 655 380"/>
+</svg>

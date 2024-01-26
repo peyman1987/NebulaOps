@@ -1,0 +1,48 @@
+{ { - if .Values.mongodb.enabled } }
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nebulaops-mongodb
+  namespace: { { .Values.global.namespace } }
+spec:
+  serviceName: nebulaops-mongodb
+  replicas: 1
+  selector:
+    matchLabels: { app: nebulaops-mongodb }
+  template:
+    metadata:
+      labels: { app: nebulaops-mongodb }
+    spec:
+      containers:
+        - name: mongodb
+          image: { { .Values.mongodb.image } }
+          ports:
+            - containerPort: { { .Values.mongodb.port } }
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom: { secretKeyRef: { name: nebulaops-secrets, key: MONGO_USERNAME } }
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom: { secretKeyRef: { name: nebulaops-secrets, key: MONGO_PASSWORD } }
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: { { .Values.mongodb.storage } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nebulaops-mongodb
+  namespace: { { .Values.global.namespace } }
+spec:
+  selector: { app: nebulaops-mongodb }
+  ports:
+    - port: { { .Values.mongodb.port } }
+      targetPort: { { .Values.mongodb.port } }
+  { { - end } }

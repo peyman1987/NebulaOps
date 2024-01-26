@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="600" viewBox="0 0 1180 600" role="img"
+     aria-labelledby="title desc">
+    <title id="title">Kubernetes and Helm Deployment View</title>
+    <desc id="desc">Helm chart deploys NebulaOps workloads to a Kubernetes namespace, including frontend, gateway,
+        services, data infrastructure and observability.
+    </desc>
+    <style>
+        .bg{fill:#0b1020}.ns{fill:#0f172a;stroke:#818cf8;stroke-width:2;rx:18}.box{fill:#111a2e;stroke:#5eead4;stroke-width:2;rx:12}.data{stroke:#fbbf24}.obs{stroke:#c084fc}.txt{fill:#e5e7eb;font:600
+        16px Arial}.small{fill:#cbd5e1;font:12px
+        Arial}.line{stroke:#94a3b8;stroke-width:2;fill:none;marker-end:url(#arrow)}
+    </style>
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
+        </marker>
+    </defs>
+    <rect class="bg" width="1180" height="600"/>
+    <text x="40" y="46" class="txt" font-size="24">Kubernetes / Helm Deployment View</text>
+    <text class="small" x="40" y="70">Rendered from infrastructure/helm/nebulaops and reconciled by Argo CD.</text>
+    <rect class="ns" x="50" y="105" width="1080" height="430"/>
+    <text class="txt" x="85" y="140">namespace: nebulaops</text>
+    <rect class="box" x="95" y="185" width="160" height="72"/>
+    <text class="txt" x="135" y="215">Ingress</text>
+    <text class="small" x="122" y="238">nginx / local</text>
+    <rect class="box" x="315" y="185" width="160" height="72"/>
+    <text class="txt" x="365" y="215">Frontend</text>
+    <text class="small" x="356" y="238">Angular pod</text>
+    <rect class="box" x="535" y="185" width="160" height="72"/>
+    <text class="txt" x="575" y="215">Gateway</text>
+    <text class="small" x="567" y="238">Spring pod</text>
+    <rect class="box" x="755" y="135" width="150" height="65"/>
+    <text class="txt" x="800" y="165">Auth</text>
+    <text class="small" x="790" y="185">Spring</text>
+    <rect class="box" x="755" y="220" width="150" height="65"/>
+    <text class="txt" x="800" y="250">Task</text>
+    <text class="small" x="790" y="270">Spring</text>
+    <rect class="box" x="755" y="305" width="150" height="65"/>
+    <text class="txt" x="803" y="335">File</text>
+    <text class="small" x="790" y="355">Spring</text>
+    <rect class="box" x="755" y="390" width="150" height="65"/>
+    <text class="txt" x="777" y="420">Notification</text>
+    <text class="small" x="790" y="440">Spring</text>
+    <rect class="box data" x="965" y="150" width="125" height="60"/>
+    <text class="txt" x="995" y="180">Mongo</text>
+    <rect class="box data" x="965" y="230" width="125" height="60"/>
+    <text class="txt" x="999" y="260">Kafka</text>
+    <rect class="box data" x="965" y="310" width="125" height="60"/>
+    <text class="txt" x="1000" y="340">Redis</text>
+    <rect class="box data" x="965" y="390" width="125" height="60"/>
+    <text class="txt" x="990" y="420">RabbitMQ</text>
+    <rect class="box obs" x="315" y="390" width="160" height="72"/>
+    <text class="txt" x="350" y="420">Prometheus</text>
+    <text class="small" x="350" y="442">scrapes pods</text>
+    <rect class="box obs" x="535" y="390" width="160" height="72"/>
+    <text class="txt" x="575" y="420">Grafana</text>
+    <text class="small" x="568" y="442">dashboards</text>
+    <path class="line" d="M255 221 H315"/>
+    <path class="line" d="M475 221 H535"/>
+    <path class="line" d="M695 221 C725 221 725 168 755 168"/>
+    <path class="line" d="M695 221 H755"/>
+    <path class="line" d="M695 221 C725 221 725 338 755 338"/>
+    <path class="line" d="M695 221 C725 221 725 423 755 423"/>
+    <path class="line" d="M905 168 H965"/>
+    <path class="line" d="M905 252 H965"/>
+    <path class="line" d="M905 338 H965"/>
+    <path class="line" d="M905 423 H965"/>
+    <path class="line" d="M475 426 H535"/>
+    <path class="line" d="M615 390 C650 335 720 252 755 252"/>
+</svg>

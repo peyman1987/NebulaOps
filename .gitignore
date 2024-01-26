@@ -1,0 +1,100 @@
+# NebulaOps repository hygiene
+
+# Node / Angular
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.angular/cache/
+.cache/
+.npm/
+coverage/
+frontend/node_modules/
+frontend/.angular/cache/
+frontend/dist/
+frontend/remotes/*/node_modules/
+frontend/remotes/*/.angular/cache/
+frontend/remotes/*/dist/
+
+# Java / Spring Boot / Maven / Gradle
+target/
+build/
+.gradle/
+.m2/
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+!backend/**/mvnw
+!backend/**/mvnw.cmd
+
+# Python / AI engine
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+ai-engine/.venv/
+
+# Go
+go/bin/
+go/pkg/
+*.test
+
+# Docker / Compose local state
+.docker/
+*.pid
+*.log
+logs/
+tmp/
+.temp/
+.runtime-tools/data/
+.runtime-tools/cache/
+.runtime-tools/downloads/
+
+# Kubernetes / Helm / Terraform local state
+.kube/config
+*.kubeconfig
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+
+# IDE / OS
+.idea/
+.vscode/.history/
+*.iml
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generated packages and local archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Secrets / certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+secrets/
+credentials/
+
+# Reports generated during local validation
+reports/
+validation-output/

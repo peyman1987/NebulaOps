@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" role="img"
+     aria-labelledby="title desc">
+    <title id="title">NebulaOps service and port map</title>
+    <desc id="desc">Local ports, internal dependencies and operator entry points.</desc>
+    <defs>
+        <style>
+            .card{fill:#f8fafc;stroke:#475569;stroke-width:2;rx:14}.data{fill:#eef2ff;stroke:#4f46e5;stroke-width:2}.ops{fill:#f0fdf4;stroke:#16a34a;stroke-width:2}.t{font:700
+            17px Arial,sans-serif;fill:#0f172a}.s{font:13px Arial,sans-serif;fill:#334155}.p{font:700 22px
+            Arial,sans-serif;fill:#1e293b}.line{stroke:#94a3b8;stroke-width:2;fill:none}
+        </style>
+    </defs>
+    <rect width="1180" height="520" fill="#fff"/>
+    <text x="40" y="44" class="t" font-size="24">Local service map and responsibilities</text>
+    <g transform="translate(40,82)">
+        <rect class="card" width="210" height="92"/>
+        <text x="24" y="34" class="t">Frontend</text>
+        <text x="24" y="62" class="p">4200</text>
+        <text x="92" y="61" class="s">Angular SPA</text>
+    </g>
+    <g transform="translate(290,82)">
+        <rect class="card" width="210" height="92"/>
+        <text x="24" y="34" class="t">Gateway</text>
+        <text x="24" y="62" class="p">8080</text>
+        <text x="92" y="61" class="s">routing edge</text>
+    </g>
+    <g transform="translate(540,82)">
+        <rect class="card" width="210" height="92"/>
+        <text x="24" y="34" class="t">Auth API</text>
+        <text x="24" y="62" class="p">8081</text>
+        <text x="92" y="61" class="s">accounts</text>
+    </g>
+    <g transform="translate(790,82)">
+        <rect class="card" width="210" height="92"/>
+        <text x="24" y="34" class="t">Task API</text>
+        <text x="24" y="62" class="p">8082</text>
+        <text x="92" y="61" class="s">domain events</text>
+    </g>
+    <g transform="translate(40,218)">
+        <rect class="card" width="210" height="92"/>
+        <text x="24" y="34" class="t">Notification API</text>
+        <text x="24" y="62" class="p">8083</text>
+        <text x="92" y="61" class="s">Kafka consumer</text>
+    </g>
+    <g transform="translate(290,218)">
+        <rect class="card" width="210" height="92"/>
+        <text x="24" y="34" class="t">File API</text>
+        <text x="24" y="62" class="p">8084</text>
+        <text x="92" y="61" class="s">metadata</text>
+    </g>
+    <g transform="translate(540,218)">
+        <rect class="card" width="210" height="92"/>
+        <text x="24" y="34" class="t">Go Cache API</text>
+        <text x="24" y="62" class="p">8091</text>
+        <text x="92" y="61" class="s">Redis + queue</text>
+    </g>
+    <g transform="translate(790,218)">
+        <rect class="data" width="210" height="92"/>
+        <text x="24" y="34" class="t">MongoDB</text>
+        <text x="24" y="62" class="p">27017</text>
+        <text x="112" y="61" class="s">documents</text>
+    </g>
+    <g transform="translate(40,354)">
+        <rect class="data" width="210" height="92"/>
+        <text x="24" y="34" class="t">Kafka</text>
+        <text x="24" y="62" class="p">9092</text>
+        <text x="92" y="61" class="s">streaming</text>
+    </g>
+    <g transform="translate(290,354)">
+        <rect class="data" width="210" height="92"/>
+        <text x="24" y="34" class="t">Redis</text>
+        <text x="24" y="62" class="p">6379</text>
+        <text x="92" y="61" class="s">cache</text>
+    </g>
+    <g transform="translate(540,354)">
+        <rect class="data" width="210" height="92"/>
+        <text x="24" y="34" class="t">RabbitMQ</text>
+        <text x="24" y="62" class="p">5672</text>
+        <text x="92" y="61" class="s">AMQP</text>
+        <text x="150" y="61" class="s">15672 UI</text>
+    </g>
+    <g transform="translate(790,354)">
+        <rect class="ops" width="210" height="92"/>
+        <text x="24" y="34" class="t">Observability</text>
+        <text x="24" y="62" class="p">3000</text>
+        <text x="95" y="61" class="s">Grafana</text>
+        <text x="150" y="61" class="s">9090 Prom</text>
+    </g>
+    <path class="line"
+          d="M250 128 H290M500 128 H540M750 128 H790M395 174 V218M645 174 V218M895 174 V218M145 310 V354M645 310 V354"/>
+</svg>

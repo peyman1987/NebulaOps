@@ -1,0 +1,179 @@
+# Root compose file kept for compatibility: `docker compose up --build` works from repository root.
+# Operational scripts use infrastructure/docker-compose.yml explicitly.
+services:
+  mongodb:
+    image: mongo:7
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: nebula
+      MONGO_INITDB_ROOT_PASSWORD: nebula
+    ports: [ "27017:27017" ]
+    volumes: [ "mongo-data:/data/db" ]
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      zookeeper:
+        condition: service_started
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    restart: unless-stopped
+  auth-service:
+    build: { context: .., dockerfile: backend/auth-service/Dockerfile }
+    environment:
+      MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_auth?authSource=admin
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports: [ "8081:8081" ]
+  task-service:
+    build: { context: .., dockerfile: backend/task-service/Dockerfile }
+    environment:
+      MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_task?authSource=admin
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports: [ "8082:8082" ]
+  notification-service:
+    build: { context: .., dockerfile: backend/notification-service/Dockerfile }
+    environment:
+      MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_notification?authSource=admin
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports: [ "8083:8083" ]
+  file-service:
+    build: { context: .., dockerfile: backend/file-service/Dockerfile }
+    environment:
+      MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_file?authSource=admin
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports: [ "8084:8084" ]
+  gateway-service:
+    build: { context: .., dockerfile: backend/gateway-service/Dockerfile }
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8081
+      TASK_SERVICE_URL: http://task-service:8082
+      FILE_SERVICE_URL: http://file-service:8084
+      NOTIFICATION_SERVICE_URL: http://notification-service:8083
+    depends_on:
+      auth-service:
+        condition: service_started
+      task-service:
+        condition: service_started
+      file-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    ports: [ "8080:8080" ]
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    depends_on: [ gateway-service ]
+    ports: [ "4200:80" ]
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./infrastructure/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: [ "9090:9090" ]
+    depends_on: [ gateway-service,auth-service,task-service,notification-service,file-service ]
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: [ "3000:3000" ]
+    depends_on: [ prometheus ]
+
+  redis:
+    image: redis:7-alpine
+    command: [ "redis-server", "--appendonly", "yes" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports: [ "6379:6379" ]
+    volumes: [ "redis-data:/data" ]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  go-cache-service:
+    build: { context: .., dockerfile: go/cache-service/Dockerfile }
+    environment:
+      PORT: 8091
+      REDIS_ADDR: redis:6379
+      RABBITMQ_HTTP_URL: http://rabbitmq:15672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_CACHE_QUEUE: nebula.cache.events
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports: [ "8091:8091" ]
+
+  go-event-worker:
+    build: { context: .., dockerfile: go/event-worker/Dockerfile }
+    environment:
+      RABBITMQ_HTTP_URL: http://rabbitmq:15672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_CACHE_QUEUE: nebula.cache.events
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
+  redis-data:
+  rabbitmq-data:

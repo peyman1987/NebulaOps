@@ -1,0 +1,187 @@
+# GitLab CI/CD pipeline for NebulaOps.
+# Required protected variables in GitLab CI/CD settings:
+# - ARGOCD_SERVER, ARGOCD_AUTH_TOKEN: used by the argocd-sync job.
+# - NEBULAOPS_BASE_URL: optional deployed gateway URL for smoke tests.
+
+stages:
+  - validate
+  - test
+  - build
+  - package
+  - deploy
+  - verify
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+  HELM_CHART_DIR: infrastructure/helm/nebulaops
+  HELM_RELEASE_NAME: nebulaops
+  HELM_RELEASE_NAMESPACE: nebulaops
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository
+    - frontend/node_modules/
+    - go/pkg/mod/
+
+validate:package:
+  stage: validate
+  image: python:3.12-alpine
+  before_script:
+    - pip install pyyaml
+  script:
+    - python scripts/validate-package.py
+  artifacts:
+    when: always
+    paths:
+      - docs/QUALITY_REPORT.md
+    expire_in: 1 week
+
+validate:shell:
+  stage: validate
+  image: bash:5.2-alpine3.20
+  script:
+    - find scripts -name "*.sh" -print0 | xargs -0 -I{} bash -n {}
+
+test:go:
+  stage: test
+  image: golang:1.22-alpine
+  script:
+    - cd go/cache-service && go test ./...
+    - cd ../event-worker && go test ./...
+
+test:frontend:
+  stage: test
+  image: node:20-alpine
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 1 week
+
+test:backend:
+  stage: test
+  image: maven:3.9.8-eclipse-temurin-21
+  script:
+    - cd backend
+    - mvn -B -ntp test
+  artifacts:
+    when: always
+    paths:
+      - backend/**/target/surefire-reports/
+    expire_in: 1 week
+
+.docker-build-template:
+  stage: build
+  image: docker:27
+  services:
+    - name: docker:27-dind
+      command: [ "--tls=false" ]
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - docker build -f "$DOCKERFILE" -t "$CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_TAG" -t "$CI_REGISTRY_IMAGE/$IMAGE_NAME:latest" .
+    - docker push "$CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_TAG"
+    - docker push "$CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+build:frontend:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: frontend
+    DOCKERFILE: frontend/Dockerfile
+
+build:gateway:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: gateway-service
+    DOCKERFILE: backend/gateway-service/Dockerfile
+
+build:auth:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: auth-service
+    DOCKERFILE: backend/auth-service/Dockerfile
+
+build:task:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: task-service
+    DOCKERFILE: backend/task-service/Dockerfile
+
+build:file:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: file-service
+    DOCKERFILE: backend/file-service/Dockerfile
+
+build:notification:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: notification-service
+    DOCKERFILE: backend/notification-service/Dockerfile
+
+build:go-cache:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: go-cache-service
+    DOCKERFILE: go/cache-service/Dockerfile
+
+build:go-worker:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: go-event-worker
+    DOCKERFILE: go/event-worker/Dockerfile
+
+package:helm:
+  stage: package
+  image: alpine/helm:3.15.4
+  script:
+    - helm lint "$HELM_CHART_DIR"
+    - helm dependency update "$HELM_CHART_DIR" || true
+    - helm template "$HELM_RELEASE_NAME" "$HELM_CHART_DIR" --namespace "$HELM_RELEASE_NAMESPACE" > rendered-nebulaops.yaml
+    - helm package "$HELM_CHART_DIR" --destination dist
+  artifacts:
+    paths:
+      - rendered-nebulaops.yaml
+      - dist/*.tgz
+    expire_in: 1 week
+
+deploy:argocd-sync:
+  stage: deploy
+  image: argoproj/argocd:v2.12.3
+  needs:
+    - package:helm
+  script:
+    - argocd login "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web
+    - argocd app sync nebulaops --prune --timeout 300
+    - argocd app wait nebulaops --health --sync --timeout 300
+  environment:
+    name: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $ARGOCD_SERVER && $ARGOCD_AUTH_TOKEN
+      when: manual
+
+verify:smoke:
+  stage: verify
+  image: curlimages/curl:8.9.1
+  script:
+    - echo "Run smoke tests against your deployed endpoint by setting NEBULAOPS_BASE_URL"
+    - test -n "$NEBULAOPS_BASE_URL"
+    - curl -fsS "$NEBULAOPS_BASE_URL/actuator/health" || curl -fsS "$NEBULAOPS_BASE_URL/api/health"
+  rules:
+    - if: $NEBULAOPS_BASE_URL
+      when: manual

@@ -1,0 +1,27 @@
+server: { port: 8080 }
+spring:
+  application: { name: gateway-service }
+  cloud:
+    gateway:
+      routes:
+        - id: auth
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates: [ Path=/api/auth/** ]
+        - id: tasks
+          uri: ${TASK_SERVICE_URL:http://localhost:8082}
+          predicates: [ Path=/api/tasks/** ]
+        - id: files
+          uri: ${FILE_SERVICE_URL:http://localhost:8084}
+          predicates: [ Path=/api/files/** ]
+        - id: notifications
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
+          predicates: [ Path=/api/notifications/** ]
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+  metrics:
+    tags:
+      application: gateway-service

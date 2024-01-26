@@ -1,0 +1,58 @@
+{ { - if .Values.observability.prometheus.enabled } }
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nebulaops-prometheus-config
+  namespace: { { .Values.global.namespace } }
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+      - job_name: nebulaops-services
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets:
+              - nebulaops-gateway:8080
+              - nebulaops-auth:8081
+              - nebulaops-task:8082
+              - nebulaops-notification:8083
+              - nebulaops-file:8084
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nebulaops-prometheus
+  namespace: { { .Values.global.namespace } }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: nebulaops-prometheus }
+  template:
+    metadata:
+      labels: { app: nebulaops-prometheus }
+    spec:
+      containers:
+        - name: prometheus
+          image: { { .Values.observability.prometheus.image } }
+          ports:
+            - containerPort: { { .Values.observability.prometheus.port } }
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+      volumes:
+        - name: config
+          configMap: { name: nebulaops-prometheus-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nebulaops-prometheus
+  namespace: { { .Values.global.namespace } }
+spec:
+  selector: { app: nebulaops-prometheus }
+  ports:
+    - port: { { .Values.observability.prometheus.port } }
+      targetPort: { { .Values.observability.prometheus.port } }
+  { { - end } }
