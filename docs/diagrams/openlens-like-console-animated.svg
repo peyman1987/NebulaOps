@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680">
+    <defs>
+        <linearGradient id="bg" x1="0" x2="1">
+            <stop stop-color="#071225"/>
+            <stop offset="1" stop-color="#111827"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1">
+            <stop stop-color="#164e63" stop-opacity=".95"/>
+            <stop offset="1" stop-color="#312e81" stop-opacity=".95"/>
+        </linearGradient>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".35"/>
+        </filter>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10" fill="#7dd3fc"/>
+        </marker>
+    </defs>
+    <rect width="1200" height="680" rx="28" fill="url(#bg)"/>
+    <text x="54" y="70" fill="#e5f2ff" font-family="Inter,Arial" font-size="34" font-weight="700">NebulaOps
+        OpenLens-like Console
+    </text>
+    <text x="54" y="104" fill="#93c5fd" font-family="Inter,Arial" font-size="16">CRUD tasks · CRUD Kubernetes resources
+        · YAML editor · replica scaling · logs
+    </text>
+    <g filter="url(#shadow)">
+        <rect x="60" y="160" width="260" height="390" rx="24" fill="url(#card)" stroke="#67e8f9" stroke-opacity=".35"/>
+        <text x="90" y="205" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Angular FE</text>
+        <text x="90" y="242" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Task board CRUD</text>
+        <text x="90" y="272" fill="#dbeafe" font-size="15" font-family="Inter,Arial">K8s inventory</text>
+        <text x="90" y="302" fill="#dbeafe" font-size="15" font-family="Inter,Arial">YAML editor</text>
+        <text x="90" y="332" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Scale +/- replicas</text>
+        <circle cx="270" cy="500" r="10" fill="#22c55e">
+            <animate attributeName="r" values="8;14;8" dur="1.6s" repeatCount="indefinite"/>
+        </circle>
+    </g>
+    <g filter="url(#shadow)">
+        <rect x="470" y="150" width="260" height="170" rx="24" fill="#0f766e" stroke="#99f6e4" stroke-opacity=".4"/>
+        <text x="500" y="198" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Gateway API</text>
+        <text x="500" y="235" fill="#ccfbf1" font-size="15" font-family="Inter,Arial">/api/kubernetes/*</text>
+        <text x="500" y="265" fill="#ccfbf1" font-size="15" font-family="Inter,Arial">/api/tasks/*</text>
+    </g>
+    <g filter="url(#shadow)">
+        <rect x="470" y="390" width="260" height="170" rx="24" fill="#7c2d12" stroke="#fdba74" stroke-opacity=".45"/>
+        <text x="500" y="438" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Task Service</text>
+        <text x="500" y="475" fill="#ffedd5" font-size="15" font-family="Inter,Arial">MongoDB persistence</text>
+        <text x="500" y="505" fill="#ffedd5" font-size="15" font-family="Inter,Arial">RabbitMQ events</text>
+    </g>
+    <g filter="url(#shadow)">
+        <rect x="880" y="130" width="250" height="210" rx="24" fill="#1e3a8a" stroke="#93c5fd" stroke-opacity=".45"/>
+        <text x="910" y="178" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Kubernetes Model
+        </text>
+        <text x="910" y="215" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Namespace</text>
+        <text x="910" y="245" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Deployment / ReplicaSet</text>
+        <text x="910" y="275" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Service / Ingress</text>
+        <text x="910" y="305" fill="#dbeafe" font-size="15" font-family="Inter,Arial">ConfigMap / Secret</text>
+    </g>
+    <g filter="url(#shadow)">
+        <rect x="880" y="410" width="250" height="130" rx="24" fill="#581c87" stroke="#d8b4fe" stroke-opacity=".45"/>
+        <text x="910" y="458" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Observability
+        </text>
+        <text x="910" y="495" fill="#f3e8ff" font-size="15" font-family="Inter,Arial">Logs · Prometheus · Grafana</text>
+    </g>
+    <path d="M320 245 C380 245 410 235 470 235" stroke="#7dd3fc" stroke-width="4" fill="none" marker-end="url(#arrow)">
+        <animate attributeName="stroke-dasharray" values="1 18;18 1;1 18" dur="2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M730 235 C790 235 820 230 880 230" stroke="#7dd3fc" stroke-width="4" fill="none" marker-end="url(#arrow)">
+        <animate attributeName="stroke-dasharray" values="1 18;18 1;1 18" dur="2.2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M600 320 L600 390" stroke="#fb923c" stroke-width="4" fill="none" marker-end="url(#arrow)">
+        <animate attributeName="stroke-dasharray" values="1 14;14 1;1 14" dur="1.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M730 475 C800 475 815 475 880 475" stroke="#c084fc" stroke-width="4" fill="none" marker-end="url(#arrow)">
+        <animate attributeName="stroke-dasharray" values="1 16;16 1;1 16" dur="2.1s" repeatCount="indefinite"/>
+    </path>
+</svg>

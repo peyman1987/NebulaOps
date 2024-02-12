@@ -1,67 +1,49 @@
 # API Examples
 
-## Register
+These examples are designed for local Docker execution.
+
+## Health checks
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "organizationName":"Acme Cloud",
-    "name":"Peyman",
-    "email":"peyman@example.com",
-    "password":"Password123!"
-  }'
+curl -i http://localhost:8080/actuator/health
+curl -i http://localhost:8081/actuator/health
+curl -i http://localhost:8082/actuator/health
+curl -i http://localhost:8083/actuator/health
+curl -i http://localhost:8084/actuator/health
+curl -i http://localhost:8091/health
 ```
 
-## Login
+## Task service through gateway
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"peyman@example.com","password":"Password123!"}' | jq -r .accessToken)
+curl -i http://localhost:8080/api/tasks
 ```
 
-## Create project
+Create a task:
 
 ```bash
-curl -X POST http://localhost:8080/api/projects \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Cloud Migration","description":"Move legacy workload to cloud-native infrastructure"}'
+curl -i -X POST http://localhost:8080/api/tasks   -H 'Content-Type: application/json'   -d '{"title":"Prepare cloud portfolio demo","description":"Validate services, queues and dashboards","status":"OPEN"}'
 ```
 
-## List projects
+## Go cache service
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/projects
+curl -i http://localhost:8091/health
+curl -i http://localhost:8091/cache/demo-key
 ```
 
-## Create task
+## RabbitMQ verification
 
-```bash
-curl -X POST http://localhost:8080/api/tasks \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "projectId":1,
-    "title":"Create Terraform module",
-    "description":"Provision VPC, EKS, MongoDB-compatible data layer and object storage",
-    "priority":"HIGH",
-    "dueDate":"2026-06-30"
-  }'
+Open the management UI:
+
+```text
+http://localhost:15672
 ```
 
-## Change task status
+Default local credentials:
 
-```bash
-curl -X PATCH http://localhost:8080/api/tasks/1/status \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status":"IN_PROGRESS"}'
+```text
+guest / guest
 ```
 
-## Author
-
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+Use RabbitMQ to inspect queues, consumers and message rates during the task workflow.

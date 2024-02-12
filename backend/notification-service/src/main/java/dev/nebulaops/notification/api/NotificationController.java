@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class NotificationController {
     private final CopyOnWriteArrayList<Map<String, Object>> inbox = new CopyOnWriteArrayList<>();
 
-    @KafkaListener(topics = "nebula.task.events", groupId = "notification-service")
+    @RabbitListener(queues = "nebula.task.events")
     public void onTaskEvent(Map<String, Object> event) {
         inbox.add(Map.of("type", "TASK_EVENT", "payload", event, "receivedAt", Instant.now().toString()));
     }

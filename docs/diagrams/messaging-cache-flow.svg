@@ -1,63 +1,125 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="560" viewBox="0 0 1180 560" role="img"
-     aria-labelledby="title desc">
-    <title id="title">Messaging and Cache Flows</title>
-    <desc id="desc">Kafka stores durable domain events, RabbitMQ handles operational jobs, and Redis handles cache and
-        rate limiting.
-    </desc>
-    <style>
-        .bg{fill:#0b1020}.box{fill:#111a2e;stroke:#5eead4;stroke-width:2;rx:14}.k{stroke:#f472b6}.r{stroke:#fbbf24}.redis{stroke:#34d399}.txt{fill:#e5e7eb;font:600
-        16px Arial}.small{fill:#cbd5e1;font:12px
-        Arial}.line{stroke:#94a3b8;stroke-width:2;fill:none;marker-end:url(#arrow)}.dash{stroke-dasharray:7
-        5}.pulse{animation:pulse 1.8s infinite}@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
-    </style>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img"
+     aria-label="Messaging and Cache Flow">
     <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#172033"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1">
+            <stop offset="0" stop-color="#0f172a"/>
+            <stop offset="1" stop-color="#111827"/>
+        </linearGradient>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#020617" flood-opacity="0.45"/>
+        </filter>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#93c5fd"/>
         </marker>
+        <style>
+            .card{filter:url(#shadow);animation:float 5s ease-in-out infinite;}
+            .line{stroke:#93c5fd;stroke-width:2.6;fill:none;marker-end:url(#arrow);stroke-dasharray:7 7;animation:dash
+            1.7s linear infinite;}
+            .title{fill:#f8fafc;font-family:Inter,Segoe UI,Arial,sans-serif;font-weight:800;}
+            .sub{fill:#9fb3c8;font-family:Inter,Segoe UI,Arial,sans-serif;}
+            @keyframes dash{to{stroke-dashoffset:-28;}}
+            @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+            @keyframes glow{0%,100%{opacity:.4}50%{opacity:1}}
+        </style>
     </defs>
-    <rect class="bg" width="1180" height="560"/>
-    <text x="40" y="46" class="txt" font-size="24">Messaging and Cache Responsibilities</text>
-    <text class="small" x="40" y="70">Kafka = event stream; RabbitMQ = operational queues; Redis = fast cache/rate
-        limit/session state.
+    <rect width="1200" height="680" fill="url(#bg)"/>
+    <circle cx="1080" cy="70" r="95" fill="#2563eb" opacity="0.10">
+        <animate attributeName="r" values="85;110;85" dur="6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="60" y="58" font-size="30" class="title">Messaging and Cache Flow</text>
+    <text x="60" y="88" font-size="15" class="sub">RabbitMQ owns asynchronous delivery; Redis owns fast cache access
     </text>
-    <rect class="box" x="70" y="135" width="190" height="75"/>
-    <text class="txt" x="113" y="166">Task Service</text>
-    <text class="small" x="104" y="190">produces domain events</text>
-    <rect class="box k" x="390" y="110" width="210" height="110"/>
-    <text class="txt" x="455" y="145">Kafka</text>
-    <text class="small" x="435" y="170">nebula.task.events</text>
-    <text class="small" x="430" y="192">replayable event log</text>
-    <rect class="box" x="720" y="80" width="180" height="70"/>
-    <text class="txt" x="760" y="112">Analytics</text>
-    <text class="small" x="754" y="134">future consumer</text>
-    <rect class="box" x="720" y="175" width="180" height="70"/>
-    <text class="txt" x="760" y="207">Audit</text>
-    <text class="small" x="753" y="229">future consumer</text>
-    <rect class="box" x="720" y="270" width="180" height="70"/>
-    <text class="txt" x="745" y="302">Notification</text>
-    <text class="small" x="760" y="324">current consumer</text>
-    <rect class="box r" x="390" y="360" width="210" height="90"/>
-    <text class="txt" x="455" y="392">RabbitMQ</text>
-    <text class="small" x="432" y="416">notification.jobs</text>
-    <text class="small" x="423" y="438">work queue + retry</text>
-    <rect class="box" x="720" y="370" width="180" height="70"/>
-    <text class="txt" x="765" y="402">Go Worker</text>
-    <text class="small" x="758" y="424">consumes queue</text>
-    <rect class="box redis" x="70" y="360" width="190" height="90"/>
-    <text class="txt" x="135" y="392">Redis</text>
-    <text class="small" x="115" y="416">cache, rate limit</text>
-    <text class="small" x="112" y="438">fast runtime state</text>
-    <rect class="box" x="955" y="180" width="170" height="80"/>
-    <text class="txt" x="1003" y="212">MongoDB</text>
-    <text class="small" x="1000" y="236">final state</text>
-    <path class="line pulse" d="M260 172 H390"/>
-    <path class="line k" d="M600 145 C660 145 660 115 720 115"/>
-    <path class="line k" d="M600 165 C660 165 660 210 720 210"/>
-    <path class="line k pulse" d="M600 190 C660 190 660 305 720 305"/>
-    <path class="line" d="M900 305 C950 305 930 220 955 220"/>
-    <path class="line r pulse" d="M260 190 C330 190 300 405 390 405"/>
-    <path class="line r" d="M600 405 H720"/>
-    <path class="line" d="M900 405 C970 405 940 240 955 240"/>
-    <path class="line dash redis" d="M260 405 H390"/>
-    <path class="line dash redis" d="M165 360 C165 280 165 230 260 190"/>
+    <g class="card">
+        <rect x="80" y="120" width="210" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="92.0" y="132.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="185.0" y="161.0" text-anchor="middle" font-size="18" class="title">Task Service</text>
+        <text x="185.0" y="188.0" text-anchor="middle" font-size="13" class="sub">Publishes events</text>
+    </g>
+    <g class="card">
+        <rect x="400" y="120" width="230" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="412.0" y="132.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="515.0" y="161.0" text-anchor="middle" font-size="18" class="title">RabbitMQ Exchange</text>
+        <text x="515.0" y="188.0" text-anchor="middle" font-size="13" class="sub">topic/direct routing</text>
+    </g>
+    <g class="card">
+        <rect x="760" y="90" width="250" height="80" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="772.0" y="102.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="885.0" y="126.0" text-anchor="middle" font-size="18" class="title">Notification Queue</text>
+        <text x="885.0" y="153.0" text-anchor="middle" font-size="13" class="sub">durable consumer queue</text>
+    </g>
+    <g class="card">
+        <rect x="760" y="200" width="250" height="80" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="772.0" y="212.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="885.0" y="236.0" text-anchor="middle" font-size="18" class="title">Worker Queue</text>
+        <text x="885.0" y="263.0" text-anchor="middle" font-size="13" class="sub">background workload</text>
+    </g>
+    <g class="card">
+        <rect x="80" y="390" width="210" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="92.0" y="402.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="185.0" y="431.0" text-anchor="middle" font-size="18" class="title">Go Cache Service</text>
+        <text x="185.0" y="458.0" text-anchor="middle" font-size="13" class="sub">cache API</text>
+    </g>
+    <g class="card">
+        <rect x="400" y="390" width="230" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="412.0" y="402.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="515.0" y="431.0" text-anchor="middle" font-size="18" class="title">Redis</text>
+        <text x="515.0" y="458.0" text-anchor="middle" font-size="13" class="sub">low-latency cache</text>
+    </g>
+    <g class="card">
+        <rect x="760" y="390" width="250" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="772.0" y="402.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="885.0" y="431.0" text-anchor="middle" font-size="18" class="title">Consumers</text>
+        <text x="885.0" y="458.0" text-anchor="middle" font-size="13" class="sub">idempotent processing</text>
+    </g>
+    <path class="line" d="M290,165 L400,165"/>
+    <text x="345.0" y="157.0" text-anchor="middle" font-size="12" class="sub">publish</text>
+    <path class="line" d="M630,165 L760,130"/>
+    <text x="695.0" y="139.5" text-anchor="middle" font-size="12" class="sub">route</text>
+    <path class="line" d="M630,165 L760,240"/>
+    <text x="695.0" y="194.5" text-anchor="middle" font-size="12" class="sub">route</text>
+    <path class="line" d="M885,170 L885,390"/>
+    <text x="885.0" y="272.0" text-anchor="middle" font-size="12" class="sub">consume</text>
+    <path class="line" d="M290,435 L400,435"/>
+    <text x="345.0" y="427.0" text-anchor="middle" font-size="12" class="sub">read/write</text>
+    <path class="line" d="M630,435 L760,435"/>
+    <text x="695.0" y="427.0" text-anchor="middle" font-size="12" class="sub">cache hit/miss</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.2s" repeatCount="indefinite" path="M290,165 L400,165"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.4000000000000004s" repeatCount="indefinite" path="M630,165 L760,130"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.4000000000000004s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.6s" repeatCount="indefinite" path="M630,165 L760,240"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.8000000000000003s" repeatCount="indefinite" path="M290,435 L400,435"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.8000000000000003s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="3.0s" repeatCount="indefinite" path="M630,435 L760,435"/>
+        <animate attributeName="opacity" values="0;1;0" dur="3.0s" repeatCount="indefinite"/>
+    </circle>
+    <text x="60" y="645" font-size="12" class="sub">NebulaOps — optimized without Kafka/Zookeeper</text>
 </svg>

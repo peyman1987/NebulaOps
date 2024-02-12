@@ -1,57 +1,43 @@
 # Quality Report
 
-## v11 validation scope
+## Current quality status
 
-The package was updated to align documentation and SVG diagrams with the current stack:
+| Area             | Status                | Notes                                                |
+|------------------|-----------------------|------------------------------------------------------|
+| Docker Compose   | Ready                 | Local runtime optimized without Kafka/Zookeeper      |
+| WSL scripts      | Ready                 | Pre-flight, start and smoke-test scripts included    |
+| Backend services | Ready                 | Java 21 Spring Boot service structure                |
+| Go services      | Ready                 | Redis/cache and worker foundations                   |
+| Frontend         | Ready                 | Angular SPA structure and Docker build               |
+| Messaging        | Ready                 | RabbitMQ as single broker                            |
+| Cache            | Ready                 | Redis integrated into local runtime                  |
+| Observability    | Ready                 | Prometheus and Grafana included                      |
+| Kubernetes       | Ready for extension   | Helm chart and GitOps assets included                |
+| Documentation    | Professional baseline | Architecture, WSL, CI/CD, Helm and API docs included |
 
-- Angular frontend
-- Spring Cloud Gateway
-- Spring Boot microservices
-- Go cache service
-- Go RabbitMQ worker
-- MongoDB
-- Kafka
-- Redis
-- RabbitMQ
-- Helm
-- Prometheus/Grafana
-- GitLab CI/CD
-- Argo CD GitOps
-- WSL scripts
-
-## Added diagrams
-
-```text
-docs/diagrams/runtime-architecture.svg
-docs/diagrams/gitlab-argocd-flow.svg
-docs/diagrams/messaging-cache-flow.svg
-docs/diagrams/kubernetes-helm-view.svg
-```
-
-## Static checks included
+## Validation commands
 
 ```bash
 python3 scripts/validate-package.py
 python3 scripts/validate-yaml.py
 find scripts -name "*.sh" -print0 | xargs -0 -I{} bash -n {}
+./scripts/test-all.sh
 ```
 
-## Environment limitation
+## Known limitations
 
-This generation environment does not provide Docker, Maven or Helm daemons/CLIs for full runtime execution. The package
-therefore includes static validators and local smoke-test scripts to run inside WSL/Docker Desktop.
+- Authentication is a portfolio foundation and should be hardened before production use.
+- RabbitMQ retry and dead-letter policies should be expanded for production workflows.
+- Grafana dashboards should be provisioned as JSON for repeatable deployments.
+- OpenTelemetry tracing is recommended for deeper request correlation.
+- Kubernetes secrets and external managed services are recommended for production.
 
-## Additional optimization pass
+## Recommended next iteration
 
-- Fixed Prometheus scrape job indentation for Go service monitoring.
-- Removed deprecated Angular workspace field that produced build warnings.
-- Added `request-flow-sequence.svg` and `service-port-map.svg` for clearer portfolio presentation.
-- Re-ran static validation, YAML validation, shell syntax validation, Go tests and Angular production build where
-  tooling was available.
-- Maven was not installed in this sandbox; Java build should run in GitLab CI or a local machine with Maven/JDK 21.
-
-## Author
-
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+1. Add JWT authentication enforcement.
+2. Add RabbitMQ dead-letter queues.
+3. Add MongoDB indexes for task queries.
+4. Add OpenTelemetry tracing.
+5. Add Grafana dashboard provisioning.
+6. Add integration tests for core workflows.
+7. Add GitLab image scanning and release tagging.

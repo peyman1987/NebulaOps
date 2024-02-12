@@ -4,7 +4,12 @@ metadata:
   name: nebulaops-config
   namespace: { { .Values.global.namespace } }
 data:
-  KAFKA_BOOTSTRAP_SERVERS: "nebulaops-kafka:9092"
+  RABBITMQ_HOST: "nebulaops-rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USER: "guest"
+  RABBITMQ_PASSWORD: "guest"
+  RABBITMQ_TASK_QUEUE: "nebula.task.events"
+  REDIS_ADDR: "nebulaops-redis:6379"
   AUTH_SERVICE_URL: "http://nebulaops-auth:8081"
   TASK_SERVICE_URL: "http://nebulaops-task:8082"
   NOTIFICATION_SERVICE_URL: "http://nebulaops-notification:8083"

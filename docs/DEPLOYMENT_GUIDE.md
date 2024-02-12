@@ -1,105 +1,46 @@
-# NebulaOps Deployment Guide
+# Deployment Guide
 
-NebulaOps supports two deployment modes:
+## Local deployment
 
-1. Docker Compose for local development
-2. Helm for Kubernetes/cloud deployment
-
-## 1. Local Docker Compose
+Use Docker Compose for local execution:
 
 ```bash
-chmod +x scripts/*.sh
-./scripts/verify-local.sh
 ./scripts/local-up.sh
-```
-
-Services:
-
-| Service              | URL                   |
-|----------------------|-----------------------|
-| Angular frontend     | http://localhost:4200 |
-| Gateway              | http://localhost:8080 |
-| Auth service         | http://localhost:8081 |
-| Task service         | http://localhost:8082 |
-| Notification service | http://localhost:8083 |
-| File service         | http://localhost:8084 |
-| MongoDB              | localhost:27017       |
-| Kafka                | localhost:9092        |
-| Prometheus           | http://localhost:9090 |
-| Grafana              | http://localhost:3000 |
-
-Grafana login:
-
-```text
-admin / admin
-```
-
-## 2. Smoke Test
-
-```bash
 ./scripts/smoke-test.sh
 ```
 
-The test creates a task via Gateway and verifies that the platform path is alive.
+## WSL deployment
 
-## 3. Kubernetes with Helm
+Use the WSL scripts when running on Windows 11 with Ubuntu:
 
-Render manifests:
+```bash
+./scripts/wsl/check-wsl.sh
+./scripts/wsl/start.sh
+./scripts/wsl/smoke-test.sh
+```
+
+## Kubernetes deployment path
+
+1. Build and push service images.
+2. Update Helm values with image tags.
+3. Render Helm templates.
+4. Apply with Helm or let Argo CD reconcile from Git.
 
 ```bash
 ./scripts/helm-render.sh
-```
-
-Install or upgrade:
-
-```bash
 ./scripts/helm-install-local.sh
 ```
 
-Port-forward:
+## Environment strategy
 
-```bash
-kubectl -n nebulaops port-forward svc/nebulaops-frontend 4200:4200
-kubectl -n nebulaops port-forward svc/nebulaops-gateway 8080:8080
-kubectl -n nebulaops port-forward svc/nebulaops-grafana 3000:3000
-kubectl -n nebulaops port-forward svc/nebulaops-prometheus 9090:9090
-```
+| Environment | Purpose                                    |
+|-------------|--------------------------------------------|
+| local       | Developer execution through Docker Compose |
+| dev         | Shared Kubernetes test environment         |
+| staging     | Release candidate validation               |
+| production  | Hardened deployment with managed services  |
 
-## 4. AWS/EKS Production Direction
+## Production notes
 
-Recommended production version:
-
-- EKS for workloads
-- Amazon MSK for Kafka
-- MongoDB Atlas or a managed document database strategy
-- AWS Load Balancer Controller
-- External Secrets Operator
-- AWS Secrets Manager
-- Amazon ECR for images
-- Route53 + ACM for TLS
-- Grafana Cloud or Amazon Managed Grafana
-- Prometheus Operator or Amazon Managed Prometheus
-
-## 5. Release Workflow
-
-Suggested CI/CD pipeline:
-
-```text
-Pull Request
-  -> Angular build
-  -> Java tests
-  -> Docker image build
-  -> security scan
-  -> push images
-  -> helm lint
-  -> helm template
-  -> deploy to staging
-  -> smoke tests
-  -> production approval
-```
-
-## Author
-
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+For production, MongoDB, Redis and RabbitMQ should normally run as managed services or dedicated stateful platform
+components. Application pods should be stateless and horizontally scalable.

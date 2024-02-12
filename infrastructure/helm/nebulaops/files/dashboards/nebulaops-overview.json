@@ -60,7 +60,7 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Kafka Task Events Produced",
+      "title": "RabbitMQ Task Events Published",
       "gridPos": {
         "h": 6,
         "w": 8,
@@ -69,7 +69,7 @@
       },
       "targets": [
         {
-          "expr": "sum(kafka_producer_record_send_total)",
+          "expr": "sum(rabbitmq_queue_messages_ready)",
           "refId": "A"
         }
       ]

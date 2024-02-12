@@ -1,406 +1,168 @@
 # NebulaOps Technical Documentation
 
-## 1. Executive summary
+## 1. Purpose
 
-NebulaOps is a senior-level cloud-native portfolio project implemented as an event-driven SaaS workflow platform. The
-current version is aligned to **Angular + Spring Boot + Go + MongoDB + Kafka + Redis + RabbitMQ + Helm + Prometheus +
-Grafana + GitLab CI/CD + Argo CD**.
+NebulaOps is a professional cloud-native portfolio platform designed to demonstrate modern distributed-system
+engineering without unnecessary local runtime complexity. It uses RabbitMQ as the single messaging layer and avoids
+Kafka/Zookeeper to keep Docker Desktop and WSL2 execution reliable.
 
-The goal is to show application engineering and platform engineering together: API design, service boundaries,
-asynchronous messaging, document modeling, caching, operational queues, containerization, Kubernetes packaging,
-observability and GitOps delivery.
+## 2. System context
 
-## 2. Current technology stack
-
-| Layer                | Technology                                     |
-|----------------------|------------------------------------------------|
-| Frontend             | Angular, TypeScript, Angular CDK drag and drop |
-| API Gateway          | Spring Cloud Gateway                           |
-| Java backend         | Java 21, Spring Boot 3 microservices           |
-| Go backend           | Go cache API and RabbitMQ event worker         |
-| Database             | MongoDB per bounded context                    |
-| Event streaming      | Apache Kafka                                   |
-| Operational queue    | RabbitMQ                                       |
-| Cache                | Redis                                          |
-| Local runtime        | Docker Compose                                 |
-| Kubernetes packaging | Helm                                           |
-| GitOps deployment    | Argo CD Application and ApplicationSet         |
-| CI/CD                | GitLab CI/CD                                   |
-| Metrics              | Spring Boot Actuator, Micrometer, Prometheus   |
-| Dashboards           | Grafana provisioning as code                   |
-
-## 3. Diagrams
-
-### Runtime architecture
+The platform represents an operations-oriented SaaS application. Users interact with an Angular dashboard, requests
+enter through an API gateway, domain services handle business capabilities, MongoDB stores state, RabbitMQ transports
+asynchronous events, Redis supports cache patterns, and Prometheus/Grafana provide observability.
 
 ![Runtime architecture](diagrams/runtime-architecture.svg)
 
-### GitLab CI/CD and Argo CD
+## 3. Architectural principles
 
-![GitLab ArgoCD flow](diagrams/gitlab-argocd-flow.svg)
+### 3.1 Clear service boundaries
 
-### Messaging and cache
+Each backend service owns a bounded context. This reduces coupling and makes the system easier to evolve.
 
-![Messaging cache flow](diagrams/messaging-cache-flow.svg)
+| Service              | Responsibility                       | Runtime                        |
+|----------------------|--------------------------------------|--------------------------------|
+| Gateway Service      | API routing and edge abstraction     | Java 21 / Spring Cloud Gateway |
+| Auth Service         | User identity API foundation         | Java 21 / Spring Boot          |
+| Task Service         | Task lifecycle and domain events     | Java 21 / Spring Boot          |
+| File Service         | File metadata API foundation         | Java 21 / Spring Boot          |
+| Notification Service | Event-driven notification processing | Java 21 / Spring Boot          |
+| Go Cache Service     | Redis-backed cache API               | Go                             |
+| Go Event Worker      | Lightweight event-worker foundation  | Go                             |
 
-### Kubernetes and Helm
+### 3.2 One broker, one responsibility model
 
-![Kubernetes Helm view](diagrams/kubernetes-helm-view.svg)
+RabbitMQ is responsible for asynchronous delivery. It provides exchanges, queues, routing keys, management UI and
+operational simplicity. This is the right fit for local development and portfolio demonstration because the business
+flows are command/event oriented and do not require large-scale stream replay.
 
-### Request flow sequence
+### 3.3 Database ownership
 
-![Request flow sequence](diagrams/request-flow-sequence.svg)
+MongoDB is used as the persistence layer. Services should own their collections and avoid direct cross-service database
+coupling. Cross-service communication should happen through APIs or asynchronous events.
 
-### Service and port map
+### 3.4 Observable by default
 
-![Service port map](diagrams/service-port-map.svg)
+Services expose health and metrics endpoints. Prometheus scrapes runtime metrics and Grafana displays operational
+dashboards. This allows the platform to be presented not only as code, but as an operated system.
 
 ## 4. Runtime architecture
 
 ```text
-Angular Frontend
-     |
-     v
-Spring Cloud Gateway
-     |
-     +--> Auth Service ------------ MongoDB: nebula_auth
-     +--> Task Service ------------ MongoDB: nebula_task
-     |          |
-     |          +------------------> Kafka: nebula.task.events
-     |
-     +--> File Service ------------ MongoDB: nebula_file
-     +--> Notification Service <---- Kafka consumer group
-     |          |
-     |          +------------------> MongoDB: nebula_notification
-     |
-     +--> Go Cache Service -------- Redis
-
-Task or Notification jobs --------> RabbitMQ --------> Go Event Worker
-
-Observability:
-Services /actuator/prometheus + Go /metrics --> Prometheus --> Grafana
-
-Delivery:
-GitLab CI builds/tests/packages --> Registry/Git --> Argo CD syncs Helm chart --> Kubernetes
+Browser
+  -> Angular SPA
+  -> Spring Cloud Gateway
+  -> Domain services
+  -> MongoDB
+  -> RabbitMQ event queues
+  -> Notification/worker consumers
+  -> Redis cache services
+  -> Prometheus/Grafana observability
 ```
 
-## 5. Bounded contexts and services
+## 5. Request lifecycle
 
-### Angular frontend
+![Request flow sequence](diagrams/request-flow-sequence.svg)
 
-Enterprise-style UI foundation with dashboard, task board and drag-and-drop interactions. It talks to the backend
-through the gateway instead of calling services directly.
+A typical task creation flow:
 
-### Gateway service
+1. Angular sends a task request to the gateway.
+2. Gateway routes the request to Task Service.
+3. Task Service validates and persists the task in MongoDB.
+4. Task Service publishes a task event to RabbitMQ.
+5. Notification Service consumes the event and processes a notification action.
+6. Metrics are exposed and scraped by Prometheus.
 
-Routes public API traffic to internal services.
+## 6. Messaging and cache design
 
-```text
-/api/auth/**          -> auth-service
-/api/tasks/**         -> task-service
-/api/files/**         -> file-service
-/api/notifications/** -> notification-service
-/cache/**             -> go-cache-service
-```
+![Messaging and cache flow](diagrams/messaging-cache-flow.svg)
 
-### Auth service
+RabbitMQ handles:
 
-Responsible for identity and organization context.
+- task-created events
+- task-status-changed events
+- notification queue delivery
+- worker-friendly message routing
+- future retry/dead-letter queue extension
 
-Current API:
+Redis handles:
 
-```http
-POST /api/auth/register
-POST /api/auth/login
-GET  /api/auth/healthz
-```
+- hot lookup cache
+- temporary runtime state
+- low-latency service access
+- future rate-limit or session-like primitives
 
-Senior hardening roadmap:
+## 7. Local runtime services
 
-- BCrypt password hashing
-- JWT signing key from secret manager
-- refresh token rotation
-- RBAC claim generation
-- tenant claim validation
+![Service port map](diagrams/service-port-map.svg)
 
-### Task service
+| Component            |  Port | Notes                            |
+|----------------------|------:|----------------------------------|
+| Frontend             |  4200 | Angular development/runtime UI   |
+| Gateway              |  8080 | Public API entrypoint            |
+| Auth Service         |  8081 | Internal/public service endpoint |
+| Task Service         |  8082 | Task lifecycle API               |
+| Notification Service |  8083 | Async processing API/health      |
+| File Service         |  8084 | File metadata API                |
+| Go Cache Service     |  8091 | Redis-backed cache API           |
+| MongoDB              | 27017 | Persistence                      |
+| Redis                |  6379 | Cache                            |
+| RabbitMQ AMQP        |  5672 | Broker protocol                  |
+| RabbitMQ UI          | 15672 | Management dashboard             |
+| Prometheus           |  9090 | Metrics collection               |
+| Grafana              |  3000 | Dashboards                       |
 
-Responsible for workflow task documents and Kafka task events.
+## 8. Kubernetes and delivery
 
-Current API:
+![Kubernetes Helm view](diagrams/kubernetes-helm-view.svg)
 
-```http
-GET   /api/tasks?organizationId=demo-org
-POST  /api/tasks
-PATCH /api/tasks/{id}/status/{status}
-```
+The Helm chart packages application workloads and platform configuration for Kubernetes-style deployment. Argo CD assets
+define a GitOps delivery model where the desired state is stored in Git and continuously reconciled into the cluster.
 
-Events produced:
+![GitLab and Argo CD flow](diagrams/gitlab-argocd-flow.svg)
 
-```text
-TaskCreated
-TaskStatusChanged
-```
+## 9. Production hardening roadmap
 
-Kafka topic:
+Recommended next improvements:
 
-```text
-nebula.task.events
-```
+- JWT authentication enforcement at the gateway
+- service-to-service authentication
+- centralized configuration management
+- RabbitMQ dead-letter exchanges and retry queues
+- MongoDB indexes per access pattern
+- structured logging with trace correlation IDs
+- OpenTelemetry tracing
+- container image vulnerability scanning
+- Kubernetes resource requests/limits
+- production secrets through External Secrets or sealed secrets
+- dashboard JSON provisioning for Grafana
 
-### Notification service
+## 10. Quality gates
 
-Consumes Kafka task events and exposes generated notifications.
-
-Current API:
-
-```http
-GET /api/notifications
-```
-
-### File service
-
-Stores file metadata and is ready for S3/MinIO integration.
-
-Current API:
-
-```http
-POST /api/files
-GET  /api/files
-```
-
-### Go cache service
-
-Small Go backend that demonstrates non-Java backend capability and Redis integration.
-
-Responsibilities:
-
-- cache values
-- read cached values
-- expose lightweight health endpoint
-- prepare rate-limiting/session-cache extension points
-
-### Go event worker
-
-RabbitMQ worker that consumes operational queue messages. It is separated from Kafka because queue jobs and event
-streams solve different problems.
-
-## 6. Data and messaging design
-
-### MongoDB
-
-Each service owns its own database to avoid shared-schema coupling.
-
-```text
-nebula_auth
-nebula_task
-nebula_file
-nebula_notification
-```
-
-Important collections:
-
-```text
-users
-tasks
-files
-notifications
-```
-
-The task collection should be indexed by `organizationId` for tenant-scoped queries.
-
-### Kafka
-
-Kafka is the durable, replayable event backbone. It is used for domain events and future analytics/audit pipelines.
-
-Event example:
-
-```json
-{
-  "eventId": "uuid",
-  "type": "TaskCreated",
-  "taskId": "mongo-id",
-  "organizationId": "demo-org",
-  "occurredAt": "2026-05-17T10:15:30Z"
-}
-```
-
-### RabbitMQ
-
-RabbitMQ is used for operational work queues where a worker takes a job, processes it and acknowledges completion. Good
-use cases: email, PDF generation, retries, webhooks and background jobs.
-
-### Redis
-
-Redis is used for fast runtime state:
-
-- cache
-- rate limiting
-- session-like temporary state
-- hot dashboard counters
-
-## 7. Local development
-
-Start the full platform:
-
-```bash
-chmod +x scripts/*.sh
-./scripts/verify-local.sh
-./scripts/local-up.sh
-```
-
-Open:
-
-```text
-Frontend:      http://localhost:4200
-Gateway:       http://localhost:8080
-Go Cache API:  http://localhost:8091
-Grafana:       http://localhost:3000
-Prometheus:    http://localhost:9090
-RabbitMQ UI:   http://localhost:15672
-```
-
-Run smoke tests:
-
-```bash
-./scripts/smoke-test.sh
-```
-
-## 8. WSL development
-
-For Windows 11 + WSL2:
-
-```bash
-chmod +x scripts/*.sh scripts/wsl/*.sh
-./scripts/wsl/check-wsl.sh
-./scripts/wsl/start.sh
-./scripts/wsl/smoke-test.sh
-```
-
-Keep the repo under the Linux filesystem, for example:
-
-```text
-~/projects/nebulaops
-```
-
-## 9. Helm deployment
-
-Helm chart location:
-
-```text
-infrastructure/helm/nebulaops
-```
-
-Render manifests:
-
-```bash
-./scripts/helm-render.sh
-```
-
-Install locally:
-
-```bash
-./scripts/helm-install-local.sh
-```
-
-## 10. Observability
-
-Spring services expose:
-
-```text
-/actuator/health
-/actuator/metrics
-/actuator/prometheus
-```
-
-Prometheus config:
-
-```text
-infrastructure/observability/prometheus/prometheus.yml
-```
-
-Grafana provisioning:
-
-```text
-infrastructure/observability/grafana/provisioning
-infrastructure/observability/grafana/dashboards/nebulaops-overview.json
-```
-
-## 11. GitLab CI/CD and Argo CD GitOps
-
-Pipeline stages:
-
-```text
-validate -> test -> build -> package -> deploy -> verify
-```
-
-Responsibilities:
-
-- GitLab validates docs, YAML, scripts and package structure
-- GitLab runs service tests where tooling is available
-- GitLab builds Docker images
-- GitLab packages Helm chart metadata
-- Argo CD reconciles Kubernetes state from the Git repository
-
-Files:
-
-```text
-.gitlab-ci.yml
-infrastructure/argocd/project.yaml
-infrastructure/argocd/application.yaml
-infrastructure/argocd/applicationset.yaml
-```
-
-## 12. Production hardening checklist
-
-- Replace demo auth with signed JWT and BCrypt
-- Move MongoDB, Kafka, RabbitMQ and Redis to managed services where appropriate
-- Add API rate limiting at Gateway using Redis
-- Add OpenTelemetry tracing
-- Add centralized structured logs
-- Use External Secrets Operator
-- Use NetworkPolicies
-- Add resource requests and limits
-- Add Horizontal Pod Autoscaling
-- Add integration tests with Testcontainers
-- Add contract tests for Kafka events
-- Add DLQ strategy for RabbitMQ jobs
-
-## 13. Interview story
-
-> I designed NebulaOps as a portfolio-grade cloud-native SaaS platform. Angular provides the user-facing application,
-> Spring Boot services model core bounded contexts, Go services demonstrate polyglot backend capability, MongoDB stores
-> service-owned documents, Kafka handles durable domain event streams, RabbitMQ handles operational queues, Redis
-> supports
-> cache and runtime state, and Helm/Argo CD provide production-style GitOps delivery. Prometheus and Grafana are
-> provisioned as code so the platform can be operated, not only developed.
-
-## v12 quality hardening notes
-
-This optimized package includes the following improvements:
-
-- Prometheus scrape configuration corrected so `go-cache-service` is a first-class scrape job instead of being nested
-  under `file-service`.
-- Angular workspace metadata cleaned to remove the obsolete `defaultProject` warning on Angular 18 builds.
-- Additional SVG diagrams added for request sequencing and local service/port mapping.
-- Static validation extended to parse all SVG files, check Prometheus job names, validate shell syntax and verify
-  important documentation references.
-- Go sources formatted with `gofmt`; Go module tests are executed per module through `scripts/test-all.sh`.
-
-### Validation commands used
+Before presenting or deploying the project, run:
 
 ```bash
 python3 scripts/validate-package.py
 python3 scripts/validate-yaml.py
-bash scripts/test-all.sh
-npm run build --prefix frontend
+find scripts -name "*.sh" -print0 | xargs -0 -I{} bash -n {}
+./scripts/test-all.sh
 ```
 
-Note: Maven was not available in the current sandbox, so Java compilation is covered by static package validation here
-and remains executable in CI/GitLab where Maven is installed.
+## Frontend operations and Kubernetes visibility
 
-## Author
+The Angular frontend has been extended into an operations console rather than a simple portfolio landing page. It
+presents Kubernetes namespaces, pods, services, cluster summary metrics and sanitized microservice logs in the same
+workspace as the delivery task board.
 
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+The frontend reads deterministic demo cluster data from `frontend/src/assets/k8s-snapshot.json`. This keeps the
+portfolio runnable without requiring a live Kubernetes API server. In production, the same UI contract can be served by
+a read-only platform endpoint such as `/api/platform/kubernetes/snapshot` backed by Kubernetes RBAC with `get`, `list`
+and `watch` permissions for non-secret operational resources.
+
+Task movement uses optimistic persistence. When backend tasks are available, drag-and-drop updates
+call `PATCH /api/tasks/{id}/status/{status}` through Spring Cloud Gateway and the task-service persists the state in
+MongoDB. If the backend is not reachable during a local demo, the board falls back to browser `localStorage`, preventing
+task movements from being lost after refresh.
+
+The production frontend image now includes Nginx API proxying for `/api/*` so browser calls reach the gateway service
+from inside Docker Compose and Kubernetes-style service networking.

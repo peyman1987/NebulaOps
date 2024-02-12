@@ -6,19 +6,11 @@ spring:
   data:
     mongodb:
       uri: ${MONGO_URI:mongodb://nebula:nebula@localhost:27017/nebula_task?authSource=admin}
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      group-id: task-service
-      auto-offset-reset: earliest
-      properties:
-        spring.json.trusted.packages: '*'
-    producer:
-      acks: all
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
 management:
   endpoints:
     web:

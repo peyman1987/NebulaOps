@@ -1,41 +1,50 @@
-# Go + Redis + RabbitMQ Extension
+# Go, Redis and RabbitMQ Design
 
-NebulaOps v9 adds two Go services to show polyglot cloud engineering.
+## Goal
 
-## Services
+The Go services demonstrate lightweight infrastructure-oriented workloads inside a polyglot microservice platform.
 
-### go-cache-service
+## Go Cache Service
 
-A small HTTP service written in Go. It stores hot dashboard/task values in Redis and publishes a cache event to
-RabbitMQ.
+The Go Cache Service is responsible for Redis-backed access patterns. It is intentionally small and fast, making it easy
+to inspect, test and extend.
 
-Endpoints:
+Typical responsibilities:
 
-```bash
-curl http://localhost:8091/health
+- expose cache health endpoints
+- read/write lightweight cache entries
+- demonstrate Go service packaging in Docker
+- integrate with Redis using a small runtime footprint
 
-curl -X PUT http://localhost:8091/cache/dashboard:summary \
-  -H 'content-type: application/json' \
-  -d '{"value":"{\"openTasks\":12}","ttlSeconds":120}'
+## Go Event Worker
 
-curl http://localhost:8091/cache/dashboard:summary
-```
+The Go Event Worker represents a foundation for background consumers. In a production version, it can consume RabbitMQ
+queues, perform idempotent operations and update external integrations.
 
-### go-event-worker
+## Redis usage
 
-A background worker written in Go. It consumes `nebula.cache.events` from RabbitMQ and acknowledges processed messages.
+Redis is used for:
 
-## Why both Kafka and RabbitMQ?
+- low-latency cache reads
+- temporary state
+- future rate-limiting primitives
+- future session/cache extension points
 
-Kafka is used for domain events and event streaming between business services. RabbitMQ is used for command/work queues
-where acknowledgements, retries and worker semantics are more natural.
+## RabbitMQ usage
 
-## Redis
+RabbitMQ is used for:
 
-Redis is used for short-lived cache entries, such as dashboard summaries and expensive task aggregations.
+- durable domain events
+- notification queues
+- worker integration
+- future retry and dead-letter queues
 
-## Author
+## Recommended hardening
 
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+- define explicit exchanges and routing keys
+- add dead-letter exchanges
+- make consumers idempotent
+- use correlation IDs
+- add structured JSON logs
+- expose worker metrics
+- configure consumer prefetch limits

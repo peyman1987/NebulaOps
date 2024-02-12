@@ -22,6 +22,7 @@ required_files = [
     "docs/diagrams/service-port-map.svg",
     "docs/TECHNICAL_DOCUMENTATION.md",
     "docs/GITLAB_ARGOCD.md",
+    "docs/TROUBLESHOOTING.md",
     "infrastructure/docker-compose.yml",
     "infrastructure/helm/nebulaops/Chart.yaml",
     "infrastructure/observability/prometheus/prometheus.yml",
@@ -36,6 +37,7 @@ required_files = [
     "go/cache-service/cmd/server/main.go",
     "go/event-worker/go.mod",
     "go/event-worker/cmd/worker/main.go",
+    "scripts/wsl/docker-cache-repair.sh",
 ]
 
 for path in required_files:
@@ -84,7 +86,7 @@ except Exception as exc:
     errors.append(f"invalid YAML: {exc}")
 
 readme = (ROOT / "README.md").read_text()
-required_terms = ["Angular", "MongoDB", "Kafka", "Helm", "Grafana", "WSL", "Go", "Redis", "RabbitMQ", "GitLab", "Argo CD", "Prometheus"]
+required_terms = ["Angular", "MongoDB", "RabbitMQ", "Helm", "Grafana", "WSL", "Go", "Redis", "RabbitMQ", "GitLab", "Argo CD", "Prometheus"]
 for term in required_terms:
     if term not in readme:
         errors.append(f"README missing term: {term}")

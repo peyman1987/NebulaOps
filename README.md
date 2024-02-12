@@ -1,59 +1,77 @@
-> Enterprise Cloud-Native Portfolio Project  
-> Developed by Peyman Eshghi Malayeri (2024)  
-> Contact: peyman_em@yahoo.com
-
 # NebulaOps Platform
 
-## v11 Docs + SVG Aligned Edition
+**Enterprise cloud-native portfolio platform** built to demonstrate senior-level architecture, implementation
+discipline, local developer experience, observability and deployment readiness.
 
-NebulaOps is a senior cloud-native portfolio project that demonstrates a realistic distributed SaaS platform using *
-*Angular**, **Spring Boot**, **Go**, **MongoDB**, **Kafka**, **Redis**, **RabbitMQ**, **Docker Compose**, **Helm**, *
-*Prometheus**, **Grafana**, **GitLab CI/CD** and **Argo CD GitOps**.
+NebulaOps is a lean microservice platform designed for Docker Desktop, WSL2 and Kubernetes. The system uses RabbitMQ as
+the single asynchronous messaging layer, MongoDB for service-owned persistence, Redis for cache-oriented workloads,
+Spring Boot for core domain APIs, Go for lightweight infrastructure services, Angular for the user interface,
+Prometheus/Grafana for observability and Helm/Argo CD for deployment workflows.
 
-## Visual architecture
+## Executive summary
 
-### Runtime architecture
+NebulaOps models a realistic SaaS operations platform with a clean separation between user interaction, API edge
+routing, domain services, asynchronous processing and platform services. The architecture intentionally avoids Kafka to
+keep the local runtime stable and easier to operate while preserving a professional event-driven design through RabbitMQ
+exchanges and queues.
 
-![Runtime architecture](docs/diagrams/runtime-architecture.svg)
+## Operations Console Features
 
-### GitLab CI/CD and Argo CD flow
+The Angular frontend now includes a professional OpenLens-inspired operations console:
 
-![GitLab ArgoCD flow](docs/diagrams/gitlab-argocd-flow.svg)
+- Task CRUD with MongoDB-backed persistence and local fallback.
+- Kubernetes resource inventory for Namespaces, Deployments, ReplicaSets, Services, Ingresses, ConfigMaps and Secrets.
+- Resource creation and deletion directly from the frontend.
+- YAML viewer/editor with an Apply action.
+- Workload replica scaling from the UI.
+- Namespace and kind filters for fast operations.
+- Microservice log panel for platform observability demos.
 
-### Messaging and cache responsibilities
+The Kubernetes API implementation is intentionally safe for a portfolio demo: it uses a gateway-backed local model that
+mirrors the shape of real Kubernetes operations without mutating a real cluster. The API can be replaced with a
+Kubernetes Java client or in-cluster agent for production.
 
-![Messaging cache flow](docs/diagrams/messaging-cache-flow.svg)
+See `docs/OPENLENS_LIKE_KUBERNETES_CONSOLE.md` for API details and the production hardening roadmap.
 
-### Kubernetes and Helm deployment
+## Architecture at a glance
 
-![Kubernetes Helm view](docs/diagrams/kubernetes-helm-view.svg)
+![Animated runtime architecture](docs/diagrams/runtime-architecture.svg)
 
-### Request sequence
+| Layer           | Components                        | Responsibility                                                                                      |
+|-----------------|-----------------------------------|-----------------------------------------------------------------------------------------------------|
+| Client          | Angular SPA                       | Operations dashboard, Kubernetes inventory, service logs, persistent task board and API integration |
+| Edge            | Spring Cloud Gateway              | Public API entrypoint, routing, future auth/policy enforcement                                      |
+| Domain services | Auth, Task, File, Notification    | Bounded-context APIs implemented with Java 21 and Spring Boot 3                                     |
+| Worker/services | Go Cache Service, Go Event Worker | Lightweight cache API and async worker foundation                                                   |
+| Data            | MongoDB                           | Document persistence owned per service/bounded context                                              |
+| Messaging       | RabbitMQ                          | Durable task events, notification queues and async fan-out                                          |
+| Cache           | Redis                             | Fast cache/state access and service acceleration                                                    |
+| Observability   | Prometheus, Grafana, Actuator     | Metrics scraping, dashboards and operational visibility                                             |
+| Delivery        | GitLab CI, Helm, Argo CD          | CI validation, Kubernetes packaging and GitOps deployment flow                                      |
 
-![Request flow sequence](docs/diagrams/request-flow-sequence.svg)
+## Visual documentation
 
-### Local service and port map
+| Diagram                                                                          | Description                                                                        |
+|----------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [Runtime architecture](docs/diagrams/runtime-architecture.svg)                   | End-to-end runtime flow across frontend, gateway, services, data and observability |
+| [Messaging and cache flow](docs/diagrams/messaging-cache-flow.svg)               | RabbitMQ and Redis responsibilities with animated message movement                 |
+| [Request sequence](docs/diagrams/request-flow-sequence.svg)                      | User request lifecycle from Angular to backend and async notification              |
+| [Service port map](docs/diagrams/service-port-map.svg)                           | Local ports, service exposure and operations endpoints                             |
+| [Kubernetes Helm view](docs/diagrams/kubernetes-helm-view.svg)                   | Helm-packaged Kubernetes deployment topology                                       |
+| [GitLab and Argo CD flow](docs/diagrams/gitlab-argocd-flow.svg)                  | CI/CD and GitOps delivery model                                                    |
+| [Frontend operations dashboard](docs/diagrams/frontend-operations-dashboard.svg) | Angular UI flow for Kubernetes inventory, logs and task persistence                |
 
-![Service port map](docs/diagrams/service-port-map.svg)
+## Local quick start with WSL2
 
-## What runs locally
+Use the Linux filesystem for better Docker, Node and Java performance:
 
-| Area               | Component                           |
-|--------------------|-------------------------------------|
-| Frontend           | Angular SPA on `4200`               |
-| Gateway            | Spring Cloud Gateway on `8080`      |
-| Java services      | Auth, Task, File, Notification      |
-| Go services        | Cache API and RabbitMQ event worker |
-| Data               | MongoDB                             |
-| Event streaming    | Kafka                               |
-| Operational queues | RabbitMQ                            |
-| Cache              | Redis                               |
-| Observability      | Prometheus and Grafana              |
-| Delivery           | GitLab CI/CD and Argo CD manifests  |
+```bash
+mkdir -p ~/projects
+cp -r /mnt/d/workspace/personal/portfolio/nebulaops-v13 ~/projects/nebulaops
+cd ~/projects/nebulaops
+```
 
-## WSL Ubuntu quick start
-
-Use this on Windows 11 with Ubuntu WSL2 and Docker Desktop.
+Start the platform:
 
 ```bash
 chmod +x scripts/*.sh scripts/wsl/*.sh
@@ -62,15 +80,15 @@ chmod +x scripts/*.sh scripts/wsl/*.sh
 ./scripts/wsl/smoke-test.sh
 ```
 
-Recommended path:
+Stop and clean local containers:
 
-```text
-~/projects/nebulaops
+```bash
+./scripts/wsl/stop.sh
+# or, for a full reset
+./scripts/local-down.sh
 ```
 
-Avoid running the repository from `/mnt/c/...` because Docker bind mounts and file watching are slower there.
-
-## Local start without WSL wrappers
+## Generic Docker quick start
 
 ```bash
 chmod +x scripts/*.sh
@@ -79,79 +97,86 @@ chmod +x scripts/*.sh
 ./scripts/smoke-test.sh
 ```
 
-Open:
+## Local service URLs
 
-```text
-Frontend:      http://localhost:4200
-Gateway:       http://localhost:8080
-Go Cache API:  http://localhost:8091
-Grafana:       http://localhost:3000  admin/admin
-Prometheus:    http://localhost:9090
-RabbitMQ UI:   http://localhost:15672  guest/guest
-```
+| Service             | URL                    | Credentials     |
+|---------------------|------------------------|-----------------|
+| Angular frontend    | http://localhost:4200  | -               |
+| API gateway         | http://localhost:8080  | -               |
+| Go cache API        | http://localhost:8091  | -               |
+| RabbitMQ management | http://localhost:15672 | guest / guest   |
+| Prometheus          | http://localhost:9090  | -               |
+| Grafana             | http://localhost:3000  | admin / admin   |
+| MongoDB             | localhost:27017        | nebula / nebula |
+| Redis               | localhost:6379         | -               |
 
-## Why Kafka, RabbitMQ and Redis all exist
+## Core runtime flow
 
-Kafka is the durable event backbone for domain events such as `TaskCreated` and `TaskStatusChanged`. RabbitMQ is the
-operational work queue for jobs that should be consumed by workers, retried and completed. Redis is used for fast cache,
-rate limiting and temporary runtime state.
+1. The browser loads the Angular operations dashboard.
+2. Angular displays Kubernetes namespaces, pods, services and sanitized microservice logs.
+3. Angular sends task workflow updates to Spring Cloud Gateway through `/api/tasks`.
+4. Gateway routes requests to the task-service.
+5. Task-service persists task state in MongoDB.
+6. Task-related events are published to RabbitMQ.
+7. Notification and worker components consume asynchronous events.
+8. Redis supports cache-oriented access patterns.
+9. Services expose metrics through Actuator or service endpoints.
+10. Prometheus scrapes metrics and Grafana visualizes platform health.
 
-## GitLab CI/CD and Argo CD
+## Documentation index
 
-GitLab CI validates the repository, runs tests, builds service images, packages Helm artifacts and prepares deployment
-metadata. Argo CD owns continuous delivery by reconciling the Helm chart into Kubernetes.
+| Document                                                                         | Purpose                                                                   |
+|----------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`START_HERE.md`](START_HERE.md)                                                 | First-run guide and project orientation                                   |
+| [`docs/TECHNICAL_DOCUMENTATION.md`](docs/TECHNICAL_DOCUMENTATION.md)             | Complete technical architecture and service design                        |
+| [`docs/API_EXAMPLES.md`](docs/API_EXAMPLES.md)                                   | API examples and smoke-test calls                                         |
+| [`docs/GO_REDIS_RABBITMQ.md`](docs/GO_REDIS_RABBITMQ.md)                         | Go, Redis and RabbitMQ integration design                                 |
+| [`docs/GRAFANA_OBSERVABILITY.md`](docs/GRAFANA_OBSERVABILITY.md)                 | Metrics, dashboards and operations guide                                  |
+| [`docs/FRONTEND_OPERATIONS_DASHBOARD.md`](docs/FRONTEND_OPERATIONS_DASHBOARD.md) | Angular dashboard for logs, Kubernetes state and persistent task workflow |
+| [`docs/HELM_GUIDE.md`](docs/HELM_GUIDE.md)                                       | Helm chart and Kubernetes deployment guide                                |
+| [`docs/GITLAB_ARGOCD.md`](docs/GITLAB_ARGOCD.md)                                 | CI/CD and GitOps delivery workflow                                        |
+| [`docs/WSL_GUIDE.md`](docs/WSL_GUIDE.md)                                         | Windows 11 + WSL2 development guide                                       |
+| [`docs/QUALITY_REPORT.md`](docs/QUALITY_REPORT.md)                               | Validation checklist, limitations and improvement roadmap                 |
 
-Main files:
-
-```text
-.gitlab-ci.yml
-infrastructure/argocd/project.yaml
-infrastructure/argocd/application.yaml
-infrastructure/argocd/applicationset.yaml
-infrastructure/helm/nebulaops
-```
-
-Validate GitLab/Argo CD files:
-
-```bash
-./scripts/gitlab-validate.sh
-```
-
-## Helm and Kubernetes
-
-Render the Helm chart:
-
-```bash
-./scripts/helm-render.sh
-```
-
-Install to a local Kubernetes cluster:
+## Validation commands
 
 ```bash
-./scripts/helm-install-local.sh
-```
-
-## Documentation map
-
-| Document                          | Purpose                                        |
-|-----------------------------------|------------------------------------------------|
-| `docs/TECHNICAL_DOCUMENTATION.md` | Complete technical overview aligned to v11     |
-| `docs/GITLAB_ARGOCD.md`           | GitLab CI/CD and Argo CD workflow              |
-| `docs/GO_REDIS_RABBITMQ.md`       | Go services, Redis and RabbitMQ explanation    |
-| `docs/HELM_GUIDE.md`              | Helm packaging and local Kubernetes deployment |
-| `docs/GRAFANA_OBSERVABILITY.md`   | Prometheus/Grafana setup                       |
-| `docs/WSL_GUIDE.md`               | Windows 11 + WSL instructions                  |
-| `docs/API_EXAMPLES.md`            | API examples and smoke-test calls              |
-| `docs/QUALITY_REPORT.md`          | Validation report                              |
-
-## Validation
-
-```bash
-./scripts/test-all.sh
 python3 scripts/validate-package.py
 python3 scripts/validate-yaml.py
 find scripts -name "*.sh" -print0 | xargs -0 -I{} bash -n {}
+./scripts/test-all.sh
 ```
 
-The package includes static validation for docs, SVG XML, YAML, JSON, script syntax, Prometheus scrape jobs and expected
-stack references. Frontend and Go tests are run automatically when Node.js and Go are installed.
+## Portfolio positioning
+
+This project can be presented as a platform engineering and cloud developer portfolio asset showing:
+
+- microservice decomposition and bounded-context thinking
+- event-driven architecture with RabbitMQ
+- MongoDB document persistence per service
+- Redis-backed caching strategy
+- Java and Go polyglot backend implementation
+- Angular operations dashboard with Kubernetes inventory, microservice logs and persistent task workflow
+- Docker-first local development
+- observability with Prometheus and Grafana
+- Helm packaging and GitOps delivery design
+- professional documentation and runnable scripts
+
+## Technology choices
+
+RabbitMQ is used as the single messaging platform. This keeps the local stack lightweight, reliable and easy to explain
+while still demonstrating asynchronous processing, durable queues, retry-friendly architecture and event fan-out
+patterns. Kafka and Zookeeper are not part of this distribution.
+
+## Troubleshooting
+
+For Docker Desktop/WSL cache and BuildKit snapshot issues, see [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
+
+## Real Kubernetes Console
+
+The Kubernetes console is backed by real gateway APIs, not frontend mock data. The gateway container includes `kubectl`,
+reads kubeconfig from `/kube/config`, and applies operations directly against the configured cluster.
+
+Supported operations include namespace/workload/service/ingress/config map/secret listing, YAML retrieval, YAML apply,
+resource deletion, workload scaling and pod/service logs. See `docs/REAL_KUBERNETES_CONSOLE.md` for setup and safety
+notes.
