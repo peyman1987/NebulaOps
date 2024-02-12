@@ -28,8 +28,14 @@ spec:
           env:
             - name: MONGO_URI
               value: "mongodb://{{ $root.Values.mongodb.username }}:{{ $root.Values.mongodb.password }}@nebulaops-mongodb:27017/{{ $svc.mongoDatabase | default "nebula" }}?authSource=admin"
-            - name: KAFKA_BOOTSTRAP_SERVERS
-              valueFrom: { configMapKeyRef: { name: nebulaops-config, key: KAFKA_BOOTSTRAP_SERVERS } }
+            - name: RABBITMQ_HOST
+              valueFrom: { configMapKeyRef: { name: nebulaops-config, key: RABBITMQ_HOST } }
+            - name: RABBITMQ_PORT
+              valueFrom: { configMapKeyRef: { name: nebulaops-config, key: RABBITMQ_PORT } }
+            - name: RABBITMQ_USER
+              valueFrom: { configMapKeyRef: { name: nebulaops-config, key: RABBITMQ_USER } }
+            - name: RABBITMQ_PASSWORD
+              valueFrom: { configMapKeyRef: { name: nebulaops-config, key: RABBITMQ_PASSWORD } }
           readinessProbe:
             httpGet: { path: /actuator/health, port: { { $svc.port } } }
             initialDelaySeconds: 25

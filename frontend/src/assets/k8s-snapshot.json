@@ -1,0 +1,249 @@
+{
+  "cluster": {
+    "name": "nebulaops-local",
+    "provider": "Docker Desktop / Helm",
+    "version": "v1.29+",
+    "status": "Healthy",
+    "nodeCount": 1,
+    "cpuUsage": 42,
+    "memoryUsage": 58
+  },
+  "namespaces": [
+    {
+      "name": "nebulaops",
+      "status": "Active",
+      "pods": 9,
+      "services": 8,
+      "workloads": 7
+    },
+    {
+      "name": "monitoring",
+      "status": "Active",
+      "pods": 2,
+      "services": 2,
+      "workloads": 2
+    },
+    {
+      "name": "argocd",
+      "status": "Active",
+      "pods": 3,
+      "services": 3,
+      "workloads": 3
+    }
+  ],
+  "pods": [
+    {
+      "name": "frontend-7f9b6d5b9c",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "18m",
+      "cpu": "38m",
+      "memory": "96Mi"
+    },
+    {
+      "name": "gateway-service-65f5f87f8d",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "18m",
+      "cpu": "72m",
+      "memory": "256Mi"
+    },
+    {
+      "name": "auth-service-769cbfc6d8",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "17m",
+      "cpu": "54m",
+      "memory": "242Mi"
+    },
+    {
+      "name": "task-service-7cc8dbd98d",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "17m",
+      "cpu": "69m",
+      "memory": "274Mi"
+    },
+    {
+      "name": "notification-service-858d9dfbd4",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "17m",
+      "cpu": "41m",
+      "memory": "210Mi"
+    },
+    {
+      "name": "file-service-74659bdf7d",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "17m",
+      "cpu": "39m",
+      "memory": "218Mi"
+    },
+    {
+      "name": "go-cache-service-6db9d4b78d",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "16m",
+      "cpu": "18m",
+      "memory": "42Mi"
+    },
+    {
+      "name": "go-event-worker-7b95dfc8b7",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "16m",
+      "cpu": "16m",
+      "memory": "38Mi"
+    },
+    {
+      "name": "rabbitmq-0",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "19m",
+      "cpu": "81m",
+      "memory": "318Mi"
+    },
+    {
+      "name": "mongodb-0",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "19m",
+      "cpu": "92m",
+      "memory": "412Mi"
+    },
+    {
+      "name": "redis-0",
+      "namespace": "nebulaops",
+      "status": "Running",
+      "ready": "1/1",
+      "restarts": 0,
+      "age": "19m",
+      "cpu": "22m",
+      "memory": "54Mi"
+    }
+  ],
+  "services": [
+    {
+      "name": "frontend",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.12.10",
+      "ports": "80/TCP"
+    },
+    {
+      "name": "gateway-service",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.15.20",
+      "ports": "8080/TCP"
+    },
+    {
+      "name": "auth-service",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.11.21",
+      "ports": "8081/TCP"
+    },
+    {
+      "name": "task-service",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.11.22",
+      "ports": "8082/TCP"
+    },
+    {
+      "name": "notification-service",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.11.23",
+      "ports": "8083/TCP"
+    },
+    {
+      "name": "file-service",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.11.24",
+      "ports": "8084/TCP"
+    },
+    {
+      "name": "rabbitmq",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.20.30",
+      "ports": "5672/TCP, 15672/TCP"
+    },
+    {
+      "name": "mongodb",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.20.31",
+      "ports": "27017/TCP"
+    },
+    {
+      "name": "redis",
+      "namespace": "nebulaops",
+      "type": "ClusterIP",
+      "clusterIp": "10.96.20.32",
+      "ports": "6379/TCP"
+    }
+  ],
+  "logs": [
+    {
+      "time": "10:02:14",
+      "service": "gateway-service",
+      "level": "INFO",
+      "message": "Routed PATCH /api/tasks/{id}/status/DONE to task-service"
+    },
+    {
+      "time": "10:02:15",
+      "service": "task-service",
+      "level": "INFO",
+      "message": "Task status updated and persisted in MongoDB"
+    },
+    {
+      "time": "10:02:15",
+      "service": "task-service",
+      "level": "INFO",
+      "message": "Published TaskStatusChanged event to RabbitMQ exchange nebula.task.exchange"
+    },
+    {
+      "time": "10:02:16",
+      "service": "notification-service",
+      "level": "INFO",
+      "message": "Consumed task.event and queued notification delivery"
+    },
+    {
+      "time": "10:02:17",
+      "service": "go-cache-service",
+      "level": "INFO",
+      "message": "Redis cache refreshed for portfolio board summary"
+    },
+    {
+      "time": "10:02:19",
+      "service": "file-service",
+      "level": "INFO",
+      "message": "Health probe completed successfully"
+    }
+  ]
+}

@@ -1,33 +1,16 @@
-# NebulaOps — WSL Ubuntu Run Guide
+# WSL2 Development Guide
 
-Guide for Windows 11 + WSL2 Ubuntu.
+## Recommended environment
 
-## Recommended setup
+- Windows 11
+- WSL2 with Ubuntu
+- Docker Desktop with WSL integration enabled
+- At least 10 GB memory allocated to Docker Desktop
+- Project stored under `~/projects`, not `/mnt/c` or `/mnt/d`
 
-Use the Linux filesystem, not `C:\`:
-
-```bash
-mkdir -p ~/projects
-cd ~/projects
-unzip /mnt/c/Users/<your-user>/Downloads/nebulaops-portfolio-v8-wsl-verified.zip
-cd nebulaops-mongo-angular-kafka
-```
-
-Running from `/mnt/c/...` works, but Docker and Angular builds are slower.
-
-## Requirements
-
-Install on Windows:
-
-1. WSL2 Ubuntu
-2. Docker Desktop
-3. Docker Desktop → Settings → Resources → WSL Integration → enable Ubuntu
-
-Inside Ubuntu:
+## Pre-flight check
 
 ```bash
-chmod +x scripts/*.sh scripts/wsl/*.sh
-./scripts/wsl/install-prereqs-ubuntu.sh
 ./scripts/wsl/check-wsl.sh
 ```
 
@@ -37,91 +20,51 @@ chmod +x scripts/*.sh scripts/wsl/*.sh
 ./scripts/wsl/start.sh
 ```
 
-Services:
-
-```text
-Frontend:   http://localhost:4200
-Gateway:    http://localhost:8080/actuator/health
-Grafana:    http://localhost:3000  admin/admin
-Prometheus: http://localhost:9090
-MongoDB:    localhost:27017
-Kafka:      localhost:9092
-```
-
 ## Smoke test
 
 ```bash
 ./scripts/wsl/smoke-test.sh
 ```
 
-It registers a user, creates a task via the gateway, stores it in MongoDB, publishes a Kafka event, and reads
-notifications.
-
-## Useful commands
+## Stop
 
 ```bash
-./scripts/wsl/status.sh
-./scripts/wsl/logs.sh
-./scripts/wsl/logs.sh task-service
 ./scripts/wsl/stop.sh
-./scripts/wsl/reset.sh
 ```
 
-## Recommended .wslconfig
+## Performance guidance
 
-Create `C:\Users\<your-user>\.wslconfig` on Windows:
-
-```ini
-[wsl2]
-memory=8GB
-processors=4
-swap=4GB
-localhostForwarding=true
-```
-
-Restart from PowerShell:
-
-```powershell
-wsl --shutdown
-```
+Avoid daily development under Windows-mounted paths such as `/mnt/c` or `/mnt/d`. Docker bind mounts, Node package
+installation and Java builds are faster and more reliable inside the WSL Linux filesystem.
 
 ## Troubleshooting
 
-Docker daemon not reachable: start Docker Desktop and enable WSL Integration.
+### Docker daemon unreachable
 
-Ports already in use:
+Start Docker Desktop and enable WSL integration for the Ubuntu distribution.
 
-```bash
-ss -tulpn | grep -E '3000|4200|8080|8081|8082|8083|8084|9090|9092|27017'
-```
+### Port already allocated
 
-Kafka can take 30-90 seconds to start on first run:
+Find the process using the port and stop it, or update the exposed port in Docker Compose.
 
-```bash
-./scripts/wsl/logs.sh kafka
-```
+### RabbitMQ not healthy
 
-For better performance, keep project under `~/projects`, not `/mnt/c`.
-
-## v9 services
-
-After startup, also check:
-
-- Go Cache Service: http://localhost:8091/health
-- RabbitMQ Management: http://localhost:15672, username `guest`, password `guest`
-- Redis: exposed on localhost:6379 for local debugging
-
-Example cache test:
+Inspect logs:
 
 ```bash
-curl -X PUT http://localhost:8091/cache/dashboard:summary \
-  -H 'content-type: application/json' \
-  -d '{"value":"{\"openTasks\":12}","ttlSeconds":120}'
-curl http://localhost:8091/cache/dashboard:summary
+docker logs nebulaops-rabbitmq-1
 ```
 
-## Author
+Then restart:
 
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+```bash
+docker compose restart rabbitmq
+```
+
+### Full reset
+
+```bash
+docker compose down -v
+docker system prune -f
+./scripts/wsl/start.sh
+```

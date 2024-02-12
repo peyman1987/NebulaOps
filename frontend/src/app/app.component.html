@@ -1,27 +1,162 @@
 <main class="shell">
     <section class="hero">
-        <div><p class="eyebrow">Cloud Dashboard</p>
-            <h1>NebulaOps Platform</h1>
-            <p>Angular + Spring Boot + MongoDB + Kafka. Event-driven SaaS workflow orchestration with cloud-native
-                delivery.</p></div>
-        <div class="status-card"><span>Live Architecture</span><strong>MongoDB · Kafka · K8s</strong></div>
+        <div>
+            <p class="eyebrow">Senior Cloud Portfolio</p>
+            <h1>NebulaOps Control Center</h1>
+            <p>Operational dashboard with Task CRUD, Kubernetes CRUD, YAML live editor and Docker/Kubernetes-backed
+                microservice logs.</p>
+        </div>
+        <div class="status-card">
+            <span>Runtime topology</span>
+            <strong>Angular · Gateway · Spring Boot · Go · MongoDB · RabbitMQ · Redis · Kubernetes</strong>
+            <small>Single-machine WSL/Docker workflow</small>
+        </div>
     </section>
+
     <section class="metrics">
         <article><span>Total tasks</span><strong>{{ total() }}</strong></article>
         <article><span>Completed</span><strong>{{ done() }}</strong></article>
-        <article><span>Critical events</span><strong>{{ critical() }}</strong></article>
+        <article><span>Critical</span><strong>{{ critical() }}</strong></article>
+        <article><span>Workloads</span><strong>{{ deployments().length }}</strong></article>
+        <article><span>Services</span><strong>{{ services() }}</strong></article>
+        <article><span>Ingress</span><strong>{{ ingress() }}</strong></article>
     </section>
-    <section cdkDropListGroup class="board">
-        <div *ngFor="let col of columns" class="column">
-            <h2>{{ col.replace('_', ' ') }}</h2>
-            <div (cdkDropListDropped)="drop($event,col)" [cdkDropListData]="columnTasks(col)" cdkDropList
-                 class="dropzone">
-                <article *ngFor="let task of columnTasks(col)" cdkDrag class="task">
-                    <div class="task-top"><strong>{{ task.id }}</strong><span
-                            [class]="'priority '+task.priority.toLowerCase()">{{ task.priority }}</span></div>
-                    <p>{{ task.title }}</p><small>{{ task.owner }}</small>
-                </article>
+
+    <nav aria-label="NebulaOps sections" class="main-tabs">
+        <button (click)="setTab('TASK')" [class.active]="activeTab() === 'TASK'" type="button">TASK</button>
+        <button (click)="setTab('KUBERNETES')" [class.active]="activeTab() === 'KUBERNETES'" type="button">KUBERNETES
+        </button>
+    </nav>
+
+    <section *ngIf="activeTab() === 'TASK'" class="tab-page">
+        <article class="panel">
+            <div class="panel-title">
+                <div><p class="eyebrow">Task CRUD</p>
+                    <h2>Delivery board</h2></div>
+                <span [class]="'sync '+syncState()">{{ syncState() }}</span>
             </div>
-        </div>
+            <form (ngSubmit)="createTask()" class="form">
+                <input [(ngModel)]="taskForm.title" name="title" placeholder="New task title">
+                <input [(ngModel)]="taskForm.owner" name="owner" placeholder="Owner">
+                <select [(ngModel)]="taskForm.priority" name="priority">
+                    <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
+                </select>
+                <button>Create</button>
+            </form>
+            <section cdkDropListGroup class="board">
+                <div *ngFor="let col of columns" class="column">
+                    <h2>{{ col.replace('_', ' ') }}</h2>
+                    <div (cdkDropListDropped)="drop($event,col)" [cdkDropListData]="columnTasks(col)" cdkDropList
+                         class="dropzone">
+                        <article *ngFor="let task of columnTasks(col)" cdkDrag class="task">
+                            <div class="task-top"><strong>{{ task.id }}</strong>
+                                <button (click)="deleteTask(task.id)" class="icon">×</button>
+                            </div>
+                            <p>{{ task.title }}</p><small>{{ task.owner }} · {{ task.priority }}</small>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab() === 'KUBERNETES'" class="tab-page">
+        <section class="ops-grid">
+            <article class="panel table-panel">
+                <div class="panel-title">
+                    <div><p class="eyebrow">Kubernetes CRUD</p>
+                        <h2>Resources</h2><span [class]="'sync '+k8sState()">{{ k8sState() }}</span></div>
+                    <div class="filters">
+                        <button (click)="loadK8sFromApi()" type="button">Refresh</button>
+                        <select (change)="setNamespace($event)">
+                            <option *ngFor="let ns of namespaceOptions()" [value]="ns">{{ ns }}</option>
+                        </select>
+                        <select (change)="setKind($event)">
+                            <option value="all">all</option>
+                            <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
+                        </select>
+                    </div>
+                </div>
+                <form (ngSubmit)="createResource()" class="form">
+                    <select [(ngModel)]="k8sForm.kind" name="kind">
+                        <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
+                    </select>
+                    <input [(ngModel)]="k8sForm.namespace" name="namespace" placeholder="namespace">
+                    <input [(ngModel)]="k8sForm.name" name="name" placeholder="resource name">
+                    <input [(ngModel)]="k8sForm.replicas" min="0" name="replicas" type="number">
+                    <button>Create</button>
+                </form>
+                <p *ngIf="apiError()" class="error-box">{{ apiError() }}</p>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Kind</th>
+                            <th>Name</th>
+                            <th>Namespace</th>
+                            <th>Status</th>
+                            <th>Replicas</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr (click)="selectResource(r)" *ngFor="let r of visibleResources()">
+                            <td>{{ r.kind }}</td>
+                            <td>{{ r.name }}</td>
+                            <td>{{ r.namespace }}</td>
+                            <td><span class="pill ok">{{ r.status }}</span></td>
+                            <td>{{ r.replicas }}</td>
+                            <td class="actions">
+                                <button (click)="$event.stopPropagation(); scale(r,-1)">-</button>
+                                <button (click)="$event.stopPropagation(); scale(r,1)">+</button>
+                                <button (click)="$event.stopPropagation(); deleteResource(r)">Delete</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-title">
+                    <div><p class="eyebrow">YAML live editor</p>
+                        <h2>{{ selected()?.kind || 'Resource' }} / {{ selected()?.name || 'none selected' }}</h2></div>
+                    <button (click)="applyYaml()" [disabled]="!selected()">Apply YAML</button>
+                </div>
+                <textarea (ngModelChange)="updateSelectedYaml($event)" [ngModel]="selected()?.yaml"
+                          class="yaml"></textarea>
+            </article>
+        </section>
+
+        <article class="panel logs-panel">
+            <div class="panel-title compact">
+                <div>
+                    <p class="eyebrow">Microservice logs</p>
+                    <h2>Docker/Kubernetes runtime logs</h2>
+                    <small class="log-refresh-state">Last refresh: {{ lastLogsRefresh() }} ·
+                        Auto-refresh: {{ logsAutoRefresh() ? 'ON' : 'OFF' }}</small>
+                </div>
+                <div class="filters log-controls">
+                    <button (click)="refreshLogs()" type="button">Refresh logs</button>
+                    <button (click)="toggleLogsAutoRefresh()" [class.active-toggle]="logsAutoRefresh()"
+                            type="button">{{ logsAutoRefresh() ? 'Stop auto-refresh' : 'Auto-refresh' }}
+                    </button>
+                    <select (change)="setLogsRefreshSeconds($event)" [value]="logsRefreshSeconds()">
+                        <option value="2">2s</option>
+                        <option value="5">5s</option>
+                        <option value="10">10s</option>
+                        <option value="30">30s</option>
+                    </select>
+                    <select (change)="setLogService($event)">
+                        <option *ngFor="let service of logServiceOptions()" [value]="service">{{ service }}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="logs">
+                <div *ngFor="let log of visibleLogs()" class="log-line">
+                    <span>{{ log.time }}</span><strong>{{ log.service }}</strong><em>{{ log.level }}</em>
+                    <p>{{ log.message }}</p></div>
+            </div>
+        </article>
     </section>
 </main>

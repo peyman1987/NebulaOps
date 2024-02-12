@@ -1,92 +1,46 @@
-# Grafana & Observability Guide
+# Observability Guide
 
-NebulaOps includes a local observability stack based on Prometheus and Grafana.
+## Purpose
 
-## Local Docker Compose
+NebulaOps includes an observability stack to demonstrate production-style operations. The goal is to make service
+health, metrics and platform behavior visible during local execution.
 
-Start the platform:
+## Components
 
-```bash
-./scripts/local-up.sh
-```
+| Component              | Role                                     |
+|------------------------|------------------------------------------|
+| Spring Actuator        | Service health and metrics endpoints     |
+| Prometheus             | Metrics scraping and time-series storage |
+| Grafana                | Dashboard visualization                  |
+| RabbitMQ Management UI | Queue and broker inspection              |
 
-Open:
+## Local URLs
 
-```text
-Grafana:    http://localhost:3000
-Prometheus: http://localhost:9090
-```
+| Tool        | URL                    |
+|-------------|------------------------|
+| Prometheus  | http://localhost:9090  |
+| Grafana     | http://localhost:3000  |
+| RabbitMQ UI | http://localhost:15672 |
 
-Default Grafana credentials:
+## Recommended dashboard panels
 
-```text
-admin / admin
-```
+- service uptime
+- JVM memory usage
+- request rate by service
+- HTTP error rate
+- task API latency
+- RabbitMQ queue depth
+- RabbitMQ publish/consume rates
+- Redis availability
+- MongoDB availability
 
-## Provisioned assets
+## Operational checklist
 
-```text
-infrastructure/observability/prometheus/prometheus.yml
-infrastructure/observability/grafana/provisioning/datasources/datasource.yml
-infrastructure/observability/grafana/provisioning/dashboards/dashboard.yml
-infrastructure/observability/grafana/dashboards/nebulaops-overview.json
-```
-
-Grafana automatically loads:
-
-- Prometheus datasource
-- NebulaOps dashboard folder
-- NebulaOps Platform Overview dashboard
-
-## Metrics exposed by services
-
-Each Spring Boot service exposes actuator endpoints:
-
-```text
-/actuator/health
-/actuator/metrics
-/actuator/prometheus
-```
-
-Prometheus scrapes:
-
-- gateway-service:8080
-- auth-service:8081
-- task-service:8082
-- notification-service:8083
-- file-service:8084
-
-## Useful PromQL examples
-
-Request throughput:
-
-```promql
-sum(rate(http_server_requests_seconds_count[1m])) * 60
-```
-
-p95 latency:
-
-```promql
-histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, application))
-```
-
-JVM memory:
-
-```promql
-sum(jvm_memory_used_bytes) by (application, area)
-```
-
-## Portfolio explanation
-
-This observability layer demonstrates operational maturity:
-
-- services expose health and metrics
-- Prometheus scrapes metrics automatically
-- Grafana dashboards are provisioned as code
-- the same observability model exists in Docker Compose and Helm
-
-## Author
-
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+1. Start the platform.
+2. Open Prometheus targets.
+3. Confirm all expected targets are up.
+4. Open Grafana.
+5. Review service-level panels.
+6. Trigger API requests.
+7. Confirm metrics change after traffic.
+8. Inspect RabbitMQ queue behavior.

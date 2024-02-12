@@ -1,43 +1,38 @@
 # Interview Story
 
-## 30-second pitch
+## 60-second pitch
 
-NebulaOps is a cloud-native workflow orchestration platform I built as a senior-level portfolio project. It uses Spring
-Boot microservices, Angular, MongoDB, Kafka, Docker, Kubernetes and Terraform. I focused on architecture, security,
-CI/CD, observability and AWS deployment readiness.
+NebulaOps is a cloud-native microservice platform built as a senior portfolio project. It uses Angular, Spring Boot, Go,
+MongoDB, RabbitMQ, Redis, Docker, Prometheus, Grafana, Helm, GitLab CI and Argo CD. The design focuses on clear service
+boundaries, a stable event-driven architecture, local developer productivity and deployment readiness.
 
 ## Architecture explanation
 
-I split the system into bounded contexts: Auth, Task, File and Notification. The API Gateway exposes a single entry
-point. Task operations emit events through Kafka, and Notification Service consumes them asynchronously. This keeps the
-user-facing API fast and decouples side effects.
+The frontend communicates with a Spring Cloud Gateway. The gateway routes traffic to domain services such as Auth, Task,
+File and Notification. Task Service persists data in MongoDB and publishes events to RabbitMQ. Consumers process
+asynchronous work, Redis supports cache-oriented access patterns, and Prometheus/Grafana provide observability.
 
-## Senior points to emphasize
+## Why RabbitMQ
 
-- I designed the service boundaries around business capabilities.
-- I used organization-based multi-tenancy to model SaaS behavior.
-- I separated runtime configuration from source code.
-- I prepared Kubernetes and Terraform assets for cloud deployment.
-- I documented production risks and improvements.
-- I included observability considerations from the beginning.
+RabbitMQ is a strong fit for this system because the platform needs durable work queues and event delivery, not
+large-scale log streaming. It is lighter to run locally, easier to inspect through the management UI and appropriate for
+task/notification workflows.
 
-## Trade-offs
+## What this project proves
 
-For the portfolio version, I kept the implementation simple enough to run locally. In production I would add centralized
-identity, stricter RBAC, externalized secrets, network policies, dead-letter queues, tracing collectors and full
-integration tests.
+- ability to design a distributed architecture
+- ability to implement polyglot services
+- ability to operate a local cloud-native stack
+- ability to document engineering decisions professionally
+- ability to prepare Kubernetes and GitOps deployment assets
 
-## Future evolution
+## Strong demo path
 
-- Add OpenTelemetry traces end-to-end
-- Add Grafana dashboards as code
-- Add ArgoCD GitOps deployment
-- Add Helm charts
-- Add service mesh with Istio or Linkerd
-- Add AI assistant for task summarization
-
-## Author
-
-**Peyman Eshghi Malayeri**  
-Email: peyman_em@yahoo.com  
-Project Year: 2024
+1. Start the system with Docker Compose.
+2. Open the animated architecture diagram.
+3. Show the frontend dashboard.
+4. Call APIs through the gateway.
+5. Inspect RabbitMQ queues.
+6. Show Prometheus targets.
+7. Show Grafana dashboards.
+8. Explain Helm and Argo CD delivery.

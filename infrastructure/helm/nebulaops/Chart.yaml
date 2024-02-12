@@ -1,6 +1,6 @@
 apiVersion: v2
 name: nebulaops
-description: Helm chart for the NebulaOps Angular + Spring Boot + MongoDB + Kafka platform
+description: Helm chart for the NebulaOps Angular + Spring Boot + MongoDB + RabbitMQ + Redis platform
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
@@ -8,7 +8,8 @@ keywords:
   - spring-boot
   - angular
   - mongodb
-  - kafka
+  - rabbitmq
+  - redis
   - grafana
   - portfolio
 maintainers:

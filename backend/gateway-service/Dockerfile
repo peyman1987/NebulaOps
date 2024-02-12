@@ -6,6 +6,13 @@ COPY backend/gateway-service/src backend/gateway-service/src
 WORKDIR /workspace/backend/gateway-service
 RUN mvn -q -DskipTests package
 FROM eclipse-temurin:21-jre
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && curl -fsSL -o /usr/local/bin/kubectl https://dl.k8s.io/release/v1.30.6/bin/linux/amd64/kubectl \
+    && chmod +x /usr/local/bin/kubectl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /workspace/backend/gateway-service/target/*.jar app.jar
 EXPOSE 8080

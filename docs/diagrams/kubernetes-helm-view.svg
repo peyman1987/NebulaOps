@@ -1,69 +1,116 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="600" viewBox="0 0 1180 600" role="img"
-     aria-labelledby="title desc">
-    <title id="title">Kubernetes and Helm Deployment View</title>
-    <desc id="desc">Helm chart deploys NebulaOps workloads to a Kubernetes namespace, including frontend, gateway,
-        services, data infrastructure and observability.
-    </desc>
-    <style>
-        .bg{fill:#0b1020}.ns{fill:#0f172a;stroke:#818cf8;stroke-width:2;rx:18}.box{fill:#111a2e;stroke:#5eead4;stroke-width:2;rx:12}.data{stroke:#fbbf24}.obs{stroke:#c084fc}.txt{fill:#e5e7eb;font:600
-        16px Arial}.small{fill:#cbd5e1;font:12px
-        Arial}.line{stroke:#94a3b8;stroke-width:2;fill:none;marker-end:url(#arrow)}
-    </style>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img"
+     aria-label="Kubernetes and Helm View">
     <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#172033"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1">
+            <stop offset="0" stop-color="#0f172a"/>
+            <stop offset="1" stop-color="#111827"/>
+        </linearGradient>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#020617" flood-opacity="0.45"/>
+        </filter>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#93c5fd"/>
         </marker>
+        <style>
+            .card{filter:url(#shadow);animation:float 5s ease-in-out infinite;}
+            .line{stroke:#93c5fd;stroke-width:2.6;fill:none;marker-end:url(#arrow);stroke-dasharray:7 7;animation:dash
+            1.7s linear infinite;}
+            .title{fill:#f8fafc;font-family:Inter,Segoe UI,Arial,sans-serif;font-weight:800;}
+            .sub{fill:#9fb3c8;font-family:Inter,Segoe UI,Arial,sans-serif;}
+            @keyframes dash{to{stroke-dashoffset:-28;}}
+            @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+            @keyframes glow{0%,100%{opacity:.4}50%{opacity:1}}
+        </style>
     </defs>
-    <rect class="bg" width="1180" height="600"/>
-    <text x="40" y="46" class="txt" font-size="24">Kubernetes / Helm Deployment View</text>
-    <text class="small" x="40" y="70">Rendered from infrastructure/helm/nebulaops and reconciled by Argo CD.</text>
-    <rect class="ns" x="50" y="105" width="1080" height="430"/>
-    <text class="txt" x="85" y="140">namespace: nebulaops</text>
-    <rect class="box" x="95" y="185" width="160" height="72"/>
-    <text class="txt" x="135" y="215">Ingress</text>
-    <text class="small" x="122" y="238">nginx / local</text>
-    <rect class="box" x="315" y="185" width="160" height="72"/>
-    <text class="txt" x="365" y="215">Frontend</text>
-    <text class="small" x="356" y="238">Angular pod</text>
-    <rect class="box" x="535" y="185" width="160" height="72"/>
-    <text class="txt" x="575" y="215">Gateway</text>
-    <text class="small" x="567" y="238">Spring pod</text>
-    <rect class="box" x="755" y="135" width="150" height="65"/>
-    <text class="txt" x="800" y="165">Auth</text>
-    <text class="small" x="790" y="185">Spring</text>
-    <rect class="box" x="755" y="220" width="150" height="65"/>
-    <text class="txt" x="800" y="250">Task</text>
-    <text class="small" x="790" y="270">Spring</text>
-    <rect class="box" x="755" y="305" width="150" height="65"/>
-    <text class="txt" x="803" y="335">File</text>
-    <text class="small" x="790" y="355">Spring</text>
-    <rect class="box" x="755" y="390" width="150" height="65"/>
-    <text class="txt" x="777" y="420">Notification</text>
-    <text class="small" x="790" y="440">Spring</text>
-    <rect class="box data" x="965" y="150" width="125" height="60"/>
-    <text class="txt" x="995" y="180">Mongo</text>
-    <rect class="box data" x="965" y="230" width="125" height="60"/>
-    <text class="txt" x="999" y="260">Kafka</text>
-    <rect class="box data" x="965" y="310" width="125" height="60"/>
-    <text class="txt" x="1000" y="340">Redis</text>
-    <rect class="box data" x="965" y="390" width="125" height="60"/>
-    <text class="txt" x="990" y="420">RabbitMQ</text>
-    <rect class="box obs" x="315" y="390" width="160" height="72"/>
-    <text class="txt" x="350" y="420">Prometheus</text>
-    <text class="small" x="350" y="442">scrapes pods</text>
-    <rect class="box obs" x="535" y="390" width="160" height="72"/>
-    <text class="txt" x="575" y="420">Grafana</text>
-    <text class="small" x="568" y="442">dashboards</text>
-    <path class="line" d="M255 221 H315"/>
-    <path class="line" d="M475 221 H535"/>
-    <path class="line" d="M695 221 C725 221 725 168 755 168"/>
-    <path class="line" d="M695 221 H755"/>
-    <path class="line" d="M695 221 C725 221 725 338 755 338"/>
-    <path class="line" d="M695 221 C725 221 725 423 755 423"/>
-    <path class="line" d="M905 168 H965"/>
-    <path class="line" d="M905 252 H965"/>
-    <path class="line" d="M905 338 H965"/>
-    <path class="line" d="M905 423 H965"/>
-    <path class="line" d="M475 426 H535"/>
-    <path class="line" d="M615 390 C650 335 720 252 755 252"/>
+    <rect width="1200" height="680" fill="url(#bg)"/>
+    <circle cx="1080" cy="70" r="95" fill="#2563eb" opacity="0.10">
+        <animate attributeName="r" values="85;110;85" dur="6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="60" y="58" font-size="30" class="title">Kubernetes and Helm View</text>
+    <text x="60" y="88" font-size="15" class="sub">Helm packages workloads; platform dependencies can be internal or
+        managed
+    </text>
+    <g class="card">
+        <rect x="70" y="120" width="220" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="82.0" y="132.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="180.0" y="161.0" text-anchor="middle" font-size="18" class="title">Helm Chart</text>
+        <text x="180.0" y="188.0" text-anchor="middle" font-size="13" class="sub">templates + values</text>
+    </g>
+    <g class="card">
+        <rect x="400" y="110" width="300" height="110" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="412.0" y="122.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="550.0" y="161.0" text-anchor="middle" font-size="18" class="title">Kubernetes Namespace</text>
+        <text x="550.0" y="188.0" text-anchor="middle" font-size="13" class="sub">nebulaops</text>
+    </g>
+    <g class="card">
+        <rect x="780" y="90" width="300" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="792.0" y="102.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="930.0" y="131.0" text-anchor="middle" font-size="18" class="title">App Deployments</text>
+        <text x="930.0" y="158.0" text-anchor="middle" font-size="13" class="sub">gateway + services + frontend</text>
+    </g>
+    <g class="card">
+        <rect x="780" y="220" width="300" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="792.0" y="232.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="930.0" y="261.0" text-anchor="middle" font-size="18" class="title">Platform Services</text>
+        <text x="930.0" y="288.0" text-anchor="middle" font-size="13" class="sub">MongoDB Redis RabbitMQ</text>
+    </g>
+    <g class="card">
+        <rect x="400" y="330" width="300" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="412.0" y="342.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="550.0" y="371.0" text-anchor="middle" font-size="18" class="title">Config &amp; Secrets</text>
+        <text x="550.0" y="398.0" text-anchor="middle" font-size="13" class="sub">env values</text>
+    </g>
+    <g class="card">
+        <rect x="70" y="330" width="220" height="90" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
+        <rect x="82.0" y="342.0" width="12" height="12" rx="6" fill="#22c55e">
+            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
+        </rect>
+        <text x="180.0" y="371.0" text-anchor="middle" font-size="18" class="title">Ingress / Service</text>
+        <text x="180.0" y="398.0" text-anchor="middle" font-size="13" class="sub">external access</text>
+    </g>
+    <path class="line" d="M290,165 L400,165"/>
+    <text x="345.0" y="157.0" text-anchor="middle" font-size="12" class="sub">render</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.2s" repeatCount="indefinite" path="M290,165 L400,165"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M700,160 L780,135"/>
+    <text x="740.0" y="139.5" text-anchor="middle" font-size="12" class="sub">deploy</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.4000000000000004s" repeatCount="indefinite" path="M700,160 L780,135"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.4000000000000004s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M700,160 L780,265"/>
+    <text x="740.0" y="204.5" text-anchor="middle" font-size="12" class="sub">connect</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.6s" repeatCount="indefinite" path="M700,160 L780,265"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M400,375 L290,375"/>
+    <text x="345.0" y="367.0" text-anchor="middle" font-size="12" class="sub">expose</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.8000000000000003s" repeatCount="indefinite" path="M400,375 L290,375"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.8000000000000003s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M550,330 L550,220"/>
+    <text x="550.0" y="267.0" text-anchor="middle" font-size="12" class="sub">configure</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="3.0s" repeatCount="indefinite" path="M550,330 L550,220"/>
+        <animate attributeName="opacity" values="0;1;0" dur="3.0s" repeatCount="indefinite"/>
+    </circle>
+    <text x="60" y="645" font-size="12" class="sub">NebulaOps — optimized without Kafka/Zookeeper</text>
 </svg>

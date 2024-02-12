@@ -1,68 +1,86 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" role="img"
-     aria-labelledby="title desc">
-    <title id="title">NebulaOps request sequence</title>
-    <desc id="desc">End to end flow from Angular through gateway, services, Kafka, Redis, RabbitMQ and observability.
-    </desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img"
+     aria-label="Request Flow Sequence">
     <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-            <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#172033"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1">
+            <stop offset="0" stop-color="#0f172a"/>
+            <stop offset="1" stop-color="#111827"/>
+        </linearGradient>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#020617" flood-opacity="0.45"/>
+        </filter>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#93c5fd"/>
         </marker>
         <style>
-            .box{fill:#f8fafc;stroke:#334155;stroke-width:2;rx:14}.store{fill:#ecfeff;stroke:#0891b2;stroke-width:2}.queue{fill:#fff7ed;stroke:#ea580c;stroke-width:2}.obs{fill:#f0fdf4;stroke:#16a34a;stroke-width:2}.t{font:600
-            16px Arial,sans-serif;fill:#0f172a}.s{font:13px
-            Arial,sans-serif;fill:#334155}.line{stroke:#334155;stroke-width:2;fill:none;marker-end:url(#arrow)}.dash{stroke-dasharray:6
-            6}
+            .card{filter:url(#shadow);animation:float 5s ease-in-out infinite;}
+            .line{stroke:#93c5fd;stroke-width:2.6;fill:none;marker-end:url(#arrow);stroke-dasharray:7 7;animation:dash
+            1.7s linear infinite;}
+            .title{fill:#f8fafc;font-family:Inter,Segoe UI,Arial,sans-serif;font-weight:800;}
+            .sub{fill:#9fb3c8;font-family:Inter,Segoe UI,Arial,sans-serif;}
+            @keyframes dash{to{stroke-dashoffset:-28;}}
+            @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+            @keyframes glow{0%,100%{opacity:.4}50%{opacity:1}}
         </style>
     </defs>
-    <rect width="1180" height="520" fill="#ffffff"/>
-    <text x="40" y="42" class="t" font-size="24">Request flow: task creation with async processing</text>
-    <rect class="box" x="40" y="82" width="150" height="74"/>
-    <text x="70" y="115" class="t">Angular SPA</text>
-    <text x="72" y="138" class="s">localhost:4200</text>
-    <rect class="box" x="250" y="82" width="160" height="74"/>
-    <text x="282" y="115" class="t">Gateway</text>
-    <text x="278" y="138" class="s">routes /api/**</text>
-    <rect class="box" x="470" y="82" width="160" height="74"/>
-    <text x="505" y="115" class="t">Task API</text>
-    <text x="500" y="138" class="s">Spring Boot</text>
-    <rect class="store" x="690" y="82" width="150" height="74"/>
-    <text x="724" y="115" class="t">MongoDB</text>
-    <text x="720" y="138" class="s">task docs</text>
-    <rect class="queue" x="470" y="240" width="160" height="74"/>
-    <text x="515" y="273" class="t">Kafka</text>
-    <text x="488" y="296" class="s">domain events</text>
-    <rect class="box" x="690" y="240" width="150" height="74"/>
-    <text x="712" y="273" class="t">Notification</text>
-    <text x="724" y="296" class="s">consumer</text>
-    <rect class="store" x="900" y="82" width="150" height="74"/>
-    <text x="942" y="115" class="t">Redis</text>
-    <text x="932" y="138" class="s">hot cache</text>
-    <rect class="queue" x="900" y="240" width="150" height="74"/>
-    <text x="927" y="273" class="t">RabbitMQ</text>
-    <text x="928" y="296" class="s">work queue</text>
-    <rect class="box" x="900" y="380" width="150" height="74"/>
-    <text x="917" y="413" class="t">Go Worker</text>
-    <text x="928" y="436" class="s">jobs/events</text>
-    <rect class="obs" x="470" y="380" width="370" height="74"/>
-    <text x="585" y="413" class="t">Prometheus + Grafana</text>
-    <text x="580" y="436" class="s">/actuator/prometheus and service health</text>
-    <path class="line" d="M190 119 H250"/>
-    <text x="201" y="105" class="s">POST /api/tasks</text>
-    <path class="line" d="M410 119 H470"/>
-    <text x="420" y="105" class="s">proxy</text>
-    <path class="line" d="M630 119 H690"/>
-    <text x="642" y="105" class="s">save</text>
-    <path class="line" d="M550 156 V240"/>
-    <text x="560" y="203" class="s">publish</text>
-    <path class="line" d="M630 277 H690"/>
-    <text x="642" y="263" class="s">consume</text>
-    <path class="line" d="M840 119 H900"/>
-    <text x="850" y="105" class="s">cache reads</text>
-    <path class="line" d="M765 156 C765 210 890 203 975 240"/>
-    <text x="810" y="201" class="s">enqueue jobs</text>
-    <path class="line" d="M975 314 V380"/>
-    <text x="985" y="352" class="s">pull</text>
-    <path class="line dash" d="M550 380 V314"/>
-    <path class="line dash" d="M765 380 V314"/>
-    <path class="line dash" d="M975 380 C870 350 720 350 655 380"/>
+    <rect width="1200" height="680" fill="url(#bg)"/>
+    <circle cx="1080" cy="70" r="95" fill="#2563eb" opacity="0.10">
+        <animate attributeName="r" values="85;110;85" dur="6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="60" y="58" font-size="30" class="title">Request Flow Sequence</text>
+    <text x="60" y="88" font-size="15" class="sub">Task creation lifecycle with persistence, event publication and
+        notification
+    </text>
+    <text x="100" y="120" text-anchor="middle" font-size="18" font-weight="700" fill="#e5eefb">User</text>
+    <line x1="100" y1="140" x2="100" y2="610" stroke="#334155" stroke-width="2" stroke-dasharray="7 7"/>
+    <text x="270" y="120" text-anchor="middle" font-size="18" font-weight="700" fill="#e5eefb">Angular</text>
+    <line x1="270" y1="140" x2="270" y2="610" stroke="#334155" stroke-width="2" stroke-dasharray="7 7"/>
+    <text x="440" y="120" text-anchor="middle" font-size="18" font-weight="700" fill="#e5eefb">Gateway</text>
+    <line x1="440" y1="140" x2="440" y2="610" stroke="#334155" stroke-width="2" stroke-dasharray="7 7"/>
+    <text x="610" y="120" text-anchor="middle" font-size="18" font-weight="700" fill="#e5eefb">Task Service</text>
+    <line x1="610" y1="140" x2="610" y2="610" stroke="#334155" stroke-width="2" stroke-dasharray="7 7"/>
+    <text x="780" y="120" text-anchor="middle" font-size="18" font-weight="700" fill="#e5eefb">MongoDB</text>
+    <line x1="780" y1="140" x2="780" y2="610" stroke="#334155" stroke-width="2" stroke-dasharray="7 7"/>
+    <text x="950" y="120" text-anchor="middle" font-size="18" font-weight="700" fill="#e5eefb">RabbitMQ</text>
+    <line x1="950" y1="140" x2="950" y2="610" stroke="#334155" stroke-width="2" stroke-dasharray="7 7"/>
+    <path class="line" d="M100,180 L270,180"/>
+    <text x="185.0" y="172.0" text-anchor="middle" font-size="12" class="sub">click/create</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.2s" repeatCount="indefinite" path="M100,180 L270,180"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M270,240 L440,240"/>
+    <text x="355.0" y="232.0" text-anchor="middle" font-size="12" class="sub">POST /api/tasks</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.4000000000000004s" repeatCount="indefinite" path="M270,240 L440,240"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.4000000000000004s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M440,300 L610,300"/>
+    <text x="525.0" y="292.0" text-anchor="middle" font-size="12" class="sub">route request</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.6s" repeatCount="indefinite" path="M440,300 L610,300"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M610,360 L780,360"/>
+    <text x="695.0" y="352.0" text-anchor="middle" font-size="12" class="sub">save document</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="2.8000000000000003s" repeatCount="indefinite" path="M610,360 L780,360"/>
+        <animate attributeName="opacity" values="0;1;0" dur="2.8000000000000003s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M610,430 L950,430"/>
+    <text x="780.0" y="422.0" text-anchor="middle" font-size="12" class="sub">publish event</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="3.0s" repeatCount="indefinite" path="M610,430 L950,430"/>
+        <animate attributeName="opacity" values="0;1;0" dur="3.0s" repeatCount="indefinite"/>
+    </circle>
+    <path class="line" d="M950,500 L610,500"/>
+    <text x="780.0" y="492.0" text-anchor="middle" font-size="12" class="sub">ack async</text>
+    <circle r="5" fill="#fbbf24" opacity="0.9">
+        <animateMotion dur="3.2s" repeatCount="indefinite" path="M950,500 L610,500"/>
+        <animate attributeName="opacity" values="0;1;0" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="60" y="645" font-size="12" class="sub">NebulaOps — optimized without Kafka/Zookeeper</text>
 </svg>

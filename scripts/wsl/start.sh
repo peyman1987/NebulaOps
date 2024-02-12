@@ -2,11 +2,12 @@
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
-COMPOSE_FILE="$ROOT_DIR/infrastructure/docker-compose.yml"
-PROJECT_NAME="nebulaops"
+COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
+PROJECT_NAME="nebulaops-v13"
 ./scripts/wsl/check-wsl.sh
+./scripts/wsl/prepare-kubeconfig-for-docker.sh
 echo "Starting NebulaOps with Docker Compose..."
-docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file .env.wsl.example up --build -d
+docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" up --build -d
 echo "Waiting for gateway..."
 for i in {1..60}; do
   if curl -fsS http://localhost:8080/actuator/health >/dev/null 2>&1; then echo "Gateway is healthy."; break; fi

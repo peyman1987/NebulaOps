@@ -44,12 +44,6 @@ mongodb:
   port: 27017
   storage: 1Gi
 
-kafka:
-  enabled: true
-  image: bitnami/kafka:3.7
-  port: 9092
-  topic: nebula.task.events
-
 observability:
   prometheus:
     enabled: true
