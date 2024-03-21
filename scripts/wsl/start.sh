@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
-PROJECT_NAME="nebulaops-v13"
+PROJECT_NAME="nebulaops-v14"
 ./scripts/wsl/check-wsl.sh
 ./scripts/wsl/prepare-kubeconfig-for-docker.sh
 echo "Starting NebulaOps with Docker Compose..."

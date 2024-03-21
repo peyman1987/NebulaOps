@@ -1,58 +1,95 @@
 <main class="shell">
     <section class="hero">
-        <div>
-            <p class="eyebrow">Senior Cloud Portfolio</p>
-            <h1>NebulaOps Control Center</h1>
-            <p>Operational dashboard with Task CRUD, Kubernetes CRUD, YAML live editor and Docker/Kubernetes-backed
-                microservice logs.</p>
+        <div class="hero-copy">
+            <p class="eyebrow">NebulaOps v14 · Senior single-machine platform</p>
+            <h1>DevOps Control Plane</h1>
+            <p>Portfolio cloud-native con dashboard operativo, Kubernetes console, log auto-refresh, osservabilità,
+                CI/CD, sicurezza e infrastruttura locale.</p>
+            <div class="hero-actions">
+                <button (click)="setTab('KUBERNETES')">Open Kubernetes</button>
+                <button (click)="setTab('OBSERVABILITY')">Watch logs</button>
+            </div>
         </div>
-        <div class="status-card">
-            <span>Runtime topology</span>
-            <strong>Angular · Gateway · Spring Boot · Go · MongoDB · RabbitMQ · Redis · Kubernetes</strong>
-            <small>Single-machine WSL/Docker workflow</small>
+        <div class="orbit-card">
+            <div class="orbit"><i></i><i></i><i></i><span>v14</span></div>
+            <strong>Angular · Spring Boot · Go · MongoDB · RabbitMQ · Redis · Docker · Helm · GitLab · Argo CD ·
+                Prometheus · Grafana</strong>
+            <small>Designed for WSL/Docker Desktop or a local Linux workstation</small>
         </div>
     </section>
 
     <section class="metrics">
-        <article><span>Total tasks</span><strong>{{ total() }}</strong></article>
+        <article><span>Tasks</span><strong>{{ total() }}</strong></article>
         <article><span>Completed</span><strong>{{ done() }}</strong></article>
         <article><span>Critical</span><strong>{{ critical() }}</strong></article>
-        <article><span>Workloads</span><strong>{{ deployments().length }}</strong></article>
+        <article><span>Workloads</span><strong>{{ workloads().length }}</strong></article>
         <article><span>Services</span><strong>{{ services() }}</strong></article>
-        <article><span>Ingress</span><strong>{{ ingress() }}</strong></article>
+        <article><span>Open risks</span><strong>{{ openFindings() }}</strong></article>
     </section>
 
-    <nav aria-label="NebulaOps sections" class="main-tabs">
-        <button (click)="setTab('TASK')" [class.active]="activeTab() === 'TASK'" type="button">TASK</button>
-        <button (click)="setTab('KUBERNETES')" [class.active]="activeTab() === 'KUBERNETES'" type="button">KUBERNETES
+    <nav aria-label="NebulaOps v14 sections" class="main-tabs">
+        <button (click)="setTab(tab)" *ngFor="let tab of tabs" [class.active]="activeTab() === tab"
+                type="button">{{ tab }}
         </button>
     </nav>
 
-    <section *ngIf="activeTab() === 'TASK'" class="tab-page">
+    <section *ngIf="activeTab() === 'OVERVIEW'" class="tab-page overview-grid">
+        <article class="panel architecture-panel">
+            <div class="panel-title">
+                <div><p class="eyebrow">Architecture</p>
+                    <h2>Advanced local cloud-native topology</h2></div>
+                <span [class]="'sync '+k8sState()">{{ k8sState() }}</span></div>
+            <div class="topology">
+                <div class="node user">Developer</div>
+                <div class="link"></div>
+                <div class="node fe">Angular FE</div>
+                <div class="link"></div>
+                <div class="node gw">Gateway</div>
+                <div class="mesh">
+                    <span>Auth</span><span>Task</span><span>File</span><span>Notify</span><span>Go Cache</span><span>Go Worker</span>
+                </div>
+                <div class="data-plane">
+                    <span>MongoDB</span><span>RabbitMQ</span><span>Redis</span><span>Prometheus</span><span>Grafana</span>
+                </div>
+            </div>
+        </article>
+        <article class="panel">
+            <div class="panel-title">
+                <div><p class="eyebrow">Platform posture</p>
+                    <h2>Readiness snapshot</h2></div>
+            </div>
+            <div class="health-list">
+                <div *ngFor="let item of infra"><span>{{ item.name }}</span><strong>{{ item.health }}%</strong>
+                    <div class="bar"><i [style.width.%]="item.health"></i></div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab() === 'TASKS'" class="tab-page">
         <article class="panel">
             <div class="panel-title">
                 <div><p class="eyebrow">Task CRUD</p>
                     <h2>Delivery board</h2></div>
-                <span [class]="'sync '+syncState()">{{ syncState() }}</span>
-            </div>
-            <form (ngSubmit)="createTask()" class="form">
-                <input [(ngModel)]="taskForm.title" name="title" placeholder="New task title">
-                <input [(ngModel)]="taskForm.owner" name="owner" placeholder="Owner">
-                <select [(ngModel)]="taskForm.priority" name="priority">
-                    <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
-                </select>
+                <span [class]="'sync '+syncState()">{{ syncState() }}</span></div>
+            <form (ngSubmit)="createTask()" class="form"><input [(ngModel)]="taskForm.title" name="title"
+                                                                placeholder="New task title"><input
+                    [(ngModel)]="taskForm.owner" name="owner" placeholder="Owner"><select
+                    [(ngModel)]="taskForm.priority" name="priority">
+                <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
+            </select>
                 <button>Create</button>
             </form>
             <section cdkDropListGroup class="board">
-                <div *ngFor="let col of columns" class="column">
-                    <h2>{{ col.replace('_', ' ') }}</h2>
+                <div *ngFor="let col of columns" class="column"><h2>{{ col.replace('_', ' ') }}</h2>
                     <div (cdkDropListDropped)="drop($event,col)" [cdkDropListData]="columnTasks(col)" cdkDropList
                          class="dropzone">
-                        <article *ngFor="let task of columnTasks(col)" cdkDrag class="task">
+                        <article *ngFor="let task of columnTasks(col); trackBy: trackById" cdkDrag class="task">
                             <div class="task-top"><strong>{{ task.id }}</strong>
-                                <button (click)="deleteTask(task.id)" class="icon">×</button>
+                                <button (click)="deleteTask(task.id)" class="icon" type="button">×</button>
                             </div>
-                            <p>{{ task.title }}</p><small>{{ task.owner }} · {{ task.priority }}</small>
+                            <p>{{ task.title }}</p><small>{{ task.owner }} · <span
+                                [class]="'priority '+priorityClass(task.priority)">{{ task.priority }}</span></small>
                         </article>
                     </div>
                 </div>
@@ -70,20 +107,16 @@
                         <button (click)="loadK8sFromApi()" type="button">Refresh</button>
                         <select (change)="setNamespace($event)">
                             <option *ngFor="let ns of namespaceOptions()" [value]="ns">{{ ns }}</option>
-                        </select>
-                        <select (change)="setKind($event)">
-                            <option value="all">all</option>
-                            <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
-                        </select>
-                    </div>
-                </div>
-                <form (ngSubmit)="createResource()" class="form">
-                    <select [(ngModel)]="k8sForm.kind" name="kind">
+                        </select><select (change)="setKind($event)">
+                        <option value="all">all</option>
                         <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
-                    </select>
-                    <input [(ngModel)]="k8sForm.namespace" name="namespace" placeholder="namespace">
-                    <input [(ngModel)]="k8sForm.name" name="name" placeholder="resource name">
-                    <input [(ngModel)]="k8sForm.replicas" min="0" name="replicas" type="number">
+                    </select></div>
+                </div>
+                <form (ngSubmit)="createResource()" class="form"><select [(ngModel)]="k8sForm.kind" name="kind">
+                    <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
+                </select><input [(ngModel)]="k8sForm.namespace" name="namespace" placeholder="namespace"><input
+                        [(ngModel)]="k8sForm.name" name="name" placeholder="resource name"><input
+                        [(ngModel)]="k8sForm.replicas" min="0" name="replicas" type="number">
                     <button>Create</button>
                 </form>
                 <p *ngIf="apiError()" class="error-box">{{ apiError() }}</p>
@@ -100,41 +133,40 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr (click)="selectResource(r)" *ngFor="let r of visibleResources()">
+                        <tr (click)="selectResource(r)" *ngFor="let r of visibleResources(); trackBy: trackById">
                             <td>{{ r.kind }}</td>
                             <td>{{ r.name }}</td>
                             <td>{{ r.namespace }}</td>
                             <td><span class="pill ok">{{ r.status }}</span></td>
                             <td>{{ r.replicas }}</td>
                             <td class="actions">
-                                <button (click)="$event.stopPropagation(); scale(r,-1)">-</button>
-                                <button (click)="$event.stopPropagation(); scale(r,1)">+</button>
-                                <button (click)="$event.stopPropagation(); deleteResource(r)">Delete</button>
+                                <button (click)="$event.stopPropagation(); scale(r,-1)" type="button">-</button>
+                                <button (click)="$event.stopPropagation(); scale(r,1)" type="button">+</button>
+                                <button (click)="$event.stopPropagation(); deleteResource(r)" type="button">Delete
+                                </button>
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </article>
-
             <article class="panel">
                 <div class="panel-title">
                     <div><p class="eyebrow">YAML live editor</p>
                         <h2>{{ selected()?.kind || 'Resource' }} / {{ selected()?.name || 'none selected' }}</h2></div>
-                    <button (click)="applyYaml()" [disabled]="!selected()">Apply YAML</button>
+                    <button (click)="applyYaml()" [disabled]="!selected()" type="button">Apply YAML</button>
                 </div>
                 <textarea (ngModelChange)="updateSelectedYaml($event)" [ngModel]="selected()?.yaml"
-                          class="yaml"></textarea>
-            </article>
+                          class="yaml"></textarea></article>
         </section>
+    </section>
 
+    <section *ngIf="activeTab() === 'OBSERVABILITY'" class="tab-page">
         <article class="panel logs-panel">
             <div class="panel-title compact">
-                <div>
-                    <p class="eyebrow">Microservice logs</p>
-                    <h2>Docker/Kubernetes runtime logs</h2>
-                    <small class="log-refresh-state">Last refresh: {{ lastLogsRefresh() }} ·
-                        Auto-refresh: {{ logsAutoRefresh() ? 'ON' : 'OFF' }}</small>
+                <div><p class="eyebrow">Microservice logs</p>
+                    <h2>Docker/Kubernetes runtime logs</h2><small class="log-refresh-state">Last
+                        refresh: {{ lastLogsRefresh() }} · Auto-refresh: {{ logsAutoRefresh() ? 'ON' : 'OFF' }}</small>
                 </div>
                 <div class="filters log-controls">
                     <button (click)="refreshLogs()" type="button">Refresh logs</button>
@@ -146,16 +178,61 @@
                         <option value="5">5s</option>
                         <option value="10">10s</option>
                         <option value="30">30s</option>
-                    </select>
-                    <select (change)="setLogService($event)">
-                        <option *ngFor="let service of logServiceOptions()" [value]="service">{{ service }}</option>
-                    </select>
-                </div>
+                    </select><select (change)="setLogService($event)">
+                    <option *ngFor="let service of logServiceOptions()" [value]="service">{{ service }}</option>
+                </select></div>
             </div>
             <div class="logs">
                 <div *ngFor="let log of visibleLogs()" class="log-line">
                     <span>{{ log.time }}</span><strong>{{ log.service }}</strong><em>{{ log.level }}</em>
                     <p>{{ log.message }}</p></div>
+            </div>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab() === 'CICD'" class="tab-page">
+        <article class="panel">
+            <div class="panel-title">
+                <div><p class="eyebrow">CI/CD</p>
+                    <h2>GitLab + quality gates + Argo CD flow</h2></div>
+            </div>
+            <div class="pipeline">
+                <article *ngFor="let stage of pipeline" [class]="'stage '+stage.status">
+                    <strong>{{ stage.name }}</strong><span>{{ stage.status }}</span><small>{{ stage.duration }}</small>
+                    <p>{{ stage.detail }}</p>
+                    <div class="bar"><i [style.width.%]="stageWidth(stage)"></i></div>
+                </article>
+            </div>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab() === 'SECURITY'" class="tab-page">
+        <article class="panel">
+            <div class="panel-title">
+                <div><p class="eyebrow">DevSecOps</p>
+                    <h2>Local security checklist</h2></div>
+                <span class="sync error">{{ openFindings() }} open</span></div>
+            <div class="finding-list">
+                <article *ngFor="let f of findings()" [class.done]="f.done">
+                    <button (click)="toggleFinding(f.id)" type="button">{{ f.done ? '✓' : '!' }}</button>
+                    <div><strong>{{ f.id }} · {{ f.area }} · {{ f.severity }}</strong>
+                        <p>{{ f.title }}</p><small>{{ f.remediation }}</small></div>
+                </article>
+            </div>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab() === 'INFRA'" class="tab-page">
+        <article class="panel">
+            <div class="panel-title">
+                <div><p class="eyebrow">Infrastructure</p>
+                    <h2>Local service map</h2></div>
+            </div>
+            <div class="infra-grid">
+                <article *ngFor="let item of infra"><span>{{ item.type }}</span><strong>{{ item.name }}</strong>
+                    <p>{{ item.purpose }}</p><code>{{ item.endpoint }}</code>
+                    <div class="bar"><i [style.width.%]="item.health"></i></div>
+                </article>
             </div>
         </article>
     </section>
