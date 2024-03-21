@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/kubernetes")
 public class KubernetesOpsController {
-    private static final List<String> LIST_KINDS = List.of("namespaces", "deployments", "replicasets", "services", "ingresses", "configmaps", "secrets");
+    private static final List<String> LIST_KINDS = List.of("namespaces", "deployments", "replicasets", "statefulsets", "daemonsets", "services", "ingresses", "configmaps", "secrets", "cronjobs");
     private final ObjectMapper mapper;
     private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
@@ -63,10 +63,13 @@ public class KubernetesOpsController {
             case "namespaces" -> "Namespace";
             case "deployments" -> "Deployment";
             case "replicasets" -> "ReplicaSet";
+            case "statefulsets" -> "StatefulSet";
+            case "daemonsets" -> "DaemonSet";
             case "services" -> "Service";
             case "ingresses" -> "Ingress";
             case "configmaps" -> "ConfigMap";
             case "secrets" -> "Secret";
+            case "cronjobs" -> "CronJob";
             default -> kubectlKind;
         };
     }
@@ -103,7 +106,7 @@ public class KubernetesOpsController {
 
     private static String yaml(String kind, String namespace, String name, int replicas) {
         if ("Namespace".equals(kind)) return "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: " + name + "\n";
-        if ("Deployment".equals(kind) || "ReplicaSet".equals(kind))
+        if ("Deployment".equals(kind) || "ReplicaSet".equals(kind) || "StatefulSet".equals(kind) || "DaemonSet".equals(kind))
             return "apiVersion: apps/v1\nkind: " + kind + "\nmetadata:\n  name: " + name + "\n  namespace: " + namespace + "\nspec:\n  replicas: " + replicas + "\n  selector:\n    matchLabels:\n      app: " + name + "\n  template:\n    metadata:\n      labels:\n        app: " + name + "\n    spec:\n      containers:\n        - name: " + name + "\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n";
         if ("Service".equals(kind))
             return "apiVersion: v1\nkind: Service\nmetadata:\n  name: " + name + "\n  namespace: " + namespace + "\nspec:\n  type: ClusterIP\n  selector:\n    app: " + name + "\n  ports:\n    - port: 80\n      targetPort: 80\n";
@@ -264,7 +267,7 @@ public class KubernetesOpsController {
         try {
             File socket = new File("/var/run/docker.sock");
             if (!socket.exists()) return List.of();
-            String project = System.getenv().getOrDefault("DOCKER_PROJECT_NAME", "nebulaops-v13");
+            String project = System.getenv().getOrDefault("DOCKER_PROJECT_NAME", "nebulaops-v14");
             String containersJson = command("curl", "-fsS", "--unix-socket", "/var/run/docker.sock", "http://localhost/containers/json?all=0");
             List<Map<String, Object>> containers = mapper.readValue(containersJson, new TypeReference<>() {
             });

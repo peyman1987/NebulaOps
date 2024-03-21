@@ -43,7 +43,7 @@ For better WSL and Docker performance, keep the repository inside the Linux file
 
 ```bash
 mkdir -p ~/projects
-cp -r /mnt/d/workspace/personal/portfolio/nebulaops-v13 ~/projects/nebulaops
+cp -r /mnt/d/workspace/personal/portfolio/nebulaops-v14 ~/projects/nebulaops
 cd ~/projects/nebulaops
 ```
 

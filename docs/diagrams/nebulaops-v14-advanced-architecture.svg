@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img"
+     aria-label="NebulaOps v14 advanced local architecture">
+    <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop stop-color="#071733"/>
+            <stop offset="1" stop-color="#05070d"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1">
+            <stop stop-color="#1d4ed8" stop-opacity=".35"/>
+            <stop offset="1" stop-color="#7c3aed" stop-opacity=".22"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <style>
+            .title{font:800 40px Inter,Arial;fill:#eef3ff}.sub{font:500 16px Inter,Arial;fill:#9fb1d6}.h{font:800 18px
+            Inter,Arial;fill:#fff}.t{font:500 13px
+            Inter,Arial;fill:#c7d2fe}.box{fill:url(#card);stroke:#7dd3fc;stroke-opacity:.35;rx:22}.small{fill:#07101f;stroke:#7dd3fc;stroke-opacity:.28;rx:16}.arrow{stroke:#7dd3fc;stroke-width:3;stroke-linecap:round;marker-end:url(#m)}.flow{stroke-dasharray:12
+            10;animation:dash 2.8s linear infinite}.pulse{animation:pulse 2.6s ease-in-out
+            infinite}.spin{transform-origin:720px 456px;animation:spin 18s linear infinite}@keyframes
+            dash{to{stroke-dashoffset:-88}}@keyframes pulse{50%{opacity:.45}}@keyframes
+            spin{to{transform:rotate(360deg)}}
+        </style>
+        <marker id="m" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#7dd3fc"/>
+        </marker>
+    </defs>
+    <rect width="1440" height="900" fill="url(#bg)"/>
+    <circle class="pulse" cx="210" cy="120" r="180" fill="#1d4ed8" opacity=".16"/>
+    <circle class="pulse" cx="1180" cy="760" r="240" fill="#7c3aed" opacity=".13"/>
+    <text class="title" x="70" y="76">NebulaOps v14 — Advanced Personal DevOps Platform</text>
+    <text class="sub" x="72" y="108">Single-machine runtime with production-style architecture, CI/CD, observability and
+        Kubernetes assets
+    </text>
+
+    <rect class="box" x="70" y="170" width="220" height="120"/>
+    <text class="h" x="102" y="215">Developer</text>
+    <text class="t" x="102" y="242">WSL / Linux shell</text>
+    <text class="t" x="102" y="264">Docker Compose scripts</text>
+    <rect class="box" x="370" y="150" width="260" height="160"/>
+    <text class="h" x="410" y="194">Angular Console</text>
+    <text class="t" x="410" y="224">Overview · Tasks · K8s</text>
+    <text class="t" x="410" y="246">Observability · CI/CD</text>
+    <text class="t" x="410" y="268">Security · Infra</text>
+    <rect class="box" x="735" y="150" width="260" height="160"/>
+    <text class="h" x="778" y="194">Gateway Service</text>
+    <text class="t" x="778" y="224">API routing</text>
+    <text class="t" x="778" y="246">Kubernetes bridge</text>
+    <text class="t" x="778" y="268">Docker log reader</text>
+    <rect class="box" x="1085" y="150" width="260" height="160"/>
+    <text class="h" x="1128" y="194">Delivery Tooling</text>
+    <text class="t" x="1128" y="224">GitLab CI</text>
+    <text class="t" x="1128" y="246">Helm render</text>
+    <text class="t" x="1128" y="268">Argo CD app</text>
+    <path class="arrow flow" d="M290 230 H370"/>
+    <path class="arrow flow" d="M630 230 H735"/>
+    <path class="arrow flow" d="M995 230 H1085"/>
+
+    <g class="spin" opacity=".25">
+        <circle cx="720" cy="456" r="230" fill="none" stroke="#7dd3fc" stroke-width="1" stroke-dasharray="8 18"/>
+        <circle cx="720" cy="456" r="170" fill="none" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4 16"/>
+    </g>
+    <rect class="box" x="160" y="390" width="1120" height="220" rx="28"/>
+    <text class="h" x="190" y="430">Microservice mesh</text>
+    <g>
+        <rect class="small" x="190" y="465" width="150" height="88"/>
+        <text class="h" x="226" y="500">Auth</text>
+        <text class="t" x="215" y="525">Spring Boot</text>
+        <rect class="small" x="370" y="465" width="150" height="88"/>
+        <text class="h" x="410" y="500">Task</text>
+        <text class="t" x="395" y="525">CRUD + events</text>
+        <rect class="small" x="550" y="465" width="150" height="88"/>
+        <text class="h" x="594" y="500">File</text>
+        <text class="t" x="575" y="525">Metadata API</text>
+        <rect class="small" x="730" y="465" width="150" height="88"/>
+        <text class="h" x="758" y="500">Notify</text>
+        <text class="t" x="755" y="525">Rabbit events</text>
+        <rect class="small" x="910" y="465" width="150" height="88"/>
+        <text class="h" x="940" y="500">Go Cache</text>
+        <text class="t" x="945" y="525">Redis API</text>
+        <rect class="small" x="1090" y="465" width="150" height="88"/>
+        <text class="h" x="1118" y="500">Go Worker</text>
+        <text class="t" x="1118" y="525">Queue worker</text>
+    </g>
+    <path class="arrow flow" d="M865 310 V390"/>
+    <path class="arrow flow" d="M445 553 V660"/>
+    <path class="arrow flow" d="M805 553 V660"/>
+    <path class="arrow flow" d="M985 553 V660"/>
+
+    <rect class="box" x="130" y="680" width="250" height="100"/>
+    <text class="h" x="178" y="720">MongoDB</text>
+    <text class="t" x="172" y="748">persistent data</text>
+    <rect class="box" x="430" y="680" width="250" height="100"/>
+    <text class="h" x="486" y="720">RabbitMQ</text>
+    <text class="t" x="480" y="748">async messaging</text>
+    <rect class="box" x="730" y="680" width="250" height="100"/>
+    <text class="h" x="790" y="720">Redis</text>
+    <text class="t" x="792" y="748">cache layer</text>
+    <rect class="box" x="1030" y="680" width="250" height="100"/>
+    <text class="h" x="1072" y="720">Prometheus + Grafana</text>
+    <text class="t" x="1088" y="748">metrics dashboards</text>
+    <path class="arrow flow" d="M555 660 V610"/>
+    <path class="arrow flow" d="M1155 610 V680"/>
+</svg>
