@@ -1,8 +1,9 @@
-# Project Metadata
+# Project metadata
 
-Project: NebulaOps Platform
-Type: Enterprise cloud-native portfolio project
-Year: 2024
-Architecture: Angular, Spring Boot, Go, MongoDB, RabbitMQ, Redis, Prometheus, Grafana, Docker, Helm, Argo CD
-Messaging: RabbitMQ only
-Excluded components: Kafka, Zookeeper
+Project: NebulaOps v15
+Author: Peyman Eshghi Malayeri
+Contact: peyman_em@yahoo.com
+Developed: 2024
+Version package: v15
+Runtime target: WSL Ubuntu or Linux personal workstation
+Docker Desktop dependency: none

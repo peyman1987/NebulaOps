@@ -63,7 +63,7 @@
         <rect x="792.0" y="232.0" width="12" height="12" rx="6" fill="#22c55e">
             <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
         </rect>
-        <text x="930.0" y="261.0" text-anchor="middle" font-size="18" class="title">Platform Services</text>
+        <text x="930.0" y="3.0.0" text-anchor="middle" font-size="18" class="title">Platform Services</text>
         <text x="930.0" y="288.0" text-anchor="middle" font-size="13" class="sub">MongoDB Redis RabbitMQ</text>
     </g>
     <g class="card">

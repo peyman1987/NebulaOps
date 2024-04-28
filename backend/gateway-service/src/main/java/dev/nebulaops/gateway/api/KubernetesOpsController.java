@@ -267,7 +267,7 @@ public class KubernetesOpsController {
         try {
             File socket = new File("/var/run/docker.sock");
             if (!socket.exists()) return List.of();
-            String project = System.getenv().getOrDefault("DOCKER_PROJECT_NAME", "nebulaops-v14");
+            String project = System.getenv().getOrDefault("DOCKER_PROJECT_NAME", "nebulaops-v15");
             String containersJson = command("curl", "-fsS", "--unix-socket", "/var/run/docker.sock", "http://localhost/containers/json?all=0");
             List<Map<String, Object>> containers = mapper.readValue(containersJson, new TypeReference<>() {
             });

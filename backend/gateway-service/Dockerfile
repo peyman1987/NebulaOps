@@ -8,9 +8,10 @@ RUN mvn -q -DskipTests package
 FROM eclipse-temurin:21-jre
 USER root
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && apt-get install -y --no-install-recommends curl ca-certificates docker.io jq \
     && curl -fsSL -o /usr/local/bin/kubectl https://dl.k8s.io/release/v1.30.6/bin/linux/amd64/kubectl \
     && chmod +x /usr/local/bin/kubectl \
+    && curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app

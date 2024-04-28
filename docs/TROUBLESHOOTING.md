@@ -1,56 +1,58 @@
-# Troubleshooting Guide
+# NebulaOps v15 Troubleshooting
 
-## Docker BuildKit snapshot error on WSL
+## Docker daemon is not reachable
 
-### Symptom
-
-During the frontend image export phase Docker may fail with an error similar to:
-
-```text
-failed to prepare extraction snapshot "extract-...": parent snapshot ... does not exist: not found
-```
-
-This happens after the Angular build has completed and while Docker is exporting or unpacking the final image. It is
-usually caused by a corrupted BuildKit cache or an inconsistent Docker Desktop snapshot store, not by Angular source
-code.
-
-### Recommended repair
-
-Run:
+Start native Docker Engine inside WSL/Linux:
 
 ```bash
-./scripts/wsl/docker-cache-repair.sh
-DOCKER_BUILDKIT=1 docker compose -p nebulaops -f infrastructure/docker-compose.yml build --no-cache frontend
-docker compose -p nebulaops -f infrastructure/docker-compose.yml up -d
+sudo service docker start
+# or, when systemd is enabled
+sudo systemctl start docker
 ```
 
-### Full clean rebuild
-
-Use this only when the previous repair is not enough:
+If permission is denied:
 
 ```bash
-docker compose -p nebulaops -f infrastructure/docker-compose.yml down --remove-orphans
-docker builder prune -af
-docker buildx prune -af
-docker image prune -af
-DOCKER_BUILDKIT=1 docker compose -p nebulaops -f infrastructure/docker-compose.yml build --no-cache
-docker compose -p nebulaops -f infrastructure/docker-compose.yml up -d
+sudo usermod -aG docker "$USER"
+newgrp docker
 ```
 
-### If the project is under `/mnt/c` or `/mnt/d`
-
-For better WSL and Docker performance, keep the repository inside the Linux filesystem:
+## Compose cannot build services
 
 ```bash
-mkdir -p ~/projects
-cp -r /mnt/d/workspace/personal/portfolio/nebulaops-v14 ~/projects/nebulaops
-cd ~/projects/nebulaops
+docker compose build --no-cache
+docker compose up -d
 ```
 
-Then rebuild from the Linux path.
+## Kubernetes tab is disconnected
 
-### Docker Desktop reset option
+Create or select the kind cluster:
 
-If Docker still reports missing parent snapshots after pruning caches, restart Docker Desktop. If the error remains, use
-Docker Desktop → Troubleshoot → Clean / Purge data. This is destructive for local Docker data, so export anything
-important first.
+```bash
+./scripts/linux/create-kind-cluster.sh nebulaops-v15
+kubectl config current-context
+cp ~/.kube/config .kube/config
+```
+
+Restart the gateway:
+
+```bash
+docker compose restart gateway-service
+```
+
+## Helm tab is empty
+
+Install the chart first:
+
+```bash
+./scripts/linux/helm-install-nebulaops.sh nebulaops
+```
+
+## Grafana tab is unavailable
+
+```bash
+docker compose ps grafana
+docker compose logs --tail=80 grafana
+```
+
+Default credentials are `admin/admin`.

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img"
-     aria-label="NebulaOps v14 advanced local architecture">
+     aria-label="NebulaOps v15 advanced local architecture">
     <defs>
         <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
             <stop stop-color="#071733"/>
@@ -32,7 +32,7 @@
     <rect width="1440" height="900" fill="url(#bg)"/>
     <circle class="pulse" cx="210" cy="120" r="180" fill="#1d4ed8" opacity=".16"/>
     <circle class="pulse" cx="1180" cy="760" r="240" fill="#7c3aed" opacity=".13"/>
-    <text class="title" x="70" y="76">NebulaOps v14 — Advanced Personal DevOps Platform</text>
+    <text class="title" x="70" y="76">NebulaOps v15 — Advanced Personal DevOps Platform</text>
     <text class="sub" x="72" y="108">Single-machine runtime with production-style architecture, CI/CD, observability and
         Kubernetes assets
     </text>
