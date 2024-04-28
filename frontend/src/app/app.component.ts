@@ -18,7 +18,17 @@ type K8sKind =
     | 'ConfigMap'
     | 'Secret'
     | 'CronJob';
-type MainTab = 'OVERVIEW' | 'TASKS' | 'KUBERNETES' | 'OBSERVABILITY' | 'CICD' | 'SECURITY' | 'INFRA';
+type MainTab =
+    'OVERVIEW'
+    | 'TASKS'
+    | 'DOCKER'
+    | 'KUBERNETES'
+    | 'HELM'
+    | 'GRAFANA'
+    | 'OBSERVABILITY'
+    | 'CICD'
+    | 'SECURITY'
+    | 'INFRA';
 
 interface Task {
     id: string;
@@ -82,36 +92,40 @@ interface InfraItem {
     health: number;
     endpoint: string;
     purpose: string;
+    controlUrl?: string;
+    controlLabel?: string;
+    internalTab?: MainTab;
+    internalLabel?: string;
 }
 
-const STORAGE_KEY = 'nebulaops.v14.board.tasks';
-const K8S_STORAGE_KEY = 'nebulaops.v14.k8s.resources';
-const SECURITY_KEY = 'nebulaops.v14.security.findings';
+const STORAGE_KEY = 'nebulaops.v15.board.tasks';
+const K8S_STORAGE_KEY = 'nebulaops.v15.k8s.resources';
+const SECURITY_KEY = 'nebulaops.v15.security.findings';
 
 const DEFAULT_TASKS: Task[] = [
     {
-        id: 'V14-101',
+        id: 'V15-101',
         title: 'Implement policy-as-code guardrails',
         owner: 'DevSecOps',
         priority: 'CRITICAL',
         status: 'TODO'
     },
     {
-        id: 'V14-102',
+        id: 'V15-102',
         title: 'Wire Grafana SLO dashboard for gateway latency',
         owner: 'SRE',
         priority: 'HIGH',
         status: 'IN_PROGRESS'
     },
     {
-        id: 'V14-103',
+        id: 'V15-103',
         title: 'Add GitLab quality gates and Helm render validation',
         owner: 'Platform',
         priority: 'HIGH',
         status: 'REVIEW'
     },
     {
-        id: 'V14-104',
+        id: 'V15-104',
         title: 'Document local WSL runbook and smoke tests',
         owner: 'DevOps',
         priority: 'MEDIUM',
@@ -179,7 +193,7 @@ const DEFAULT_K8S: K8sResource[] = [
     styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
-    readonly tabs: MainTab[] = ['OVERVIEW', 'TASKS', 'KUBERNETES', 'OBSERVABILITY', 'CICD', 'SECURITY', 'INFRA'];
+    readonly tabs: MainTab[] = ['OVERVIEW', 'TASKS', 'DOCKER', 'KUBERNETES', 'HELM', 'GRAFANA', 'OBSERVABILITY', 'CICD', 'SECURITY', 'INFRA'];
     readonly columns: Status[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
     readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'ReplicaSet', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
@@ -188,6 +202,14 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly resources = signal<K8sResource[]>(this.loadLocal<K8sResource[]>(K8S_STORAGE_KEY, DEFAULT_K8S));
     readonly findings = signal<SecurityFinding[]>(this.loadLocal<SecurityFinding[]>(SECURITY_KEY, DEFAULT_FINDINGS));
     readonly logs = signal<ServiceLog[]>([]);
+    readonly dockerContainers = signal<any[]>([]);
+    readonly dockerImages = signal<any[]>([]);
+    readonly dockerStats = signal<any[]>([]);
+    readonly helmReleases = signal<any[]>([]);
+    readonly grafanaHealth = signal<any>({});
+    readonly grafanaDashboards = signal<any[]>([]);
+    readonly runtimeState = signal<'idle' | 'syncing' | 'connected' | 'error'>('idle');
+
     readonly syncState = signal<'local' | 'synced' | 'syncing' | 'error'>('local');
     readonly k8sState = signal<'connected' | 'syncing' | 'error'>('syncing');
     readonly apiError = signal<string>('');
@@ -213,18 +235,74 @@ export class AppComponent implements OnInit, OnDestroy {
             type: 'database',
             health: 98,
             endpoint: 'localhost:27017',
-            purpose: 'Persistent service data'
+            purpose: 'Persistent service data',
+            controlUrl: 'http://localhost:8088',
+            controlLabel: 'Open Mongo Express',
+            internalTab: 'DOCKER',
+            internalLabel: 'Manage container'
         },
         {
             name: 'RabbitMQ',
             type: 'queue',
             health: 96,
             endpoint: 'localhost:15672',
-            purpose: 'Task and notification events'
+            purpose: 'Task and notification events',
+            controlUrl: 'http://localhost:15672',
+            controlLabel: 'Open RabbitMQ UI',
+            internalTab: 'DOCKER',
+            internalLabel: 'Manage container'
         },
-        {name: 'Redis', type: 'cache', health: 99, endpoint: 'localhost:6379', purpose: 'Low-latency cache'},
-        {name: 'Prometheus', type: 'metrics', health: 93, endpoint: 'localhost:9090', purpose: 'Scraping and SLO data'},
-        {name: 'Grafana', type: 'dashboard', health: 92, endpoint: 'localhost:3000', purpose: 'Operations dashboards'}
+        {
+            name: 'Redis',
+            type: 'cache',
+            health: 99,
+            endpoint: 'localhost:6379',
+            purpose: 'Low-latency cache',
+            controlUrl: 'http://localhost:8089',
+            controlLabel: 'Open Redis Commander',
+            internalTab: 'DOCKER',
+            internalLabel: 'Manage container'
+        },
+        {
+            name: 'Prometheus',
+            type: 'metrics',
+            health: 93,
+            endpoint: 'localhost:9090',
+            purpose: 'Scraping and SLO data',
+            controlUrl: 'http://localhost:9090',
+            controlLabel: 'Open Prometheus',
+            internalTab: 'OBSERVABILITY',
+            internalLabel: 'View logs'
+        },
+        {
+            name: 'Grafana',
+            type: 'dashboard',
+            health: 92,
+            endpoint: 'localhost:3000',
+            purpose: 'Operations dashboards',
+            controlUrl: 'http://localhost:3000',
+            controlLabel: 'Open Grafana',
+            internalTab: 'GRAFANA',
+            internalLabel: 'View dashboards'
+        },
+        {
+            name: 'Kubernetes API',
+            type: 'cluster',
+            health: 94,
+            endpoint: 'kubectl context',
+            purpose: 'Pods, deployments, services and ingress',
+            internalTab: 'KUBERNETES',
+            internalLabel: 'Open K8s console'
+        },
+        {
+            name: 'Helm',
+            type: 'package manager',
+            health: 91,
+            endpoint: 'helm releases',
+            purpose: 'Release lifecycle and uninstall actions',
+            internalTab: 'HELM',
+            internalLabel: 'Open Helm console'
+        }
     ];
     readonly total = computed(() => this.tasks().length);
     readonly done = computed(() => this.tasks().filter(t => t.status === 'DONE').length);
@@ -258,7 +336,27 @@ export class AppComponent implements OnInit, OnDestroy {
     setTab(tab: MainTab): void {
         this.activeTab.set(tab);
         if (['KUBERNETES', 'OBSERVABILITY', 'OVERVIEW'].includes(tab)) this.loadK8sFromApi();
+        if (tab === 'DOCKER') this.loadDocker();
+        if (tab === 'HELM') this.loadHelm();
+        if (tab === 'GRAFANA') this.loadGrafana();
         if (tab !== 'OBSERVABILITY') this.stopLogsAutoRefresh();
+    }
+
+
+    openInfra(item: InfraItem, event?: Event): void {
+        event?.stopPropagation();
+        if (item.controlUrl) window.open(item.controlUrl, '_blank', 'noopener,noreferrer');
+        else if (item.internalTab) this.openInfraInternal(item, event);
+    }
+
+    openInfraInternal(item: InfraItem, event?: Event): void {
+        event?.stopPropagation();
+        if (!item.internalTab) return;
+        this.setTab(item.internalTab);
+    }
+
+    openUrl(url: string): void {
+        window.open(url, '_blank', 'noopener,noreferrer');
     }
 
     columnTasks(status: Status): Task[] {
@@ -291,11 +389,11 @@ export class AppComponent implements OnInit, OnDestroy {
         this.tasks.set([local, ...this.tasks()]);
         this.http.post<ApiTask>('/api/tasks', {
             organizationId: 'demo-org',
-            projectId: 'portfolio-v14',
+            projectId: 'portfolio-v15',
             title: local.title,
             priority: local.priority,
             assigneeId: local.owner,
-            labels: ['portfolio', 'v14']
+            labels: ['portfolio', 'v15']
         }).pipe(catchError(() => of(null))).subscribe(t => {
             if (t) this.tasks.set(this.tasks().map(x => x.id === local.id ? {
                 id: t.id,
@@ -311,7 +409,7 @@ export class AppComponent implements OnInit, OnDestroy {
     deleteTask(id: string): void {
         const before = this.tasks();
         this.tasks.set(before.filter(t => t.id !== id));
-        if (!id.startsWith('LOCAL') && !id.startsWith('V14-')) this.http.delete(`/api/tasks/${id}`).pipe(catchError(() => {
+        if (!id.startsWith('LOCAL') && !id.startsWith('V15-')) this.http.delete(`/api/tasks/${id}`).pipe(catchError(() => {
             this.tasks.set(before);
             return of(null);
         })).subscribe();
@@ -327,6 +425,72 @@ export class AppComponent implements OnInit, OnDestroy {
 
     setLogService(e: Event): void {
         this.activeLogService.set((e.target as HTMLSelectElement).value);
+    }
+
+
+    loadDocker(): void {
+        this.runtimeState.set('syncing');
+        forkJoin({
+            containers: this.http.get<any[]>('/api/runtime/docker/containers').pipe(catchError(err => {
+                this.apiError.set(this.errorMessage(err));
+                return of([]);
+            })),
+            images: this.http.get<any[]>('/api/runtime/docker/images').pipe(catchError(() => of([]))),
+            stats: this.http.get<any[]>('/api/runtime/docker/stats').pipe(catchError(() => of([])))
+        }).subscribe(r => {
+            this.dockerContainers.set(r.containers);
+            this.dockerImages.set(r.images);
+            this.dockerStats.set(r.stats);
+            this.runtimeState.set(r.containers.length ? 'connected' : 'error');
+        });
+    }
+
+    dockerAction(container: any, action: string): void {
+        const id = container.ID || container.Id || container.Names || container.Name;
+        if (!id) return;
+        this.runtimeState.set('syncing');
+        this.http.post(`/api/runtime/docker/containers/${encodeURIComponent(id)}/${action}`, {}).pipe(catchError(err => {
+            this.apiError.set(this.errorMessage(err));
+            this.runtimeState.set('error');
+            return of(null);
+        })).subscribe(() => this.loadDocker());
+    }
+
+    loadHelm(): void {
+        this.runtimeState.set('syncing');
+        this.http.get<any[]>('/api/runtime/helm/releases?namespace=all').pipe(catchError(err => {
+            this.apiError.set(this.errorMessage(err));
+            this.runtimeState.set('error');
+            return of([]);
+        })).subscribe(rows => {
+            this.helmReleases.set(rows);
+            this.runtimeState.set('connected');
+        });
+    }
+
+    uninstallHelm(release: any): void {
+        const name = release.name || release.Name;
+        const ns = release.namespace || release.Namespace || 'default';
+        if (!name) return;
+        this.http.post(`/api/runtime/helm/releases/${encodeURIComponent(name)}/uninstall?namespace=${encodeURIComponent(ns)}`, {}).pipe(catchError(err => {
+            this.apiError.set(this.errorMessage(err));
+            return of(null);
+        })).subscribe(() => this.loadHelm());
+    }
+
+    loadGrafana(): void {
+        this.runtimeState.set('syncing');
+        forkJoin({
+            health: this.http.get<any>('/api/runtime/grafana/health').pipe(catchError(err => {
+                this.apiError.set(this.errorMessage(err));
+                return of({status: 'unavailable'});
+            })),
+            dashboards: this.http.get<any[]>('/api/runtime/grafana/dashboards').pipe(catchError(() => of([])))
+        }).subscribe(r => {
+            this.grafanaHealth.set(r.health);
+            this.grafanaDashboards.set(r.dashboards);
+            this.runtimeState.set('connected');
+        });
     }
 
     refreshLogs(): void {
@@ -479,12 +643,12 @@ export class AppComponent implements OnInit, OnDestroy {
     private seedDefaultsToApi(): void {
         forkJoin(DEFAULT_TASKS.map(t => this.http.post<ApiTask>('/api/tasks', {
             organizationId: 'demo-org',
-            projectId: 'portfolio-v14',
+            projectId: 'portfolio-v15',
             title: t.title,
             description: `Seed task for ${t.owner}`,
             priority: t.priority,
             assigneeId: t.owner,
-            labels: ['portfolio', 'v14']
+            labels: ['portfolio', 'v15']
         }).pipe(catchError(() => of(null))))).subscribe(results => {
             const created = results.filter((t): t is ApiTask => !!t);
             if (created.length) {
@@ -502,7 +666,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     private persistStatus(taskId: string, status: Status, rollback: Task[]): void {
         this.syncState.set('syncing');
-        if (!taskId.startsWith('V14-') && !taskId.startsWith('LOCAL')) this.http.patch<ApiTask>(`/api/tasks/${taskId}/status/${status}`, {}).pipe(catchError(() => of(null))).subscribe(result => {
+        if (!taskId.startsWith('V15-') && !taskId.startsWith('LOCAL')) this.http.patch<ApiTask>(`/api/tasks/${taskId}/status/${status}`, {}).pipe(catchError(() => of(null))).subscribe(result => {
             if (result) this.syncState.set('synced'); else {
                 this.tasks.set(rollback);
                 this.syncState.set('error');

@@ -1,17 +1,33 @@
-# Start here — NebulaOps v14
+# Start here: NebulaOps v15
 
-1. Install Docker Desktop and enable WSL integration if you use Windows.
-2. Copy the project into the WSL filesystem for better performance.
-3. Start the stack with `./scripts/local-up.sh`.
-4. Open `http://localhost:4200`.
-5. Use the tabs in this order: Overview, Tasks, Kubernetes, Observability, CI/CD, Security, Infra.
+1. Install native tooling without Docker Desktop:
 
 ```bash
-cd nebulaops-v14
-./scripts/wsl/check-wsl.sh
-./scripts/local-up.sh
-./scripts/smoke-test.sh
+./scripts/wsl/install-native-toolchain.sh
 ```
 
-The project is intentionally runnable on a personal machine. Kubernetes, Helm, GitLab and Argo CD artifacts are included
-as portfolio-grade examples and can be applied locally with kind/minikube when needed.
+2. Restart WSL from PowerShell:
+
+```powershell
+wsl --shutdown
+```
+
+3. Create the local cluster:
+
+```bash
+./scripts/linux/create-kind-cluster.sh nebulaops-v15
+```
+
+4. Start the platform:
+
+```bash
+./scripts/linux/start-native.sh
+```
+
+5. Open the frontend:
+
+```text
+http://localhost:4200
+```
+
+Use the Docker, Kubernetes, Helm and Grafana tabs to control real local resources.

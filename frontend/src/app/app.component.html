@@ -1,7 +1,7 @@
 <main class="shell">
     <section class="hero">
         <div class="hero-copy">
-            <p class="eyebrow">NebulaOps v14 · Senior single-machine platform</p>
+            <p class="eyebrow">NebulaOps v15 · Advanced single-machine control plane</p>
             <h1>DevOps Control Plane</h1>
             <p>Portfolio cloud-native con dashboard operativo, Kubernetes console, log auto-refresh, osservabilità,
                 CI/CD, sicurezza e infrastruttura locale.</p>
@@ -10,11 +10,26 @@
                 <button (click)="setTab('OBSERVABILITY')">Watch logs</button>
             </div>
         </div>
-        <div class="orbit-card">
-            <div class="orbit"><i></i><i></i><i></i><span>v14</span></div>
-            <strong>Angular · Spring Boot · Go · MongoDB · RabbitMQ · Redis · Docker · Helm · GitLab · Argo CD ·
-                Prometheus · Grafana</strong>
-            <small>Designed for WSL/Docker Desktop or a local Linux workstation</small>
+        <div class="orbit-card hologram-card">
+            <div class="scene3d">
+                <div class="platform-ring ring-a"></div>
+                <div class="platform-ring ring-b"></div>
+                <button (click)="setTab('DOCKER')" class="cube core" type="button"><span>Docker</span></button>
+                <button (click)="setTab('KUBERNETES')" class="cube k8s" type="button"><span>K8s</span></button>
+                <button (click)="setTab('HELM')" class="cube helm" type="button"><span>Helm</span></button>
+                <button (click)="setTab('GRAFANA')" class="cube grafana" type="button"><span>Grafana</span></button>
+                <button (click)="openUrl('http://localhost:8088')" class="cube mongo" type="button"><span>Mongo</span>
+                </button>
+                <button (click)="openUrl('http://localhost:15672')" class="cube rabbit" type="button">
+                    <span>Rabbit</span></button>
+                <button (click)="openUrl('http://localhost:8089')" class="cube redis" type="button"><span>Redis</span>
+                </button>
+                <div class="laser l1"></div>
+                <div class="laser l2"></div>
+                <div class="laser l3"></div>
+            </div>
+            <strong>Native Docker Engine · kubectl · Helm · Prometheus · Grafana · MongoDB · RabbitMQ · Redis</strong>
+            <small>Control center: every node routes to a live console or to the internal runtime panel.</small>
         </div>
     </section>
 
@@ -27,7 +42,7 @@
         <article><span>Open risks</span><strong>{{ openFindings() }}</strong></article>
     </section>
 
-    <nav aria-label="NebulaOps v14 sections" class="main-tabs">
+    <nav aria-label="NebulaOps v15 sections" class="main-tabs">
         <button (click)="setTab(tab)" *ngFor="let tab of tabs" [class.active]="activeTab() === tab"
                 type="button">{{ tab }}
         </button>
@@ -39,6 +54,17 @@
                 <div><p class="eyebrow">Architecture</p>
                     <h2>Advanced local cloud-native topology</h2></div>
                 <span [class]="'sync '+k8sState()">{{ k8sState() }}</span></div>
+            <div class="control-surface">
+                <button (click)="setTab('DOCKER')" class="surface-node surface-fe" type="button"><span>Containers</span><small>start
+                    · stop · logs</small></button>
+                <button (click)="setTab('KUBERNETES')" class="surface-node surface-k8s" type="button">
+                    <span>Kubernetes</span><small>pods · services · ingress</small></button>
+                <button (click)="setTab('HELM')" class="surface-node surface-helm" type="button">
+                    <span>Helm</span><small>releases · uninstall</small></button>
+                <button (click)="setTab('GRAFANA')" class="surface-node surface-grafana" type="button">
+                    <span>Grafana</span><small>health · dashboards</small></button>
+                <div class="surface-grid"></div>
+            </div>
             <div class="topology">
                 <div class="node user">Developer</div>
                 <div class="link"></div>
@@ -95,6 +121,170 @@
                 </div>
             </section>
         </article>
+    </section>
+
+
+    <section *ngIf="activeTab() === 'DOCKER'" class="tab-page">
+        <section class="ops-grid">
+            <article class="panel table-panel">
+                <div class="panel-title">
+                    <div><p class="eyebrow">Docker Desktop-like runtime</p>
+                        <h2>Containers real control</h2><span
+                                [class]="'sync '+runtimeState()">{{ runtimeState() }}</span></div>
+                    <button (click)="loadDocker()" type="button">Refresh</button>
+                </div>
+                <p *ngIf="apiError()" class="error-box">{{ apiError() }}</p>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Image</th>
+                            <th>Status</th>
+                            <th>Ports</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let c of dockerContainers()">
+                            <td>{{ c.Names || c.Name }}</td>
+                            <td>{{ c.Image }}</td>
+                            <td><span class="pill ok">{{ c.Status || c.State }}</span></td>
+                            <td>{{ c.Ports }}</td>
+                            <td class="actions">
+                                <button (click)="dockerAction(c,'start')" type="button">Start</button>
+                                <button (click)="dockerAction(c,'stop')" type="button">Stop</button>
+                                <button (click)="dockerAction(c,'restart')" type="button">Restart</button>
+                                <button (click)="dockerAction(c,'rm')" type="button">Remove</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+            <article class="panel table-panel">
+                <div class="panel-title">
+                    <div><p class="eyebrow">Images and stats</p>
+                        <h2>Local engine inventory</h2></div>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Repository</th>
+                            <th>Tag</th>
+                            <th>ID</th>
+                            <th>Size</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let i of dockerImages()">
+                            <td>{{ i.Repository }}</td>
+                            <td>{{ i.Tag }}</td>
+                            <td>{{ i.ID }}</td>
+                            <td>{{ i.Size }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Container</th>
+                            <th>CPU</th>
+                            <th>Memory</th>
+                            <th>Net I/O</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let st of dockerStats()">
+                            <td>{{ st.Name }}</td>
+                            <td>{{ st.CPUPerc }}</td>
+                            <td>{{ st.MemUsage }}</td>
+                            <td>{{ st.NetIO }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+    </section>
+
+    <section *ngIf="activeTab() === 'HELM'" class="tab-page">
+        <article class="panel table-panel">
+            <div class="panel-title">
+                <div><p class="eyebrow">Helm control center</p>
+                    <h2>Installed releases</h2><span [class]="'sync '+runtimeState()">{{ runtimeState() }}</span></div>
+                <button (click)="loadHelm()" type="button">Refresh Helm</button>
+            </div>
+            <p class="muted">Install locale consigliato: <code>./scripts/linux/helm-install-nebulaops.sh</code>. Da UI
+                puoi vedere lo stato reale e disinstallare release.</p>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Namespace</th>
+                        <th>Revision</th>
+                        <th>Status</th>
+                        <th>Chart</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let r of helmReleases()">
+                        <td>{{ r.name }}</td>
+                        <td>{{ r.namespace }}</td>
+                        <td>{{ r.revision }}</td>
+                        <td><span class="pill ok">{{ r.status }}</span></td>
+                        <td>{{ r.chart }}</td>
+                        <td>
+                            <button (click)="uninstallHelm(r)" type="button">Uninstall</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab() === 'GRAFANA'" class="tab-page">
+        <section class="ops-grid">
+            <article class="panel">
+                <div class="panel-title">
+                    <div><p class="eyebrow">Grafana API</p>
+                        <h2>Health</h2></div>
+                    <button (click)="loadGrafana()" type="button">Refresh</button>
+                </div>
+                <pre class="code-card">{{ grafanaHealth() | json }}</pre>
+                <a class="external-link" href="http://localhost:3000" rel="noreferrer" target="_blank">Open Grafana</a>
+            </article>
+            <article class="panel table-panel">
+                <div class="panel-title">
+                    <div><p class="eyebrow">Dashboards</p>
+                        <h2>Provisioned dashboards</h2></div>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Folder</th>
+                            <th>URI</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let d of grafanaDashboards()">
+                            <td>{{ d.title }}</td>
+                            <td>{{ d.folderTitle }}</td>
+                            <td>{{ d.uri || d.url }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
     </section>
 
     <section *ngIf="activeTab() === 'KUBERNETES'" class="tab-page">
@@ -229,8 +419,19 @@
                     <h2>Local service map</h2></div>
             </div>
             <div class="infra-grid">
-                <article *ngFor="let item of infra"><span>{{ item.type }}</span><strong>{{ item.name }}</strong>
+                <article (click)="openInfra(item)" (keydown.enter)="openInfra(item)" *ngFor="let item of infra"
+                         class="infra-card"
+                         role="button" tabindex="0">
+                    <span>{{ item.type }}</span><strong>{{ item.name }}</strong>
                     <p>{{ item.purpose }}</p><code>{{ item.endpoint }}</code>
+                    <div class="infra-actions">
+                        <button (click)="openInfra(item, $event)" *ngIf="item.controlUrl"
+                                type="button">{{ item.controlLabel || 'Open console' }}
+                        </button>
+                        <button (click)="openInfraInternal(item, $event)" *ngIf="item.internalTab"
+                                type="button">{{ item.internalLabel || 'Manage' }}
+                        </button>
+                    </div>
                     <div class="bar"><i [style.width.%]="item.health"></i></div>
                 </article>
             </div>

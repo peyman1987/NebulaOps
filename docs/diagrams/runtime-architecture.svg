@@ -84,7 +84,7 @@
         <rect x="622.0" y="182.0" width="12" height="12" rx="6" fill="#22c55e">
             <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
         </rect>
-        <text x="690.0" y="201.0" text-anchor="middle" font-size="18" class="title">Task</text>
+        <text x="690.0" y="3.0.0" text-anchor="middle" font-size="18" class="title">Task</text>
         <text x="690.0" y="228.0" text-anchor="middle" font-size="13" class="sub">Java 21</text>
     </g>
     <g class="card">

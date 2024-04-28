@@ -1,104 +1,87 @@
-# NebulaOps v14 — Personal DevOps Control Plane
+# NebulaOps v15
 
-NebulaOps v14 is a senior cloud-developer portfolio project designed to run on one personal machine with Docker
-Desktop/WSL or Linux. It demonstrates a realistic microservice platform with an Angular operations console, Spring Boot
-services, Go workers, MongoDB, RabbitMQ, Redis, Prometheus, Grafana, Helm, Kubernetes manifests, GitLab CI and Argo CD
-examples.
+NebulaOps v15 is an advanced DevOps portfolio platform for a personal workstation. It runs on WSL Ubuntu or native Linux
+with native Docker Engine, Docker Compose plugin, kubectl, Helm and kind. Docker Desktop is not required.
 
-## What is new in v14
+## What changed in v15
 
-- New Angular DevOps console with seven tabs: Overview, Tasks, Kubernetes, Observability, CI/CD, Security and Infra.
-- Advanced Kubernetes resource view with CRUD, scaling, YAML live editor and expanded workload types.
-- Microservice log console with manual refresh, service filter and automatic refresh interval.
-- CI/CD visual pipeline for lint, test, build, Helm render and Argo CD sync gates.
-- DevSecOps checklist with persisted local state.
-- Local infrastructure map for MongoDB, RabbitMQ, Redis, Prometheus and Grafana.
-- Professional documentation and complex animated SVG architecture diagrams.
-- Single-machine execution model: no cloud subscription required.
+- Native WSL/Linux install scripts for Docker Engine, Docker Compose, kubectl, Helm and kind.
+- Docker Desktop-like frontend tab backed by real Docker CLI operations.
+- OpenLens-like Kubernetes frontend tab backed by real kubectl operations.
+- Helm frontend tab backed by real Helm release operations.
+- Grafana frontend tab backed by the real Grafana HTTP API.
+- More advanced architecture docs, runbook, feature matrix and animated SVG.
+- Updated gateway runtime adapters for Docker, Helm and Grafana.
 
-## Architecture
+## Main stack
 
-![NebulaOps v14 architecture](docs/diagrams/nebulaops-v14-advanced-architecture.svg)
+- Angular frontend
+- Spring Boot and Spring Cloud Gateway
+- Spring Boot microservices: auth, task, notification, file
+- Go services: cache and event worker
+- MongoDB, RabbitMQ, Redis
+- Docker Engine and Docker Compose plugin
+- kind Kubernetes, kubectl and Helm
+- Prometheus and Grafana
 
-```text
-Browser / Angular Console
-        |
-Nginx frontend container
-        |
-Spring Boot Gateway  ---- kubectl + Docker socket integration
-        |
-  -------------------------------------------------
-  | Auth | Task | File | Notification | Go Cache | Go Worker |
-  -------------------------------------------------
-        |
-MongoDB + RabbitMQ + Redis + Prometheus + Grafana
-```
-
-## Prerequisites
-
-- Windows 11 with WSL2 Ubuntu or Linux/macOS.
-- Docker Desktop with WSL integration enabled, or Docker Engine on Linux.
-- Docker Compose plugin.
-- Optional: kubectl, kind/minikube, Helm and Argo CD CLI for Kubernetes workflows.
-
-## Run locally
+## Start on WSL Ubuntu without Docker Desktop
 
 ```bash
-cd nebulaops-v14
-cp .env.example .env
-./scripts/local-up.sh
+./scripts/wsl/install-native-toolchain.sh
+```
+
+Then from PowerShell:
+
+```powershell
+wsl --shutdown
+```
+
+Reopen Ubuntu and run:
+
+```bash
+./scripts/linux/create-kind-cluster.sh nebulaops-v15
+./scripts/linux/start-native.sh
 ```
 
 Open:
 
 - Frontend: http://localhost:4200
-- Gateway API: http://localhost:8080
-- RabbitMQ: http://localhost:15672 (guest/guest)
+- Gateway: http://localhost:8080
+- Grafana: http://localhost:3000
 - Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin)
+- RabbitMQ: http://localhost:15672
 
-Stop everything:
-
-```bash
-./scripts/local-down.sh
-```
-
-## WSL recommended flow
+## Start on native Ubuntu/Linux
 
 ```bash
-mkdir -p ~/projects
-cp -r /mnt/d/workspace/personal/portfolio/nebulaops-v14 ~/projects/nebulaops-v14
-cd ~/projects/nebulaops-v14
-./scripts/wsl/check-wsl.sh
-./scripts/wsl/start.sh
+./scripts/linux/install-native-toolchain.sh
+./scripts/linux/create-kind-cluster.sh nebulaops-v15
+./scripts/linux/start-native.sh
 ```
 
-## Smoke test
+## Deploy with Helm
 
 ```bash
-./scripts/smoke-test.sh
-./scripts/verify-local.sh
+./scripts/linux/helm-install-nebulaops.sh nebulaops
 ```
 
-## Documentation index
+## Important security note
 
-- [Technical documentation](docs/TECHNICAL_DOCUMENTATION.md)
-- [v14 architecture](docs/V14_ARCHITECTURE.md)
-- [Operations runbook](docs/V14_OPERATIONS_RUNBOOK.md)
-- [Kubernetes and Helm guide](docs/HELM_GUIDE.md)
-- [Grafana observability](docs/GRAFANA_OBSERVABILITY.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
+The gateway mounts the Docker socket and kubeconfig to provide real local runtime control from the frontend. This is
+intended only for a local development machine. Do not expose the gateway publicly.
 
-## Project owner
+## Documentation
 
-Developed by Peyman Eshghi Malayeri for a senior Cloud/DevOps portfolio.
+- `docs/V15_ARCHITECTURE.md`
+- `docs/V15_RUNBOOK.md`
+- `docs/V15_FEATURE_MATRIX.md`
+- `docs/nebulaops-v15-architecture-animated.svg`
+- `docs/TECHNICAL_DOCUMENTATION.md`
+- `docs/TROUBLESHOOTING.md`
 
-## Diagram catalog
+### v15 Local Service Map deep links
 
-- `docs/diagrams/runtime-architecture.svg`
-- `docs/diagrams/gitlab-argocd-flow.svg`
-- `docs/diagrams/messaging-cache-flow.svg`
-- `docs/diagrams/kubernetes-helm-view.svg`
-- `docs/diagrams/request-flow-sequence.svg`
-- `docs/diagrams/service-port-map.svg`
-- `docs/diagrams/nebulaops-v14-advanced-architecture.svg`
+In the **INFRA** tab, service cards are clickable and open the real related dashboard or NebulaOps control panel:
+MongoDB opens Mongo Express on `localhost:8088`, Redis opens Redis Commander on `localhost:8089`, RabbitMQ opens its
+management UI on `localhost:15672`, Prometheus opens `localhost:9090`, Grafana opens `localhost:3000`, and
+Kubernetes/Helm route to the internal NebulaOps control tabs.

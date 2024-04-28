@@ -17,6 +17,30 @@ services:
       - 27017:27017
     volumes:
       - mongo-data:/data/db
+  mongo-express:
+    image: mongo-express:1.0.2-20
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: nebula
+      ME_CONFIG_MONGODB_ADMINPASSWORD: nebula
+      ME_CONFIG_MONGODB_URL: mongodb://nebula:nebula@mongodb:27017/?authSource=admin
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - 8088:8081
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      REDIS_HOSTS: local:redis:6379
+      HTTP_USER: admin
+      HTTP_PASSWORD: admin
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - 8089:8081
   auth-service:
     build:
       context: .
@@ -83,7 +107,9 @@ services:
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v14}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v15}
+      GRAFANA_URL: http://grafana:3000
+      GRAFANA_AUTH: admin:admin
     volumes:
       - ./.kube/config:/kube/config:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -120,17 +146,26 @@ services:
       - file-service
   grafana:
     image: grafana/grafana:11.1.0
+    restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_SERVER_ROOT_URL: http://localhost:3000
     volumes:
+      - grafana-data:/var/lib/grafana
       - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infrastructure/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./infrastructure/observability/grafana/dashboards:/etc/grafana/dashboards:ro
     ports:
       - 3000:3000
     depends_on:
       - prometheus
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
   redis:
     image: redis:7-alpine
     command:
@@ -201,3 +236,8 @@ volumes:
   mongo-data: null
   redis-data: null
   rabbitmq-data: null
+  grafana-data: null
+
+networks:
+  default:
+    name: nebulaops-network
