@@ -1,140 +1,184 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img"
-     aria-label="Local Service Port Map">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img"
+     aria-labelledby="title desc">
+    <title id="title">NebulaOps v16 · Service port map</title>
+    <desc id="desc">Localhost ports and internal Docker DNS names for every control panel.</desc>
     <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stop-color="#07111f"/>
-            <stop offset="1" stop-color="#172033"/>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#020617"/>
+            <stop offset=".45" stop-color="#06163a"/>
+            <stop offset="1" stop-color="#18062e"/>
         </linearGradient>
-        <linearGradient id="card" x1="0" x2="1">
-            <stop offset="0" stop-color="#0f172a"/>
-            <stop offset="1" stop-color="#111827"/>
+        <radialGradient id="halo" cx="50%" cy="35%" r="65%">
+            <stop offset="0" stop-color="#22d3ee" stop-opacity=".34"/>
+            <stop offset=".55" stop-color="#7c3aed" stop-opacity=".12"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#e0faff"/>
+            <stop offset=".25" stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#2563eb"/>
         </linearGradient>
-        <filter id="shadow">
-            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#020617" flood-opacity="0.45"/>
+        <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f5d0fe"/>
+            <stop offset=".35" stop-color="#a855f7"/>
+            <stop offset="1" stop-color="#4338ca"/>
+        </linearGradient>
+        <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#dcfce7"/>
+            <stop offset=".35" stop-color="#22c55e"/>
+            <stop offset="1" stop-color="#047857"/>
+        </linearGradient>
+        <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffedd5"/>
+            <stop offset=".35" stop-color="#fb923c"/>
+            <stop offset="1" stop-color="#c2410c"/>
+        </linearGradient>
+        <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fee2e2"/>
+            <stop offset=".35" stop-color="#f43f5e"/>
+            <stop offset="1" stop-color="#991b1b"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
         </filter>
-        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-            <path d="M2,2 L10,6 L2,10 Z" fill="#93c5fd"/>
+        <filter id="soft">
+            <feDropShadow dx="0" dy="22" stdDeviation="16" flood-color="#000" flood-opacity=".48"/>
+            <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#67e8f9" flood-opacity=".25"/>
+        </filter>
+        <marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#67e8f9"/>
+        </marker>
+        <marker id="arrowV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#c084fc"/>
+        </marker>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#86efac"/>
         </marker>
         <style>
-            .card{filter:url(#shadow);animation:float 5s ease-in-out infinite;}
-            .line{stroke:#93c5fd;stroke-width:2.6;fill:none;marker-end:url(#arrow);stroke-dasharray:7 7;animation:dash
-            1.7s linear infinite;}
-            .title{fill:#f8fafc;font-family:Inter,Segoe UI,Arial,sans-serif;font-weight:800;}
-            .sub{fill:#9fb3c8;font-family:Inter,Segoe UI,Arial,sans-serif;}
-            @keyframes dash{to{stroke-dashoffset:-28;}}
-            @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-            @keyframes glow{0%,100%{opacity:.4}50%{opacity:1}}
+            .title{font:800 38px Inter,Arial,sans-serif;fill:#f8fbff;letter-spacing:-.02em} .sub{font:500 17px
+            Inter,Arial,sans-serif;fill:#bdd6f6}
+            .label{font:800 20px Inter,Arial,sans-serif;fill:#f8fbff} .small{font:500 13px
+            Inter,Arial,sans-serif;fill:#c7d8ef} .tiny{font:700 11px
+            Inter,Arial,sans-serif;fill:#a9c3df;text-transform:uppercase;letter-spacing:.08em}
+            .lane{fill:#0f172a;fill-opacity:.52;stroke:#2dd4bf;stroke-opacity:.22;stroke-width:1.4} .node{}
+            .flow{fill:none;stroke:#67e8f9;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#arrowC);filter:url(#glow)}
+            .event{fill:none;stroke:#c084fc;stroke-width:4;stroke-dasharray:13
+            10;stroke-linecap:round;marker-end:url(#arrowV)}
+            .metric{fill:none;stroke:#86efac;stroke-width:4;stroke-dasharray:4
+            9;stroke-linecap:round;marker-end:url(#arrowG)}
+            .pulse{animation:pulse 2.8s ease-in-out infinite;transform-origin:center} .dash{stroke-dasharray:18
+            12;animation:dash 4s linear infinite} .float{animation:float 6s ease-in-out infinite}
+            @keyframes dash{to{stroke-dashoffset:-120}} @keyframes pulse{50%{opacity:.52;transform:scale(1.035)}}
+            @keyframes float{50%{transform:translateY(-10px)}}
         </style>
     </defs>
-    <rect width="1200" height="680" fill="url(#bg)"/>
-    <circle cx="1080" cy="70" r="95" fill="#2563eb" opacity="0.10">
-        <animate attributeName="r" values="85;110;85" dur="6s" repeatCount="indefinite"/>
-    </circle>
-    <text x="60" y="58" font-size="30" class="title">Local Service Port Map</text>
-    <text x="60" y="88" font-size="15" class="sub">Docker Compose ports and operational endpoints</text>
-    <g class="card">
-        <rect x="70" y="120" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="82.0" y="132.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="210.0" y="151.0" text-anchor="middle" font-size="18" class="title">Frontend</text>
-        <text x="210.0" y="178.0" text-anchor="middle" font-size="13" class="sub">4200 — Angular UI</text>
+    <rect width="100%" height="100%" fill="url(#bg)"/>
+    <rect width="100%" height="100%" fill="url(#halo)"/>
+    <g opacity=".18">
+        <path d="M0 120 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 200 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 280 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 360 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 440 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 520 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 600 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 680 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 760 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 840 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 920 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M80 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M160 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M240 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M320 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M400 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M480 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M560 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M640 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M720 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M800 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M880 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M960 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1040 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1120 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1200 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1280 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1360 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1440 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1520 0 V950" stroke="#93c5fd" stroke-width="1"/>
     </g>
-    <g class="card">
-        <rect x="420" y="120" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="432.0" y="132.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="560.0" y="151.0" text-anchor="middle" font-size="18" class="title">Gateway</text>
-        <text x="560.0" y="178.0" text-anchor="middle" font-size="13" class="sub">8080 — Public API</text>
+    <text x="70" y="72" class="title">NebulaOps v16 · Service port map</text>
+    <text x="70" y="104" class="sub">Localhost ports and internal Docker DNS names for every control panel.</text>
+
+    <rect x="60" y="155" width="1480" height="675" rx="36" class="lane"/>
+    <text x="90" y="194" class="tiny">SERVICE PORT MAP · LOCAL ACCESS POINTS AND INTERNAL DNS</text>
+    <g transform="translate(110,250)">
+        <g transform="translate(0,0)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">Frontend</text>
+            <text x="22" y="66" class="small">Host: localhost:4200</text>
+            <text x="22" y="92" class="small">Network DNS: frontend:80</text>
+        </g>
+        <g transform="translate(340,0)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">Gateway</text>
+            <text x="22" y="66" class="small">Host: localhost:8080</text>
+            <text x="22" y="92" class="small">Network DNS: gateway-service:8080</text>
+        </g>
+        <g transform="translate(680,0)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">Grafana</text>
+            <text x="22" y="66" class="small">Host: localhost:3000</text>
+            <text x="22" y="92" class="small">Network DNS: grafana:3000</text>
+        </g>
+        <g transform="translate(1020,0)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">Prometheus</text>
+            <text x="22" y="66" class="small">Host: localhost:9090</text>
+            <text x="22" y="92" class="small">Network DNS: prometheus:9090</text>
+        </g>
+        <g transform="translate(0,170)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">Mongo Express</text>
+            <text x="22" y="66" class="small">Host: localhost:8088</text>
+            <text x="22" y="92" class="small">Network DNS: mongo-express:8081</text>
+        </g>
+        <g transform="translate(340,170)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">RabbitMQ UI</text>
+            <text x="22" y="66" class="small">Host: localhost:15672</text>
+            <text x="22" y="92" class="small">Network DNS: rabbitmq:15672</text>
+        </g>
+        <g transform="translate(680,170)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">Redis Commander</text>
+            <text x="22" y="66" class="small">Host: localhost:8089</text>
+            <text x="22" y="92" class="small">Network DNS: redis-commander:8081</text>
+        </g>
+        <g transform="translate(1020,170)">
+            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
+                  stroke-opacity=".44" filter="url(#soft)"/>
+            <text x="22" y="38" class="label">MongoDB</text>
+            <text x="22" y="66" class="small">Host: localhost:27017</text>
+            <text x="22" y="92" class="small">Network DNS: mongodb:27017</text>
+        </g>
     </g>
-    <g class="card">
-        <rect x="770" y="120" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="782.0" y="132.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="910.0" y="151.0" text-anchor="middle" font-size="18" class="title">Auth</text>
-        <text x="910.0" y="178.0" text-anchor="middle" font-size="13" class="sub">8081 — Identity API</text>
-    </g>
-    <g class="card">
-        <rect x="70" y="225" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="82.0" y="237.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="210.0" y="256.0" text-anchor="middle" font-size="18" class="title">Task</text>
-        <text x="210.0" y="283.0" text-anchor="middle" font-size="13" class="sub">8082 — Task API</text>
-    </g>
-    <g class="card">
-        <rect x="420" y="225" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="432.0" y="237.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="560.0" y="256.0" text-anchor="middle" font-size="18" class="title">Notification</text>
-        <text x="560.0" y="283.0" text-anchor="middle" font-size="13" class="sub">8083 — Async API</text>
-    </g>
-    <g class="card">
-        <rect x="770" y="225" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="782.0" y="237.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="910.0" y="256.0" text-anchor="middle" font-size="18" class="title">File</text>
-        <text x="910.0" y="283.0" text-anchor="middle" font-size="13" class="sub">8084 — File API</text>
-    </g>
-    <g class="card">
-        <rect x="70" y="330" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="82.0" y="342.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="210.0" y="361.0" text-anchor="middle" font-size="18" class="title">Go Cache</text>
-        <text x="210.0" y="388.0" text-anchor="middle" font-size="13" class="sub">8091 — Cache API</text>
-    </g>
-    <g class="card">
-        <rect x="420" y="330" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="432.0" y="342.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="560.0" y="361.0" text-anchor="middle" font-size="18" class="title">RabbitMQ UI</text>
-        <text x="560.0" y="388.0" text-anchor="middle" font-size="13" class="sub">15672 — Broker UI</text>
-    </g>
-    <g class="card">
-        <rect x="770" y="330" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="782.0" y="342.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="910.0" y="361.0" text-anchor="middle" font-size="18" class="title">RabbitMQ AMQP</text>
-        <text x="910.0" y="388.0" text-anchor="middle" font-size="13" class="sub">5672 — Broker</text>
-    </g>
-    <g class="card">
-        <rect x="70" y="435" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="82.0" y="447.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="210.0" y="466.0" text-anchor="middle" font-size="18" class="title">MongoDB</text>
-        <text x="210.0" y="493.0" text-anchor="middle" font-size="13" class="sub">27017 — Database</text>
-    </g>
-    <g class="card">
-        <rect x="420" y="435" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="432.0" y="447.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="560.0" y="466.0" text-anchor="middle" font-size="18" class="title">Redis</text>
-        <text x="560.0" y="493.0" text-anchor="middle" font-size="13" class="sub">6379 — Cache</text>
-    </g>
-    <g class="card">
-        <rect x="770" y="435" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="782.0" y="447.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="910.0" y="466.0" text-anchor="middle" font-size="18" class="title">Prometheus</text>
-        <text x="910.0" y="493.0" text-anchor="middle" font-size="13" class="sub">9090 — Metrics</text>
-    </g>
-    <g class="card">
-        <rect x="70" y="540" width="280" height="70" rx="18" fill="url(#card)" stroke="#60a5fa" stroke-width="2"/>
-        <rect x="82.0" y="552.0" width="12" height="12" rx="6" fill="#22c55e">
-            <animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/>
-        </rect>
-        <text x="210.0" y="571.0" text-anchor="middle" font-size="18" class="title">Grafana</text>
-        <text x="210.0" y="598.0" text-anchor="middle" font-size="13" class="sub">3000 — Dashboards</text>
-    </g>
-    <text x="60" y="645" font-size="12" class="sub">NebulaOps — optimized without Kafka/Zookeeper</text>
+    <path d="M250 650 C450 750 1000 750 1260 650" class="flow dash"/>
+    <text x="540" y="760" class="small">All containers share nebulaops-network; browser uses localhost ports, services
+        use Docker DNS names.
+    </text>
+
 </svg>

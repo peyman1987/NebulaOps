@@ -1,13 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img"
-     aria-label="NebulaOps v15 advanced local architecture">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img"
+     aria-labelledby="title desc">
+    <title id="title">NebulaOps v16 · Runtime architecture</title>
+    <desc id="desc">Docker Compose runtime and optional Kubernetes control plane, with clear interaction paths.</desc>
     <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-            <stop stop-color="#071733"/>
-            <stop offset="1" stop-color="#05070d"/>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#020617"/>
+            <stop offset=".45" stop-color="#06163a"/>
+            <stop offset="1" stop-color="#18062e"/>
         </linearGradient>
-        <linearGradient id="card" x1="0" x2="1">
-            <stop stop-color="#1d4ed8" stop-opacity=".35"/>
-            <stop offset="1" stop-color="#7c3aed" stop-opacity=".22"/>
+        <radialGradient id="halo" cx="50%" cy="35%" r="65%">
+            <stop offset="0" stop-color="#22d3ee" stop-opacity=".34"/>
+            <stop offset=".55" stop-color="#7c3aed" stop-opacity=".12"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#e0faff"/>
+            <stop offset=".25" stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#2563eb"/>
+        </linearGradient>
+        <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f5d0fe"/>
+            <stop offset=".35" stop-color="#a855f7"/>
+            <stop offset="1" stop-color="#4338ca"/>
+        </linearGradient>
+        <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#dcfce7"/>
+            <stop offset=".35" stop-color="#22c55e"/>
+            <stop offset="1" stop-color="#047857"/>
+        </linearGradient>
+        <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffedd5"/>
+            <stop offset=".35" stop-color="#fb923c"/>
+            <stop offset="1" stop-color="#c2410c"/>
+        </linearGradient>
+        <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fee2e2"/>
+            <stop offset=".35" stop-color="#f43f5e"/>
+            <stop offset="1" stop-color="#991b1b"/>
         </linearGradient>
         <filter id="glow">
             <feGaussianBlur stdDeviation="5" result="b"/>
@@ -16,93 +45,201 @@
                 <feMergeNode in="SourceGraphic"/>
             </feMerge>
         </filter>
-        <style>
-            .title{font:800 40px Inter,Arial;fill:#eef3ff}.sub{font:500 16px Inter,Arial;fill:#9fb1d6}.h{font:800 18px
-            Inter,Arial;fill:#fff}.t{font:500 13px
-            Inter,Arial;fill:#c7d2fe}.box{fill:url(#card);stroke:#7dd3fc;stroke-opacity:.35;rx:22}.small{fill:#07101f;stroke:#7dd3fc;stroke-opacity:.28;rx:16}.arrow{stroke:#7dd3fc;stroke-width:3;stroke-linecap:round;marker-end:url(#m)}.flow{stroke-dasharray:12
-            10;animation:dash 2.8s linear infinite}.pulse{animation:pulse 2.6s ease-in-out
-            infinite}.spin{transform-origin:720px 456px;animation:spin 18s linear infinite}@keyframes
-            dash{to{stroke-dashoffset:-88}}@keyframes pulse{50%{opacity:.45}}@keyframes
-            spin{to{transform:rotate(360deg)}}
-        </style>
-        <marker id="m" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L8,3 z" fill="#7dd3fc"/>
+        <filter id="soft">
+            <feDropShadow dx="0" dy="22" stdDeviation="16" flood-color="#000" flood-opacity=".48"/>
+            <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#67e8f9" flood-opacity=".25"/>
+        </filter>
+        <marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#67e8f9"/>
         </marker>
+        <marker id="arrowV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#c084fc"/>
+        </marker>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#86efac"/>
+        </marker>
+        <style>
+            .title{font:800 38px Inter,Arial,sans-serif;fill:#f8fbff;letter-spacing:-.02em} .sub{font:500 17px
+            Inter,Arial,sans-serif;fill:#bdd6f6}
+            .label{font:800 20px Inter,Arial,sans-serif;fill:#f8fbff} .small{font:500 13px
+            Inter,Arial,sans-serif;fill:#c7d8ef} .tiny{font:700 11px
+            Inter,Arial,sans-serif;fill:#a9c3df;text-transform:uppercase;letter-spacing:.08em}
+            .lane{fill:rgba(15,23,42,.52);stroke:#2dd4bf;stroke-opacity:.22;stroke-width:1.4} .node{filter:url(#soft)}
+            .flow{fill:none;stroke:#67e8f9;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#arrowC);filter:url(#glow)}
+            .event{fill:none;stroke:#c084fc;stroke-width:4;stroke-dasharray:13
+            10;stroke-linecap:round;marker-end:url(#arrowV)}
+            .metric{fill:none;stroke:#86efac;stroke-width:4;stroke-dasharray:4
+            9;stroke-linecap:round;marker-end:url(#arrowG)}
+            .pulse{animation:pulse 2.8s ease-in-out infinite;transform-origin:center} .dash{stroke-dasharray:18
+            12;animation:dash 4s linear infinite} .float{animation:float 6s ease-in-out infinite}
+            @keyframes dash{to{stroke-dashoffset:-120}} @keyframes pulse{50%{opacity:.52;transform:scale(1.035)}}
+            @keyframes float{50%{transform:translateY(-10px)}}
+        </style>
     </defs>
-    <rect width="1440" height="900" fill="url(#bg)"/>
-    <circle class="pulse" cx="210" cy="120" r="180" fill="#1d4ed8" opacity=".16"/>
-    <circle class="pulse" cx="1180" cy="760" r="240" fill="#7c3aed" opacity=".13"/>
-    <text class="title" x="70" y="76">NebulaOps v15 — Advanced Personal DevOps Platform</text>
-    <text class="sub" x="72" y="108">Single-machine runtime with production-style architecture, CI/CD, observability and
-        Kubernetes assets
+    <rect width="100%" height="100%" fill="url(#bg)"/>
+    <rect width="100%" height="100%" fill="url(#halo)"/>
+    <g opacity=".18">
+        <path d="M0 120 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 200 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 280 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 360 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 440 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 520 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 600 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 680 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 760 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 840 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 920 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M80 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M160 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M240 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M320 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M400 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M480 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M560 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M640 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M720 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M800 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M880 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M960 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1040 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1120 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1200 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1280 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1360 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1440 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1520 0 V950" stroke="#93c5fd" stroke-width="1"/>
+    </g>
+    <text x="70" y="72" class="title">NebulaOps v16 · Runtime architecture</text>
+    <text x="70" y="104" class="sub">Docker Compose runtime and optional Kubernetes control plane, with clear
+        interaction paths.
     </text>
 
-    <rect class="box" x="70" y="170" width="220" height="120"/>
-    <text class="h" x="102" y="215">Developer</text>
-    <text class="t" x="102" y="242">WSL / Linux shell</text>
-    <text class="t" x="102" y="264">Docker Compose scripts</text>
-    <rect class="box" x="370" y="150" width="260" height="160"/>
-    <text class="h" x="410" y="194">Angular Console</text>
-    <text class="t" x="410" y="224">Overview · Tasks · K8s</text>
-    <text class="t" x="410" y="246">Observability · CI/CD</text>
-    <text class="t" x="410" y="268">Security · Infra</text>
-    <rect class="box" x="735" y="150" width="260" height="160"/>
-    <text class="h" x="778" y="194">Gateway Service</text>
-    <text class="t" x="778" y="224">API routing</text>
-    <text class="t" x="778" y="246">Kubernetes bridge</text>
-    <text class="t" x="778" y="268">Docker log reader</text>
-    <rect class="box" x="1085" y="150" width="260" height="160"/>
-    <text class="h" x="1128" y="194">Delivery Tooling</text>
-    <text class="t" x="1128" y="224">GitLab CI</text>
-    <text class="t" x="1128" y="246">Helm render</text>
-    <text class="t" x="1128" y="268">Argo CD app</text>
-    <path class="arrow flow" d="M290 230 H370"/>
-    <path class="arrow flow" d="M630 230 H735"/>
-    <path class="arrow flow" d="M995 230 H1085"/>
-
-    <g class="spin" opacity=".25">
-        <circle cx="720" cy="456" r="230" fill="none" stroke="#7dd3fc" stroke-width="1" stroke-dasharray="8 18"/>
-        <circle cx="720" cy="456" r="170" fill="none" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4 16"/>
+    <rect x="62" y="150" width="1476" height="680" rx="36" class="lane"/>
+    <text x="92" y="188" class="tiny">RUNTIME ARCHITECTURE · DOCKER COMPOSE HOST + OPTIONAL KUBERNETES CONTROL</text>
+    <rect x="110" y="230" width="610" height="460" rx="30" fill="rgba(14,165,233,.08)" stroke="#38bdf8"
+          stroke-opacity=".45"/>
+    <text x="140" y="270" class="label">Docker Compose runtime</text>
+    <g class="node float">
+        <path d="M173,292 H388 L370,310 H155 Z" fill="url(#cyan)" opacity=".22"/>
+        <path d="M370,310 L388,292 V412 L370,430 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="155" y="310" width="215" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="169" y="324" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
+        <text x="195" y="358" text-anchor="middle" font-size="24">UI</text>
+        <text x="237" y="346" class="label">Frontend</text>
+        <text x="179" y="384" class="small">Nginx :4200</text>
+        <text x="179" y="406" class="small">Angular SPA</text>
     </g>
-    <rect class="box" x="160" y="390" width="1120" height="220" rx="28"/>
-    <text class="h" x="190" y="430">Microservice mesh</text>
+    <g class="node float">
+        <path d="M448,292 H668 L650,310 H430 Z" fill="url(#violet)" opacity=".22"/>
+        <path d="M650,310 L668,292 V412 L650,430 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="430" y="310" width="220" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="444" y="324" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
+        <text x="470" y="358" text-anchor="middle" font-size="24">GW</text>
+        <text x="512" y="346" class="label">Gateway</text>
+        <text x="454" y="384" class="small">Spring :8080</text>
+        <text x="454" y="406" class="small">Docker socket</text>
+        <text x="454" y="428" class="small">kubectl/helm CLI</text>
+    </g>
+    <g class="node float">
+        <path d="M173,472 H388 L370,490 H155 Z" fill="url(#cyan)" opacity=".22"/>
+        <path d="M370,490 L388,472 V592 L370,610 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="155" y="490" width="215" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="169" y="504" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
+        <text x="195" y="538" text-anchor="middle" font-size="24">API</text>
+        <text x="237" y="526" class="label">Services</text>
+        <text x="179" y="564" class="small">auth :8081</text>
+        <text x="179" y="586" class="small">task :8082</text>
+        <text x="179" y="608" class="small">file :8084</text>
+    </g>
+    <g class="node float">
+        <path d="M448,472 H668 L650,490 H430 Z" fill="url(#green)" opacity=".22"/>
+        <path d="M650,490 L668,472 V592 L650,610 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="430" y="490" width="220" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="444" y="504" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
+        <text x="470" y="538" text-anchor="middle" font-size="24">GO</text>
+        <text x="512" y="526" class="label">Workers</text>
+        <text x="454" y="564" class="small">go-cache :8091</text>
+        <text x="454" y="586" class="small">go-event-worker</text>
+    </g>
+    <rect x="850" y="230" width="590" height="460" rx="30" fill="rgba(124,58,237,.08)" stroke="#c084fc"
+          stroke-opacity=".45"/>
+    <text x="880" y="270" class="label">Kubernetes/OpenLens-like control</text>
+    <g class="node float">
+        <path d="M913,292 H1123 L1105,310 H895 Z" fill="url(#violet)" opacity=".22"/>
+        <path d="M1105,310 L1123,292 V412 L1105,430 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+              stroke-opacity=".22"/>
+        <rect x="895" y="310" width="210" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="909" y="324" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
+        <text x="935" y="358" text-anchor="middle" font-size="24">☸</text>
+        <text x="977" y="346" class="label">kubectl</text>
+        <text x="919" y="384" class="small">pods</text>
+        <text x="919" y="406" class="small">services</text>
+        <text x="919" y="428" class="small">ingress</text>
+    </g>
+    <g class="node float">
+        <path d="M1188,292 H1398 L1380,310 H1170 Z" fill="url(#orange)" opacity=".22"/>
+        <path d="M1380,310 L1398,292 V412 L1380,430 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+              stroke-opacity=".22"/>
+        <rect x="1170" y="310" width="210" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="1184" y="324" width="52" height="52" rx="17" fill="url(#orange)" filter="url(#glow)"/>
+        <text x="1210" y="358" text-anchor="middle" font-size="24">⎈</text>
+        <text x="1252" y="346" class="label">Helm</text>
+        <text x="1194" y="384" class="small">install</text>
+        <text x="1194" y="406" class="small">upgrade</text>
+        <text x="1194" y="428" class="small">rollback</text>
+    </g>
+    <g class="node float">
+        <path d="M913,472 H1123 L1105,490 H895 Z" fill="url(#cyan)" opacity=".22"/>
+        <path d="M1105,490 L1123,472 V592 L1105,610 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+              stroke-opacity=".22"/>
+        <rect x="895" y="490" width="210" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="909" y="504" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
+        <text x="935" y="538" text-anchor="middle" font-size="24">{}</text>
+        <text x="977" y="526" class="label">YAML editor</text>
+        <text x="919" y="564" class="small">apply manifests</text>
+        <text x="919" y="586" class="small">scale replicas</text>
+    </g>
+    <g class="node float">
+        <path d="M1188,472 H1398 L1380,490 H1170 Z" fill="url(#green)" opacity=".22"/>
+        <path d="M1380,490 L1398,472 V592 L1380,610 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+              stroke-opacity=".22"/>
+        <rect x="1170" y="490" width="210" height="120" rx="22" fill="rgba(8,13,35,.86)" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="1184" y="504" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
+        <text x="1210" y="538" text-anchor="middle" font-size="24">CL</text>
+        <text x="1252" y="526" class="label">Cluster view</text>
+        <text x="1194" y="564" class="small">deployments</text>
+        <text x="1194" y="586" class="small">events</text>
+        <text x="1194" y="608" class="small">logs</text>
+    </g>
+    <path d="M370 365 H430" class="flow dash"/>
+    <path d="M650 365 C760 330 780 330 895 360" class="flow dash"/>
+    <path d="M650 560 C770 590 775 560 895 550" class="flow dash"/>
+    <path d="M1105 360 H1170" class="flow dash"/>
+    <path d="M1105 550 H1170" class="event dash"/>
+    <path d="M265 430 V490" class="flow dash"/>
+    <path d="M540 430 V490" class="event dash"/>
     <g>
-        <rect class="small" x="190" y="465" width="150" height="88"/>
-        <text class="h" x="226" y="500">Auth</text>
-        <text class="t" x="215" y="525">Spring Boot</text>
-        <rect class="small" x="370" y="465" width="150" height="88"/>
-        <text class="h" x="410" y="500">Task</text>
-        <text class="t" x="395" y="525">CRUD + events</text>
-        <rect class="small" x="550" y="465" width="150" height="88"/>
-        <text class="h" x="594" y="500">File</text>
-        <text class="t" x="575" y="525">Metadata API</text>
-        <rect class="small" x="730" y="465" width="150" height="88"/>
-        <text class="h" x="758" y="500">Notify</text>
-        <text class="t" x="755" y="525">Rabbit events</text>
-        <rect class="small" x="910" y="465" width="150" height="88"/>
-        <text class="h" x="940" y="500">Go Cache</text>
-        <text class="t" x="945" y="525">Redis API</text>
-        <rect class="small" x="1090" y="465" width="150" height="88"/>
-        <text class="h" x="1118" y="500">Go Worker</text>
-        <text class="t" x="1118" y="525">Queue worker</text>
+        <rect x="80" y="720" width="380" height="116" rx="18" fill="rgba(2,6,23,.62)" stroke="#94a3b8"
+              stroke-opacity=".28"/>
+        <text x="98" y="750" class="tiny">LEGEND</text>
+        <path d="M98 772 H170" class="flow"/>
+        <text x="188" y="777" class="small">HTTP/API control request</text>
+        <path d="M98 798 H170" class="event"/>
+        <text x="188" y="803" class="small">Async event/message path</text>
+        <path d="M98 824 H170" class="metric"/>
+        <text x="188" y="829" class="small">Metrics/logs/telemetry</text>
     </g>
-    <path class="arrow flow" d="M865 310 V390"/>
-    <path class="arrow flow" d="M445 553 V660"/>
-    <path class="arrow flow" d="M805 553 V660"/>
-    <path class="arrow flow" d="M985 553 V660"/>
 
-    <rect class="box" x="130" y="680" width="250" height="100"/>
-    <text class="h" x="178" y="720">MongoDB</text>
-    <text class="t" x="172" y="748">persistent data</text>
-    <rect class="box" x="430" y="680" width="250" height="100"/>
-    <text class="h" x="486" y="720">RabbitMQ</text>
-    <text class="t" x="480" y="748">async messaging</text>
-    <rect class="box" x="730" y="680" width="250" height="100"/>
-    <text class="h" x="790" y="720">Redis</text>
-    <text class="t" x="792" y="748">cache layer</text>
-    <rect class="box" x="1030" y="680" width="250" height="100"/>
-    <text class="h" x="1072" y="720">Prometheus + Grafana</text>
-    <text class="t" x="1088" y="748">metrics dashboards</text>
-    <path class="arrow flow" d="M555 660 V610"/>
-    <path class="arrow flow" d="M1155 610 V680"/>
 </svg>

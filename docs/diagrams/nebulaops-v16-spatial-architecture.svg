@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img"
      aria-labelledby="title desc">
-    <title id="title">NebulaOps v16 · GitLab and ArgoCD flow</title>
-    <desc id="desc">CI/CD and GitOps from commit to cluster sync and observability feedback.</desc>
+    <title id="title">NebulaOps v16 · Spatial platform architecture</title>
+    <desc id="desc">Layered 3D architecture showing experience, control, runtime, data and observability planes.</desc>
     <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#020617"/>
@@ -113,120 +113,113 @@
         <path d="M1440 0 V950" stroke="#93c5fd" stroke-width="1"/>
         <path d="M1520 0 V950" stroke="#93c5fd" stroke-width="1"/>
     </g>
-    <text x="70" y="72" class="title">NebulaOps v16 · GitLab and ArgoCD flow</text>
-    <text x="70" y="104" class="sub">CI/CD and GitOps from commit to cluster sync and observability feedback.</text>
+    <text x="70" y="72" class="title">NebulaOps v16 · Spatial platform architecture</text>
+    <text x="70" y="104" class="sub">Layered 3D architecture showing experience, control, runtime, data and
+        observability planes.
+    </text>
 
-    <rect x="60" y="155" width="1480" height="675" rx="36" class="lane"/>
-    <text x="90" y="194" class="tiny">CI/CD AND GITOPS FLOW · FROM COMMIT TO RUNNING PLATFORM</text>
+    <rect x="52" y="150" width="1496" height="660" rx="36" class="lane"/>
+    <text x="82" y="188" class="tiny">END-TO-END USER REQUEST FLOW · HOW A CLICK BECOMES DATA, EVENT AND METRIC</text>
     <g class="node">
-        <path d="M133,282 H348 L330,300 H115 Z" fill="url(#cyan)" opacity=".22"/>
-        <path d="M330,300 L348,282 V417 L330,435 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="115" y="300" width="215" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+        <path d="M108,242 H338 L320,260 H90 Z" fill="url(#cyan)" opacity=".22"/>
+        <path d="M320,260 L338,242 V397 L320,415 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="90" y="260" width="230" height="155" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
               stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="129" y="314" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
-        <text x="155" y="348" text-anchor="middle" font-size="24">DEV</text>
-        <text x="197" y="336" class="label">Developer</text>
-        <text x="139" y="374" class="small">commit code</text>
-        <text x="139" y="396" class="small">push branch</text>
-        <text x="139" y="418" class="small">open MR</text>
+        <rect x="104" y="274" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
+        <text x="130" y="308" text-anchor="middle" font-size="24">🖥</text>
+        <text x="172" y="296" class="label">Angular FE</text>
+        <text x="114" y="334" class="small">3D command center</text>
+        <text x="114" y="356" class="small">Tabs: Docker/K8s/Helm</text>
+        <text x="114" y="378" class="small">Local service map</text>
     </g>
     <g class="node">
-        <path d="M423,242 H653 L635,260 H405 Z" fill="url(#orange)" opacity=".22"/>
-        <path d="M635,260 L653,242 V397 L635,415 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="405" y="260" width="230" height="155" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+        <path d="M408,212 H648 L630,230 H390 Z" fill="url(#violet)" opacity=".22"/>
+        <path d="M630,230 L648,212 V387 L630,405 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="390" y="230" width="240" height="175" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
               stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="419" y="274" width="52" height="52" rx="17" fill="url(#orange)" filter="url(#glow)"/>
-        <text x="445" y="308" text-anchor="middle" font-size="24">GL</text>
-        <text x="487" y="296" class="label">GitLab CI</text>
-        <text x="429" y="334" class="small">build images</text>
-        <text x="429" y="356" class="small">unit tests</text>
-        <text x="429" y="378" class="small">quality gates</text>
+        <rect x="404" y="244" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
+        <text x="430" y="278" text-anchor="middle" font-size="24">⚡</text>
+        <text x="472" y="266" class="label">Gateway API</text>
+        <text x="414" y="304" class="small">Single UI boundary</text>
+        <text x="414" y="326" class="small">/api/docker /api/k8s</text>
+        <text x="414" y="348" class="small">/api/grafana /api/helm</text>
     </g>
     <g class="node">
-        <path d="M728,282 H943 L925,300 H710 Z" fill="url(#green)" opacity=".22"/>
-        <path d="M925,300 L943,282 V417 L925,435 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="710" y="300" width="215" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+        <path d="M733,242 H973 L955,260 H715 Z" fill="url(#cyan)" opacity=".22"/>
+        <path d="M955,260 L973,242 V397 L955,415 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="715" y="260" width="240" height="155" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
               stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="724" y="314" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
-        <text x="750" y="348" text-anchor="middle" font-size="24">REG</text>
-        <text x="792" y="336" class="label">Registry</text>
-        <text x="734" y="374" class="small">versioned images</text>
-        <text x="734" y="396" class="small">SBOM metadata</text>
-        <text x="734" y="418" class="small">tags per service</text>
+        <rect x="729" y="274" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
+        <text x="755" y="308" text-anchor="middle" font-size="24">☕</text>
+        <text x="797" y="296" class="label">Domain Services</text>
+        <text x="739" y="334" class="small">Auth · Task · File</text>
+        <text x="739" y="356" class="small">Notification</text>
+        <text x="739" y="378" class="small">Spring Boot APIs</text>
     </g>
     <g class="node">
-        <path d="M1003,242 H1233 L1215,260 H985 Z" fill="url(#violet)" opacity=".22"/>
-        <path d="M1215,260 L1233,242 V397 L1215,415 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+        <path d="M1053,192 H1273 L1255,210 H1035 Z" fill="url(#green)" opacity=".22"/>
+        <path d="M1255,210 L1273,192 V342 L1255,360 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
               stroke-opacity=".22"/>
-        <rect x="985" y="260" width="230" height="155" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+        <rect x="1035" y="210" width="220" height="150" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
               stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="999" y="274" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
-        <text x="1025" y="308" text-anchor="middle" font-size="24">ARGO</text>
-        <text x="1067" y="296" class="label">ArgoCD</text>
-        <text x="1009" y="334" class="small">sync desired state</text>
-        <text x="1009" y="356" class="small">detect drift</text>
-        <text x="1009" y="378" class="small">health status</text>
+        <rect x="1049" y="224" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
+        <text x="1075" y="258" text-anchor="middle" font-size="24">▣</text>
+        <text x="1117" y="246" class="label">Data Plane</text>
+        <text x="1059" y="284" class="small">MongoDB documents</text>
+        <text x="1059" y="306" class="small">Redis cache</text>
+        <text x="1059" y="328" class="small">RabbitMQ queue</text>
     </g>
     <g class="node">
-        <path d="M1293,282 H1508 L1490,300 H1275 Z" fill="url(#cyan)" opacity=".22"/>
-        <path d="M1490,300 L1508,282 V417 L1490,435 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+        <path d="M1053,452 H1273 L1255,470 H1035 Z" fill="url(#orange)" opacity=".22"/>
+        <path d="M1255,470 L1273,452 V602 L1255,620 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
               stroke-opacity=".22"/>
-        <rect x="1275" y="300" width="215" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+        <rect x="1035" y="470" width="220" height="150" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
               stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="1289" y="314" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
-        <text x="1315" y="348" text-anchor="middle" font-size="24">K8S</text>
-        <text x="1357" y="336" class="label">Cluster</text>
-        <text x="1299" y="374" class="small">deployments</text>
-        <text x="1299" y="396" class="small">services</text>
-        <text x="1299" y="418" class="small">ingress</text>
+        <rect x="1049" y="484" width="52" height="52" rx="17" fill="url(#orange)" filter="url(#glow)"/>
+        <text x="1075" y="518" text-anchor="middle" font-size="24">◎</text>
+        <text x="1117" y="506" class="label">Observability</text>
+        <text x="1059" y="544" class="small">Prometheus scrape</text>
+        <text x="1059" y="566" class="small">Grafana dashboards</text>
+        <text x="1059" y="588" class="small">Health &amp; SLO view</text>
     </g>
     <g class="node">
-        <path d="M423,527 H653 L635,545 H405 Z" fill="url(#violet)" opacity=".22"/>
-        <path d="M635,545 L653,527 V662 L635,680 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="405" y="545" width="230" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+        <path d="M723,497 H973 L955,515 H705 Z" fill="url(#violet)" opacity=".22"/>
+        <path d="M955,515 L973,497 V642 L955,660 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="705" y="515" width="250" height="145" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
               stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="419" y="559" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
-        <text x="445" y="593" text-anchor="middle" font-size="24">⎈</text>
-        <text x="487" y="581" class="label">Helm Chart</text>
-        <text x="429" y="619" class="small">values.yaml</text>
-        <text x="429" y="641" class="small">templates</text>
-        <text x="429" y="663" class="small">release history</text>
+        <rect x="719" y="529" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
+        <text x="745" y="563" text-anchor="middle" font-size="24">⎈</text>
+        <text x="787" y="551" class="label">Ops Control</text>
+        <text x="729" y="589" class="small">Docker Engine</text>
+        <text x="729" y="611" class="small">kubectl native</text>
+        <text x="729" y="633" class="small">Helm releases</text>
     </g>
-    <g class="node">
-        <path d="M1003,527 H1233 L1215,545 H985 Z" fill="url(#green)" opacity=".22"/>
-        <path d="M1215,545 L1233,527 V662 L1215,680 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
-              stroke-opacity=".22"/>
-        <rect x="985" y="545" width="230" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="999" y="559" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
-        <text x="1025" y="593" text-anchor="middle" font-size="24">◎</text>
-        <text x="1067" y="581" class="label">Observability</text>
-        <text x="1009" y="619" class="small">deployment metrics</text>
-        <text x="1009" y="641" class="small">rollback signals</text>
-        <text x="1009" y="663" class="small">Grafana SLO</text>
-    </g>
-    <path d="M330 365 H405" class="flow dash"/>
-    <path d="M635 340 C675 325 685 335 710 365" class="flow dash"/>
-    <path d="M925 365 H985" class="flow dash"/>
-    <path d="M1215 340 H1275" class="flow dash"/>
-    <path d="M520 415 V545" class="event dash"/>
-    <path d="M635 612 C760 635 870 635 985 610" class="flow dash"/>
-    <path d="M1095 545 C1140 490 1210 445 1275 405" class="metric dash"/>
-    <path d="M1090 415 C1080 465 1070 505 1090 545" class="metric dash"/>
-    <text x="365" y="318" class="tiny">test/build</text>
-    <text x="660" y="315" class="tiny">push image</text>
-    <text x="934" y="334" class="tiny">sync</text>
-    <text x="1230" y="318" class="tiny">apply</text>
+    <path d="M320 338 C350 310 360 305 390 312" class="flow dash"/>
+    <path d="M630 318 C665 315 680 325 715 337" class="flow dash"/>
+    <path d="M955 336 C990 305 1000 290 1035 285" class="flow dash"/>
+    <path d="M955 360 C1010 415 1000 470 1035 535" class="metric dash"/>
+    <path d="M835 415 C810 455 805 485 810 515" class="event dash"/>
+    <path d="M705 590 C570 585 520 450 390 390" class="flow dash"/>
+    <circle cx="350" cy="318" r="8" fill="#67e8f9" class="pulse"/>
+    <circle cx="675" cy="324" r="8" fill="#67e8f9" class="pulse"/>
+    <circle cx="995" cy="306" r="8" fill="#67e8f9" class="pulse"/>
     <g>
-        <rect x="85" y="710" width="380" height="116" rx="18" fill="#020617" fill-opacity=".62" stroke="#94a3b8"
+        <text x="380" y="282" class="tiny">1. UI action</text>
+        <text x="650" y="292" class="tiny">2. REST command</text>
+        <text x="962" y="260" class="tiny">3. Persist/cache/publish</text>
+        <text x="958" y="462" class="tiny">4. metrics</text>
+        <text x="545" y="535" class="tiny">5. operator action</text>
+    </g>
+    <g>
+        <rect x="1090" y="650" width="380" height="116" rx="18" fill="#020617" fill-opacity=".62" stroke="#94a3b8"
               stroke-opacity=".28"/>
-        <text x="103" y="740" class="tiny">LEGEND</text>
-        <path d="M103 762 H175" class="flow"/>
-        <text x="193" y="767" class="small">HTTP/API control request</text>
-        <path d="M103 788 H175" class="event"/>
-        <text x="193" y="793" class="small">Async event/message path</text>
-        <path d="M103 814 H175" class="metric"/>
-        <text x="193" y="819" class="small">Metrics/logs/telemetry</text>
+        <text x="1108" y="680" class="tiny">LEGEND</text>
+        <path d="M1108 702 H1180" class="flow"/>
+        <text x="1198" y="707" class="small">HTTP/API control request</text>
+        <path d="M1108 728 H1180" class="event"/>
+        <text x="1198" y="733" class="small">Async event/message path</text>
+        <path d="M1108 754 H1180" class="metric"/>
+        <text x="1198" y="759" class="small">Metrics/logs/telemetry</text>
     </g>
 
 </svg>

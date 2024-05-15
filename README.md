@@ -1,87 +1,70 @@
-# NebulaOps v15
+# NebulaOps v16 — Spatial DevOps SaaS Platform
 
-NebulaOps v15 is an advanced DevOps portfolio platform for a personal workstation. It runs on WSL Ubuntu or native Linux
-with native Docker Engine, Docker Compose plugin, kubectl, Helm and kind. Docker Desktop is not required.
+NebulaOps v16 is a local-first, portfolio-grade DevOps SaaS platform designed for WSL and Linux without Docker Desktop.
+It combines an Angular 3D control center, Spring Boot microservices, Go workers, MongoDB, Redis, RabbitMQ, Docker Engine
+control, Kubernetes/OpenLens-like operations, Helm release management, Prometheus and Grafana.
 
-## What changed in v15
+## What changed in v16
 
-- Native WSL/Linux install scripts for Docker Engine, Docker Compose, kubectl, Helm and kind.
-- Docker Desktop-like frontend tab backed by real Docker CLI operations.
-- OpenLens-like Kubernetes frontend tab backed by real kubectl operations.
-- Helm frontend tab backed by real Helm release operations.
-- Grafana frontend tab backed by the real Grafana HTTP API.
-- More advanced architecture docs, runbook, feature matrix and animated SVG.
-- Updated gateway runtime adapters for Docker, Helm and Grafana.
+- New 3D spatial frontend with animated cloud topology, service galaxy and SaaS-style control panels.
+- Real Docker controls from the UI: list containers, images, stats, start, stop, restart and remove.
+- Kubernetes console for resources, live YAML editing, scale actions, logs and local snapshots.
+- Helm release inventory and uninstall workflow through the gateway.
+- Grafana fixed with exactly one default datasource to avoid provisioning restart loops.
+- Prometheus + Grafana provisioning for local observability.
+- WSL/Linux scripts with native Docker Engine, Docker Compose, kubectl and Helm.
+- Modern architecture diagrams and animated SVG documentation.
 
-## Main stack
-
-- Angular frontend
-- Spring Boot and Spring Cloud Gateway
-- Spring Boot microservices: auth, task, notification, file
-- Go services: cache and event worker
-- MongoDB, RabbitMQ, Redis
-- Docker Engine and Docker Compose plugin
-- kind Kubernetes, kubectl and Helm
-- Prometheus and Grafana
-
-## Start on WSL Ubuntu without Docker Desktop
+## Quick start on WSL Ubuntu
 
 ```bash
+cd nebulaops-v16
 ./scripts/wsl/install-native-toolchain.sh
+./scripts/wsl/start.sh
+./scripts/wsl/smoke-test.sh
 ```
 
-Then from PowerShell:
-
-```powershell
-wsl --shutdown
-```
-
-Reopen Ubuntu and run:
-
-```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v15
-./scripts/linux/start-native.sh
-```
-
-Open:
+URLs:
 
 - Frontend: http://localhost:4200
-- Gateway: http://localhost:8080
-- Grafana: http://localhost:3000
+- Gateway: http://localhost:8080/actuator/health
+- Grafana: http://localhost:3000 — admin/admin
 - Prometheus: http://localhost:9090
-- RabbitMQ: http://localhost:15672
+- Mongo Express: http://localhost:8088 — admin/admin
+- Redis Commander: http://localhost:8089 — admin/admin
+- RabbitMQ: http://localhost:15672 — guest/guest
 
-## Start on native Ubuntu/Linux
-
-```bash
-./scripts/linux/install-native-toolchain.sh
-./scripts/linux/create-kind-cluster.sh nebulaops-v15
-./scripts/linux/start-native.sh
-```
-
-## Deploy with Helm
+## Stop
 
 ```bash
-./scripts/linux/helm-install-nebulaops.sh nebulaops
+./scripts/wsl/stop.sh
 ```
 
-## Important security note
+Volumes are preserved by default.
 
-The gateway mounts the Docker socket and kubeconfig to provide real local runtime control from the frontend. This is
-intended only for a local development machine. Do not expose the gateway publicly.
+## Important Grafana note
 
-## Documentation
+The v16 provisioning intentionally contains one default datasource only:
 
-- `docs/V15_ARCHITECTURE.md`
-- `docs/V15_RUNBOOK.md`
-- `docs/V15_FEATURE_MATRIX.md`
-- `docs/nebulaops-v15-architecture-animated.svg`
-- `docs/TECHNICAL_DOCUMENTATION.md`
-- `docs/TROUBLESHOOTING.md`
+```yaml
+name: Prometheus
+uid: prometheus
+url: http://prometheus:9090
+isDefault: true
+```
 
-### v15 Local Service Map deep links
+Do not add another `isDefault: true`, otherwise Grafana will restart
+with: `Only one datasource per organization can be marked as default`.
 
-In the **INFRA** tab, service cards are clickable and open the real related dashboard or NebulaOps control panel:
-MongoDB opens Mongo Express on `localhost:8088`, Redis opens Redis Commander on `localhost:8089`, RabbitMQ opens its
-management UI on `localhost:15672`, Prometheus opens `localhost:9090`, Grafana opens `localhost:3000`, and
-Kubernetes/Helm route to the internal NebulaOps control tabs.
+## v16 functional 3D diagrams
+
+The SVGs were rebuilt as technical flow diagrams. Start with `docs/V16_DIAGRAM_GUIDE.md`, then open:
+
+- `docs/diagrams/request-flow-sequence.svg`
+- `docs/diagrams/runtime-architecture.svg`
+- `docs/diagrams/observability-grafana-flow.svg`
+- `docs/diagrams/messaging-cache-flow.svg`
+- `docs/diagrams/frontend-operations-dashboard.svg`
+
+Each diagram uses cyan arrows for API control, purple dashed arrows for async events and green dotted arrows for
+metrics/logs.

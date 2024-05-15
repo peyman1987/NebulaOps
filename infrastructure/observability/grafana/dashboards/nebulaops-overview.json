@@ -1,13 +1,13 @@
 {
-  "title": "NebulaOps v15 Runtime Overview",
-  "uid": "nebulaops-v15-runtime",
+  "title": "NebulaOps v16 Runtime Overview",
+  "uid": "nebulaops-v16-runtime",
   "schemaVersion": 39,
   "version": 2,
   "refresh": "10s",
   "timezone": "browser",
   "tags": [
     "nebulaops",
-    "v15",
+    "v16",
     "local"
   ],
   "panels": [
