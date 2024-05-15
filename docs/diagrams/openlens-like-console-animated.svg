@@ -1,75 +1,215 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img"
+     aria-labelledby="title desc">
+    <title id="title">NebulaOps v16 · OpenLens-like console flow</title>
+    <desc id="desc">Namespace filters, resource list, YAML editor, kubectl gateway and events.</desc>
     <defs>
-        <linearGradient id="bg" x1="0" x2="1">
-            <stop stop-color="#071225"/>
-            <stop offset="1" stop-color="#111827"/>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#020617"/>
+            <stop offset=".45" stop-color="#06163a"/>
+            <stop offset="1" stop-color="#18062e"/>
         </linearGradient>
-        <linearGradient id="card" x1="0" x2="1">
-            <stop stop-color="#164e63" stop-opacity=".95"/>
-            <stop offset="1" stop-color="#312e81" stop-opacity=".95"/>
+        <radialGradient id="halo" cx="50%" cy="35%" r="65%">
+            <stop offset="0" stop-color="#22d3ee" stop-opacity=".34"/>
+            <stop offset=".55" stop-color="#7c3aed" stop-opacity=".12"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#e0faff"/>
+            <stop offset=".25" stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#2563eb"/>
         </linearGradient>
-        <filter id="shadow">
-            <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".35"/>
+        <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f5d0fe"/>
+            <stop offset=".35" stop-color="#a855f7"/>
+            <stop offset="1" stop-color="#4338ca"/>
+        </linearGradient>
+        <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#dcfce7"/>
+            <stop offset=".35" stop-color="#22c55e"/>
+            <stop offset="1" stop-color="#047857"/>
+        </linearGradient>
+        <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffedd5"/>
+            <stop offset=".35" stop-color="#fb923c"/>
+            <stop offset="1" stop-color="#c2410c"/>
+        </linearGradient>
+        <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fee2e2"/>
+            <stop offset=".35" stop-color="#f43f5e"/>
+            <stop offset="1" stop-color="#991b1b"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
         </filter>
-        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-            <path d="M2,2 L10,6 L2,10" fill="#7dd3fc"/>
+        <filter id="soft">
+            <feDropShadow dx="0" dy="22" stdDeviation="16" flood-color="#000" flood-opacity=".48"/>
+            <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#67e8f9" flood-opacity=".25"/>
+        </filter>
+        <marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#67e8f9"/>
         </marker>
+        <marker id="arrowV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#c084fc"/>
+        </marker>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#86efac"/>
+        </marker>
+        <style>
+            .title{font:800 38px Inter,Arial,sans-serif;fill:#f8fbff;letter-spacing:-.02em} .sub{font:500 17px
+            Inter,Arial,sans-serif;fill:#bdd6f6}
+            .label{font:800 20px Inter,Arial,sans-serif;fill:#f8fbff} .small{font:500 13px
+            Inter,Arial,sans-serif;fill:#c7d8ef} .tiny{font:700 11px
+            Inter,Arial,sans-serif;fill:#a9c3df;text-transform:uppercase;letter-spacing:.08em}
+            .lane{fill:#0f172a;fill-opacity:.52;stroke:#2dd4bf;stroke-opacity:.22;stroke-width:1.4} .node{}
+            .flow{fill:none;stroke:#67e8f9;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#arrowC);filter:url(#glow)}
+            .event{fill:none;stroke:#c084fc;stroke-width:4;stroke-dasharray:13
+            10;stroke-linecap:round;marker-end:url(#arrowV)}
+            .metric{fill:none;stroke:#86efac;stroke-width:4;stroke-dasharray:4
+            9;stroke-linecap:round;marker-end:url(#arrowG)}
+            .pulse{animation:pulse 2.8s ease-in-out infinite;transform-origin:center} .dash{stroke-dasharray:18
+            12;animation:dash 4s linear infinite} .float{animation:float 6s ease-in-out infinite}
+            @keyframes dash{to{stroke-dashoffset:-120}} @keyframes pulse{50%{opacity:.52;transform:scale(1.035)}}
+            @keyframes float{50%{transform:translateY(-10px)}}
+        </style>
     </defs>
-    <rect width="1200" height="680" rx="28" fill="url(#bg)"/>
-    <text x="54" y="70" fill="#e5f2ff" font-family="Inter,Arial" font-size="34" font-weight="700">NebulaOps
-        OpenLens-like Console
-    </text>
-    <text x="54" y="104" fill="#93c5fd" font-family="Inter,Arial" font-size="16">CRUD tasks · CRUD Kubernetes resources
-        · YAML editor · replica scaling · logs
-    </text>
-    <g filter="url(#shadow)">
-        <rect x="60" y="160" width="260" height="390" rx="24" fill="url(#card)" stroke="#67e8f9" stroke-opacity=".35"/>
-        <text x="90" y="205" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Angular FE</text>
-        <text x="90" y="242" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Task board CRUD</text>
-        <text x="90" y="272" fill="#dbeafe" font-size="15" font-family="Inter,Arial">K8s inventory</text>
-        <text x="90" y="302" fill="#dbeafe" font-size="15" font-family="Inter,Arial">YAML editor</text>
-        <text x="90" y="332" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Scale +/- replicas</text>
-        <circle cx="270" cy="500" r="10" fill="#22c55e">
-            <animate attributeName="r" values="8;14;8" dur="1.6s" repeatCount="indefinite"/>
-        </circle>
+    <rect width="100%" height="100%" fill="url(#bg)"/>
+    <rect width="100%" height="100%" fill="url(#halo)"/>
+    <g opacity=".18">
+        <path d="M0 120 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 200 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 280 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 360 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 440 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 520 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 600 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 680 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 760 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 840 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M0 920 H1600" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M80 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M160 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M240 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M320 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M400 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M480 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M560 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M640 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M720 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M800 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M880 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M960 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1040 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1120 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1200 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1280 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1360 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1440 0 V950" stroke="#93c5fd" stroke-width="1"/>
+        <path d="M1520 0 V950" stroke="#93c5fd" stroke-width="1"/>
     </g>
-    <g filter="url(#shadow)">
-        <rect x="470" y="150" width="260" height="170" rx="24" fill="#0f766e" stroke="#99f6e4" stroke-opacity=".4"/>
-        <text x="500" y="198" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Gateway API</text>
-        <text x="500" y="235" fill="#ccfbf1" font-size="15" font-family="Inter,Arial">/api/kubernetes/*</text>
-        <text x="500" y="265" fill="#ccfbf1" font-size="15" font-family="Inter,Arial">/api/tasks/*</text>
+    <text x="70" y="72" class="title">NebulaOps v16 · OpenLens-like console flow</text>
+    <text x="70" y="104" class="sub">Namespace filters, resource list, YAML editor, kubectl gateway and events.</text>
+
+    <rect x="60" y="155" width="1480" height="675" rx="36" class="lane"/>
+    <text x="90" y="194" class="tiny">OPENLENS-LIKE RESOURCE FLOW · FROM RESOURCE LIST TO YAML APPLY</text>
+    <g class="node">
+        <path d="M128,282 H358 L340,300 H110 Z" fill="url(#cyan)" opacity=".22"/>
+        <path d="M340,300 L358,282 V427 L340,445 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="110" y="300" width="230" height="145" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="124" y="314" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
+        <text x="150" y="348" text-anchor="middle" font-size="24">NS</text>
+        <text x="192" y="336" class="label">Namespace filter</text>
+        <text x="134" y="374" class="small">default</text>
+        <text x="134" y="396" class="small">kube-system</text>
+        <text x="134" y="418" class="small">custom namespaces</text>
     </g>
-    <g filter="url(#shadow)">
-        <rect x="470" y="390" width="260" height="170" rx="24" fill="#7c2d12" stroke="#fdba74" stroke-opacity=".45"/>
-        <text x="500" y="438" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Task Service</text>
-        <text x="500" y="475" fill="#ffedd5" font-size="15" font-family="Inter,Arial">MongoDB persistence</text>
-        <text x="500" y="505" fill="#ffedd5" font-size="15" font-family="Inter,Arial">RabbitMQ events</text>
+    <g class="node">
+        <path d="M438,217 H678 L660,235 H420 Z" fill="url(#violet)" opacity=".22"/>
+        <path d="M660,235 L678,217 V362 L660,380 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="420" y="235" width="240" height="145" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="434" y="249" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
+        <text x="460" y="283" text-anchor="middle" font-size="24">LIST</text>
+        <text x="502" y="271" class="label">Resource list</text>
+        <text x="444" y="309" class="small">pods</text>
+        <text x="444" y="331" class="small">services</text>
+        <text x="444" y="353" class="small">ingress</text>
+        <text x="444" y="375" class="small">deployments</text>
     </g>
-    <g filter="url(#shadow)">
-        <rect x="880" y="130" width="250" height="210" rx="24" fill="#1e3a8a" stroke="#93c5fd" stroke-opacity=".45"/>
-        <text x="910" y="178" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Kubernetes Model
-        </text>
-        <text x="910" y="215" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Namespace</text>
-        <text x="910" y="245" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Deployment / ReplicaSet</text>
-        <text x="910" y="275" fill="#dbeafe" font-size="15" font-family="Inter,Arial">Service / Ingress</text>
-        <text x="910" y="305" fill="#dbeafe" font-size="15" font-family="Inter,Arial">ConfigMap / Secret</text>
+    <g class="node">
+        <path d="M438,482 H678 L660,500 H420 Z" fill="url(#cyan)" opacity=".22"/>
+        <path d="M660,500 L678,482 V627 L660,645 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
+        <rect x="420" y="500" width="240" height="145" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="434" y="514" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
+        <text x="460" y="548" text-anchor="middle" font-size="24">YAML</text>
+        <text x="502" y="536" class="label">YAML editor</text>
+        <text x="444" y="574" class="small">view manifest</text>
+        <text x="444" y="596" class="small">edit spec</text>
+        <text x="444" y="618" class="small">apply changes</text>
     </g>
-    <g filter="url(#shadow)">
-        <rect x="880" y="410" width="250" height="130" rx="24" fill="#581c87" stroke="#d8b4fe" stroke-opacity=".45"/>
-        <text x="910" y="458" fill="#fff" font-size="22" font-family="Inter,Arial" font-weight="700">Observability
-        </text>
-        <text x="910" y="495" fill="#f3e8ff" font-size="15" font-family="Inter,Arial">Logs · Prometheus · Grafana</text>
+    <g class="node">
+        <path d="M778,347 H1018 L1000,365 H760 Z" fill="url(#orange)" opacity=".22"/>
+        <path d="M1000,365 L1018,347 V492 L1000,510 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+              stroke-opacity=".22"/>
+        <rect x="760" y="365" width="240" height="145" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="774" y="379" width="52" height="52" rx="17" fill="url(#orange)" filter="url(#glow)"/>
+        <text x="800" y="413" text-anchor="middle" font-size="24">GW</text>
+        <text x="842" y="401" class="label">Gateway API</text>
+        <text x="784" y="439" class="small">validates request</text>
+        <text x="784" y="461" class="small">runs kubectl</text>
+        <text x="784" y="483" class="small">returns result</text>
     </g>
-    <path d="M320 245 C380 245 410 235 470 235" stroke="#7dd3fc" stroke-width="4" fill="none" marker-end="url(#arrow)">
-        <animate attributeName="stroke-dasharray" values="1 18;18 1;1 18" dur="2s" repeatCount="indefinite"/>
-    </path>
-    <path d="M730 235 C790 235 820 230 880 230" stroke="#7dd3fc" stroke-width="4" fill="none" marker-end="url(#arrow)">
-        <animate attributeName="stroke-dasharray" values="1 18;18 1;1 18" dur="2.2s" repeatCount="indefinite"/>
-    </path>
-    <path d="M600 320 L600 390" stroke="#fb923c" stroke-width="4" fill="none" marker-end="url(#arrow)">
-        <animate attributeName="stroke-dasharray" values="1 14;14 1;1 14" dur="1.8s" repeatCount="indefinite"/>
-    </path>
-    <path d="M730 475 C800 475 815 475 880 475" stroke="#c084fc" stroke-width="4" fill="none" marker-end="url(#arrow)">
-        <animate attributeName="stroke-dasharray" values="1 16;16 1;1 16" dur="2.1s" repeatCount="indefinite"/>
-    </path>
+    <g class="node">
+        <path d="M1118,217 H1363 L1345,235 H1100 Z" fill="url(#green)" opacity=".22"/>
+        <path d="M1345,235 L1363,217 V362 L1345,380 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+              stroke-opacity=".22"/>
+        <rect x="1100" y="235" width="245" height="145" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="1114" y="249" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
+        <text x="1140" y="283" text-anchor="middle" font-size="24">API</text>
+        <text x="1182" y="271" class="label">K8s API server</text>
+        <text x="1124" y="309" class="small">persist desired state</text>
+        <text x="1124" y="331" class="small">schedule pods</text>
+        <text x="1124" y="353" class="small">update status</text>
+    </g>
+    <g class="node">
+        <path d="M1118,482 H1363 L1345,500 H1100 Z" fill="url(#violet)" opacity=".22"/>
+        <path d="M1345,500 L1363,482 V627 L1345,645 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
+              stroke-opacity=".22"/>
+        <rect x="1100" y="500" width="245" height="145" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
+              stroke-opacity=".48" stroke-width="1.5"/>
+        <rect x="1114" y="514" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
+        <text x="1140" y="548" text-anchor="middle" font-size="24">EV</text>
+        <text x="1182" y="536" class="label">Events/logs</text>
+        <text x="1124" y="574" class="small">watch changes</text>
+        <text x="1124" y="596" class="small">container logs</text>
+        <text x="1124" y="618" class="small">health signals</text>
+    </g>
+    <path d="M340 360 C375 320 390 300 420 300" class="flow dash"/>
+    <path d="M540 380 V500" class="flow dash"/>
+    <path d="M660 575 C705 520 725 455 760 430" class="flow dash"/>
+    <path d="M1000 430 C1045 365 1060 315 1100 300" class="flow dash"/>
+    <path d="M1220 380 V500" class="event dash"/>
+    <path d="M1100 575 C980 635 840 595 760 490" class="metric dash"/>
+    <g>
+        <rect x="80" y="710" width="380" height="116" rx="18" fill="#020617" fill-opacity=".62" stroke="#94a3b8"
+              stroke-opacity=".28"/>
+        <text x="98" y="740" class="tiny">LEGEND</text>
+        <path d="M98 762 H170" class="flow"/>
+        <text x="188" y="767" class="small">HTTP/API control request</text>
+        <path d="M98 788 H170" class="event"/>
+        <text x="188" y="793" class="small">Async event/message path</text>
+        <path d="M98 814 H170" class="metric"/>
+        <text x="188" y="819" class="small">Metrics/logs/telemetry</text>
+    </g>
+
 </svg>

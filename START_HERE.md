@@ -1,33 +1,36 @@
-# Start here: NebulaOps v15
+# Start Here — NebulaOps v16
 
-1. Install native tooling without Docker Desktop:
+1. Open WSL Ubuntu.
+2. Enter the project directory.
+3. Install the native toolchain if needed.
+4. Start the platform.
 
 ```bash
+cd nebulaops-v16
 ./scripts/wsl/install-native-toolchain.sh
+./scripts/wsl/start.sh
 ```
 
-2. Restart WSL from PowerShell:
+Open http://localhost:4200 and use the 3D service map. Grafana is at http://localhost:3000 with `admin/admin`.
 
-```powershell
-wsl --shutdown
-```
-
-3. Create the local cluster:
+Troubleshooting Grafana:
 
 ```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v15
+docker compose -p nebulaops-v16 logs --tail=200 grafana
+grep -R "isDefault: true" -n infrastructure/observability/grafana/provisioning/datasources
 ```
 
-4. Start the platform:
+There must be exactly one default datasource.
 
-```bash
-./scripts/linux/start-native.sh
-```
+## v16 functional 3D diagrams
 
-5. Open the frontend:
+The SVGs were rebuilt as technical flow diagrams. Start with `docs/V16_DIAGRAM_GUIDE.md`, then open:
 
-```text
-http://localhost:4200
-```
+- `docs/diagrams/request-flow-sequence.svg`
+- `docs/diagrams/runtime-architecture.svg`
+- `docs/diagrams/observability-grafana-flow.svg`
+- `docs/diagrams/messaging-cache-flow.svg`
+- `docs/diagrams/frontend-operations-dashboard.svg`
 
-Use the Docker, Kubernetes, Helm and Grafana tabs to control real local resources.
+Each diagram uses cyan arrows for API control, purple dashed arrows for async events and green dotted arrows for
+metrics/logs.

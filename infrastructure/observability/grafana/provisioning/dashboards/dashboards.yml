@@ -1,10 +1,11 @@
 apiVersion: 1
 providers:
-  - name: NebulaOps v15
+  - name: NebulaOps v16
     orgId: 1
-    folder: NebulaOps
+    folder: NebulaOps v16
     type: file
     disableDeletion: false
+    editable: true
     updateIntervalSeconds: 20
     options:
       path: /etc/grafana/dashboards

@@ -98,34 +98,34 @@ interface InfraItem {
     internalLabel?: string;
 }
 
-const STORAGE_KEY = 'nebulaops.v15.board.tasks';
-const K8S_STORAGE_KEY = 'nebulaops.v15.k8s.resources';
-const SECURITY_KEY = 'nebulaops.v15.security.findings';
+const STORAGE_KEY = 'nebulaops.v16.board.tasks';
+const K8S_STORAGE_KEY = 'nebulaops.v16.k8s.resources';
+const SECURITY_KEY = 'nebulaops.v16.security.findings';
 
 const DEFAULT_TASKS: Task[] = [
     {
-        id: 'V15-101',
+        id: 'V16-101',
         title: 'Implement policy-as-code guardrails',
         owner: 'DevSecOps',
         priority: 'CRITICAL',
         status: 'TODO'
     },
     {
-        id: 'V15-102',
+        id: 'V16-102',
         title: 'Wire Grafana SLO dashboard for gateway latency',
         owner: 'SRE',
         priority: 'HIGH',
         status: 'IN_PROGRESS'
     },
     {
-        id: 'V15-103',
+        id: 'V16-103',
         title: 'Add GitLab quality gates and Helm render validation',
         owner: 'Platform',
         priority: 'HIGH',
         status: 'REVIEW'
     },
     {
-        id: 'V15-104',
+        id: 'V16-104',
         title: 'Document local WSL runbook and smoke tests',
         owner: 'DevOps',
         priority: 'MEDIUM',
@@ -389,11 +389,11 @@ export class AppComponent implements OnInit, OnDestroy {
         this.tasks.set([local, ...this.tasks()]);
         this.http.post<ApiTask>('/api/tasks', {
             organizationId: 'demo-org',
-            projectId: 'portfolio-v15',
+            projectId: 'portfolio-v16',
             title: local.title,
             priority: local.priority,
             assigneeId: local.owner,
-            labels: ['portfolio', 'v15']
+            labels: ['portfolio', 'v16']
         }).pipe(catchError(() => of(null))).subscribe(t => {
             if (t) this.tasks.set(this.tasks().map(x => x.id === local.id ? {
                 id: t.id,
@@ -409,7 +409,7 @@ export class AppComponent implements OnInit, OnDestroy {
     deleteTask(id: string): void {
         const before = this.tasks();
         this.tasks.set(before.filter(t => t.id !== id));
-        if (!id.startsWith('LOCAL') && !id.startsWith('V15-')) this.http.delete(`/api/tasks/${id}`).pipe(catchError(() => {
+        if (!id.startsWith('LOCAL') && !id.startsWith('V16-')) this.http.delete(`/api/tasks/${id}`).pipe(catchError(() => {
             this.tasks.set(before);
             return of(null);
         })).subscribe();
@@ -643,12 +643,12 @@ export class AppComponent implements OnInit, OnDestroy {
     private seedDefaultsToApi(): void {
         forkJoin(DEFAULT_TASKS.map(t => this.http.post<ApiTask>('/api/tasks', {
             organizationId: 'demo-org',
-            projectId: 'portfolio-v15',
+            projectId: 'portfolio-v16',
             title: t.title,
             description: `Seed task for ${t.owner}`,
             priority: t.priority,
             assigneeId: t.owner,
-            labels: ['portfolio', 'v15']
+            labels: ['portfolio', 'v16']
         }).pipe(catchError(() => of(null))))).subscribe(results => {
             const created = results.filter((t): t is ApiTask => !!t);
             if (created.length) {
@@ -666,7 +666,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     private persistStatus(taskId: string, status: Status, rollback: Task[]): void {
         this.syncState.set('syncing');
-        if (!taskId.startsWith('V15-') && !taskId.startsWith('LOCAL')) this.http.patch<ApiTask>(`/api/tasks/${taskId}/status/${status}`, {}).pipe(catchError(() => of(null))).subscribe(result => {
+        if (!taskId.startsWith('V16-') && !taskId.startsWith('LOCAL')) this.http.patch<ApiTask>(`/api/tasks/${taskId}/status/${status}`, {}).pipe(catchError(() => of(null))).subscribe(result => {
             if (result) this.syncState.set('synced'); else {
                 this.tasks.set(rollback);
                 this.syncState.set('error');

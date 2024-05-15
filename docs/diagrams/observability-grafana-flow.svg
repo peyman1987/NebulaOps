@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920">
+    <defs>
+        <style>
+            .bg{fill:#06111f}.panel{fill:#0b1930;stroke:#38bdf8;stroke-width:2}.node{fill:#102342;stroke:#7dd3fc;stroke-width:2}.node2{fill:#13213c;stroke:#a78bfa;stroke-width:2}.node3{fill:#162339;stroke:#34d399;stroke-width:2}.txt{font-family:Inter,Segoe
+            UI,Arial,sans-serif;fill:#e6f3ff}.small{font-size:22px}.tiny{font-size:16px;fill:#b8d6f2}.title{font-size:42px;font-weight:800}.label{font-size:24px;font-weight:700}.flow{fill:none;stroke:#22d3ee;stroke-width:5;stroke-linecap:round;stroke-dasharray:14
+            14;marker-end:url(#arrow)}.event{fill:none;stroke:#f59e0b;stroke-width:5;stroke-linecap:round;stroke-dasharray:10
+            16;marker-end:url(#arrow2)}.metric{fill:none;stroke:#34d399;stroke-width:5;stroke-linecap:round;stroke-dasharray:4
+            12;marker-end:url(#arrow3)}.shadow{filter:url(#shadow)}.badge{fill:#0ea5e9}.badge2{fill:#f59e0b}.badge3{fill:#10b981}@keyframes
+            dash{to{stroke-dashoffset:-120}}@keyframes pulse{0%,100%{opacity:.35;r:8}50%{opacity:1;r:15}}@keyframes
+            float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}.flow,.event,.metric{animation:dash 4s
+            linear infinite}.pulse{animation:pulse 1.8s ease-in-out infinite}.float{animation:float 5s ease-in-out
+            infinite}.isoTop{fill:#193b62}.isoLeft{fill:#0f284a}.isoRight{fill:#0a1c36}
+        </style>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".45"/>
+        </filter>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#22d3ee"/>
+        </marker>
+        <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#f59e0b"/>
+        </marker>
+        <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#34d399"/>
+        </marker>
+    </defs>
+    <rect class="bg" width="1600" height="920"/>
+    <circle cx="130" cy="90" r="220" fill="#0ea5e9" opacity=".10"/>
+    <circle cx="1420" cy="760" r="300" fill="#8b5cf6" opacity=".10"/>
+    <text class="txt title" x="60" y="70">NebulaOps v16 — Observability & Grafana Flow</text>
+    <text class="txt small" x="60" y="110">Prometheus è l’unico datasource default per evitare restart loop.</text>
+    <rect class="panel shadow" x="60" y="155" width="1480" height="675" rx="28"/>
+    <g class="shadow float">
+        <rect class="node3" x="115" y="250" width="260" height="125" rx="20"/>
+        <text class="txt label" x="139" y="292">A Apps + Gateway</text>
+        <text class="txt tiny" x="139" y="326">/actuator/prometheus metrics</text>
+    </g>
+    <g class="shadow float">
+        <rect class="node" x="500" y="250" width="260" height="125" rx="20"/>
+        <text class="txt label" x="524" y="292">B Prometheus</text>
+        <text class="txt tiny" x="524" y="326">scrape + time-series storage</text>
+    </g>
+    <g class="shadow float">
+        <rect class="node2" x="885" y="250" width="260" height="125" rx="20"/>
+        <text class="txt label" x="909" y="292">C Grafana</text>
+        <text class="txt tiny" x="909" y="326">single default datasource</text>
+    </g>
+    <g class="shadow float">
+        <rect class="node" x="1270" y="250" width="210" height="125" rx="20"/>
+        <text class="txt label" x="1294" y="292">D Dashboards</text>
+        <text class="txt tiny" x="1294" y="326">latency, health, traffic</text>
+    </g>
+    <g class="shadow float">
+        <rect class="node3" x="500" y="520" width="260" height="125" rx="20"/>
+        <text class="txt label" x="524" y="562">E Alert Rules</text>
+        <text class="txt tiny" x="524" y="596">thresholds + uptime</text>
+    </g>
+    <g class="shadow float">
+        <rect class="node3" x="885" y="520" width="260" height="125" rx="20"/>
+        <text class="txt label" x="909" y="562">F FE Widgets</text>
+        <text class="txt tiny" x="909" y="596">embedded health cards</text>
+    </g>
+    <path class="metric" d="M375 310 C430 310 445 310 500 310"/>
+    <circle class="badge3" cx="435" cy="288" r="18"/>
+    <text class="txt tiny" text-anchor="middle" x="435" y="294">1</text>
+    <path class="metric" d="M760 310 C815 310 830 310 885 310"/>
+    <circle class="badge3" cx="820" cy="288" r="18"/>
+    <text class="txt tiny" text-anchor="middle" x="820" y="294">2</text>
+    <path class="flow" d="M1145 310 C1190 310 1225 310 1270 310"/>
+    <circle class="badge" cx="1210" cy="288" r="18"/>
+    <text class="txt tiny" text-anchor="middle" x="1210" y="294">3</text>
+    <path class="event" d="M630 375 C630 435 630 465 630 520"/>
+    <circle class="badge2" cx="665" cy="450" r="18"/>
+    <text class="txt tiny" text-anchor="middle" x="665" y="456">4</text>
+    <path class="metric" d="M1015 375 C1015 435 1015 465 1015 520"/>
+    <circle class="badge3" cx="1050" cy="450" r="18"/>
+    <text class="txt tiny" text-anchor="middle" x="1050" y="456">5</text>
+    <rect x="130" y="700" width="1260" height="82" rx="18" fill="#07182c" stroke="#29486d"/>
+    <text class="txt tiny" x="160" y="732">Regola Grafana: solo Prometheus ha isDefault=true. Altri datasource futuri
+        devono avere isDefault=false.
+    </text>
+
+</svg>

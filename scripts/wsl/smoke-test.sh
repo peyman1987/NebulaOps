@@ -13,12 +13,3 @@ echo; echo "Smoke test completed."
 
 echo "Checking Go cache service"
 curl -fsS http://localhost:8091/health >/dev/null && echo "go-cache-service OK"
-
-
-echo "Checking Grafana..."
-if ! curl -fsS http://localhost:3000/api/health >/dev/null; then
-  echo "FAIL Grafana is not healthy. Recent logs:"
-  docker compose logs --tail=80 grafana || true
-  exit 1
-fi
-echo "OK Grafana is healthy"

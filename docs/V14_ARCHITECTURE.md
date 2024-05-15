@@ -1,6 +1,6 @@
-# NebulaOps v15 Architecture
+# NebulaOps v16 Architecture
 
-NebulaOps v15 models a modern internal developer platform while keeping the runtime practical for a single workstation.
+NebulaOps v16 models a modern internal developer platform while keeping the runtime practical for a single workstation.
 The system separates presentation, API gateway, business services, asynchronous processing, cache, persistence and
 observability.
 

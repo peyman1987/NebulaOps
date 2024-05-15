@@ -1,6 +1,6 @@
-# NebulaOps v15 Feature Matrix
+# NebulaOps v16 Feature Matrix
 
-| Area                 | v15 capability                                    | Real backend action                            |
+| Area                 | v16 capability                                    | Real backend action                            |
 |----------------------|---------------------------------------------------|------------------------------------------------|
 | Docker containers    | List/start/stop/restart/remove                    | Docker CLI through gateway and Docker socket   |
 | Docker images        | List local images                                 | `docker images`                                |
@@ -16,7 +16,7 @@
 
 ## Local service map deep links
 
-The v15 infrastructure tab now behaves as an operational launcher, not only as a visual map. Each service card can be
+The v16 infrastructure tab now behaves as an operational launcher, not only as a visual map. Each service card can be
 clicked and redirects to the real control surface used by that component:
 
 | Service        | Action from FE                            | URL / Tab                             |
