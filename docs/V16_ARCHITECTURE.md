@@ -1,6 +1,6 @@
-# NebulaOps v16 Architecture
+# NebulaOps v17 Architecture
 
-NebulaOps v16 is a personal-machine platform engineering lab. It is intentionally advanced but still executable on one
+NebulaOps v17 is a personal-machine platform engineering lab. It is intentionally advanced but still executable on one
 WSL/Linux machine.
 
 ## Layers
@@ -44,9 +44,9 @@ WSL/Linux machine.
 ./scripts/wsl/logs.sh grafana
 ```
 
-## v16 functional 3D diagrams
+## v17 functional 3D diagrams
 
-The SVGs were rebuilt as technical flow diagrams. Start with `docs/V16_DIAGRAM_GUIDE.md`, then open:
+The SVGs were rebuilt as technical flow diagrams. Start with `docs/V17_DIAGRAM_GUIDE.md`, then open:
 
 - `docs/diagrams/request-flow-sequence.svg`
 - `docs/diagrams/runtime-architecture.svg`

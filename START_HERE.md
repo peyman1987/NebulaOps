@@ -1,36 +1,63 @@
-# Start Here — NebulaOps v16
+# Start Here — NebulaOps v17
 
-1. Open WSL Ubuntu.
-2. Enter the project directory.
-3. Install the native toolchain if needed.
-4. Start the platform.
+This guide starts the complete local platform on WSL Ubuntu or Linux.
+
+## 1. Enter the project
 
 ```bash
-cd nebulaops-v16
+cd nebulaops-v17
+```
+
+## 2. Install the native toolchain
+
+```bash
 ./scripts/wsl/install-native-toolchain.sh
+```
+
+## 3. Start the platform
+
+```bash
 ./scripts/wsl/start.sh
 ```
 
-Open http://localhost:4200 and use the 3D service map. Grafana is at http://localhost:3000 with `admin/admin`.
-
-Troubleshooting Grafana:
+## 4. Validate the environment
 
 ```bash
-docker compose -p nebulaops-v16 logs --tail=200 grafana
+./scripts/wsl/smoke-test.sh
+```
+
+## 5. Open the main tools
+
+| Tool                   | URL                    |
+|------------------------|------------------------|
+| Angular Control Center | http://localhost:4200  |
+| Grafana                | http://localhost:3000  |
+| Prometheus             | http://localhost:9090  |
+| RabbitMQ Management    | http://localhost:15672 |
+
+Frontend demo login: `admin / admin`.
+
+## Troubleshooting
+
+Check Grafana provisioning:
+
+```bash
+docker compose -p nebulaops-v17 logs --tail=200 grafana
 grep -R "isDefault: true" -n infrastructure/observability/grafana/provisioning/datasources
 ```
 
 There must be exactly one default datasource.
 
-## v16 functional 3D diagrams
+Check the frontend build:
 
-The SVGs were rebuilt as technical flow diagrams. Start with `docs/V16_DIAGRAM_GUIDE.md`, then open:
+```bash
+cd frontend
+npm install
+npm run build -- --configuration production
+```
 
-- `docs/diagrams/request-flow-sequence.svg`
-- `docs/diagrams/runtime-architecture.svg`
-- `docs/diagrams/observability-grafana-flow.svg`
-- `docs/diagrams/messaging-cache-flow.svg`
-- `docs/diagrams/frontend-operations-dashboard.svg`
+Check all containers:
 
-Each diagram uses cyan arrows for API control, purple dashed arrows for async events and green dotted arrows for
-metrics/logs.
+```bash
+docker compose -p nebulaops-v17 ps
+```

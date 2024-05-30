@@ -1,0 +1,232 @@
+<svg aria-label="NebulaOps Runtime Architecture" role="img" viewBox="0 0 1400 820" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#110829"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur result="b" stdDeviation="4"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <marker id="arrow" markerHeight="12" markerWidth="12" orient="auto" refX="10" refY="6">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
+        </marker>
+        <style><
+        !
+        [CDATA[
+        .title {
+            font: 800 34px Inter, Segoe UI, Arial;
+            fill: #f5fbff
+        }
+
+        .sub {
+            font: 500 16px Inter, Segoe UI, Arial;
+            fill: #a9bdd8
+        }
+
+        .label {
+            font: 800 18px Inter, Segoe UI, Arial;
+            fill: #fff
+        }
+
+        .small {
+            font: 500 13px Inter, Segoe UI, Arial;
+            fill: #b8c8dd
+        }
+
+        .chip {
+            font: 700 12px Inter, Segoe UI, Arial;
+            fill: #07111f
+        }
+
+        .panel {
+            fill: url(#card);
+            stroke: #294b73;
+            stroke-width: 1.4;
+            rx: 24
+        }
+
+        .core {
+            fill: #0c2037;
+            stroke: #58e7ff;
+            stroke-width: 2.2;
+            filter: url(#glow)
+        }
+
+        .api {
+            stroke: #58e7ff
+        }
+
+        .event {
+            stroke: #b476ff;
+            stroke-dasharray: 10 8
+        }
+
+        .metric {
+            stroke: #63ffb3;
+            stroke-dasharray: 4 7
+        }
+
+        .flow {
+            fill: none;
+            stroke-width: 3;
+            marker-end: url(#arrow);
+            filter: url(#glow);
+            opacity: .95
+        }
+
+        .pulse {
+            animation: pulse 2.8s ease-in-out infinite
+        }
+
+        .dash {
+            animation: dash 7s linear infinite
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: .55
+            }
+            50% {
+                opacity: 1
+            }
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -160
+            }
+        }
+
+        ]
+        ]
+        ></style>
+    </defs>
+    <rect fill="url(#bg)" height="820" width="1400"/>
+    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <text class="title" x="70" y="72">NebulaOps Runtime Architecture</text>
+    <text class="sub" x="72" y="102">Complete local microservice topology for a single-machine DevOps portfolio
+        platform.
+    </text>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="35.0" y="174.0"/>
+        <circle cx="69.0" cy="212" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="93.0" y="212">Frontend</text>
+        <text class="small" x="63.0" y="244">Angular SPA</text>
+        <text class="small" x="63.0" y="264">Nginx container</text>
+        <text class="small" x="63.0" y="284">Port 4200</text>
+    </g>
+    <g class="pulse">
+        <rect class="core" height="140" rx="24" width="300" x="280.0" y="160.0"/>
+        <circle cx="314.0" cy="212" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="338.0" y="212">Gateway</text>
+        <text class="small" x="308.0" y="244">Spring Cloud Gateway</text>
+        <text class="small" x="308.0" y="264">Port 8080</text>
+        <text class="small" x="308.0" y="284">API edge</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="595.0" y="174.0"/>
+        <circle cx="629.0" cy="212" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="653.0" y="212">Java Services</text>
+        <text class="small" x="623.0" y="244">Auth, Task, File</text>
+        <text class="small" x="623.0" y="264">Notification</text>
+        <text class="small" x="623.0" y="284">Java 21</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="855.0" y="174.0"/>
+        <circle cx="889.0" cy="212" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="913.0" y="212">Go Services</text>
+        <text class="small" x="883.0" y="244">Cache API</text>
+        <text class="small" x="883.0" y="264">Event worker</text>
+        <text class="small" x="883.0" y="284">Lightweight runtime</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="225.0" y="494.0"/>
+        <circle cx="259.0" cy="532" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="283.0" y="532">MongoDB</text>
+        <text class="small" x="253.0" y="564">Document storage</text>
+        <text class="small" x="253.0" y="584">Service state</text>
+        <text class="small" x="253.0" y="604">Port 27017</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="525.0" y="494.0"/>
+        <circle cx="559.0" cy="532" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="583.0" y="532">Redis</text>
+        <text class="small" x="553.0" y="564">Cache layer</text>
+        <text class="small" x="553.0" y="584">Low-latency reads</text>
+        <text class="small" x="553.0" y="604">Port 6379</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="825.0" y="494.0"/>
+        <circle cx="859.0" cy="532" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="883.0" y="532">RabbitMQ</text>
+        <text class="small" x="853.0" y="564">Event broker</text>
+        <text class="small" x="853.0" y="584">Queues/exchanges</text>
+        <text class="small" x="853.0" y="604">Port 5672</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="1065.0" y="364.0"/>
+        <circle cx="1099.0" cy="402" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="1123.0" y="402">Grafana</text>
+        <text class="small" x="1093.0" y="434">Prometheus metrics</text>
+        <text class="small" x="1093.0" y="454">Dashboards</text>
+        <text class="small" x="1093.0" y="474">Port 3000</text>
+    </g>
+    <path class="flow dash api" d="M160 230 C 295.0 230, 295.0 230, 430 230"/>
+    <text class="small" x="245.0" y="222.0">REST</text>
+    <path class="flow dash api" d="M430 230 C 575.0 230, 575.0 230, 720 230"/>
+    <text class="small" x="525.0" y="222.0">route</text>
+    <path class="flow dash api" d="M430 230 C 705.0 230, 705.0 230, 980 230"/>
+    <text class="small" x="655.0" y="222.0">route</text>
+    <path class="flow dash api" d="M720 230 C 535.0 230, 535.0 550, 350 550"/>
+    <text class="small" x="485.0" y="382.0">state</text>
+    <path class="flow dash api" d="M980 230 C 815.0 230, 815.0 550, 650 550"/>
+    <text class="small" x="765.0" y="382.0">cache</text>
+    <path class="flow dash event" d="M720 230 C 835.0 230, 835.0 550, 950 550"/>
+    <text class="small" x="785.0" y="382.0">events</text>
+    <path class="flow dash event" d="M950 550 C 965.0 550, 965.0 230, 980 230"/>
+    <text class="small" x="915.0" y="382.0">consume</text>
+    <path class="flow dash metric" d="M720 230 C 955.0 230, 955.0 420, 1190 420"/>
+    <text class="small" x="905.0" y="317.0">metrics</text>
+    <path class="flow dash metric" d="M980 230 C 1085.0 230, 1085.0 420, 1190 420"/>
+    <text class="small" x="1035.0" y="317.0">metrics</text>
+    <rect fill="#58e7ff" height="26" opacity=".9" rx="13" width="112" x="980" y="58"/>
+    <text class="chip" x="994" y="76">API/request</text>
+    <rect fill="#b476ff" height="26" opacity=".9" rx="13" width="112" x="1110" y="58"/>
+    <text class="chip" x="1124" y="76">Async event</text>
+    <rect fill="#63ffb3" height="26" opacity=".9" rx="13" width="112" x="1240" y="58"/>
+    <text class="chip" x="1254" y="76">Metrics/logs</text>
+</svg>

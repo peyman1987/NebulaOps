@@ -1,4 +1,4 @@
-# NebulaOps v16 Runbook
+# NebulaOps v17 Runbook
 
 ## 1. Install native tools on WSL or Linux
 
@@ -21,7 +21,7 @@ wsl --shutdown
 ## 2. Create the local Kubernetes cluster
 
 ```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v16
+./scripts/linux/create-kind-cluster.sh nebulaops-v17
 ```
 
 ## 3. Start the Compose platform
@@ -76,5 +76,5 @@ docker compose down
 To delete the kind cluster:
 
 ```bash
-kind delete cluster --name nebulaops-v16
+kind delete cluster --name nebulaops-v17
 ```

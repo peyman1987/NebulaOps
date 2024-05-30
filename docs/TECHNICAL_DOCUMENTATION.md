@@ -167,9 +167,9 @@ task movements from being lost after refresh.
 The production frontend image now includes Nginx API proxying for `/api/*` so browser calls reach the gateway service
 from inside Docker Compose and Kubernetes-style service networking.
 
-## NebulaOps v16 additions
+## NebulaOps v17 additions
 
-NebulaOps v16 expands the operations surface with Angular tabs for Overview, Tasks, Kubernetes, Observability, CI/CD,
+NebulaOps v17 expands the operations surface with Angular tabs for Overview, Tasks, Kubernetes, Observability, CI/CD,
 Security and Infra. It keeps MongoDB, RabbitMQ, Redis, Go services, Prometheus, Grafana, GitLab, Helm, Argo CD and WSL
 execution aligned for a single-machine portfolio runtime.
 
@@ -181,4 +181,4 @@ Additional diagram catalog:
 - `kubernetes-helm-view.svg`
 - `request-flow-sequence.svg`
 - `service-port-map.svg`
-- `nebulaops-v16-advanced-architecture.svg`
+- `nebulaops-v17-advanced-architecture.svg`

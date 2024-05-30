@@ -1,0 +1,210 @@
+<svg aria-label="Kubernetes and Helm Operations" role="img" viewBox="0 0 1400 820" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#110829"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur result="b" stdDeviation="4"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <marker id="arrow" markerHeight="12" markerWidth="12" orient="auto" refX="10" refY="6">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
+        </marker>
+        <style><
+        !
+        [CDATA[
+        .title {
+            font: 800 34px Inter, Segoe UI, Arial;
+            fill: #f5fbff
+        }
+
+        .sub {
+            font: 500 16px Inter, Segoe UI, Arial;
+            fill: #a9bdd8
+        }
+
+        .label {
+            font: 800 18px Inter, Segoe UI, Arial;
+            fill: #fff
+        }
+
+        .small {
+            font: 500 13px Inter, Segoe UI, Arial;
+            fill: #b8c8dd
+        }
+
+        .chip {
+            font: 700 12px Inter, Segoe UI, Arial;
+            fill: #07111f
+        }
+
+        .panel {
+            fill: url(#card);
+            stroke: #294b73;
+            stroke-width: 1.4;
+            rx: 24
+        }
+
+        .core {
+            fill: #0c2037;
+            stroke: #58e7ff;
+            stroke-width: 2.2;
+            filter: url(#glow)
+        }
+
+        .api {
+            stroke: #58e7ff
+        }
+
+        .event {
+            stroke: #b476ff;
+            stroke-dasharray: 10 8
+        }
+
+        .metric {
+            stroke: #63ffb3;
+            stroke-dasharray: 4 7
+        }
+
+        .flow {
+            fill: none;
+            stroke-width: 3;
+            marker-end: url(#arrow);
+            filter: url(#glow);
+            opacity: .95
+        }
+
+        .pulse {
+            animation: pulse 2.8s ease-in-out infinite
+        }
+
+        .dash {
+            animation: dash 7s linear infinite
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: .55
+            }
+            50% {
+                opacity: 1
+            }
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -160
+            }
+        }
+
+        ]
+        ]
+        ></style>
+    </defs>
+    <rect fill="url(#bg)" height="820" width="1400"/>
+    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <text class="title" x="70" y="72">Kubernetes and Helm Operations</text>
+    <text class="sub" x="72" y="102">Workload inventory, YAML editing and Helm release management from the local
+        console.
+    </text>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="65.0" y="204.0"/>
+        <circle cx="99.0" cy="242" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="123.0" y="242">Angular Console</text>
+        <text class="small" x="93.0" y="274">Workload table</text>
+        <text class="small" x="93.0" y="294">Live YAML editor</text>
+        <text class="small" x="93.0" y="314">Log viewer</text>
+    </g>
+    <g class="pulse">
+        <rect class="core" height="140" rx="24" width="300" x="320.0" y="190.0"/>
+        <circle cx="354.0" cy="242" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="378.0" y="242">Gateway API</text>
+        <text class="small" x="348.0" y="274">Kubernetes bridge</text>
+        <text class="small" x="348.0" y="294">Command validation</text>
+        <text class="small" x="348.0" y="314">Safe responses</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="635.0" y="204.0"/>
+        <circle cx="669.0" cy="242" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="693.0" y="242">Kubernetes API</text>
+        <text class="small" x="663.0" y="274">Pods/services</text>
+        <text class="small" x="663.0" y="294">Namespaces</text>
+        <text class="small" x="663.0" y="314">Scale actions</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="915.0" y="204.0"/>
+        <circle cx="949.0" cy="242" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="973.0" y="242">Helm CLI</text>
+        <text class="small" x="943.0" y="274">Release list</text>
+        <text class="small" x="943.0" y="294">Chart metadata</text>
+        <text class="small" x="943.0" y="314">Uninstall action</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="635.0" y="504.0"/>
+        <circle cx="669.0" cy="542" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="693.0" y="542">Cluster State</text>
+        <text class="small" x="663.0" y="574">Deployments</text>
+        <text class="small" x="663.0" y="594">Services</text>
+        <text class="small" x="663.0" y="614">Config maps</text>
+    </g>
+    <g class="pulse">
+        <rect class="panel" height="112" rx="24" width="250" x="915.0" y="504.0"/>
+        <circle cx="949.0" cy="542" fill="#58e7ff" opacity=".9" r="11"/>
+        <text class="label" x="973.0" y="542">Operator</text>
+        <text class="small" x="943.0" y="574">Inspect</text>
+        <text class="small" x="943.0" y="594">Edit</text>
+        <text class="small" x="943.0" y="614">Validate</text>
+    </g>
+    <path class="flow dash api" d="M190 260 C 330.0 260, 330.0 260, 470 260"/>
+    <text class="small" x="280.0" y="252.0">REST</text>
+    <path class="flow dash api" d="M470 260 C 615.0 260, 615.0 260, 760 260"/>
+    <text class="small" x="565.0" y="252.0">kubectl</text>
+    <path class="flow dash api" d="M470 260 C 755.0 260, 755.0 260, 1040 260"/>
+    <text class="small" x="705.0" y="252.0">helm</text>
+    <path class="flow dash api" d="M760 260 C 760.0 260, 760.0 560, 760 560"/>
+    <text class="small" x="710.0" y="402.0">read/write</text>
+    <path class="flow dash api" d="M1040 260 C 900.0 260, 900.0 560, 760 560"/>
+    <text class="small" x="850.0" y="402.0">release</text>
+    <path class="flow dash api" d="M760 560 C 900.0 560, 900.0 560, 1040 560"/>
+    <text class="small" x="850.0" y="552.0">view</text>
+    <rect fill="#58e7ff" height="26" opacity=".9" rx="13" width="112" x="980" y="58"/>
+    <text class="chip" x="994" y="76">API/request</text>
+    <rect fill="#b476ff" height="26" opacity=".9" rx="13" width="112" x="1110" y="58"/>
+    <text class="chip" x="1124" y="76">Async event</text>
+    <rect fill="#63ffb3" height="26" opacity=".9" rx="13" width="112" x="1240" y="58"/>
+    <text class="chip" x="1254" y="76">Metrics/logs</text>
+</svg>

@@ -1,17 +1,17 @@
-# NebulaOps v16 Validation Report
+# NebulaOps v17 Validation Report
 
-Generated package: `nebulaops-v16.zip`.
+Generated package: `nebulaops-v17.zip`.
 
 ## Static checks completed in the build environment
 
-- Project was upgraded from the v15 package structure to `nebulaops-v16`.
-- v15/v16 naming was normalized across scripts, compose and documentation.
+- Project was upgraded from the v15 package structure to `nebulaops-v17`.
+- v15/v17 naming was normalized across scripts, compose and documentation.
 - Grafana provisioning was corrected to keep exactly one default datasource.
 - Duplicate Grafana datasource provisioning files were removed.
 - Duplicate dashboard provider files were removed.
 - WSL start script now validates the Grafana datasource default count before starting containers.
 - New Angular 3D SaaS-style UI files were generated.
-- New v16 architecture and feature matrix documents were added.
+- New v17 architecture and feature matrix documents were added.
 - New animated SVG architecture diagram was added.
 
 ## Checks to run locally
@@ -19,8 +19,8 @@ Generated package: `nebulaops-v16.zip`.
 ```bash
 ./scripts/wsl/start.sh
 ./scripts/wsl/smoke-test.sh
-docker compose -p nebulaops-v16 ps
-docker compose -p nebulaops-v16 logs --tail=120 grafana
+docker compose -p nebulaops-v17 ps
+docker compose -p nebulaops-v17 logs --tail=120 grafana
 curl -I http://localhost:3000
 ```
 

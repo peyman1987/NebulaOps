@@ -1,104 +1,143 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="Task Request Lifecycle">
     <defs>
-        <style>
-            .bg{fill:#06111f}.panel{fill:#0b1930;stroke:#38bdf8;stroke-width:2}.node{fill:#102342;stroke:#7dd3fc;stroke-width:2}.node2{fill:#13213c;stroke:#a78bfa;stroke-width:2}.node3{fill:#162339;stroke:#34d399;stroke-width:2}.txt{font-family:Inter,Segoe
-            UI,Arial,sans-serif;fill:#e6f3ff}.small{font-size:22px}.tiny{font-size:16px;fill:#b8d6f2}.title{font-size:42px;font-weight:800}.label{font-size:24px;font-weight:700}.flow{fill:none;stroke:#22d3ee;stroke-width:5;stroke-linecap:round;stroke-dasharray:14
-            14;marker-end:url(#arrow)}.event{fill:none;stroke:#f59e0b;stroke-width:5;stroke-linecap:round;stroke-dasharray:10
-            16;marker-end:url(#arrow2)}.metric{fill:none;stroke:#34d399;stroke-width:5;stroke-linecap:round;stroke-dasharray:4
-            12;marker-end:url(#arrow3)}.shadow{filter:url(#shadow)}.badge{fill:#0ea5e9}.badge2{fill:#f59e0b}.badge3{fill:#10b981}@keyframes
-            dash{to{stroke-dashoffset:-120}}@keyframes pulse{0%,100%{opacity:.35;r:8}50%{opacity:1;r:15}}@keyframes
-            float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}.flow,.event,.metric{animation:dash 4s
-            linear infinite}.pulse{animation:pulse 1.8s ease-in-out infinite}.float{animation:float 5s ease-in-out
-            infinite}.isoTop{fill:#193b62}.isoLeft{fill:#0f284a}.isoRight{fill:#0a1c36}
-        </style>
-        <filter id="shadow">
-            <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".45"/>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#110829"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="4" result="b"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
         </filter>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#22d3ee"/>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
         </marker>
-        <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#f59e0b"/>
-        </marker>
-        <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#34d399"/>
-        </marker>
+        <style><![CDATA[
+        .title{font:800 34px Inter,Segoe UI,Arial;fill:#f5fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#fff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#b8c8dd}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:url(#card);stroke:#294b73;stroke-width:1.4;rx:24}.core{fill:#0c2037;stroke:#58e7ff;stroke-width:2.2;filter:url(#glow)}.api{stroke:#58e7ff}.event{stroke:#b476ff;stroke-dasharray:10 8}.metric{stroke:#63ffb3;stroke-dasharray:4 7}.flow{fill:none;stroke-width:3;marker-end:url(#arrow);filter:url(#glow);opacity:.95}.pulse{animation:pulse 2.8s ease-in-out infinite}.dash{animation:dash 7s linear infinite}@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-160}}
+      ]]></style>
     </defs>
-    <rect class="bg" width="1600" height="920"/>
-    <circle cx="130" cy="90" r="220" fill="#0ea5e9" opacity=".10"/>
-    <circle cx="1420" cy="760" r="300" fill="#8b5cf6" opacity=".10"/>
-    <text class="txt title" x="60" y="70">NebulaOps v16 — End-to-End Runtime Flow</text>
-    <text class="txt small" x="60" y="110">Blu = richieste API, arancione = eventi async, verde =
-        metriche/observability.
+    <rect width="1400" height="820" fill="url(#bg)"/>
+    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <text x="70" y="72" class="title">Task Request Lifecycle</text>
+    <text x="72" y="102" class="sub">End-to-end path from user action to persisted task, event delivery and dashboard
+        metrics.
     </text>
-    <rect class="panel shadow" x="50" y="150" width="1500" height="690" rx="28"/>
-    <g class="shadow float">
-        <rect class="node" x="95" y="230" width="230" height="120" rx="20"/>
-        <text class="txt label" x="119" y="272">① Browser / FE</text>
-        <text class="txt tiny" x="119" y="306">Angular 3D Control Center</text>
+    <g class="pulse">
+        <rect x="5.0" y="154.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="39.0" cy="192" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="63.0" y="192" class="label">User</text>
+        <text x="33.0" y="224" class="small">Create task</text>
+        <text x="33.0" y="244" class="small">View status</text>
+        <text x="33.0" y="264" class="small">Refresh UI</text>
     </g>
-    <g class="shadow float">
-        <rect class="node2" x="410" y="230" width="250" height="120" rx="20"/>
-        <text class="txt label" x="434" y="272">② Gateway</text>
-        <text class="txt tiny" x="434" y="306">Routing, Docker, K8s, Helm APIs</text>
+    <g class="pulse">
+        <rect x="205.0" y="154.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="239.0" cy="192" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="263.0" y="192" class="label">Angular</text>
+        <text x="233.0" y="224" class="small">Form validation</text>
+        <text x="233.0" y="244" class="small">REST client</text>
+        <text x="233.0" y="264" class="small">State update</text>
     </g>
-    <g class="shadow float">
-        <rect class="node3" x="760" y="160" width="250" height="115" rx="20"/>
-        <text class="txt label" x="784" y="202">③ Microservices</text>
-        <text class="txt tiny" x="784" y="236">Auth / Task / File / Notify</text>
+    <g class="pulse">
+        <rect x="390.0" y="140.0" width="300" height="140" class="core" rx="24"/>
+        <circle cx="424.0" cy="192" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="448.0" y="192" class="label">Gateway</text>
+        <text x="418.0" y="224" class="small">Route request</text>
+        <text x="418.0" y="244" class="small">Apply edge policy</text>
+        <text x="418.0" y="264" class="small">Return response</text>
     </g>
-    <g class="shadow float">
-        <rect class="node3" x="760" y="335" width="250" height="115" rx="20"/>
-        <text class="txt label" x="784" y="377">④ Data Layer</text>
-        <text class="txt tiny" x="784" y="411">MongoDB + Redis cache</text>
+    <g class="pulse">
+        <rect x="645.0" y="154.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="679.0" cy="192" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="703.0" y="192" class="label">Task Service</text>
+        <text x="673.0" y="224" class="small">Validate command</text>
+        <text x="673.0" y="244" class="small">Persist task</text>
+        <text x="673.0" y="264" class="small">Publish event</text>
     </g>
-    <g class="shadow float">
-        <rect class="node3" x="760" y="515" width="250" height="115" rx="20"/>
-        <text class="txt label" x="784" y="557">⑤ Event Layer</text>
-        <text class="txt tiny" x="784" y="591">RabbitMQ workers</text>
+    <g class="pulse">
+        <rect x="885.0" y="154.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="919.0" cy="192" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="943.0" y="192" class="label">MongoDB</text>
+        <text x="913.0" y="224" class="small">Task document</text>
+        <text x="913.0" y="244" class="small">Query model</text>
+        <text x="913.0" y="264" class="small">Local storage</text>
     </g>
-    <g class="shadow float">
-        <rect class="node2" x="1130" y="230" width="270" height="120" rx="20"/>
-        <text class="txt label" x="1154" y="272">⑥ Kubernetes / Helm</text>
-        <text class="txt tiny" x="1154" y="306">Pods, Services, Ingress, Releases</text>
+    <g class="pulse">
+        <rect x="645.0" y="464.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="679.0" cy="502" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="703.0" y="502" class="label">RabbitMQ</text>
+        <text x="673.0" y="534" class="small">task.created</text>
+        <text x="673.0" y="554" class="small">Queue delivery</text>
+        <text x="673.0" y="574" class="small">Retry capable</text>
     </g>
-    <g class="shadow float">
-        <rect class="node" x="1130" y="515" width="270" height="120" rx="20"/>
-        <text class="txt label" x="1154" y="557">⑦ Grafana / Prometheus</text>
-        <text class="txt tiny" x="1154" y="591">Dashboards + metrics</text>
+    <g class="pulse">
+        <rect x="885.0" y="464.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="919.0" cy="502" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="943.0" y="502" class="label">Notification</text>
+        <text x="913.0" y="534" class="small">Consume event</text>
+        <text x="913.0" y="554" class="small">Process message</text>
+        <text x="913.0" y="574" class="small">Expose metrics</text>
     </g>
-    <path class="flow" d="M325 290 C360 290 365 290 410 290"/>
-    <circle class="badge" cx="370" cy="268" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="370" y="274">1</text>
-    <path class="flow" d="M660 290 C705 260 720 220 760 215"/>
-    <circle class="badge" cx="705" cy="245" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="705" y="251">2</text>
-    <path class="flow" d="M660 300 C715 330 725 365 760 390"/>
-    <circle class="badge" cx="715" cy="342" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="715" y="348">3</text>
-    <path class="event" d="M885 275 C890 350 890 450 885 515"/>
-    <circle class="badge2" cx="918" cy="395" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="918" y="401">4</text>
-    <path class="flow" d="M1010 220 C1065 220 1075 285 1130 290"/>
-    <circle class="badge" cx="1070" cy="250" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="1070" y="256">5</text>
-    <path class="metric" d="M1010 570 C1060 570 1080 570 1130 570"/>
-    <circle class="badge3" cx="1070" cy="548" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="1070" y="554">6</text>
-    <path class="metric" d="M1270 515 C1210 430 1150 375 1010 380"/>
-    <circle class="badge3" cx="1195" cy="438" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="1195" y="444">7</text>
-    <g>
-        <rect x="80" y="700" width="650" height="92" rx="18" fill="#07182c" stroke="#29486d"/>
-        <text class="txt label" x="105" y="735">Come leggere il flusso</text>
-        <text class="txt tiny" x="105" y="765">1 Browser chiama Gateway • 2 Gateway invoca servizi • 3 DB/cache • 4
-            eventi • 5 K8s/Helm • 6/7 metriche.
-        </text>
+    <g class="pulse">
+        <rect x="1105.0" y="309.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="1139.0" cy="347" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="1163.0" y="347" class="label">Grafana</text>
+        <text x="1133.0" y="379" class="small">Operational view</text>
+        <text x="1133.0" y="399" class="small">Latency/errors</text>
+        <text x="1133.0" y="419" class="small">Service health</text>
     </g>
-    <g>
-        <circle class="pulse" cx="325" cy="290" fill="#22d3ee"/>
-        <circle class="pulse" cx="885" cy="515" fill="#f59e0b"/>
-        <circle class="pulse" cx="1130" cy="570" fill="#34d399"/>
-    </g>
-
+    <path class="flow dash api" d="M130 210 C 230.0 210, 230.0 210, 330 210"/>
+    <text x="180.0" y="202.0" class="small">click</text>
+    <path class="flow dash api" d="M330 210 C 435.0 210, 435.0 210, 540 210"/>
+    <text x="385.0" y="202.0" class="small">POST /tasks</text>
+    <path class="flow dash api" d="M540 210 C 655.0 210, 655.0 210, 770 210"/>
+    <text x="605.0" y="202.0" class="small">route</text>
+    <path class="flow dash api" d="M770 210 C 890.0 210, 890.0 210, 1010 210"/>
+    <text x="840.0" y="202.0" class="small">save</text>
+    <path class="flow dash event" d="M770 210 C 770.0 210, 770.0 520, 770 520"/>
+    <text x="720.0" y="357.0" class="small">publish</text>
+    <path class="flow dash event" d="M770 520 C 890.0 520, 890.0 520, 1010 520"/>
+    <text x="840.0" y="512.0" class="small">consume</text>
+    <path class="flow dash metric" d="M770 210 C 1000.0 210, 1000.0 365, 1230 365"/>
+    <text x="950.0" y="279.5" class="small">metrics</text>
+    <path class="flow dash metric" d="M1010 520 C 1120.0 520, 1120.0 365, 1230 365"/>
+    <text x="1070.0" y="434.5" class="small">metrics</text>
+    <rect x="980" y="58" width="112" height="26" rx="13" fill="#58e7ff" opacity=".9"/>
+    <text x="994" y="76" class="chip">API/request</text>
+    <rect x="1110" y="58" width="112" height="26" rx="13" fill="#b476ff" opacity=".9"/>
+    <text x="1124" y="76" class="chip">Async event</text>
+    <rect x="1240" y="58" width="112" height="26" rx="13" fill="#63ffb3" opacity=".9"/>
+    <text x="1254" y="76" class="chip">Metrics/logs</text>
 </svg>
