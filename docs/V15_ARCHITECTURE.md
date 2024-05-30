@@ -1,6 +1,6 @@
-# NebulaOps v16 Architecture
+# NebulaOps v17 Architecture
 
-NebulaOps v16 is a single-machine DevOps control plane designed for WSL Ubuntu or native Linux without Docker Desktop.
+NebulaOps v17 is a single-machine DevOps control plane designed for WSL Ubuntu or native Linux without Docker Desktop.
 It uses native Docker Engine, Docker Compose plugin, kubectl, Helm, kind, Prometheus and Grafana.
 
 ## Main design goals
@@ -50,8 +50,8 @@ gateway port to the public internet.
 
 - Host OS: Windows 11 + WSL Ubuntu, or Ubuntu Linux.
 - Container runtime: native Docker Engine inside WSL/Linux.
-- Kubernetes: kind cluster named `nebulaops-v16`.
-- Compose project: `nebulaops-v16`.
+- Kubernetes: kind cluster named `nebulaops-v17`.
+- Compose project: `nebulaops-v17`.
 - UI: `http://localhost:4200`.
 - Gateway: `http://localhost:8080`.
 - Grafana: `http://localhost:3000`.

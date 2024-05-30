@@ -98,34 +98,34 @@ interface InfraItem {
     internalLabel?: string;
 }
 
-const STORAGE_KEY = 'nebulaops.v16.board.tasks';
-const K8S_STORAGE_KEY = 'nebulaops.v16.k8s.resources';
-const SECURITY_KEY = 'nebulaops.v16.security.findings';
+const STORAGE_KEY = 'nebulaops.v17.board.tasks';
+const K8S_STORAGE_KEY = 'nebulaops.v17.k8s.resources';
+const SECURITY_KEY = 'nebulaops.v17.security.findings';
 
 const DEFAULT_TASKS: Task[] = [
     {
-        id: 'V16-101',
+        id: 'V17-101',
         title: 'Implement policy-as-code guardrails',
         owner: 'DevSecOps',
         priority: 'CRITICAL',
         status: 'TODO'
     },
     {
-        id: 'V16-102',
+        id: 'V17-102',
         title: 'Wire Grafana SLO dashboard for gateway latency',
         owner: 'SRE',
         priority: 'HIGH',
         status: 'IN_PROGRESS'
     },
     {
-        id: 'V16-103',
+        id: 'V17-103',
         title: 'Add GitLab quality gates and Helm render validation',
         owner: 'Platform',
         priority: 'HIGH',
         status: 'REVIEW'
     },
     {
-        id: 'V16-104',
+        id: 'V17-104',
         title: 'Document local WSL runbook and smoke tests',
         owner: 'DevOps',
         priority: 'MEDIUM',
@@ -209,6 +209,10 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly grafanaHealth = signal<any>({});
     readonly grafanaDashboards = signal<any[]>([]);
     readonly runtimeState = signal<'idle' | 'syncing' | 'connected' | 'error'>('idle');
+    readonly isAuthenticated = signal(localStorage.getItem('nebulaops.v17.session') === 'active');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v17.user') || 'admin');
+    readonly loginError = signal('');
+    loginForm = {username: 'admin', password: 'admin'};
 
     readonly syncState = signal<'local' | 'synced' | 'syncing' | 'error'>('local');
     readonly k8sState = signal<'connected' | 'syncing' | 'error'>('syncing');
@@ -325,12 +329,35 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.loadTasksFromApi();
-        this.loadK8sFromApi();
+        if (this.isAuthenticated()) {
+            this.loadTasksFromApi();
+            this.loadK8sFromApi();
+        }
     }
 
     ngOnDestroy(): void {
         this.stopLogsAutoRefresh();
+    }
+
+    login(): void {
+        const u = this.loginForm.username.trim();
+        const p = this.loginForm.password.trim();
+        if ((u === 'admin' || u === 'peyman') && p === 'admin') {
+            localStorage.setItem('nebulaops.v17.session', 'active');
+            localStorage.setItem('nebulaops.v17.user', u);
+            this.currentUser.set(u);
+            this.isAuthenticated.set(true);
+            this.loginError.set('');
+            this.loadTasksFromApi();
+            this.loadK8sFromApi();
+            return;
+        }
+        this.loginError.set('Credenziali non valide. Usa admin/admin per la demo locale.');
+    }
+
+    logout(): void {
+        localStorage.removeItem('nebulaops.v17.session');
+        this.isAuthenticated.set(false);
     }
 
     setTab(tab: MainTab): void {
@@ -389,11 +416,11 @@ export class AppComponent implements OnInit, OnDestroy {
         this.tasks.set([local, ...this.tasks()]);
         this.http.post<ApiTask>('/api/tasks', {
             organizationId: 'demo-org',
-            projectId: 'portfolio-v16',
+            projectId: 'portfolio-v17',
             title: local.title,
             priority: local.priority,
             assigneeId: local.owner,
-            labels: ['portfolio', 'v16']
+            labels: ['portfolio', 'v17']
         }).pipe(catchError(() => of(null))).subscribe(t => {
             if (t) this.tasks.set(this.tasks().map(x => x.id === local.id ? {
                 id: t.id,
@@ -409,7 +436,7 @@ export class AppComponent implements OnInit, OnDestroy {
     deleteTask(id: string): void {
         const before = this.tasks();
         this.tasks.set(before.filter(t => t.id !== id));
-        if (!id.startsWith('LOCAL') && !id.startsWith('V16-')) this.http.delete(`/api/tasks/${id}`).pipe(catchError(() => {
+        if (!id.startsWith('LOCAL') && !id.startsWith('V17-')) this.http.delete(`/api/tasks/${id}`).pipe(catchError(() => {
             this.tasks.set(before);
             return of(null);
         })).subscribe();
@@ -510,6 +537,22 @@ export class AppComponent implements OnInit, OnDestroy {
     setLogsRefreshSeconds(e: Event): void {
         this.logsRefreshSeconds.set(Number((e.target as HTMLSelectElement).value));
         if (this.logsAutoRefresh()) this.startLogsAutoRefresh();
+    }
+
+    refreshObservability(): void {
+        this.refreshLogs();
+    }
+
+    toggleObservabilityAutoRefresh(): void {
+        this.toggleLogsAutoRefresh();
+    }
+
+    setObservabilityRefreshSeconds(e: Event): void {
+        this.setLogsRefreshSeconds(e);
+    }
+
+    visibleObservability(): ServiceLog[] {
+        return this.visibleLogs();
     }
 
     selectResource(r: K8sResource): void {
@@ -643,12 +686,12 @@ export class AppComponent implements OnInit, OnDestroy {
     private seedDefaultsToApi(): void {
         forkJoin(DEFAULT_TASKS.map(t => this.http.post<ApiTask>('/api/tasks', {
             organizationId: 'demo-org',
-            projectId: 'portfolio-v16',
+            projectId: 'portfolio-v17',
             title: t.title,
             description: `Seed task for ${t.owner}`,
             priority: t.priority,
             assigneeId: t.owner,
-            labels: ['portfolio', 'v16']
+            labels: ['portfolio', 'v17']
         }).pipe(catchError(() => of(null))))).subscribe(results => {
             const created = results.filter((t): t is ApiTask => !!t);
             if (created.length) {
@@ -666,7 +709,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     private persistStatus(taskId: string, status: Status, rollback: Task[]): void {
         this.syncState.set('syncing');
-        if (!taskId.startsWith('V16-') && !taskId.startsWith('LOCAL')) this.http.patch<ApiTask>(`/api/tasks/${taskId}/status/${status}`, {}).pipe(catchError(() => of(null))).subscribe(result => {
+        if (!taskId.startsWith('V17-') && !taskId.startsWith('LOCAL')) this.http.patch<ApiTask>(`/api/tasks/${taskId}/status/${status}`, {}).pipe(catchError(() => of(null))).subscribe(result => {
             if (result) this.syncState.set('synced'); else {
                 this.tasks.set(rollback);
                 this.syncState.set('error');

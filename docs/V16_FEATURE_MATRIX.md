@@ -1,4 +1,4 @@
-# NebulaOps v16 Feature Matrix
+# NebulaOps v17 Feature Matrix
 
 | Area              | Feature           | Functional behavior                                                        |
 |-------------------|-------------------|----------------------------------------------------------------------------|

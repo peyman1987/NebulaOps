@@ -1,83 +1,122 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="Observability Pipeline">
     <defs>
-        <style>
-            .bg{fill:#06111f}.panel{fill:#0b1930;stroke:#38bdf8;stroke-width:2}.node{fill:#102342;stroke:#7dd3fc;stroke-width:2}.node2{fill:#13213c;stroke:#a78bfa;stroke-width:2}.node3{fill:#162339;stroke:#34d399;stroke-width:2}.txt{font-family:Inter,Segoe
-            UI,Arial,sans-serif;fill:#e6f3ff}.small{font-size:22px}.tiny{font-size:16px;fill:#b8d6f2}.title{font-size:42px;font-weight:800}.label{font-size:24px;font-weight:700}.flow{fill:none;stroke:#22d3ee;stroke-width:5;stroke-linecap:round;stroke-dasharray:14
-            14;marker-end:url(#arrow)}.event{fill:none;stroke:#f59e0b;stroke-width:5;stroke-linecap:round;stroke-dasharray:10
-            16;marker-end:url(#arrow2)}.metric{fill:none;stroke:#34d399;stroke-width:5;stroke-linecap:round;stroke-dasharray:4
-            12;marker-end:url(#arrow3)}.shadow{filter:url(#shadow)}.badge{fill:#0ea5e9}.badge2{fill:#f59e0b}.badge3{fill:#10b981}@keyframes
-            dash{to{stroke-dashoffset:-120}}@keyframes pulse{0%,100%{opacity:.35;r:8}50%{opacity:1;r:15}}@keyframes
-            float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}.flow,.event,.metric{animation:dash 4s
-            linear infinite}.pulse{animation:pulse 1.8s ease-in-out infinite}.float{animation:float 5s ease-in-out
-            infinite}.isoTop{fill:#193b62}.isoLeft{fill:#0f284a}.isoRight{fill:#0a1c36}
-        </style>
-        <filter id="shadow">
-            <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".45"/>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#110829"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="4" result="b"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
         </filter>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#22d3ee"/>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
         </marker>
-        <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#f59e0b"/>
-        </marker>
-        <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#34d399"/>
-        </marker>
+        <style><![CDATA[
+        .title{font:800 34px Inter,Segoe UI,Arial;fill:#f5fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#fff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#b8c8dd}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:url(#card);stroke:#294b73;stroke-width:1.4;rx:24}.core{fill:#0c2037;stroke:#58e7ff;stroke-width:2.2;filter:url(#glow)}.api{stroke:#58e7ff}.event{stroke:#b476ff;stroke-dasharray:10 8}.metric{stroke:#63ffb3;stroke-dasharray:4 7}.flow{fill:none;stroke-width:3;marker-end:url(#arrow);filter:url(#glow);opacity:.95}.pulse{animation:pulse 2.8s ease-in-out infinite}.dash{animation:dash 7s linear infinite}@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-160}}
+      ]]></style>
     </defs>
-    <rect class="bg" width="1600" height="920"/>
-    <circle cx="130" cy="90" r="220" fill="#0ea5e9" opacity=".10"/>
-    <circle cx="1420" cy="760" r="300" fill="#8b5cf6" opacity=".10"/>
-    <text class="txt title" x="60" y="70">NebulaOps v16 — Observability & Grafana Flow</text>
-    <text class="txt small" x="60" y="110">Prometheus è l’unico datasource default per evitare restart loop.</text>
-    <rect class="panel shadow" x="60" y="155" width="1480" height="675" rx="28"/>
-    <g class="shadow float">
-        <rect class="node3" x="115" y="250" width="260" height="125" rx="20"/>
-        <text class="txt label" x="139" y="292">A Apps + Gateway</text>
-        <text class="txt tiny" x="139" y="326">/actuator/prometheus metrics</text>
-    </g>
-    <g class="shadow float">
-        <rect class="node" x="500" y="250" width="260" height="125" rx="20"/>
-        <text class="txt label" x="524" y="292">B Prometheus</text>
-        <text class="txt tiny" x="524" y="326">scrape + time-series storage</text>
-    </g>
-    <g class="shadow float">
-        <rect class="node2" x="885" y="250" width="260" height="125" rx="20"/>
-        <text class="txt label" x="909" y="292">C Grafana</text>
-        <text class="txt tiny" x="909" y="326">single default datasource</text>
-    </g>
-    <g class="shadow float">
-        <rect class="node" x="1270" y="250" width="210" height="125" rx="20"/>
-        <text class="txt label" x="1294" y="292">D Dashboards</text>
-        <text class="txt tiny" x="1294" y="326">latency, health, traffic</text>
-    </g>
-    <g class="shadow float">
-        <rect class="node3" x="500" y="520" width="260" height="125" rx="20"/>
-        <text class="txt label" x="524" y="562">E Alert Rules</text>
-        <text class="txt tiny" x="524" y="596">thresholds + uptime</text>
-    </g>
-    <g class="shadow float">
-        <rect class="node3" x="885" y="520" width="260" height="125" rx="20"/>
-        <text class="txt label" x="909" y="562">F FE Widgets</text>
-        <text class="txt tiny" x="909" y="596">embedded health cards</text>
-    </g>
-    <path class="metric" d="M375 310 C430 310 445 310 500 310"/>
-    <circle class="badge3" cx="435" cy="288" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="435" y="294">1</text>
-    <path class="metric" d="M760 310 C815 310 830 310 885 310"/>
-    <circle class="badge3" cx="820" cy="288" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="820" y="294">2</text>
-    <path class="flow" d="M1145 310 C1190 310 1225 310 1270 310"/>
-    <circle class="badge" cx="1210" cy="288" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="1210" y="294">3</text>
-    <path class="event" d="M630 375 C630 435 630 465 630 520"/>
-    <circle class="badge2" cx="665" cy="450" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="665" y="456">4</text>
-    <path class="metric" d="M1015 375 C1015 435 1015 465 1015 520"/>
-    <circle class="badge3" cx="1050" cy="450" r="18"/>
-    <text class="txt tiny" text-anchor="middle" x="1050" y="456">5</text>
-    <rect x="130" y="700" width="1260" height="82" rx="18" fill="#07182c" stroke="#29486d"/>
-    <text class="txt tiny" x="160" y="732">Regola Grafana: solo Prometheus ha isDefault=true. Altri datasource futuri
-        devono avere isDefault=false.
+    <rect width="1400" height="820" fill="url(#bg)"/>
+    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <text x="70" y="72" class="title">Observability Pipeline</text>
+    <text x="72" y="102" class="sub">Prometheus scrapes service metrics and Grafana presents operational dashboards.
     </text>
-
+    <g class="pulse">
+        <rect x="95.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="129.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="153.0" y="242" class="label">Services</text>
+        <text x="123.0" y="274" class="small">Spring Boot Actuator</text>
+        <text x="123.0" y="294" class="small">Go metrics endpoints</text>
+        <text x="123.0" y="314" class="small">Health probes</text>
+    </g>
+    <g class="pulse">
+        <rect x="410.0" y="190.0" width="300" height="140" class="core" rx="24"/>
+        <circle cx="444.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="468.0" y="242" class="label">Prometheus</text>
+        <text x="438.0" y="274" class="small">Scrape targets</text>
+        <text x="438.0" y="294" class="small">Store time series</text>
+        <text x="438.0" y="314" class="small">Evaluate queries</text>
+    </g>
+    <g class="pulse">
+        <rect x="775.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="809.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="833.0" y="242" class="label">Grafana</text>
+        <text x="803.0" y="274" class="small">Dashboards</text>
+        <text x="803.0" y="294" class="small">Panels and alerts</text>
+        <text x="803.0" y="314" class="small">Prometheus datasource</text>
+    </g>
+    <g class="pulse">
+        <rect x="1055.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="1089.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="1113.0" y="242" class="label">Operator</text>
+        <text x="1083.0" y="274" class="small">Inspect health</text>
+        <text x="1083.0" y="294" class="small">Review latency</text>
+        <text x="1083.0" y="314" class="small">Debug failures</text>
+    </g>
+    <g class="pulse">
+        <rect x="435.0" y="504.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="469.0" cy="542" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="493.0" y="542" class="label">Logs</text>
+        <text x="463.0" y="574" class="small">Container logs</text>
+        <text x="463.0" y="594" class="small">Gateway diagnostics</text>
+        <text x="463.0" y="614" class="small">Auto-refresh UI</text>
+    </g>
+    <g class="pulse">
+        <rect x="775.0" y="504.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="809.0" cy="542" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="833.0" y="542" class="label">SLO View</text>
+        <text x="803.0" y="574" class="small">Availability</text>
+        <text x="803.0" y="594" class="small">Error rate</text>
+        <text x="803.0" y="614" class="small">Latency trend</text>
+    </g>
+    <path class="flow dash metric" d="M220 260 C 390.0 260, 390.0 260, 560 260"/>
+    <text x="340.0" y="252.0" class="small">scrape</text>
+    <path class="flow dash metric" d="M560 260 C 730.0 260, 730.0 260, 900 260"/>
+    <text x="680.0" y="252.0" class="small">query</text>
+    <path class="flow dash api" d="M900 260 C 1040.0 260, 1040.0 260, 1180 260"/>
+    <text x="990.0" y="252.0" class="small">visualize</text>
+    <path class="flow dash metric" d="M220 260 C 390.0 260, 390.0 560, 560 560"/>
+    <text x="340.0" y="402.0" class="small">logs</text>
+    <path class="flow dash metric" d="M560 260 C 730.0 260, 730.0 560, 900 560"/>
+    <text x="680.0" y="402.0" class="small">SLO</text>
+    <path class="flow dash api" d="M900 560 C 1040.0 560, 1040.0 260, 1180 260"/>
+    <text x="990.0" y="402.0" class="small">review</text>
+    <rect x="980" y="58" width="112" height="26" rx="13" fill="#58e7ff" opacity=".9"/>
+    <text x="994" y="76" class="chip">API/request</text>
+    <rect x="1110" y="58" width="112" height="26" rx="13" fill="#b476ff" opacity=".9"/>
+    <text x="1124" y="76" class="chip">Async event</text>
+    <rect x="1240" y="58" width="112" height="26" rx="13" fill="#63ffb3" opacity=".9"/>
+    <text x="1254" y="76" class="chip">Metrics/logs</text>
 </svg>

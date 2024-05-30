@@ -1,11 +1,13 @@
 # Project Metadata
 
-- Project: NebulaOps v16
-- Developer: Peyman Eshghi Malayeri
-- Email: peyman_em@yahoo.com
-- Year: 2024
-- Edition: Spatial DevOps SaaS Control Center
+| Field     | Value                              |
+|-----------|------------------------------------|
+| Project   | NebulaOps v17                      |
+| Developer | Peyman Eshghi Malayeri             |
+| Email     | peyman_em@yahoo.com                |
+| Year      | 2024                               |
+| Edition   | Professional DevOps Control Center |
 
-NebulaOps v16 is a portfolio platform engineering project for local WSL/Linux execution without Docker Desktop. It
-demonstrates microservices, Docker Engine control, Kubernetes console workflows, Helm operations, Grafana/Prometheus
-observability, RabbitMQ, Redis, MongoDB and a modern 3D Angular frontend.
+NebulaOps v17 is a local-first platform engineering project for WSL/Linux execution. It demonstrates microservices,
+Docker Engine operations, Kubernetes console workflows, Helm release management, Grafana/Prometheus observability,
+RabbitMQ, Redis, MongoDB and a modern Angular frontend.

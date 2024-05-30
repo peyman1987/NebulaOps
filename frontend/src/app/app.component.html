@@ -1,105 +1,133 @@
-<main class="shell">
-    <section class="hero-v16 super3d">
-        <div class="cosmos-layer layer-a"></div>
-        <div class="cosmos-layer layer-b"></div>
-        <div class="scanline"></div>
-        <div class="hero-copy glass-3d">
-            <p class="eyebrow">NebulaOps v16 · HyperSpatial SaaS Control Center</p>
-            <h1>Command Docker, Kubernetes, Helm, Grafana & DevOps.</h1>
-            <p class="lead">UI più avanzata, topology interattiva, card operative cliccabili, effetti depth/parallax,
-                cockpit SaaS e accesso reale agli strumenti locali.</p>
-            <div class="hero-actions">
-                <button (click)="setTab('DOCKER')" type="button">Docker Engine</button>
-                <button (click)="setTab('KUBERNETES')" type="button">K8s Control</button>
-                <button (click)="openUrl('http://localhost:3000')" type="button">Grafana Live</button>
+<section *ngIf="!isAuthenticated()" class="login-shell">
+    <div class="login-circuit"></div>
+    <div class="login-card">
+        <div class="login-brand">
+            <span class="brand-orb">N17</span>
+            <div>
+                <p class="eyebrow">NebulaOps v17 SaaS Command Center</p>
+                <h1>Enter the 3D DevOps cockpit</h1>
             </div>
-            <div class="metrics-ribbon hologram">
-                <span><b>{{ dockerContainers().length || 14 }}</b> containers</span>
-                <span><b>{{ workloads().length }}</b> workloads</span>
-                <span><b>{{ helmReleases().length || 0 }}</b> releases</span>
-                <span><b>{{ openFindings() }}</b> risks</span>
+        </div>
+        <p class="lead">Local demo login for a portfolio-ready SaaS control plane covering Docker, Kubernetes, Helm,
+            Grafana, MongoDB, RabbitMQ and Redis.</p>
+        <form (ngSubmit)="login()" class="login-form">
+            <label>Email or username<input [(ngModel)]="loginForm.username" name="username" placeholder="admin"></label>
+            <label>Password<input [(ngModel)]="loginForm.password" name="password" placeholder="admin" type="password"></label>
+            <button type="submit">Enter NebulaOps</button>
+            <p *ngIf="loginError()" class="login-error">{{ loginError() }}</p>
+            <small>Demo credentials: <b>admin / admin</b></small>
+        </form>
+        <div class="login-visual">
+            <span>NEBULAOPS</span><i></i><i></i><i></i><i></i>
+        </div>
+    </div>
+</section>
+
+<main *ngIf="isAuthenticated()" class="shell">
+    <section aria-label="NebulaOps executive overview" class="hero-v17 nebula-hero">
+        <div class="nebula-header">
+            <div class="brand-lockup"><strong>NEBULAOPS
+                <em>v17</em></strong><span>Unified Infrastructure Control Plane</span></div>
+            <div class="session-status"><span>Logged in as {{ currentUser() }}</span>
+                <button (click)="logout()" type="button">Logout</button>
             </div>
         </div>
 
-        <div aria-label="NebulaOps v16 interactive 3D topology" class="hyper-stage">
-            <div class="nebula-dome"></div>
-            <div class="warp-grid"></div>
-            <div class="core-ring ring-x"></div>
-            <div class="core-ring ring-y"></div>
-            <div class="core-ring ring-z"></div>
-            <button (click)="setTab('OVERVIEW')" class="orbital core-orb"><b>NebulaOps</b><small>v16 Core</small>
-            </button>
-            <button (click)="setTab('DOCKER')" class="orbital orb docker"><span>🐳</span><b>Docker</b><small>containers ·
-                images</small></button>
-            <button (click)="setTab('KUBERNETES')" class="orbital orb k8s"><span>☸</span><b>Kubernetes</b><small>pods ·
-                svc · ingress</small></button>
-            <button (click)="setTab('HELM')" class="orbital orb helm"><span>⎈</span><b>Helm</b><small>release
-                lifecycle</small></button>
-            <button (click)="setTab('GRAFANA')" class="orbital orb grafana"><span>◎</span><b>Grafana</b><small>SLO
-                dashboards</small></button>
-            <button (click)="setTab('OBSERVABILITY')" class="orbital orb obs"><span>✦</span><b>Observability</b><small>logs
-                · metrics</small></button>
-            <button (click)="setTab('SECURITY')" class="orbital orb sec"><span>◆</span><b>Security</b><small>policy
-                posture</small></button>
-            <i class="laser l1"></i><i class="laser l2"></i><i class="laser l3"></i><i class="laser l4"></i>
+        <div class="hero-copy glass-3d">
+            <p class="eyebrow">Own, operate, orchestrate</p>
+            <h1>A unified control plane for your infrastructure</h1>
+            <p class="lead">Manage Docker, Kubernetes, Helm, Grafana and on-prem systems from one polished SaaS
+                platform.</p>
+            <div class="capability-row">
+                <button (click)="setTab('DOCKER')" type="button"><span>🐳</span><b>Docker</b><small>Build, run and
+                    inspect containers.</small></button>
+                <button (click)="setTab('KUBERNETES')" type="button"><span>☸</span><b>Kubernetes</b><small>Orchestrate
+                    workloads and services.</small></button>
+                <button (click)="setTab('HELM')" type="button"><span>⎈</span><b>Helm</b><small>Package, version and
+                    deploy apps.</small></button>
+                <button (click)="setTab('GRAFANA')" type="button"><span>◎</span><b>Grafana</b><small>Visualize metrics
+                    and logs.</small></button>
+                <button (click)="setTab('INFRA')" type="button"><span>▤</span><b>On-Prem</b><small>Monitor local
+                    services.</small></button>
+            </div>
+            <div class="metrics-ribbon hologram">
+                <span><b>{{ dockerContainers().length || 14 }}</b> Containers</span>
+                <span><b>{{ workloads().length }}</b> Workloads</span>
+                <span><b>{{ helmReleases().length || 0 }}</b> Releases</span>
+                <span><b>{{ openFindings() }}</b> Risks</span>
+            </div>
+        </div>
+
+        <div aria-label="Annotated NebulaOps operating model" class="saas-orbit-stage annotated-orbit">
+            <div class="orbit-grid"></div>
+            <div class="saas-core"><span>NEBULAOPS</span><strong>v17</strong><small>Unified Control Plane</small></div>
+            <button (click)="setTab('DOCKER')" class="orbit-node n1"><span>🐳</span><b>Docker</b><small>Container
+                Management</small></button>
+            <button (click)="setTab('KUBERNETES')" class="orbit-node n2"><span>☸</span><b>Kubernetes</b><small>Orchestration
+                & Workloads</small></button>
+            <button (click)="setTab('HELM')" class="orbit-node n3"><span>⎈</span><b>Helm</b><small>Package & Release
+                Mgmt</small></button>
+            <button (click)="setTab('GRAFANA')" class="orbit-node n4"><span>◎</span><b>Grafana</b><small>Observability &
+                Dashboards</small></button>
+            <button (click)="setTab('INFRA')" class="orbit-node n5"><span>▤</span><b>On-Prem</b><small>Local Systems &
+                Monitoring</small></button>
+            <button (click)="setTab('SECURITY')" class="orbit-node n6"><span>🛡</span><b>Security</b><small>Policies &
+                Compliance</small></button>
+            <div class="annotation a1"><b>01</b><span>Control actions</span><small>Start · stop · deploy · scale</small>
+            </div>
+            <div class="annotation a2"><b>02</b><span>Runtime state</span><small>Workload and container health</small>
+            </div>
+            <div class="annotation a3"><b>03</b><span>Feedback loop</span><small>Logs, metrics and compliance
+                signals</small></div>
+            <i class="orbit-ring r1"></i><i class="orbit-ring r2"></i><i class="orbit-ring r3"></i><i
+                class="orbit-ring r4"></i>
+            <i class="data-beam b1"></i><i class="data-beam b2"></i><i class="data-beam b3"></i><i
+                class="data-beam b4"></i>
         </div>
     </section>
 
-    <nav aria-label="NebulaOps v16 sections" class="main-tabs floating-tabs">
+    <nav aria-label="NebulaOps v17 sections" class="main-tabs floating-tabs">
         <button (click)="setTab(tab)" *ngFor="let tab of tabs" [class.active]="activeTab() === tab"
                 type="button">{{ tab }}
         </button>
     </nav>
-
     <p *ngIf="apiError()" class="error-box">{{ apiError() }}</p>
 
-    <section *ngIf="activeTab() === 'OVERVIEW'" class="tab-page overview-v16">
+    <section *ngIf="activeTab() === 'OVERVIEW'" class="tab-page overview-v17">
         <article class="panel mega-panel holo-panel">
             <div class="panel-title">
-                <div><p class="eyebrow">Live service map</p>
-                    <h2>3D local topology · click ogni servizio</h2></div>
+                <div><p class="eyebrow">Local service map</p>
+                    <h2>Interactive 3D service map</h2></div>
                 <span [class]="'sync '+runtimeState()">{{ runtimeState() }}</span></div>
             <div class="service-galaxy enhanced-galaxy">
                 <button (click)="openInfra(item, $event)" *ngFor="let item of infra; let i = index" [style.--i]="i"
                         class="service-card cube-card">
-                    <span class="service-icon">{{ item.name.slice(0, 2) }}</span>
-                    <b>{{ item.name }}</b><small>{{ item.type }} · {{ item.endpoint }}</small>
-                    <i><em [style.width.%]="item.health"></em></i>
-                    <span class="open-label">{{ item.controlLabel || item.internalLabel }}</span>
+                    <span class="service-icon">{{ item.name.slice(0, 2) }}</span><b>{{ item.name }}</b><small>{{ item.type }}
+                    · {{ item.endpoint }}</small><i><em [style.width.%]="item.health"></em></i><span
+                        class="open-label">{{ item.controlLabel || item.internalLabel }}</span>
                 </button>
             </div>
         </article>
 
-        <article class="panel flow-panel ultra-3d-panel diagram-showcase">
+        <article class="panel diagram-showcase">
             <div class="panel-title">
-                <div><p class="eyebrow">Functional 3D SVG flow</p>
-                    <h2>Browser → Gateway → Services → Data/Event → Grafana</h2></div>
+                <div><p class="eyebrow">3D functional SVG</p>
+                    <h2>Clear SaaS flow: API · events · metrics</h2></div>
             </div>
-            <div class="diagram-frame">
-                <img alt="NebulaOps v16 functional 3D end-to-end flow" src="assets/v16-functional-flow.svg">
-            </div>
-            <div class="diagram-legend">
-                <span><i class="dot api"></i> HTTP/API control</span>
-                <span><i class="dot event"></i> async events</span>
-                <span><i class="dot metric"></i> metrics/logs</span>
-            </div>
+            <div class="diagram-frame"><img alt="NebulaOps v17 SaaS 3D functional flow"
+                                            src="assets/v17-saas-flow-3d.svg"></div>
+            <div class="diagram-legend"><span><i class="dot api"></i> HTTP/API</span><span><i class="dot event"></i> Async events</span><span><i
+                    class="dot metric"></i> Metrics / logs</span><span><i
+                    class="dot data"></i> Persistence / cache</span></div>
         </article>
 
-        <article class="panel ai-panel">
+        <article class="panel diagram-showcase">
             <div class="panel-title">
-                <div><p class="eyebrow">Smart SaaS layer</p>
-                    <h2>Autopilot operativo</h2></div>
+                <div><p class="eyebrow">Runtime topology</p>
+                    <h2>From browser to containers, cluster and observability</h2></div>
             </div>
-            <div class="smart-grid prism-grid">
-                <div><b>Predictive Health</b>
-                    <p>Combina container state, K8s snapshot e SLO Grafana.</p></div>
-                <div><b>Self-healing runbook</b>
-                    <p>Script WSL/Linux per reset, smoke test, kubeconfig e toolchain.</p></div>
-                <div><b>Release intelligence</b>
-                    <p>Helm lifecycle, GitLab quality gates e ArgoCD-ready manifests.</p></div>
-                <div><b>Security posture</b>
-                    <p>Checklist DevSecOps e policy-as-code locali.</p></div>
-            </div>
+            <div class="diagram-frame"><img alt="NebulaOps v17 runtime control map"
+                                            src="assets/v17-runtime-control-3d.svg"></div>
         </article>
     </section>
 
@@ -110,9 +138,10 @@
                     <h2>Delivery board drag & drop</h2></div>
                 <span [class]="'sync '+syncState()">{{ syncState() }}</span></div>
             <form (ngSubmit)="createTask()" class="form"><input [(ngModel)]="taskForm.title" name="title"
-                                                                placeholder="New task title"><input [(ngModel)]="taskForm.owner"
-                                                                                                    name="owner"
-                                                                                                    placeholder="Owner"><select
+                                                                placeholder="New task title"><input
+                    [(ngModel)]="taskForm.owner"
+                    name="owner"
+                    placeholder="Owner"><select
                     [(ngModel)]="taskForm.priority" name="priority">
                 <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
             </select>
@@ -138,8 +167,8 @@
     <section *ngIf="activeTab() === 'DOCKER'" class="tab-page ops-grid">
         <article class="panel table-panel">
             <div class="panel-title">
-                <div><p class="eyebrow">Docker Desktop Pro</p>
-                    <h2>Container control reale</h2></div>
+                <div><p class="eyebrow">Docker Desktop-like</p>
+                    <h2>Real container control</h2></div>
                 <button (click)="loadDocker()">Refresh</button>
             </div>
             <div class="table-scroll">
@@ -227,9 +256,10 @@
             </div>
             <form (ngSubmit)="createResource()" class="form mini"><select [(ngModel)]="k8sForm.kind" name="kind">
                 <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
-            </select><input [(ngModel)]="k8sForm.namespace" name="ns" placeholder="namespace"><input [(ngModel)]="k8sForm.name"
-                                                                                                     name="name"
-                                                                                                     placeholder="name"><input
+            </select><input [(ngModel)]="k8sForm.namespace" name="ns" placeholder="namespace"><input
+                    [(ngModel)]="k8sForm.name"
+                    name="name"
+                    placeholder="name"><input
                     [(ngModel)]="k8sForm.replicas" name="replicas" type="number">
                 <button>Create</button>
             </form>
@@ -267,8 +297,8 @@
                     <h2>Release lifecycle</h2></div>
                 <button (click)="loadHelm()">Refresh Helm</button>
             </div>
-            <p class="muted"><code>./scripts/linux/helm-install-nebulaops.sh</code> installa la piattaforma su cluster
-                locale.</p>
+            <p class="muted"><code>./scripts/linux/helm-install-nebulaops.sh</code> installs the platform on a local
+                cluster.</p>
             <div class="table-scroll">
                 <table>
                     <thead>
@@ -301,7 +331,7 @@
     <section *ngIf="activeTab() === 'GRAFANA'" class="tab-page ops-grid">
         <article class="panel">
             <div class="panel-title">
-                <div><p class="eyebrow">Grafana embedded control</p>
+                <div><p class="eyebrow">Grafana control</p>
                     <h2>Health & dashboards</h2></div>
                 <button (click)="loadGrafana()">Refresh</button>
             </div>
@@ -315,9 +345,9 @@
                 </button>
             </div>
         </article>
-        <article class="panel"><h2>Datasource fix built-in</h2>
-            <p class="muted">v16 usa un solo datasource default: Prometheus. Loki è opzionale e non viene marcato
-                default, evitando il restart loop di Grafana.</p>
+        <article class="panel"><h2>Stable datasource provisioning</h2>
+            <p class="muted">v17 uses one default datasource: Prometheus. This avoids Grafana restart loops during local
+                demos.</p>
             <pre>Prometheus → http://prometheus:9090
 Grafana    → http://localhost:3000
 admin/admin</pre>
@@ -331,16 +361,16 @@ admin/admin</pre>
                     <h2>Microservice event stream</h2></div>
                 <div class="actions"><select (change)="setLogService($event)">
                     <option *ngFor="let s of logServiceOptions()">{{ s }}</option>
-                </select><select (change)="setLogsRefreshSeconds($event)">
+                </select><select (change)="setObservabilityRefreshSeconds($event)">
                     <option [value]="3">3s</option>
                     <option [value]="5">5s</option>
                     <option [value]="10">10s</option>
                 </select>
-                    <button (click)="refreshLogs()">Refresh</button>
-                    <button (click)="toggleLogsAutoRefresh()">{{ logsAutoRefresh() ? 'Stop auto' : 'Auto refresh' }}</button>
+                    <button (click)="refreshObservability()">Refresh</button>
+                    <button (click)="toggleObservabilityAutoRefresh()">{{ logsAutoRefresh() ? 'Stop auto' : 'Auto refresh' }}</button>
                 </div>
             </div>
-            <div class="log-console"><p *ngFor="let l of visibleLogs()">
+            <div class="log-console"><p *ngFor="let l of visibleObservability()">
                 <span>{{ l.time }}</span><b>{{ l.service }}</b><em>{{ l.level }}</em> {{ l.message }}</p></div>
         </article>
     </section>
@@ -363,9 +393,10 @@ admin/admin</pre>
         <article class="panel">
             <div class="panel-title">
                 <div><p class="eyebrow">DevSecOps</p>
-                    <h2>Policy posture</h2></div>
+                    <h2>Policies & Compliance posture</h2></div>
             </div>
-            <div *ngFor="let f of findings()" class="finding"><label><input (change)="toggleFinding(f.id)" [checked]="f.done"
+            <div *ngFor="let f of findings()" class="finding"><label><input (change)="toggleFinding(f.id)"
+                                                                            [checked]="f.done"
                                                                             type="checkbox"><b>{{ f.id }}
                 · {{ f.title }}</b></label><span [class]="'priority '+priorityClass(f.severity)">{{ f.severity }}</span>
                 <p>{{ f.remediation }}</p></div>

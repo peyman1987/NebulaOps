@@ -1,184 +1,145 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img"
-     aria-labelledby="title desc">
-    <title id="title">NebulaOps v16 · Service port map</title>
-    <desc id="desc">Localhost ports and internal Docker DNS names for every control panel.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="NebulaOps Runtime Architecture">
     <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#020617"/>
-            <stop offset=".45" stop-color="#06163a"/>
-            <stop offset="1" stop-color="#18062e"/>
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#110829"/>
         </linearGradient>
-        <radialGradient id="halo" cx="50%" cy="35%" r="65%">
-            <stop offset="0" stop-color="#22d3ee" stop-opacity=".34"/>
-            <stop offset=".55" stop-color="#7c3aed" stop-opacity=".12"/>
-            <stop offset="1" stop-color="#000" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#e0faff"/>
-            <stop offset=".25" stop-color="#22d3ee"/>
-            <stop offset="1" stop-color="#2563eb"/>
-        </linearGradient>
-        <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#f5d0fe"/>
-            <stop offset=".35" stop-color="#a855f7"/>
-            <stop offset="1" stop-color="#4338ca"/>
-        </linearGradient>
-        <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#dcfce7"/>
-            <stop offset=".35" stop-color="#22c55e"/>
-            <stop offset="1" stop-color="#047857"/>
-        </linearGradient>
-        <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffedd5"/>
-            <stop offset=".35" stop-color="#fb923c"/>
-            <stop offset="1" stop-color="#c2410c"/>
-        </linearGradient>
-        <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#fee2e2"/>
-            <stop offset=".35" stop-color="#f43f5e"/>
-            <stop offset="1" stop-color="#991b1b"/>
+        <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
         </linearGradient>
         <filter id="glow">
-            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feGaussianBlur stdDeviation="4" result="b"/>
             <feMerge>
                 <feMergeNode in="b"/>
                 <feMergeNode in="SourceGraphic"/>
             </feMerge>
         </filter>
-        <filter id="soft">
-            <feDropShadow dx="0" dy="22" stdDeviation="16" flood-color="#000" flood-opacity=".48"/>
-            <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#67e8f9" flood-opacity=".25"/>
-        </filter>
-        <marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
-                orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#67e8f9"/>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
         </marker>
-        <marker id="arrowV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
-                orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#c084fc"/>
-        </marker>
-        <marker id="arrowG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
-                orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#86efac"/>
-        </marker>
-        <style>
-            .title{font:800 38px Inter,Arial,sans-serif;fill:#f8fbff;letter-spacing:-.02em} .sub{font:500 17px
-            Inter,Arial,sans-serif;fill:#bdd6f6}
-            .label{font:800 20px Inter,Arial,sans-serif;fill:#f8fbff} .small{font:500 13px
-            Inter,Arial,sans-serif;fill:#c7d8ef} .tiny{font:700 11px
-            Inter,Arial,sans-serif;fill:#a9c3df;text-transform:uppercase;letter-spacing:.08em}
-            .lane{fill:#0f172a;fill-opacity:.52;stroke:#2dd4bf;stroke-opacity:.22;stroke-width:1.4} .node{}
-            .flow{fill:none;stroke:#67e8f9;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#arrowC);filter:url(#glow)}
-            .event{fill:none;stroke:#c084fc;stroke-width:4;stroke-dasharray:13
-            10;stroke-linecap:round;marker-end:url(#arrowV)}
-            .metric{fill:none;stroke:#86efac;stroke-width:4;stroke-dasharray:4
-            9;stroke-linecap:round;marker-end:url(#arrowG)}
-            .pulse{animation:pulse 2.8s ease-in-out infinite;transform-origin:center} .dash{stroke-dasharray:18
-            12;animation:dash 4s linear infinite} .float{animation:float 6s ease-in-out infinite}
-            @keyframes dash{to{stroke-dashoffset:-120}} @keyframes pulse{50%{opacity:.52;transform:scale(1.035)}}
-            @keyframes float{50%{transform:translateY(-10px)}}
-        </style>
+        <style><![CDATA[
+        .title{font:800 34px Inter,Segoe UI,Arial;fill:#f5fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#fff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#b8c8dd}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:url(#card);stroke:#294b73;stroke-width:1.4;rx:24}.core{fill:#0c2037;stroke:#58e7ff;stroke-width:2.2;filter:url(#glow)}.api{stroke:#58e7ff}.event{stroke:#b476ff;stroke-dasharray:10 8}.metric{stroke:#63ffb3;stroke-dasharray:4 7}.flow{fill:none;stroke-width:3;marker-end:url(#arrow);filter:url(#glow);opacity:.95}.pulse{animation:pulse 2.8s ease-in-out infinite}.dash{animation:dash 7s linear infinite}@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-160}}
+      ]]></style>
     </defs>
-    <rect width="100%" height="100%" fill="url(#bg)"/>
-    <rect width="100%" height="100%" fill="url(#halo)"/>
-    <g opacity=".18">
-        <path d="M0 120 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 200 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 280 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 360 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 440 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 520 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 600 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 680 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 760 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 840 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 920 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M80 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M160 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M240 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M320 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M400 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M480 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M560 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M640 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M720 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M800 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M880 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M960 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1040 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1120 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1200 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1280 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1360 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1440 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1520 0 V950" stroke="#93c5fd" stroke-width="1"/>
-    </g>
-    <text x="70" y="72" class="title">NebulaOps v16 · Service port map</text>
-    <text x="70" y="104" class="sub">Localhost ports and internal Docker DNS names for every control panel.</text>
-
-    <rect x="60" y="155" width="1480" height="675" rx="36" class="lane"/>
-    <text x="90" y="194" class="tiny">SERVICE PORT MAP · LOCAL ACCESS POINTS AND INTERNAL DNS</text>
-    <g transform="translate(110,250)">
-        <g transform="translate(0,0)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">Frontend</text>
-            <text x="22" y="66" class="small">Host: localhost:4200</text>
-            <text x="22" y="92" class="small">Network DNS: frontend:80</text>
-        </g>
-        <g transform="translate(340,0)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">Gateway</text>
-            <text x="22" y="66" class="small">Host: localhost:8080</text>
-            <text x="22" y="92" class="small">Network DNS: gateway-service:8080</text>
-        </g>
-        <g transform="translate(680,0)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">Grafana</text>
-            <text x="22" y="66" class="small">Host: localhost:3000</text>
-            <text x="22" y="92" class="small">Network DNS: grafana:3000</text>
-        </g>
-        <g transform="translate(1020,0)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">Prometheus</text>
-            <text x="22" y="66" class="small">Host: localhost:9090</text>
-            <text x="22" y="92" class="small">Network DNS: prometheus:9090</text>
-        </g>
-        <g transform="translate(0,170)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">Mongo Express</text>
-            <text x="22" y="66" class="small">Host: localhost:8088</text>
-            <text x="22" y="92" class="small">Network DNS: mongo-express:8081</text>
-        </g>
-        <g transform="translate(340,170)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">RabbitMQ UI</text>
-            <text x="22" y="66" class="small">Host: localhost:15672</text>
-            <text x="22" y="92" class="small">Network DNS: rabbitmq:15672</text>
-        </g>
-        <g transform="translate(680,170)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">Redis Commander</text>
-            <text x="22" y="66" class="small">Host: localhost:8089</text>
-            <text x="22" y="92" class="small">Network DNS: redis-commander:8081</text>
-        </g>
-        <g transform="translate(1020,170)">
-            <rect width="285" height="120" rx="22" fill="#0f172a" fill-opacity=".82" stroke="#7dd3fc"
-                  stroke-opacity=".44" filter="url(#soft)"/>
-            <text x="22" y="38" class="label">MongoDB</text>
-            <text x="22" y="66" class="small">Host: localhost:27017</text>
-            <text x="22" y="92" class="small">Network DNS: mongodb:27017</text>
-        </g>
-    </g>
-    <path d="M250 650 C450 750 1000 750 1260 650" class="flow dash"/>
-    <text x="540" y="760" class="small">All containers share nebulaops-network; browser uses localhost ports, services
-        use Docker DNS names.
+    <rect width="1400" height="820" fill="url(#bg)"/>
+    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <text x="70" y="72" class="title">NebulaOps Runtime Architecture</text>
+    <text x="72" y="102" class="sub">Complete local microservice topology for a single-machine DevOps portfolio
+        platform.
     </text>
-
+    <g class="pulse">
+        <rect x="35.0" y="174.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="69.0" cy="212" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="93.0" y="212" class="label">Frontend</text>
+        <text x="63.0" y="244" class="small">Angular SPA</text>
+        <text x="63.0" y="264" class="small">Nginx container</text>
+        <text x="63.0" y="284" class="small">Port 4200</text>
+    </g>
+    <g class="pulse">
+        <rect x="280.0" y="160.0" width="300" height="140" class="core" rx="24"/>
+        <circle cx="314.0" cy="212" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="338.0" y="212" class="label">Gateway</text>
+        <text x="308.0" y="244" class="small">Spring Cloud Gateway</text>
+        <text x="308.0" y="264" class="small">Port 8080</text>
+        <text x="308.0" y="284" class="small">API edge</text>
+    </g>
+    <g class="pulse">
+        <rect x="595.0" y="174.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="629.0" cy="212" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="653.0" y="212" class="label">Java Services</text>
+        <text x="623.0" y="244" class="small">Auth, Task, File</text>
+        <text x="623.0" y="264" class="small">Notification</text>
+        <text x="623.0" y="284" class="small">Java 21</text>
+    </g>
+    <g class="pulse">
+        <rect x="855.0" y="174.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="889.0" cy="212" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="913.0" y="212" class="label">Go Services</text>
+        <text x="883.0" y="244" class="small">Cache API</text>
+        <text x="883.0" y="264" class="small">Event worker</text>
+        <text x="883.0" y="284" class="small">Lightweight runtime</text>
+    </g>
+    <g class="pulse">
+        <rect x="225.0" y="494.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="259.0" cy="532" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="283.0" y="532" class="label">MongoDB</text>
+        <text x="253.0" y="564" class="small">Document storage</text>
+        <text x="253.0" y="584" class="small">Service state</text>
+        <text x="253.0" y="604" class="small">Port 27017</text>
+    </g>
+    <g class="pulse">
+        <rect x="525.0" y="494.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="559.0" cy="532" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="583.0" y="532" class="label">Redis</text>
+        <text x="553.0" y="564" class="small">Cache layer</text>
+        <text x="553.0" y="584" class="small">Low-latency reads</text>
+        <text x="553.0" y="604" class="small">Port 6379</text>
+    </g>
+    <g class="pulse">
+        <rect x="825.0" y="494.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="859.0" cy="532" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="883.0" y="532" class="label">RabbitMQ</text>
+        <text x="853.0" y="564" class="small">Event broker</text>
+        <text x="853.0" y="584" class="small">Queues/exchanges</text>
+        <text x="853.0" y="604" class="small">Port 5672</text>
+    </g>
+    <g class="pulse">
+        <rect x="1065.0" y="364.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="1099.0" cy="402" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="1123.0" y="402" class="label">Grafana</text>
+        <text x="1093.0" y="434" class="small">Prometheus metrics</text>
+        <text x="1093.0" y="454" class="small">Dashboards</text>
+        <text x="1093.0" y="474" class="small">Port 3000</text>
+    </g>
+    <path class="flow dash api" d="M160 230 C 295.0 230, 295.0 230, 430 230"/>
+    <text x="245.0" y="222.0" class="small">REST</text>
+    <path class="flow dash api" d="M430 230 C 575.0 230, 575.0 230, 720 230"/>
+    <text x="525.0" y="222.0" class="small">route</text>
+    <path class="flow dash api" d="M430 230 C 705.0 230, 705.0 230, 980 230"/>
+    <text x="655.0" y="222.0" class="small">route</text>
+    <path class="flow dash api" d="M720 230 C 535.0 230, 535.0 550, 350 550"/>
+    <text x="485.0" y="382.0" class="small">state</text>
+    <path class="flow dash api" d="M980 230 C 815.0 230, 815.0 550, 650 550"/>
+    <text x="765.0" y="382.0" class="small">cache</text>
+    <path class="flow dash event" d="M720 230 C 835.0 230, 835.0 550, 950 550"/>
+    <text x="785.0" y="382.0" class="small">events</text>
+    <path class="flow dash event" d="M950 550 C 965.0 550, 965.0 230, 980 230"/>
+    <text x="915.0" y="382.0" class="small">consume</text>
+    <path class="flow dash metric" d="M720 230 C 955.0 230, 955.0 420, 1190 420"/>
+    <text x="905.0" y="317.0" class="small">metrics</text>
+    <path class="flow dash metric" d="M980 230 C 1085.0 230, 1085.0 420, 1190 420"/>
+    <text x="1035.0" y="317.0" class="small">metrics</text>
+    <rect x="980" y="58" width="112" height="26" rx="13" fill="#58e7ff" opacity=".9"/>
+    <text x="994" y="76" class="chip">API/request</text>
+    <rect x="1110" y="58" width="112" height="26" rx="13" fill="#b476ff" opacity=".9"/>
+    <text x="1124" y="76" class="chip">Async event</text>
+    <rect x="1240" y="58" width="112" height="26" rx="13" fill="#63ffb3" opacity=".9"/>
+    <text x="1254" y="76" class="chip">Metrics/logs</text>
 </svg>

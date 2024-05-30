@@ -1,6 +1,6 @@
-# NebulaOps v16 Diagram Guide
+# NebulaOps v17 Diagram Guide
 
-The v16 diagrams are functional 3D SVGs, not decorative placeholders. Each file shows one specific operational flow with
+The v17 diagrams are functional 3D SVGs, not decorative placeholders. Each file shows one specific operational flow with
 directional arrows, lane labels, color-coded paths and animated movement.
 
 ## Reading the flows

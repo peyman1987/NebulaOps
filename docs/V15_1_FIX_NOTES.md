@@ -1,10 +1,10 @@
-# NebulaOps v16.1 Fix Notes
+# NebulaOps v17.1 Fix Notes
 
 This patch focuses on two areas reported during local WSL validation:
 
 ## Grafana reliability
 
-- `scripts/wsl/stop.sh` now uses the root `docker-compose.yml` and the `nebulaops-v16` compose project,
+- `scripts/wsl/stop.sh` now uses the root `docker-compose.yml` and the `nebulaops-v17` compose project,
   matching `start.sh`.
 - The root compose file defines a stable Docker network name: `nebulaops-network`.
 - Grafana now has:

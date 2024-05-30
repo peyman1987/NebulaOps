@@ -1,6 +1,6 @@
 # Real Kubernetes Console
 
-NebulaOps v16 uses kubectl through the gateway to provide real Kubernetes operations from the frontend.
+NebulaOps v17 uses kubectl through the gateway to provide real Kubernetes operations from the frontend.
 
 ## Supported operations
 
@@ -18,7 +18,7 @@ NebulaOps v16 uses kubectl through the gateway to provide real Kubernetes operat
 Use kind:
 
 ```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v16
+./scripts/linux/create-kind-cluster.sh nebulaops-v17
 ```
 
 Then mount kubeconfig into the gateway through `.kube/config` and restart the platform.

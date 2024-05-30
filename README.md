@@ -1,50 +1,71 @@
-# NebulaOps v16 — Spatial DevOps SaaS Platform
+# NebulaOps v17 — Professional DevOps Control Center
 
-NebulaOps v16 is a local-first, portfolio-grade DevOps SaaS platform designed for WSL and Linux without Docker Desktop.
-It combines an Angular 3D control center, Spring Boot microservices, Go workers, MongoDB, Redis, RabbitMQ, Docker Engine
-control, Kubernetes/OpenLens-like operations, Helm release management, Prometheus and Grafana.
+NebulaOps v17 is a local-first DevOps SaaS portfolio platform designed for WSL Ubuntu and Linux workstations. It
+demonstrates a complete platform-engineering stack with an Angular operations dashboard, Spring Boot microservices, Go
+services, MongoDB, Redis, RabbitMQ, Docker Engine control, Kubernetes operations, Helm release management, Prometheus
+and Grafana.
 
-## What changed in v16
+The project is intentionally executable on a single personal machine while still presenting the architecture,
+documentation and UI quality expected from a senior cloud/platform engineering portfolio.
 
-- New 3D spatial frontend with animated cloud topology, service galaxy and SaaS-style control panels.
-- Real Docker controls from the UI: list containers, images, stats, start, stop, restart and remove.
-- Kubernetes console for resources, live YAML editing, scale actions, logs and local snapshots.
-- Helm release inventory and uninstall workflow through the gateway.
-- Grafana fixed with exactly one default datasource to avoid provisioning restart loops.
-- Prometheus + Grafana provisioning for local observability.
-- WSL/Linux scripts with native Docker Engine, Docker Compose, kubectl and Helm.
-- Modern architecture diagrams and animated SVG documentation.
+## Core capabilities
+
+- Angular control center with a professional dark SaaS interface and animated infrastructure views.
+- Docker runtime operations: containers, images, stats and lifecycle actions.
+- Kubernetes console: workloads, services, pods, namespaces, logs and live YAML editing.
+- Helm release inventory and basic release operations through the gateway.
+- Spring Cloud Gateway as the API entry point for backend capabilities.
+- Java 21 Spring Boot services for auth, tasks, files and notifications.
+- Go workers and cache services for lightweight runtime components.
+- MongoDB persistence, Redis caching and RabbitMQ event delivery.
+- Prometheus metrics collection and Grafana dashboards.
+- WSL/Linux scripts for setup, startup, shutdown and validation.
 
 ## Quick start on WSL Ubuntu
 
 ```bash
-cd nebulaops-v16
+cd nebulaops-v17
 ./scripts/wsl/install-native-toolchain.sh
 ./scripts/wsl/start.sh
 ./scripts/wsl/smoke-test.sh
 ```
 
-URLs:
+## Local URLs
 
-- Frontend: http://localhost:4200
-- Gateway: http://localhost:8080/actuator/health
-- Grafana: http://localhost:3000 — admin/admin
-- Prometheus: http://localhost:9090
-- Mongo Express: http://localhost:8088 — admin/admin
-- Redis Commander: http://localhost:8089 — admin/admin
-- RabbitMQ: http://localhost:15672 — guest/guest
+| Component           | URL                                   | Credentials   |
+|---------------------|---------------------------------------|---------------|
+| Frontend            | http://localhost:4200                 | admin / admin |
+| Gateway health      | http://localhost:8080/actuator/health | none          |
+| Grafana             | http://localhost:3000                 | admin / admin |
+| Prometheus          | http://localhost:9090                 | none          |
+| Mongo Express       | http://localhost:8088                 | admin / admin |
+| Redis Commander     | http://localhost:8089                 | admin / admin |
+| RabbitMQ Management | http://localhost:15672                | guest / guest |
 
-## Stop
+## Stop the platform
 
 ```bash
 ./scripts/wsl/stop.sh
 ```
 
-Volumes are preserved by default.
+Docker volumes are preserved by default.
 
-## Important Grafana note
+## Architecture diagrams
 
-The v16 provisioning intentionally contains one default datasource only:
+The SVG diagrams were rebuilt as professional technical assets with consistent English labels, dark SaaS styling,
+animated request paths and clear responsibilities. Start here:
+
+- `docs/diagrams/v17-saas-flow-3d.svg`
+- `docs/diagrams/v17-runtime-control-3d.svg`
+- `docs/diagrams/runtime-architecture.svg`
+- `docs/diagrams/request-flow-sequence.svg`
+- `docs/diagrams/kubernetes-helm-view.svg`
+- `docs/diagrams/observability-grafana-flow.svg`
+- `docs/diagrams/gitlab-argocd-flow.svg`
+
+## Grafana provisioning note
+
+Grafana must contain exactly one default datasource. The expected datasource is Prometheus:
 
 ```yaml
 name: Prometheus
@@ -53,18 +74,10 @@ url: http://prometheus:9090
 isDefault: true
 ```
 
-Do not add another `isDefault: true`, otherwise Grafana will restart
-with: `Only one datasource per organization can be marked as default`.
+Do not add another datasource with `isDefault: true`, otherwise Grafana can restart with a provisioning error.
 
-## v16 functional 3D diagrams
+## Project positioning
 
-The SVGs were rebuilt as technical flow diagrams. Start with `docs/V16_DIAGRAM_GUIDE.md`, then open:
-
-- `docs/diagrams/request-flow-sequence.svg`
-- `docs/diagrams/runtime-architecture.svg`
-- `docs/diagrams/observability-grafana-flow.svg`
-- `docs/diagrams/messaging-cache-flow.svg`
-- `docs/diagrams/frontend-operations-dashboard.svg`
-
-Each diagram uses cyan arrows for API control, purple dashed arrows for async events and green dotted arrows for
-metrics/logs.
+NebulaOps is designed to demonstrate practical DevOps and platform engineering skills: application delivery, local
+cloud-native tooling, observability, container orchestration, service boundaries, event-driven components and
+operational documentation.

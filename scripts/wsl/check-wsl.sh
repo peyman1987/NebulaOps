@@ -3,7 +3,7 @@ set -euo pipefail
 ok(){ echo "OK $1"; }
 warn(){ echo "WARN $1"; }
 fail(){ echo "FAIL $1"; exit 1; }
-echo "NebulaOps v16 native WSL pre-flight check"
+echo "NebulaOps v17 native WSL pre-flight check"
 grep -qi microsoft /proc/version && ok "Running inside WSL" || warn "Not detected as WSL"
 command -v docker >/dev/null 2>&1 && ok "docker CLI found" || fail "docker CLI missing. Run ./scripts/wsl/install-native-toolchain.sh"
 docker info >/dev/null 2>&1 && ok "Native Docker daemon reachable" || fail "Docker daemon is not reachable. Start it with: sudo service docker start"

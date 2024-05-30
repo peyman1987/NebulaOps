@@ -1,232 +1,122 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img"
-     aria-labelledby="title desc">
-    <title id="title">NebulaOps v16 · GitLab and ArgoCD flow</title>
-    <desc id="desc">CI/CD and GitOps from commit to cluster sync and observability feedback.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="CI/CD and GitOps Delivery Flow">
     <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#020617"/>
-            <stop offset=".45" stop-color="#06163a"/>
-            <stop offset="1" stop-color="#18062e"/>
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset="1" stop-color="#110829"/>
         </linearGradient>
-        <radialGradient id="halo" cx="50%" cy="35%" r="65%">
-            <stop offset="0" stop-color="#22d3ee" stop-opacity=".34"/>
-            <stop offset=".55" stop-color="#7c3aed" stop-opacity=".12"/>
-            <stop offset="1" stop-color="#000" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#e0faff"/>
-            <stop offset=".25" stop-color="#22d3ee"/>
-            <stop offset="1" stop-color="#2563eb"/>
-        </linearGradient>
-        <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#f5d0fe"/>
-            <stop offset=".35" stop-color="#a855f7"/>
-            <stop offset="1" stop-color="#4338ca"/>
-        </linearGradient>
-        <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#dcfce7"/>
-            <stop offset=".35" stop-color="#22c55e"/>
-            <stop offset="1" stop-color="#047857"/>
-        </linearGradient>
-        <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffedd5"/>
-            <stop offset=".35" stop-color="#fb923c"/>
-            <stop offset="1" stop-color="#c2410c"/>
-        </linearGradient>
-        <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#fee2e2"/>
-            <stop offset=".35" stop-color="#f43f5e"/>
-            <stop offset="1" stop-color="#991b1b"/>
+        <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
         </linearGradient>
         <filter id="glow">
-            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feGaussianBlur stdDeviation="4" result="b"/>
             <feMerge>
                 <feMergeNode in="b"/>
                 <feMergeNode in="SourceGraphic"/>
             </feMerge>
         </filter>
-        <filter id="soft">
-            <feDropShadow dx="0" dy="22" stdDeviation="16" flood-color="#000" flood-opacity=".48"/>
-            <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#67e8f9" flood-opacity=".25"/>
-        </filter>
-        <marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
-                orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#67e8f9"/>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
         </marker>
-        <marker id="arrowV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
-                orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#c084fc"/>
-        </marker>
-        <marker id="arrowG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8"
-                orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 Z" fill="#86efac"/>
-        </marker>
-        <style>
-            .title{font:800 38px Inter,Arial,sans-serif;fill:#f8fbff;letter-spacing:-.02em} .sub{font:500 17px
-            Inter,Arial,sans-serif;fill:#bdd6f6}
-            .label{font:800 20px Inter,Arial,sans-serif;fill:#f8fbff} .small{font:500 13px
-            Inter,Arial,sans-serif;fill:#c7d8ef} .tiny{font:700 11px
-            Inter,Arial,sans-serif;fill:#a9c3df;text-transform:uppercase;letter-spacing:.08em}
-            .lane{fill:#0f172a;fill-opacity:.52;stroke:#2dd4bf;stroke-opacity:.22;stroke-width:1.4} .node{}
-            .flow{fill:none;stroke:#67e8f9;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#arrowC);filter:url(#glow)}
-            .event{fill:none;stroke:#c084fc;stroke-width:4;stroke-dasharray:13
-            10;stroke-linecap:round;marker-end:url(#arrowV)}
-            .metric{fill:none;stroke:#86efac;stroke-width:4;stroke-dasharray:4
-            9;stroke-linecap:round;marker-end:url(#arrowG)}
-            .pulse{animation:pulse 2.8s ease-in-out infinite;transform-origin:center} .dash{stroke-dasharray:18
-            12;animation:dash 4s linear infinite} .float{animation:float 6s ease-in-out infinite}
-            @keyframes dash{to{stroke-dashoffset:-120}} @keyframes pulse{50%{opacity:.52;transform:scale(1.035)}}
-            @keyframes float{50%{transform:translateY(-10px)}}
-        </style>
+        <style><![CDATA[
+        .title{font:800 34px Inter,Segoe UI,Arial;fill:#f5fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#fff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#b8c8dd}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:url(#card);stroke:#294b73;stroke-width:1.4;rx:24}.core{fill:#0c2037;stroke:#58e7ff;stroke-width:2.2;filter:url(#glow)}.api{stroke:#58e7ff}.event{stroke:#b476ff;stroke-dasharray:10 8}.metric{stroke:#63ffb3;stroke-dasharray:4 7}.flow{fill:none;stroke-width:3;marker-end:url(#arrow);filter:url(#glow);opacity:.95}.pulse{animation:pulse 2.8s ease-in-out infinite}.dash{animation:dash 7s linear infinite}@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-160}}
+      ]]></style>
     </defs>
-    <rect width="100%" height="100%" fill="url(#bg)"/>
-    <rect width="100%" height="100%" fill="url(#halo)"/>
-    <g opacity=".18">
-        <path d="M0 120 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 200 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 280 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 360 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 440 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 520 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 600 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 680 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 760 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 840 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M0 920 H1600" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M80 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M160 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M240 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M320 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M400 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M480 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M560 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M640 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M720 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M800 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M880 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M960 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1040 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1120 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1200 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1280 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1360 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1440 0 V950" stroke="#93c5fd" stroke-width="1"/>
-        <path d="M1520 0 V950" stroke="#93c5fd" stroke-width="1"/>
+    <rect width="1400" height="820" fill="url(#bg)"/>
+    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
+    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
+    <text x="70" y="72" class="title">CI/CD and GitOps Delivery Flow</text>
+    <text x="72" y="102" class="sub">Source changes move through GitLab CI and Argo CD into Kubernetes runtime state.
+    </text>
+    <g class="pulse">
+        <rect x="45.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="79.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="103.0" y="242" class="label">Developer</text>
+        <text x="73.0" y="274" class="small">Commit code</text>
+        <text x="73.0" y="294" class="small">Open merge request</text>
+        <text x="73.0" y="314" class="small">Review pipeline</text>
     </g>
-    <text x="70" y="72" class="title">NebulaOps v16 · GitLab and ArgoCD flow</text>
-    <text x="70" y="104" class="sub">CI/CD and GitOps from commit to cluster sync and observability feedback.</text>
-
-    <rect x="60" y="155" width="1480" height="675" rx="36" class="lane"/>
-    <text x="90" y="194" class="tiny">CI/CD AND GITOPS FLOW · FROM COMMIT TO RUNNING PLATFORM</text>
-    <g class="node">
-        <path d="M133,282 H348 L330,300 H115 Z" fill="url(#cyan)" opacity=".22"/>
-        <path d="M330,300 L348,282 V417 L330,435 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="115" y="300" width="215" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="129" y="314" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
-        <text x="155" y="348" text-anchor="middle" font-size="24">DEV</text>
-        <text x="197" y="336" class="label">Developer</text>
-        <text x="139" y="374" class="small">commit code</text>
-        <text x="139" y="396" class="small">push branch</text>
-        <text x="139" y="418" class="small">open MR</text>
+    <g class="pulse">
+        <rect x="320.0" y="190.0" width="300" height="140" class="core" rx="24"/>
+        <circle cx="354.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="378.0" y="242" class="label">GitLab CI</text>
+        <text x="348.0" y="274" class="small">Build images</text>
+        <text x="348.0" y="294" class="small">Run tests</text>
+        <text x="348.0" y="314" class="small">Publish artifacts</text>
     </g>
-    <g class="node">
-        <path d="M423,242 H653 L635,260 H405 Z" fill="url(#orange)" opacity=".22"/>
-        <path d="M635,260 L653,242 V397 L635,415 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="405" y="260" width="230" height="155" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="419" y="274" width="52" height="52" rx="17" fill="url(#orange)" filter="url(#glow)"/>
-        <text x="445" y="308" text-anchor="middle" font-size="24">GL</text>
-        <text x="487" y="296" class="label">GitLab CI</text>
-        <text x="429" y="334" class="small">build images</text>
-        <text x="429" y="356" class="small">unit tests</text>
-        <text x="429" y="378" class="small">quality gates</text>
+    <g class="pulse">
+        <rect x="635.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="669.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="693.0" y="242" class="label">Registry</text>
+        <text x="663.0" y="274" class="small">Versioned images</text>
+        <text x="663.0" y="294" class="small">Immutable tags</text>
+        <text x="663.0" y="314" class="small">Scan results</text>
     </g>
-    <g class="node">
-        <path d="M728,282 H943 L925,300 H710 Z" fill="url(#green)" opacity=".22"/>
-        <path d="M925,300 L943,282 V417 L925,435 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="710" y="300" width="215" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="724" y="314" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
-        <text x="750" y="348" text-anchor="middle" font-size="24">REG</text>
-        <text x="792" y="336" class="label">Registry</text>
-        <text x="734" y="374" class="small">versioned images</text>
-        <text x="734" y="396" class="small">SBOM metadata</text>
-        <text x="734" y="418" class="small">tags per service</text>
+    <g class="pulse">
+        <rect x="635.0" y="504.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="669.0" cy="542" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="693.0" y="542" class="label">GitOps Repo</text>
+        <text x="663.0" y="574" class="small">Helm values</text>
+        <text x="663.0" y="594" class="small">Environment manifests</text>
+        <text x="663.0" y="614" class="small">Promotion history</text>
     </g>
-    <g class="node">
-        <path d="M1003,242 H1233 L1215,260 H985 Z" fill="url(#violet)" opacity=".22"/>
-        <path d="M1215,260 L1233,242 V397 L1215,415 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
-              stroke-opacity=".22"/>
-        <rect x="985" y="260" width="230" height="155" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="999" y="274" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
-        <text x="1025" y="308" text-anchor="middle" font-size="24">ARGO</text>
-        <text x="1067" y="296" class="label">ArgoCD</text>
-        <text x="1009" y="334" class="small">sync desired state</text>
-        <text x="1009" y="356" class="small">detect drift</text>
-        <text x="1009" y="378" class="small">health status</text>
+    <g class="pulse">
+        <rect x="915.0" y="354.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="949.0" cy="392" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="973.0" y="392" class="label">Argo CD</text>
+        <text x="943.0" y="424" class="small">Diff desired/live</text>
+        <text x="943.0" y="444" class="small">Sync application</text>
+        <text x="943.0" y="464" class="small">Health status</text>
     </g>
-    <g class="node">
-        <path d="M1293,282 H1508 L1490,300 H1275 Z" fill="url(#cyan)" opacity=".22"/>
-        <path d="M1490,300 L1508,282 V417 L1490,435 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
-              stroke-opacity=".22"/>
-        <rect x="1275" y="300" width="215" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="1289" y="314" width="52" height="52" rx="17" fill="url(#cyan)" filter="url(#glow)"/>
-        <text x="1315" y="348" text-anchor="middle" font-size="24">K8S</text>
-        <text x="1357" y="336" class="label">Cluster</text>
-        <text x="1299" y="374" class="small">deployments</text>
-        <text x="1299" y="396" class="small">services</text>
-        <text x="1299" y="418" class="small">ingress</text>
+    <g class="pulse">
+        <rect x="1105.0" y="354.0" width="250" height="112" class="panel" rx="24"/>
+        <circle cx="1139.0" cy="392" r="11" fill="#58e7ff" opacity=".9"/>
+        <text x="1163.0" y="392" class="label">Kubernetes</text>
+        <text x="1133.0" y="424" class="small">Deploy workloads</text>
+        <text x="1133.0" y="444" class="small">Expose services</text>
+        <text x="1133.0" y="464" class="small">Report status</text>
     </g>
-    <g class="node">
-        <path d="M423,527 H653 L635,545 H405 Z" fill="url(#violet)" opacity=".22"/>
-        <path d="M635,545 L653,527 V662 L635,680 Z" fill="#020617" opacity=".45" stroke="#7dd3fc" stroke-opacity=".22"/>
-        <rect x="405" y="545" width="230" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="419" y="559" width="52" height="52" rx="17" fill="url(#violet)" filter="url(#glow)"/>
-        <text x="445" y="593" text-anchor="middle" font-size="24">⎈</text>
-        <text x="487" y="581" class="label">Helm Chart</text>
-        <text x="429" y="619" class="small">values.yaml</text>
-        <text x="429" y="641" class="small">templates</text>
-        <text x="429" y="663" class="small">release history</text>
-    </g>
-    <g class="node">
-        <path d="M1003,527 H1233 L1215,545 H985 Z" fill="url(#green)" opacity=".22"/>
-        <path d="M1215,545 L1233,527 V662 L1215,680 Z" fill="#020617" opacity=".45" stroke="#7dd3fc"
-              stroke-opacity=".22"/>
-        <rect x="985" y="545" width="230" height="135" rx="22" fill="#081323" fill-opacity=".86" stroke="#7dd3fc"
-              stroke-opacity=".48" stroke-width="1.5"/>
-        <rect x="999" y="559" width="52" height="52" rx="17" fill="url(#green)" filter="url(#glow)"/>
-        <text x="1025" y="593" text-anchor="middle" font-size="24">◎</text>
-        <text x="1067" y="581" class="label">Observability</text>
-        <text x="1009" y="619" class="small">deployment metrics</text>
-        <text x="1009" y="641" class="small">rollback signals</text>
-        <text x="1009" y="663" class="small">Grafana SLO</text>
-    </g>
-    <path d="M330 365 H405" class="flow dash"/>
-    <path d="M635 340 C675 325 685 335 710 365" class="flow dash"/>
-    <path d="M925 365 H985" class="flow dash"/>
-    <path d="M1215 340 H1275" class="flow dash"/>
-    <path d="M520 415 V545" class="event dash"/>
-    <path d="M635 612 C760 635 870 635 985 610" class="flow dash"/>
-    <path d="M1095 545 C1140 490 1210 445 1275 405" class="metric dash"/>
-    <path d="M1090 415 C1080 465 1070 505 1090 545" class="metric dash"/>
-    <text x="365" y="318" class="tiny">test/build</text>
-    <text x="660" y="315" class="tiny">push image</text>
-    <text x="934" y="334" class="tiny">sync</text>
-    <text x="1230" y="318" class="tiny">apply</text>
-    <g>
-        <rect x="85" y="710" width="380" height="116" rx="18" fill="#020617" fill-opacity=".62" stroke="#94a3b8"
-              stroke-opacity=".28"/>
-        <text x="103" y="740" class="tiny">LEGEND</text>
-        <path d="M103 762 H175" class="flow"/>
-        <text x="193" y="767" class="small">HTTP/API control request</text>
-        <path d="M103 788 H175" class="event"/>
-        <text x="193" y="793" class="small">Async event/message path</text>
-        <path d="M103 814 H175" class="metric"/>
-        <text x="193" y="819" class="small">Metrics/logs/telemetry</text>
-    </g>
-
+    <path class="flow dash api" d="M170 260 C 320.0 260, 320.0 260, 470 260"/>
+    <text x="270.0" y="252.0" class="small">push</text>
+    <path class="flow dash api" d="M470 260 C 615.0 260, 615.0 260, 760 260"/>
+    <text x="565.0" y="252.0" class="small">image</text>
+    <path class="flow dash api" d="M470 260 C 615.0 260, 615.0 560, 760 560"/>
+    <text x="565.0" y="402.0" class="small">update manifests</text>
+    <path class="flow dash api" d="M760 560 C 900.0 560, 900.0 410, 1040 410"/>
+    <text x="850.0" y="477.0" class="small">watch</text>
+    <path class="flow dash api" d="M1040 410 C 1135.0 410, 1135.0 410, 1230 410"/>
+    <text x="1085.0" y="402.0" class="small">sync</text>
+    <path class="flow dash metric" d="M1230 410 C 1135.0 410, 1135.0 410, 1040 410"/>
+    <text x="1085.0" y="402.0" class="small">health</text>
+    <rect x="980" y="58" width="112" height="26" rx="13" fill="#58e7ff" opacity=".9"/>
+    <text x="994" y="76" class="chip">API/request</text>
+    <rect x="1110" y="58" width="112" height="26" rx="13" fill="#b476ff" opacity=".9"/>
+    <text x="1124" y="76" class="chip">Async event</text>
+    <rect x="1240" y="58" width="112" height="26" rx="13" fill="#63ffb3" opacity=".9"/>
+    <text x="1254" y="76" class="chip">Metrics/logs</text>
 </svg>
