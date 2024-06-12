@@ -12,6 +12,7 @@ type MainTab =
     | 'TERRAFORM'
     | 'HELM'
     | 'OBSERVABILITY'
+    | 'AI OPS'
     | 'CICD'
     | 'SECURITY'
     | 'FINOPS'
@@ -87,12 +88,44 @@ interface SecurityFinding {
     done: boolean;
 }
 
-const TASKS_KEY = 'nebulaops.v18.tasks';
-const K8S_KEY = 'nebulaops.v18.k8s';
-const SESSION_KEY = 'nebulaops.v18.session';
+interface AiOpsEvent {
+    time: string;
+    service: string;
+    severity: Priority;
+    title: string;
+    status: string;
+    recommendation: string;
+}
+
+interface AiOpsNode {
+    id: string;
+    label: string;
+    type: string;
+    health: number;
+    x: number;
+    y: number;
+    z: number;
+    status: 'ok' | 'warn' | 'critical';
+}
+
+interface AiOpsAnalysis {
+    incidentId: string;
+    summary: string;
+    rootCause: string;
+    confidence: number;
+    blastRadius: string[];
+    fix: string;
+    yaml: string;
+    events: AiOpsEvent[];
+    nodes: AiOpsNode[];
+}
+
+const TASKS_KEY = 'nebulaops.v19_1.tasks';
+const K8S_KEY = 'nebulaops.v19_1.k8s';
+const SESSION_KEY = 'nebulaops.v19_1.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v18\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -120,41 +153,41 @@ function res(kind: K8sKind, namespace: string, name: string, replicas = 0): K8sR
     styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
-    readonly tabs: MainTab[] = ['OVERVIEW', 'TASKS', 'KUBERNETES', 'TERRAFORM', 'HELM', 'OBSERVABILITY', 'CICD', 'SECURITY', 'FINOPS', 'BACKUPS', 'DOCS'];
+    readonly tabs: MainTab[] = ['OVERVIEW', 'TASKS', 'KUBERNETES', 'TERRAFORM', 'HELM', 'OBSERVABILITY', 'AI OPS', 'CICD', 'SECURITY', 'FINOPS', 'BACKUPS', 'DOCS'];
     readonly columns: Status[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
     readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v18.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_1.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
     readonly k8sState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
     readonly tasks = signal<Task[]>(this.loadLocal(TASKS_KEY, [
         {
-            id: 'V18-101',
+            id: 'V19-101',
             title: 'Provision local kind cluster with Terraform',
             owner: 'Platform',
             priority: 'CRITICAL',
             status: 'TODO'
         },
         {
-            id: 'V18-102',
+            id: 'V19-102',
             title: 'Add FinOps budget guardrails for demo services',
             owner: 'SRE',
             priority: 'HIGH',
             status: 'IN_PROGRESS'
         },
         {
-            id: 'V18-103',
+            id: 'V19-103',
             title: 'Validate Helm render and ArgoCD sync gates',
             owner: 'DevOps',
             priority: 'HIGH',
             status: 'REVIEW'
         },
         {
-            id: 'V18-104',
+            id: 'V19-104',
             title: 'Document WSL onboarding and smoke tests',
             owner: 'Peyman',
             priority: 'MEDIUM',
@@ -177,6 +210,17 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly grafanaHealth = signal<any>({});
     readonly terraformPlan = signal('terraform plan not executed yet');
     readonly selectedTf = signal('local-kind');
+    readonly aiOpsPrompt = signal('pod gateway-service-78fdd CrashLoopBackOff after deploy, readiness probe failed, image pull warning');
+    readonly aiOpsRunning = signal(false);
+    readonly aiOpsAutoFix = signal(false);
+    readonly aiOpsAnalysis = signal<AiOpsAnalysis>(this.fallbackAiOps());
+    readonly aiOpsChat = signal<{ role: 'ai' | 'user' | 'system'; text: string; time: string }[]>([
+        {
+            role: 'ai',
+            text: 'AI Ops Center online. Monitoring Kubernetes events, logs and dependency blast radius.',
+            time: new Date().toLocaleTimeString()
+        }
+    ]);
     loginForm = {username: 'admin', password: 'admin'};
     taskForm: Task = {id: '', title: '', owner: 'Platform', priority: 'MEDIUM', status: 'TODO'};
     k8sForm = {kind: 'Deployment' as K8sKind, namespace: 'nebulaops', name: '', replicas: 1};
@@ -265,12 +309,13 @@ export class AppComponent implements OnInit, OnDestroy {
     ];
     readonly docs = [
         {title: 'README', path: 'README.md', why: 'start here and feature map'},
-        {title: 'V18 release notes', path: 'docs/V18_RELEASE_NOTES.md', why: 'what changed from v17'},
-        {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'provisioning examples'},
+        {title: 'V19.1 AI Ops', path: 'docs/V19_1_AI_OPS_CENTER.md', why: 'new AI Ops Center feature'},
+        {title: 'V19.1 release notes', path: 'docs/V19_1_RELEASE_NOTES.md', why: 'AI Ops upgrade notes'},
+        {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/diagrams/nebulaops-v18-terraform-control-plane.svg',
-            why: 'new 3D animated flow'
+            path: 'docs/diagrams/nebulaops-v19-1-ai-ops-architecture.svg',
+            why: 'AI Ops cockpit animated SVG'
         }
     ];
     readonly workloads = computed(() => this.resources().filter(r => ['Deployment', 'StatefulSet', 'DaemonSet'].includes(r.kind)));
@@ -294,7 +339,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v18.user', u);
+            localStorage.setItem('nebulaops.v19_1.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -311,6 +356,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (tab === 'KUBERNETES' || tab === 'OVERVIEW') this.loadK8sFromApi();
         if (tab === 'HELM') this.loadHelm();
         if (tab === 'OBSERVABILITY') this.refreshLogs(); else this.stopLogsAutoRefresh();
+        if (tab === 'AI OPS') this.runAiOpsAnalysis();
     }
 
     refreshAll(): void {
@@ -318,6 +364,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadHelm();
         this.loadDocker();
         this.refreshLogs();
+        this.runAiOpsAnalysis(false);
     }
 
     columnTasks(status: Status): Task[] {
@@ -335,7 +382,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (!this.taskForm.title.trim()) return;
         this.tasks.set([{
             ...this.taskForm,
-            id: this.taskForm.id || `V18-${Date.now().toString().slice(-5)}`
+            id: this.taskForm.id || `V19-${Date.now().toString().slice(-5)}`
         }, ...this.tasks()]);
         this.saveTasks();
         this.taskForm = {id: '', title: '', owner: 'Platform', priority: 'MEDIUM', status: 'TODO'};
@@ -462,6 +509,51 @@ export class AppComponent implements OnInit, OnDestroy {
         this.logsAutoRefresh() ? this.stopLogsAutoRefresh() : this.startLogsAutoRefresh();
     }
 
+
+    runAiOpsAnalysis(pushChat = true): void {
+        this.aiOpsRunning.set(true);
+        const prompt = this.aiOpsPrompt();
+        if (pushChat) this.aiOpsChat.set([...this.aiOpsChat(), {
+            role: 'user',
+            text: prompt,
+            time: new Date().toLocaleTimeString()
+        }]);
+        this.http.post<AiOpsAnalysis>('/api/ai-ops/analyze', {
+            prompt,
+            logs: this.visibleLogs(),
+            resources: this.resources()
+        }).pipe(catchError(() => of(this.fallbackAiOps(prompt)))).subscribe(result => {
+            this.aiOpsAnalysis.set(result);
+            this.aiOpsRunning.set(false);
+            if (pushChat) this.aiOpsChat.set([...this.aiOpsChat(), {
+                role: 'ai',
+                text: `${result.summary} Root cause: ${result.rootCause}. Suggested fix: ${result.fix}`,
+                time: new Date().toLocaleTimeString()
+            }]);
+        });
+    }
+
+    autoFix(): void {
+        const analysis = this.aiOpsAnalysis();
+        this.aiOpsAutoFix.set(true);
+        this.http.post('/api/ai-ops/autofix', {
+            incidentId: analysis.incidentId,
+            yaml: analysis.yaml,
+            fix: analysis.fix
+        }).pipe(catchError(() => of({status: 'demo-applied'}))).subscribe(() => {
+            this.aiOpsAutoFix.set(false);
+            this.aiOpsChat.set([...this.aiOpsChat(), {
+                role: 'system',
+                text: `AUTO FIX staged: ${analysis.fix}`,
+                time: new Date().toLocaleTimeString()
+            }]);
+        });
+    }
+
+    aiSeverityClass(severity: Priority): string {
+        return `ai-sev-${severity.toLowerCase()}`;
+    }
+
     runTerraformPlan(moduleName = this.selectedTf()): void {
         const module = this.terraformModules.find(m => m.name === moduleName) || this.terraformModules[0];
         this.selectedTf.set(module.name);
@@ -478,6 +570,60 @@ export class AppComponent implements OnInit, OnDestroy {
 
     stageWidth(s: PipelineStage): number {
         return s.status === 'passed' ? 100 : s.status === 'running' ? 65 : s.status === 'queued' ? 25 : 8;
+    }
+
+    private fallbackAiOps(prompt = this.aiOpsPrompt()): AiOpsAnalysis {
+        const now = new Date().toLocaleTimeString();
+        return {
+            incidentId: 'AIOPS-19-1-CRASH-042',
+            summary: 'CrashLoopBackOff detected on gateway-service with readiness degradation propagated to frontend and notification-service.',
+            rootCause: prompt.toLowerCase().includes('image') ? 'Image pull / tag mismatch combined with readiness probe timeout.' : 'Readiness probe timeout after deployment; downstream gateway route saturation detected.',
+            confidence: 0.91,
+            blastRadius: ['frontend', 'gateway-service', 'task-service', 'notification-service'],
+            fix: 'Increase initialDelaySeconds, verify image tag, restart rollout and add temporary HPA guardrail.',
+            yaml: `apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: gateway-service\n  namespace: nebulaops\nspec:\n  template:\n    spec:\n      containers:\n        - name: gateway-service\n          readinessProbe:\n            httpGet:\n              path: /actuator/health\n              port: 8080\n            initialDelaySeconds: 25\n            periodSeconds: 10\n`,
+            events: [
+                {
+                    time: now,
+                    service: 'gateway-service',
+                    severity: 'CRITICAL',
+                    title: 'Pod CrashLoopBackOff',
+                    status: 'active',
+                    recommendation: 'Patch readiness probe and restart rollout'
+                },
+                {
+                    time: now,
+                    service: 'frontend',
+                    severity: 'HIGH',
+                    title: '5xx propagation',
+                    status: 'degraded',
+                    recommendation: 'Route traffic to healthy gateway replicas'
+                },
+                {
+                    time: now,
+                    service: 'task-service',
+                    severity: 'MEDIUM',
+                    title: 'Queue latency spike',
+                    status: 'watch',
+                    recommendation: 'Scale worker replicas if queue depth grows'
+                },
+                {
+                    time: now,
+                    service: 'mongodb',
+                    severity: 'LOW',
+                    title: 'No storage anomaly',
+                    status: 'stable',
+                    recommendation: 'No action'
+                }
+            ],
+            nodes: [
+                {id: 'frontend', label: 'Frontend', type: 'edge', health: 72, x: 14, y: 24, z: 1, status: 'warn'},
+                {id: 'gateway', label: 'Gateway', type: 'api', health: 18, x: 42, y: 38, z: 4, status: 'critical'},
+                {id: 'tasks', label: 'Tasks', type: 'svc', health: 66, x: 69, y: 22, z: 2, status: 'warn'},
+                {id: 'mongo', label: 'MongoDB', type: 'db', health: 96, x: 78, y: 66, z: 1, status: 'ok'},
+                {id: 'notify', label: 'Notify', type: 'svc', health: 61, x: 30, y: 72, z: 3, status: 'warn'}
+            ]
+        };
     }
 
     private saveTasks(): void {
@@ -507,7 +653,7 @@ export class AppComponent implements OnInit, OnDestroy {
             time: now,
             service,
             level: i === 2 ? 'PLAN' : 'INFO',
-            message: `${service} OK · v18 local fallback telemetry`
+            message: `${service} OK · v19.1 AI Ops telemetry`
         }));
     }
 

@@ -75,6 +75,22 @@ services:
         condition: service_healthy
     ports:
       - 8084:8084
+  ai-engine:
+    build:
+      context: ..
+      dockerfile: ai-engine/Dockerfile
+    ports:
+      - 8095:8095
+  ai-ops-service:
+    build:
+      context: ..
+      dockerfile: backend/ai-ops-service/Dockerfile
+    environment:
+      AI_ENGINE_URL: http://ai-engine:8095
+    depends_on:
+      - ai-engine
+    ports:
+      - 8085:8085
   gateway-service:
     build:
       context: ..
@@ -84,8 +100,9 @@ services:
       TASK_SERVICE_URL: http://task-service:8082
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
+      AI_OPS_SERVICE_URL: http://ai-ops-service:8085
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v17}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-1}
     volumes:
       - ../.kube/config:/kube/config:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -97,6 +114,8 @@ services:
       file-service:
         condition: service_started
       notification-service:
+        condition: service_started
+      ai-ops-service:
         condition: service_started
     ports:
       - 8080:8080
@@ -120,6 +139,7 @@ services:
       - task-service
       - notification-service
       - file-service
+      - ai-ops-service
   grafana:
     image: grafana/grafana:11.1.0
     environment:

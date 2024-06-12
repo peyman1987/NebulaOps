@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+    <title id="title">NebulaOps v19.1 AI Ops Center Architecture</title>
+    <desc id="desc">Animated cyber grid architecture with AI Ops cockpit, Spring Boot service, FastAPI engine and
+        Kubernetes remediation loop.
+    </desc>
+    <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop stop-color="#020617"/>
+            <stop offset="1" stop-color="#111827"/>
+        </linearGradient>
+        <linearGradient id="beam" x1="0" x2="1">
+            <stop stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#a855f7"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <pattern id="grid" width="38" height="38" patternUnits="userSpaceOnUse">
+            <path d="M38 0H0V38" fill="none" stroke="#22d3ee" stroke-opacity=".12"/>
+        </pattern>
+        <style>
+            .card{fill:rgba(15,23,42,.72);stroke:#67e8f9;stroke-opacity:.42;stroke-width:2;filter:url(#glow)}
+            .label{fill:#e0f2fe;font:700 24px 'Segoe UI',Arial,sans-serif}.small{fill:#94a3b8;font:500 15px 'Segoe
+            UI',Arial,sans-serif}.beam{stroke:url(#beam);stroke-width:4;stroke-linecap:round;stroke-dasharray:14
+            16;filter:url(#glow);animation:dash 2.8s linear infinite}.pulse{animation:pulse 1.15s ease-in-out
+            infinite}.float{animation:float 4s ease-in-out infinite}@keyframes dash{to{stroke-dashoffset:-90}}@keyframes
+            pulse{50%{opacity:.55;transform:scale(1.05)}}@keyframes float{50%{transform:translateY(-12px)}}
+        </style>
+    </defs>
+    <rect width="1200" height="720" fill="url(#bg)"/>
+    <rect width="1200" height="720" fill="url(#grid)"/>
+    <circle cx="600" cy="355" r="245" fill="#22d3ee" opacity=".06"/>
+    <circle cx="600" cy="355" r="150" fill="#a855f7" opacity=".08"/>
+    <path class="beam" d="M218 180 C390 100 492 122 600 220"/>
+    <path class="beam" d="M600 220 C744 116 852 106 985 180"/>
+    <path class="beam" d="M600 220 C624 330 620 407 600 505"/>
+    <path class="beam" d="M218 540 C380 650 494 636 600 505"/>
+    <path class="beam" d="M985 540 C800 650 704 642 600 505"/>
+    <g class="float">
+        <rect class="card" x="78" y="110" rx="28" width="280" height="140"/>
+        <text class="label" x="112" y="168">Angular AI OPS</text>
+        <text class="small" x="112" y="204">cockpit · chat · graph · timeline</text>
+    </g>
+    <g>
+        <rect class="card" x="460" y="145" rx="34" width="280" height="150"/>
+        <text class="label" x="498" y="208">Gateway</text>
+        <text class="small" x="498" y="244">routes /api/ai-ops/**</text>
+    </g>
+    <g class="pulse">
+        <rect class="card" x="842" y="110" rx="28" width="280" height="140" stroke="#ef4444"/>
+        <text class="label" x="884" y="168">ai-ops-service</text>
+        <text class="small" x="884" y="204">Spring Boot RCA API :8085</text>
+        <circle cx="1088" cy="134" r="11" fill="#ef4444" filter="url(#glow)"/>
+    </g>
+    <g>
+        <rect class="card" x="460" y="430" rx="34" width="280" height="150"/>
+        <text class="label" x="514" y="492">FastAPI Engine</text>
+        <text class="small" x="514" y="528">log analysis · YAML generation :8095</text>
+    </g>
+    <g class="float">
+        <rect class="card" x="78" y="470" rx="28" width="280" height="140"/>
+        <text class="label" x="124" y="528">Kubernetes</text>
+        <text class="small" x="124" y="564">events · pods · CrashLoopBackOff</text>
+    </g>
+    <g>
+        <rect class="card" x="842" y="470" rx="28" width="280" height="140"/>
+        <text class="label" x="900" y="528">AUTO FIX</text>
+        <text class="small" x="900" y="564">staged Helm/YAML remediation</text>
+    </g>
+    <text x="64" y="56" fill="#67e8f9" font-size="34" font-weight="900" font-family="Segoe UI,Arial">NebulaOps v19.1 ·
+        AI Ops Center
+    </text>
+</svg>

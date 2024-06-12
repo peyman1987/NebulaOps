@@ -1,6 +1,6 @@
-# NebulaOps v18 — Terraform DevOps Control Plane
+# NebulaOps v19.1 — Terraform DevOps Control Plane
 
-NebulaOps v18 è un progetto portfolio Cloud/DevOps local-first con Angular, microservizi, Docker Compose, Kubernetes,
+NebulaOps v19.1 è un progetto portfolio Cloud/DevOps local-first con Angular, microservizi, Docker Compose, Kubernetes,
 Helm, Grafana, ArgoCD/GitLab flow e **Terraform integrato nella root del repository**.
 
 ## Cosa include
@@ -11,7 +11,7 @@ Helm, Grafana, ArgoCD/GitLab flow e **Terraform integrato nella root del reposit
 - Kubernetes/Helm per scenario platform.
 - Terraform per generare configurazioni locali e baseline.
 - SVG architetturali aggiornati.
-- Documentazione v18 aggiornata.
+- Documentazione v19.1 aggiornata.
 
 ## Quick start
 
@@ -45,12 +45,19 @@ terraform apply -auto-approve -var-file examples/local-kind/terraform.tfvars
 
 ## Documentazione
 
-- `docs/README_V18_INDEX.md`
-- `docs/V18_RELEASE_NOTES.md`
-- `docs/TERRAFORM_V18_GUIDE.md`
-- `docs/V18_FRONTEND_STYLE_GUIDE.md`
-- `docs/diagrams/nebulaops-v18-terraform-control-plane.svg`
+- `docs/README_V19.1_INDEX.md`
+- `docs/V19.1_RELEASE_NOTES.md`
+- `docs/TERRAFORM_V19.1_GUIDE.md`
+- `docs/V19.1_FRONTEND_STYLE_GUIDE.md`
+- `docs/diagrams/nebulaops-v19.1-terraform-control-plane.svg`
 
 ## Autore
 
 Sviluppato da Peyman Eshghi Malayeri — 2024/2026 portfolio evolution.
+
+## v19.1 AI Ops Center
+
+- New `AI OPS` tab with futuristic cockpit UI.
+- Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
+- Visual RCA, realtime timeline, animated dependency graph and safe `AUTO FIX` remediation staging.
+- See `docs/V19_1_AI_OPS_CENTER.md` and `docs/V19_1_RELEASE_NOTES.md`.

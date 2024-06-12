@@ -1,0 +1,13 @@
+server: { port: 8085 }
+spring:
+  application: { name: ai-ops-service }
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ai-ops-service
+aiops:
+  engine-url: ${AI_ENGINE_URL:http://ai-engine:8095}
