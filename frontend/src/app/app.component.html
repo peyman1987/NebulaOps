@@ -1,386 +1,223 @@
 <section *ngIf="!isAuthenticated()" class="login-shell">
-    <div class="login-circuit"></div>
-    <div class="login-card">
-        <div class="login-brand">
-            <span class="brand-orb">N17</span>
-            <div>
-                <p class="eyebrow">NebulaOps v17 SaaS Command Center</p>
-                <h1>Enter the 3D DevOps cockpit</h1>
-            </div>
+    <div class="login-grid"></div>
+    <div class="login-orb one"></div>
+    <div class="login-orb two"></div>
+    <form (ngSubmit)="login()" class="login-card">
+        <div class="brand"><span>N18</span>
+            <div><p>Terraform enabled SaaS cockpit</p>
+                <h1>NebulaOps v18</h1></div>
         </div>
-        <p class="lead">Local demo login for a portfolio-ready SaaS control plane covering Docker, Kubernetes, Helm,
-            Grafana, MongoDB, RabbitMQ and Redis.</p>
-        <form (ngSubmit)="login()" class="login-form">
-            <label>Email or username<input [(ngModel)]="loginForm.username" name="username" placeholder="admin"></label>
-            <label>Password<input [(ngModel)]="loginForm.password" name="password" placeholder="admin" type="password"></label>
-            <button type="submit">Enter NebulaOps</button>
-            <p *ngIf="loginError()" class="login-error">{{ loginError() }}</p>
-            <small>Demo credentials: <b>admin / admin</b></small>
-        </form>
-        <div class="login-visual">
-            <span>NEBULAOPS</span><i></i><i></i><i></i><i></i>
-        </div>
-    </div>
+        <p class="lead">DevOps portfolio platform with Docker, Kubernetes, Helm, Terraform, GitOps, observability,
+            FinOps and backup operations.</p>
+        <label>Username<input [(ngModel)]="loginForm.username" name="u" placeholder="admin"></label>
+        <label>Password<input [(ngModel)]="loginForm.password" name="p" placeholder="admin" type="password"></label>
+        <button class="primary">Enter cockpit</button>
+        <small>Demo: <b>admin/admin</b> oppure <b>peyman/admin</b></small>
+        <p *ngIf="loginError()" class="error">{{ loginError() }}</p>
+    </form>
 </section>
 
 <main *ngIf="isAuthenticated()" class="shell">
-    <section aria-label="NebulaOps executive overview" class="hero-v17 nebula-hero">
-        <div class="nebula-header">
-            <div class="brand-lockup"><strong>NEBULAOPS
-                <em>v17</em></strong><span>Unified Infrastructure Control Plane</span></div>
-            <div class="session-status"><span>Logged in as {{ currentUser() }}</span>
-                <button (click)="logout()" type="button">Logout</button>
+    <header class="hero">
+        <nav class="topbar">
+            <div class="brand"><span>N18</span>
+                <div><p>NEBULAOPS</p>
+                    <h2>Terraform Control Plane</h2></div>
             </div>
-        </div>
+            <div class="session">{{ currentUser() }}
+                <button (click)="logout()">Logout</button>
+            </div>
+        </nav>
+        <section class="hero-grid">
+            <div class="hero-copy">
+                <p class="eyebrow">v18 · Infrastructure as Code · Local-first</p>
+                <h1>Un cockpit DevOps più avanzato, bello e operativo.</h1>
+                <p class="lead">Controlla risorse Kubernetes, simula Terraform plan, monitora log, gestisci task,
+                    pipeline, rischi, costi e backup da una UI dark 3D.</p>
+                <div class="quick-actions">
+                    <button (click)="setTab('TERRAFORM')">Terraform</button>
+                    <button (click)="setTab('KUBERNETES')">Kubernetes</button>
+                    <button (click)="setTab('OBSERVABILITY')">Live logs</button>
+                    <button (click)="setTab('FINOPS')">FinOps</button>
+                </div>
+                <div class="metrics">
+                    <span><b>{{ resources().length }}</b> resources</span><span><b>{{ workloads().length }}</b> workloads</span><span><b>{{ terraformModules.length }}</b> tf modules</span><span><b>{{ openRisks() }}</b> open risks</span>
+                </div>
+            </div>
+            <div aria-label="Animated architecture" class="orbit">
+                <div class="core">NebulaOps<br><b>v18</b></div>
+                <button (click)="setTab('TERRAFORM')" class="node n1">◈<b>Terraform</b></button>
+                <button (click)="setTab('KUBERNETES')" class="node n2">☸<b>K8s</b></button>
+                <button (click)="setTab('HELM')" class="node n3">⎈<b>Helm</b></button>
+                <button (click)="setTab('OBSERVABILITY')" class="node n4">◎<b>Logs</b></button>
+                <button (click)="setTab('SECURITY')" class="node n5">◆<b>Security</b></button>
+                <i class="ring r1"></i><i class="ring r2"></i><i class="beam b1"></i><i class="beam b2"></i>
+            </div>
+        </section>
+    </header>
 
-        <div class="hero-copy glass-3d">
-            <p class="eyebrow">Own, operate, orchestrate</p>
-            <h1>A unified control plane for your infrastructure</h1>
-            <p class="lead">Manage Docker, Kubernetes, Helm, Grafana and on-prem systems from one polished SaaS
-                platform.</p>
-            <div class="capability-row">
-                <button (click)="setTab('DOCKER')" type="button"><span>🐳</span><b>Docker</b><small>Build, run and
-                    inspect containers.</small></button>
-                <button (click)="setTab('KUBERNETES')" type="button"><span>☸</span><b>Kubernetes</b><small>Orchestrate
-                    workloads and services.</small></button>
-                <button (click)="setTab('HELM')" type="button"><span>⎈</span><b>Helm</b><small>Package, version and
-                    deploy apps.</small></button>
-                <button (click)="setTab('GRAFANA')" type="button"><span>◎</span><b>Grafana</b><small>Visualize metrics
-                    and logs.</small></button>
-                <button (click)="setTab('INFRA')" type="button"><span>▤</span><b>On-Prem</b><small>Monitor local
-                    services.</small></button>
-            </div>
-            <div class="metrics-ribbon hologram">
-                <span><b>{{ dockerContainers().length || 14 }}</b> Containers</span>
-                <span><b>{{ workloads().length }}</b> Workloads</span>
-                <span><b>{{ helmReleases().length || 0 }}</b> Releases</span>
-                <span><b>{{ openFindings() }}</b> Risks</span>
-            </div>
-        </div>
-
-        <div aria-label="Annotated NebulaOps operating model" class="saas-orbit-stage annotated-orbit">
-            <div class="orbit-grid"></div>
-            <div class="saas-core"><span>NEBULAOPS</span><strong>v17</strong><small>Unified Control Plane</small></div>
-            <button (click)="setTab('DOCKER')" class="orbit-node n1"><span>🐳</span><b>Docker</b><small>Container
-                Management</small></button>
-            <button (click)="setTab('KUBERNETES')" class="orbit-node n2"><span>☸</span><b>Kubernetes</b><small>Orchestration
-                & Workloads</small></button>
-            <button (click)="setTab('HELM')" class="orbit-node n3"><span>⎈</span><b>Helm</b><small>Package & Release
-                Mgmt</small></button>
-            <button (click)="setTab('GRAFANA')" class="orbit-node n4"><span>◎</span><b>Grafana</b><small>Observability &
-                Dashboards</small></button>
-            <button (click)="setTab('INFRA')" class="orbit-node n5"><span>▤</span><b>On-Prem</b><small>Local Systems &
-                Monitoring</small></button>
-            <button (click)="setTab('SECURITY')" class="orbit-node n6"><span>🛡</span><b>Security</b><small>Policies &
-                Compliance</small></button>
-            <div class="annotation a1"><b>01</b><span>Control actions</span><small>Start · stop · deploy · scale</small>
-            </div>
-            <div class="annotation a2"><b>02</b><span>Runtime state</span><small>Workload and container health</small>
-            </div>
-            <div class="annotation a3"><b>03</b><span>Feedback loop</span><small>Logs, metrics and compliance
-                signals</small></div>
-            <i class="orbit-ring r1"></i><i class="orbit-ring r2"></i><i class="orbit-ring r3"></i><i
-                class="orbit-ring r4"></i>
-            <i class="data-beam b1"></i><i class="data-beam b2"></i><i class="data-beam b3"></i><i
-                class="data-beam b4"></i>
-        </div>
-    </section>
-
-    <nav aria-label="NebulaOps v17 sections" class="main-tabs floating-tabs">
-        <button (click)="setTab(tab)" *ngFor="let tab of tabs" [class.active]="activeTab() === tab"
-                type="button">{{ tab }}
-        </button>
+    <nav class="tabs">
+        <button (click)="setTab(tab)" *ngFor="let tab of tabs" [class.active]="activeTab()===tab">{{ tab }}</button>
     </nav>
-    <p *ngIf="apiError()" class="error-box">{{ apiError() }}</p>
+    <p *ngIf="apiError()" class="api-error">{{ apiError() }}</p>
 
-    <section *ngIf="activeTab() === 'OVERVIEW'" class="tab-page overview-v17">
-        <article class="panel mega-panel holo-panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Local service map</p>
-                    <h2>Interactive 3D service map</h2></div>
-                <span [class]="'sync '+runtimeState()">{{ runtimeState() }}</span></div>
-            <div class="service-galaxy enhanced-galaxy">
-                <button (click)="openInfra(item, $event)" *ngFor="let item of infra; let i = index" [style.--i]="i"
-                        class="service-card cube-card">
-                    <span class="service-icon">{{ item.name.slice(0, 2) }}</span><b>{{ item.name }}</b><small>{{ item.type }}
-                    · {{ item.endpoint }}</small><i><em [style.width.%]="item.health"></em></i><span
-                        class="open-label">{{ item.controlLabel || item.internalLabel }}</span>
-                </button>
+    <section *ngIf="activeTab()==='OVERVIEW'" class="page overview">
+        <article class="panel wide">
+            <div class="title"><p>Runtime map</p>
+                <h2>Service galaxy</h2></div>
+            <div class="galaxy">
+                <button (click)="setTab('TERRAFORM')" *ngFor="let m of terraformModules; let i=index" [style.--i]="i">
+                    <span>{{ m.name.slice(0, 2).toUpperCase() }}</span><b>{{ m.name }}</b><small>{{ m.type }} ·
+                    drift {{ m.drift }}</small></button>
             </div>
         </article>
-
-        <article class="panel diagram-showcase">
-            <div class="panel-title">
-                <div><p class="eyebrow">3D functional SVG</p>
-                    <h2>Clear SaaS flow: API · events · metrics</h2></div>
-            </div>
-            <div class="diagram-frame"><img alt="NebulaOps v17 SaaS 3D functional flow"
-                                            src="assets/v17-saas-flow-3d.svg"></div>
-            <div class="diagram-legend"><span><i class="dot api"></i> HTTP/API</span><span><i class="dot event"></i> Async events</span><span><i
-                    class="dot metric"></i> Metrics / logs</span><span><i
-                    class="dot data"></i> Persistence / cache</span></div>
-        </article>
-
-        <article class="panel diagram-showcase">
-            <div class="panel-title">
-                <div><p class="eyebrow">Runtime topology</p>
-                    <h2>From browser to containers, cluster and observability</h2></div>
-            </div>
-            <div class="diagram-frame"><img alt="NebulaOps v17 runtime control map"
-                                            src="assets/v17-runtime-control-3d.svg"></div>
-        </article>
+        <article class="panel">
+            <div class="title"><p>Architecture</p>
+                <h2>New v18 SVG</h2></div>
+            <img alt="NebulaOps v18 architecture" class="diagram"
+                 src="assets/nebulaops-v18-terraform-control-plane.svg"></article>
     </section>
 
-    <section *ngIf="activeTab() === 'TASKS'" class="tab-page">
+    <section *ngIf="activeTab()==='TASKS'" class="page">
         <article class="panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Task CRUD</p>
-                    <h2>Delivery board drag & drop</h2></div>
-                <span [class]="'sync '+syncState()">{{ syncState() }}</span></div>
+            <div class="title"><p>Task CRUD</p>
+                <h2>Portfolio Kanban</h2></div>
             <form (ngSubmit)="createTask()" class="form"><input [(ngModel)]="taskForm.title" name="title"
-                                                                placeholder="New task title"><input
-                    [(ngModel)]="taskForm.owner"
-                    name="owner"
-                    placeholder="Owner"><select
-                    [(ngModel)]="taskForm.priority" name="priority">
-                <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
+                                                                placeholder="new task"><input
+                    [(ngModel)]="taskForm.owner" name="owner"><select [(ngModel)]="taskForm.priority" name="priority">
+                <option *ngFor="let p of priorities">{{ p }}</option>
             </select>
                 <button>Create</button>
             </form>
-            <section cdkDropListGroup class="board">
-                <div *ngFor="let col of columns" class="column"><h2>{{ col.replace('_', ' ') }}</h2>
-                    <div (cdkDropListDropped)="drop($event,col)" [cdkDropListData]="columnTasks(col)" cdkDropList
-                         class="dropzone">
-                        <article *ngFor="let task of columnTasks(col); trackBy: trackById" cdkDrag class="task">
-                            <div class="task-top"><strong>{{ task.id }}</strong>
-                                <button (click)="deleteTask(task.id)" class="icon" type="button">×</button>
-                            </div>
-                            <p>{{ task.title }}</p><small>{{ task.owner }} · <span
-                                [class]="'priority '+priorityClass(task.priority)">{{ task.priority }}</span></small>
-                        </article>
+            <div cdkDropListGroup class="kanban">
+                <div (cdkDropListDropped)="drop($event,c)" *ngFor="let c of columns" [cdkDropListData]="columnTasks(c)" cdkDropList
+                     class="column"><h3>{{ c }}</h3>
+                    <div *ngFor="let t of columnTasks(c)" cdkDrag class="card">
+                        <b>{{ t.title }}</b><span>{{ t.owner }}</span><em
+                            [class]="priorityClass(t.priority)">{{ t.priority }}</em>
+                        <button (click)="deleteTask(t.id)">×</button>
                     </div>
                 </div>
-            </section>
-        </article>
-    </section>
-
-    <section *ngIf="activeTab() === 'DOCKER'" class="tab-page ops-grid">
-        <article class="panel table-panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Docker Desktop-like</p>
-                    <h2>Real container control</h2></div>
-                <button (click)="loadDocker()">Refresh</button>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Image</th>
-                        <th>Status</th>
-                        <th>Ports</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr *ngFor="let c of dockerContainers()">
-                        <td>{{ c.Names || c.Name }}</td>
-                        <td>{{ c.Image }}</td>
-                        <td><span class="pill ok">{{ c.Status || c.State }}</span></td>
-                        <td>{{ c.Ports }}</td>
-                        <td class="actions">
-                            <button (click)="dockerAction(c,'start')">Start</button>
-                            <button (click)="dockerAction(c,'stop')">Stop</button>
-                            <button (click)="dockerAction(c,'restart')">Restart</button>
-                            <button (click)="dockerAction(c,'rm')">Remove</button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </article>
-        <article class="panel table-panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Engine telemetry</p>
-                    <h2>Images & realtime stats</h2></div>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Repository</th>
-                        <th>Tag</th>
-                        <th>ID</th>
-                        <th>Size</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr *ngFor="let i of dockerImages()">
-                        <td>{{ i.Repository }}</td>
-                        <td>{{ i.Tag }}</td>
-                        <td>{{ i.ID }}</td>
-                        <td>{{ i.Size }}</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="table-scroll compact">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Container</th>
-                        <th>CPU</th>
-                        <th>Memory</th>
-                        <th>Net I/O</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr *ngFor="let st of dockerStats()">
-                        <td>{{ st.Name }}</td>
-                        <td>{{ st.CPUPerc }}</td>
-                        <td>{{ st.MemUsage }}</td>
-                        <td>{{ st.NetIO }}</td>
-                    </tr>
-                    </tbody>
-                </table>
             </div>
         </article>
     </section>
 
-    <section *ngIf="activeTab() === 'KUBERNETES'" class="tab-page ops-grid">
-        <article class="panel table-panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">OpenLens-like Console</p>
-                    <h2>Pods · services · ingress · deployments</h2></div>
+    <section *ngIf="activeTab()==='KUBERNETES'" class="page two">
+        <article class="panel">
+            <div class="title"><p>OpenLens-like console</p>
+                <h2>Kubernetes CRUD</h2>
                 <button (click)="loadK8sFromApi()">Refresh</button>
             </div>
-            <form (ngSubmit)="createResource()" class="form mini"><select [(ngModel)]="k8sForm.kind" name="kind">
-                <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
-            </select><input [(ngModel)]="k8sForm.namespace" name="ns" placeholder="namespace"><input
-                    [(ngModel)]="k8sForm.name"
-                    name="name"
-                    placeholder="name"><input
+            <form (ngSubmit)="createResource()" class="form compact"><select [(ngModel)]="k8sForm.kind" name="kind">
+                <option *ngFor="let k of kinds">{{ k }}</option>
+            </select><input [(ngModel)]="k8sForm.namespace" name="ns"><input [(ngModel)]="k8sForm.name" name="name"
+                                                                             placeholder="resource name"><input
                     [(ngModel)]="k8sForm.replicas" name="replicas" type="number">
                 <button>Create</button>
             </form>
             <div class="filters"><select (change)="setNamespace($event)">
                 <option *ngFor="let n of namespaceOptions()">{{ n }}</option>
             </select><select (change)="setKind($event)">
-                <option value="all">all</option>
-                <option *ngFor="let k of kinds" [value]="k">{{ k }}</option>
+                <option>all</option>
+                <option *ngFor="let k of kinds">{{ k }}</option>
             </select></div>
             <div class="resource-list">
                 <button (click)="selectResource(r)" *ngFor="let r of visibleResources()"
                         [class.active]="selected()?.id===r.id"><b>{{ r.kind }}</b><span>{{ r.namespace }}
-                    /{{ r.name }}</span><em>{{ r.status }}</em><i *ngIf="r.replicas">{{ r.replicas }} replicas</i>
-                </button>
+                    /{{ r.name }}</span><em>{{ r.status }}</em></button>
             </div>
         </article>
         <article class="panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">YAML live editor</p>
-                    <h2>{{ selected()?.name || 'Select resource' }}</h2></div>
-                <div class="actions">
+            <div class="title"><p>YAML live editor</p>
+                <h2>{{ selected()?.name || 'Select resource' }}</h2>
+                <div>
                     <button (click)="selected() && scale(selected()!,1)">Scale +</button>
                     <button (click)="selected() && scale(selected()!,-1)">Scale -</button>
                     <button (click)="applyYaml()">Apply</button>
                 </div>
             </div>
-            <textarea (ngModelChange)="updateSelectedYaml($event)" [ngModel]="selected()?.yaml"
-                      class="yaml-editor"></textarea></article>
-    </section>
-
-    <section *ngIf="activeTab() === 'HELM'" class="tab-page">
-        <article class="panel table-panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Helm Galaxy</p>
-                    <h2>Release lifecycle</h2></div>
-                <button (click)="loadHelm()">Refresh Helm</button>
-            </div>
-            <p class="muted"><code>./scripts/linux/helm-install-nebulaops.sh</code> installs the platform on a local
-                cluster.</p>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Namespace</th>
-                        <th>Revision</th>
-                        <th>Status</th>
-                        <th>Chart</th>
-                        <th>Action</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr *ngFor="let r of helmReleases()">
-                        <td>{{ r.name }}</td>
-                        <td>{{ r.namespace }}</td>
-                        <td>{{ r.revision }}</td>
-                        <td><span class="pill ok">{{ r.status }}</span></td>
-                        <td>{{ r.chart }}</td>
-                        <td>
-                            <button (click)="uninstallHelm(r)">Uninstall</button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+            <textarea (ngModelChange)="updateSelectedYaml($event)" [ngModel]="selected()?.yaml" class="yaml"></textarea>
         </article>
     </section>
 
-    <section *ngIf="activeTab() === 'GRAFANA'" class="tab-page ops-grid">
+    <section *ngIf="activeTab()==='TERRAFORM'" class="page two">
         <article class="panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Grafana control</p>
-                    <h2>Health & dashboards</h2></div>
-                <button (click)="loadGrafana()">Refresh</button>
+            <div class="title"><p>IaC cockpit</p>
+                <h2>Terraform modules</h2>
+                <button (click)="runTerraformPlan()">Plan selected</button>
             </div>
-            <div class="grafana-card">
-                <b>Status</b><span>{{ grafanaHealth().database || grafanaHealth().status || 'unknown' }}</span>
-                <button (click)="openUrl('http://localhost:3000')">Open Grafana</button>
-            </div>
-            <div class="dashboard-list">
-                <button (click)="openUrl('http://localhost:3000' + (d.url || ''))"
-                        *ngFor="let d of grafanaDashboards()">{{ d.title || d.uri || d.uid }}
+            <div class="tf-list">
+                <button (click)="runTerraformPlan(m.name)" *ngFor="let m of terraformModules"
+                        [class.active]="selectedTf()===m.name"><b>{{ m.name }}</b><span>{{ m.type }}
+                    · {{ m.status }}</span><em>{{ m.resources }} resources</em><small>drift {{ m.drift }}</small>
                 </button>
             </div>
         </article>
-        <article class="panel"><h2>Stable datasource provisioning</h2>
-            <p class="muted">v17 uses one default datasource: Prometheus. This avoids Grafana restart loops during local
-                demos.</p>
-            <pre>Prometheus → http://prometheus:9090
-Grafana    → http://localhost:3000
-admin/admin</pre>
+        <article class="panel terminal">
+            <div class="title"><p>Preview</p>
+                <h2>Plan output</h2>
+                <button (click)="copyCommand(terraformPlan())">Copy</button>
+            </div>
+            <pre>{{ terraformPlan() }}</pre>
         </article>
     </section>
 
-    <section *ngIf="activeTab() === 'OBSERVABILITY'" class="tab-page">
+    <section *ngIf="activeTab()==='HELM'" class="page">
         <article class="panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Live logs</p>
-                    <h2>Microservice event stream</h2></div>
-                <div class="actions"><select (change)="setLogService($event)">
+            <div class="title"><p>Release lifecycle</p>
+                <h2>Helm releases</h2>
+                <button (click)="loadHelm()">Refresh</button>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Namespace</th>
+                    <th>Revision</th>
+                    <th>Status</th>
+                    <th>Chart</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let r of helmReleases()">
+                    <td>{{ r.name }}</td>
+                    <td>{{ r.namespace }}</td>
+                    <td>{{ r.revision }}</td>
+                    <td>{{ r.status }}</td>
+                    <td>{{ r.chart }}</td>
+                </tr>
+                <tr *ngIf="!helmReleases().length">
+                    <td colspan="5">No Helm release detected; run scripts/helm-install-local.sh</td>
+                </tr>
+                </tbody>
+            </table>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab()==='OBSERVABILITY'" class="page">
+        <article class="panel">
+            <div class="title"><p>Microservice logs</p>
+                <h2>Auto-refresh stream</h2>
+                <div><select (change)="setLogService($event)">
                     <option *ngFor="let s of logServiceOptions()">{{ s }}</option>
-                </select><select (change)="setObservabilityRefreshSeconds($event)">
+                </select><select (change)="setLogsRefreshSeconds($event)">
                     <option [value]="3">3s</option>
                     <option [value]="5">5s</option>
                     <option [value]="10">10s</option>
                 </select>
-                    <button (click)="refreshObservability()">Refresh</button>
-                    <button (click)="toggleObservabilityAutoRefresh()">{{ logsAutoRefresh() ? 'Stop auto' : 'Auto refresh' }}</button>
+                    <button (click)="refreshLogs()">Refresh</button>
+                    <button (click)="toggleLogsAutoRefresh()">{{ logsAutoRefresh() ? 'Stop auto' : 'Auto refresh' }}</button>
                 </div>
             </div>
-            <div class="log-console"><p *ngFor="let l of visibleObservability()">
-                <span>{{ l.time }}</span><b>{{ l.service }}</b><em>{{ l.level }}</em> {{ l.message }}</p></div>
-        </article>
+            <div class="log-console"><p *ngFor="let l of visibleLogs()">
+                <span>{{ l.time }}</span><b>{{ l.service }}</b><em>{{ l.level }}</em>{{ l.message }}</p></div>
+            <small>Last refresh: {{ lastLogsRefresh() }}</small></article>
     </section>
 
-    <section *ngIf="activeTab() === 'CICD'" class="tab-page">
+    <section *ngIf="activeTab()==='CICD'" class="page">
         <article class="panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">GitLab / ArgoCD</p>
-                    <h2>Pipeline smart gates</h2></div>
-            </div>
+            <div class="title"><p>GitLab / ArgoCD</p>
+                <h2>Smart gates</h2></div>
             <div class="pipeline">
                 <div *ngFor="let s of pipeline" [class]="'stage '+s.status"><b>{{ s.name }}</b><span>{{ s.status }}
                     · {{ s.duration }}</span><i><em [style.width.%]="stageWidth(s)"></em></i>
@@ -389,30 +226,63 @@ admin/admin</pre>
         </article>
     </section>
 
-    <section *ngIf="activeTab() === 'SECURITY'" class="tab-page">
+    <section *ngIf="activeTab()==='SECURITY'" class="page">
         <article class="panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">DevSecOps</p>
-                    <h2>Policies & Compliance posture</h2></div>
-            </div>
-            <div *ngFor="let f of findings()" class="finding"><label><input (change)="toggleFinding(f.id)"
-                                                                            [checked]="f.done"
+            <div class="title"><p>DevSecOps</p>
+                <h2>Policy checklist</h2></div>
+            <div *ngFor="let f of findings()" class="finding"><label><input (change)="toggleFinding(f.id)" [checked]="f.done"
                                                                             type="checkbox"><b>{{ f.id }}
-                · {{ f.title }}</b></label><span [class]="'priority '+priorityClass(f.severity)">{{ f.severity }}</span>
+                · {{ f.title }}</b></label><span [class]="priorityClass(f.severity)">{{ f.severity }}</span>
                 <p>{{ f.remediation }}</p></div>
         </article>
     </section>
 
-    <section *ngIf="activeTab() === 'INFRA'" class="tab-page">
+    <section *ngIf="activeTab()==='FINOPS'" class="page two">
         <article class="panel">
-            <div class="panel-title">
-                <div><p class="eyebrow">Infrastructure cockpit</p>
-                    <h2>Service endpoints</h2></div>
+            <div class="title"><p>Budget guardrails</p>
+                <h2>Monthly estimate</h2></div>
+            <div class="cost"><b>€{{ monthlyCost() }}</b><span>optional cloud monthly cost</span></div>
+            <div *ngFor="let i of costItems" class="cost-row">
+                <b>{{ i.name }}</b><span>€{{ i.monthly }}</span><small>{{ i.note }}</small></div>
+        </article>
+        <article class="panel">
+            <div class="title"><p>Optimization</p>
+                <h2>Rules</h2></div>
+            <ul>
+                <li>Prefer local Docker/WSL for development.</li>
+                <li>Use one small VPS only for public demos.</li>
+                <li>Keep logs retention short locally.</li>
+                <li>Schedule backups and clean old volumes.</li>
+            </ul>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab()==='BACKUPS'" class="page two">
+        <article class="panel">
+            <div class="title"><p>Recovery</p>
+                <h2>Backup playbooks</h2></div>
+            <pre>./scripts/local-up.sh
+./scripts/wsl/status.sh
+./scripts/backup-local.sh
+./scripts/restore-local.sh backups/latest</pre>
+        </article>
+        <article class="panel">
+            <div class="title"><p>Targets</p>
+                <h2>What to protect</h2></div>
+            <div class="resource-list">
+                <button><b>MongoDB</b><span>application data</span><em>daily</em></button>
+                <button><b>Grafana</b><span>dashboards and datasources</span><em>weekly</em></button>
+                <button><b>Terraform</b><span>local state snapshot</span><em>on apply</em></button>
             </div>
-            <div class="infra-grid">
-                <button (click)="openInfra(item,$event)" *ngFor="let item of infra">
-                    <b>{{ item.name }}</b><span>{{ item.purpose }}</span><small>{{ item.endpoint }}</small><em>{{ item.health }}
-                    %</em></button>
+        </article>
+    </section>
+
+    <section *ngIf="activeTab()==='DOCS'" class="page">
+        <article class="panel">
+            <div class="title"><p>Documentation</p>
+                <h2>Updated v18 docs</h2></div>
+            <div class="doc-grid">
+                <div *ngFor="let d of docs"><b>{{ d.title }}</b><code>{{ d.path }}</code><span>{{ d.why }}</span></div>
             </div>
         </article>
     </section>

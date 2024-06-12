@@ -134,6 +134,18 @@ public class RuntimeOpsController {
         }
     }
 
+    @GetMapping("/terraform/validate")
+    public Map<String, Object> terraformValidate() {
+        String out = shell("cd infrastructure/terraform 2>/dev/null || cd /app/infrastructure/terraform 2>/dev/null || cd /workspace/infrastructure/terraform; terraform init -backend=false -input=false >/dev/null 2>&1 || true; terraform validate -no-color");
+        return Map.of("status", "validated", "output", out.trim(), "at", Instant.now().toString());
+    }
+
+    @GetMapping("/terraform/plan")
+    public Map<String, Object> terraformPlan(@RequestParam(defaultValue = "nebulaops-v18") String clusterName, @RequestParam(defaultValue = "nebulaops") String namespace) {
+        String out = shell("cd infrastructure/terraform 2>/dev/null || cd /app/infrastructure/terraform 2>/dev/null || cd /workspace/infrastructure/terraform; terraform init -backend=false -input=false >/dev/null 2>&1 || true; terraform plan -no-color -input=false -var='cluster_name=" + safe(clusterName) + "' -var='namespace=" + safe(namespace) + "'");
+        return Map.of("clusterName", clusterName, "namespace", namespace, "output", out.trim(), "at", Instant.now().toString());
+    }
+
     private String safe(String s) {
         return s.replaceAll("[^A-Za-z0-9_.:-]", "");
     }
