@@ -1,63 +1,28 @@
-# Start Here — NebulaOps v17
+# Start Here — NebulaOps v18
 
-This guide starts the complete local platform on WSL Ubuntu or Linux.
-
-## 1. Enter the project
+1. Controlla Terraform:
 
 ```bash
-cd nebulaops-v17
+ls terraform
+./scripts/terraform/plan-local.sh
 ```
 
-## 2. Install the native toolchain
+2. Genera i file locali:
 
 ```bash
-./scripts/wsl/install-native-toolchain.sh
+./scripts/terraform/apply-local.sh
 ```
 
-## 3. Start the platform
+3. Avvia la piattaforma:
 
 ```bash
-./scripts/wsl/start.sh
+./scripts/local-up.sh
 ```
 
-## 4. Validate the environment
+4. Entra nel frontend con `admin/admin` e visita i tab `TERRAFORM`, `KUBERNETES`, `OBSERVABILITY`, `FINOPS`, `BACKUPS`.
+
+5. Consulta la documentazione:
 
 ```bash
-./scripts/wsl/smoke-test.sh
-```
-
-## 5. Open the main tools
-
-| Tool                   | URL                    |
-|------------------------|------------------------|
-| Angular Control Center | http://localhost:4200  |
-| Grafana                | http://localhost:3000  |
-| Prometheus             | http://localhost:9090  |
-| RabbitMQ Management    | http://localhost:15672 |
-
-Frontend demo login: `admin / admin`.
-
-## Troubleshooting
-
-Check Grafana provisioning:
-
-```bash
-docker compose -p nebulaops-v17 logs --tail=200 grafana
-grep -R "isDefault: true" -n infrastructure/observability/grafana/provisioning/datasources
-```
-
-There must be exactly one default datasource.
-
-Check the frontend build:
-
-```bash
-cd frontend
-npm install
-npm run build -- --configuration production
-```
-
-Check all containers:
-
-```bash
-docker compose -p nebulaops-v17 ps
+cat docs/README_V18_INDEX.md
 ```
