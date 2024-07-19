@@ -16,6 +16,9 @@ spring:
         - id: notifications
           uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
           predicates: [ Path=/api/notifications/** ]
+        - id: ai-ops
+          uri: ${AI_OPS_SERVICE_URL:http://localhost:8085}
+          predicates: [ Path=/api/ai-ops/** ]
 management:
   endpoints:
     web:

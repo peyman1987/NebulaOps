@@ -3,9 +3,9 @@
     <div class="login-orb one"></div>
     <div class="login-orb two"></div>
     <form (ngSubmit)="login()" class="login-card">
-        <div class="brand"><span>N18</span>
+        <div class="brand"><span>N19</span>
             <div><p>Terraform enabled SaaS cockpit</p>
-                <h1>NebulaOps v18</h1></div>
+                <h1>NebulaOps v19.1</h1></div>
         </div>
         <p class="lead">DevOps portfolio platform with Docker, Kubernetes, Helm, Terraform, GitOps, observability,
             FinOps and backup operations.</p>
@@ -20,7 +20,7 @@
 <main *ngIf="isAuthenticated()" class="shell">
     <header class="hero">
         <nav class="topbar">
-            <div class="brand"><span>N18</span>
+            <div class="brand"><span>N19</span>
                 <div><p>NEBULAOPS</p>
                     <h2>Terraform Control Plane</h2></div>
             </div>
@@ -30,8 +30,8 @@
         </nav>
         <section class="hero-grid">
             <div class="hero-copy">
-                <p class="eyebrow">v18 · Infrastructure as Code · Local-first</p>
-                <h1>Un cockpit DevOps più avanzato, bello e operativo.</h1>
+                <p class="eyebrow">v19.1 · Infrastructure as Code · Local-first</p>
+                <h1>DevOps Enterprise cockpit</h1>
                 <p class="lead">Controlla risorse Kubernetes, simula Terraform plan, monitora log, gestisci task,
                     pipeline, rischi, costi e backup da una UI dark 3D.</p>
                 <div class="quick-actions">
@@ -45,12 +45,17 @@
                 </div>
             </div>
             <div aria-label="Animated architecture" class="orbit">
-                <div class="core">NebulaOps<br><b>v18</b></div>
-                <button (click)="setTab('TERRAFORM')" class="node n1">◈<b>Terraform</b></button>
-                <button (click)="setTab('KUBERNETES')" class="node n2">☸<b>K8s</b></button>
-                <button (click)="setTab('HELM')" class="node n3">⎈<b>Helm</b></button>
-                <button (click)="setTab('OBSERVABILITY')" class="node n4">◎<b>Logs</b></button>
-                <button (click)="setTab('SECURITY')" class="node n5">◆<b>Security</b></button>
+                <div class="core">NebulaOps<br><b>v19.1</b></div>
+                <button (click)="setTab('TERRAFORM')" class="node n1"><span
+                        class='brand-icon terraform-icon'>T</span><b>Terraform</b></button>
+                <button (click)="setTab('KUBERNETES')" class="node n2"><span class='brand-icon kubernetes-icon'>☸</span><b>K8s</b>
+                </button>
+                <button (click)="setTab('HELM')" class="node n3"><span class='brand-icon helm-icon'>⎈</span><b>Helm</b>
+                </button>
+                <button (click)="setTab('OBSERVABILITY')" class="node n4"><span class='brand-icon grafana-icon'>◉</span><b>Logs</b>
+                </button>
+                <button (click)="setTab('SECURITY')" class="node n5"><span class='brand-icon security-icon'>⬢</span><b>Security</b>
+                </button>
                 <i class="ring r1"></i><i class="ring r2"></i><i class="beam b1"></i><i class="beam b2"></i>
             </div>
         </section>
@@ -73,9 +78,9 @@
         </article>
         <article class="panel">
             <div class="title"><p>Architecture</p>
-                <h2>New v18 SVG</h2></div>
-            <img alt="NebulaOps v18 architecture" class="diagram"
-                 src="assets/nebulaops-v18-terraform-control-plane.svg"></article>
+                <h2>v19.1 AI Ops architecture</h2></div>
+            <img alt="NebulaOps v19.1 AI Ops architecture" class="diagram"
+                 src="assets/nebulaops-v19-1-ai-ops-architecture.svg"></article>
     </section>
 
     <section *ngIf="activeTab()==='TASKS'" class="page">
@@ -90,7 +95,8 @@
                 <button>Create</button>
             </form>
             <div cdkDropListGroup class="kanban">
-                <div (cdkDropListDropped)="drop($event,c)" *ngFor="let c of columns" [cdkDropListData]="columnTasks(c)" cdkDropList
+                <div (cdkDropListDropped)="drop($event,c)" *ngFor="let c of columns" [cdkDropListData]="columnTasks(c)"
+                     cdkDropList
                      class="column"><h3>{{ c }}</h3>
                     <div *ngFor="let t of columnTasks(c)" cdkDrag class="card">
                         <b>{{ t.title }}</b><span>{{ t.owner }}</span><em
@@ -214,6 +220,90 @@
             <small>Last refresh: {{ lastLogsRefresh() }}</small></article>
     </section>
 
+
+    <section *ngIf="activeTab()==='AI OPS'" class="page aiops-page">
+        <article class="panel aiops-hero-panel">
+            <div class="aiops-particles"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="title"><p>AI Ops Center v19.1</p>
+                <h2>Futuristic incident cockpit</h2>
+                <div>
+                    <button (click)="runAiOpsAnalysis()"
+                            [disabled]="aiOpsRunning()">{{ aiOpsRunning() ? 'Analyzing…' : 'Run RCA' }}
+                    </button>
+                    <button (click)="autoFix()" [disabled]="aiOpsAutoFix()"
+                            class="danger">{{ aiOpsAutoFix() ? 'Applying…' : 'AUTO FIX' }}
+                    </button>
+                </div>
+            </div>
+            <div class="aiops-layout">
+                <div class="aiops-chat glass-card">
+                    <b>Operational AI Chat</b>
+                    <div class="chat-stream">
+                        <p *ngFor="let m of aiOpsChat()" [class]="'chat-'+m.role"><span>{{ m.time }}</span>{{ m.text }}
+                        </p>
+                    </div>
+                    <textarea (ngModelChange)="aiOpsPrompt.set($event)" [ngModel]="aiOpsPrompt()"
+                              placeholder="Describe incident, paste logs or Kubernetes error..."></textarea>
+                </div>
+                <div class="aiops-graph glass-card">
+                    <b>3D dependency graph</b>
+                    <div class="holo-map">
+                        <svg preserveAspectRatio="none" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="beamAi" x1="0" x2="1">
+                                    <stop offset="0" stop-color="#22d3ee"/>
+                                    <stop offset="1" stop-color="#a855f7"/>
+                                </linearGradient>
+                            </defs>
+                            <line x1="14" x2="42" y1="24" y2="38"/>
+                            <line x1="42" x2="69" y1="38" y2="22"/>
+                            <line x1="42" x2="30" y1="38" y2="72"/>
+                            <line x1="69" x2="78" y1="22" y2="66"/>
+                            <line x1="30" x2="78" y1="72" y2="66"/>
+                        </svg>
+                        <button *ngFor="let n of aiOpsAnalysis().nodes" [class]="'holo-node '+n.status"
+                                [style.--z]="n.z" [style.left.%]="n.x" [style.top.%]="n.y">
+                            <b>{{ n.label }}</b><span>{{ n.health }}%</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <article class="panel glass-card">
+            <div class="title"><p>Root Cause Analysis</p>
+                <h2>{{ aiOpsAnalysis().incidentId }}</h2><span
+                        class="confidence">{{ aiOpsAnalysis().confidence * 100 | number:'1.0-0' }}% confidence</span>
+            </div>
+            <div class="rca-grid">
+                <div><small>Summary</small>
+                    <p>{{ aiOpsAnalysis().summary }}</p></div>
+                <div><small>Root cause</small>
+                    <p>{{ aiOpsAnalysis().rootCause }}</p></div>
+                <div><small>Suggested fix</small>
+                    <p>{{ aiOpsAnalysis().fix }}</p></div>
+                <div><small>Blast radius</small>
+                    <p>{{ aiOpsAnalysis().blastRadius.join(' → ') }}</p></div>
+            </div>
+        </article>
+        <article class="panel glass-card">
+            <div class="title"><p>Realtime event timeline</p>
+                <h2>Incident propagation</h2></div>
+            <div class="ai-timeline">
+                <div *ngFor="let e of aiOpsAnalysis().events" [class]="'timeline-row '+aiSeverityClass(e.severity)">
+                    <span>{{ e.time }}</span><b>{{ e.service }}</b><em>{{ e.severity }}</em>
+                    <p>{{ e.title }} · {{ e.recommendation }}</p>
+                </div>
+            </div>
+        </article>
+        <article class="panel glass-card">
+            <div class="title"><p>Generated Helm / YAML</p>
+                <h2>AI proposed patch</h2>
+                <button (click)="copyCommand(aiOpsAnalysis().yaml)">Copy YAML</button>
+            </div>
+            <pre>{{ aiOpsAnalysis().yaml }}</pre>
+        </article>
+    </section>
+
     <section *ngIf="activeTab()==='CICD'" class="page">
         <article class="panel">
             <div class="title"><p>GitLab / ArgoCD</p>
@@ -230,7 +320,8 @@
         <article class="panel">
             <div class="title"><p>DevSecOps</p>
                 <h2>Policy checklist</h2></div>
-            <div *ngFor="let f of findings()" class="finding"><label><input (change)="toggleFinding(f.id)" [checked]="f.done"
+            <div *ngFor="let f of findings()" class="finding"><label><input (change)="toggleFinding(f.id)"
+                                                                            [checked]="f.done"
                                                                             type="checkbox"><b>{{ f.id }}
                 · {{ f.title }}</b></label><span [class]="priorityClass(f.severity)">{{ f.severity }}</span>
                 <p>{{ f.remediation }}</p></div>
@@ -280,7 +371,7 @@
     <section *ngIf="activeTab()==='DOCS'" class="page">
         <article class="panel">
             <div class="title"><p>Documentation</p>
-                <h2>Updated v18 docs</h2></div>
+                <h2>Updated v19.1 docs</h2></div>
             <div class="doc-grid">
                 <div *ngFor="let d of docs"><b>{{ d.title }}</b><code>{{ d.path }}</code><span>{{ d.why }}</span></div>
             </div>

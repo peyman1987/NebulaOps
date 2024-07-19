@@ -1,4 +1,4 @@
-# Start Here — NebulaOps v18
+# Start Here — NebulaOps v19.1
 
 1. Controlla Terraform:
 
@@ -24,5 +24,12 @@ ls terraform
 5. Consulta la documentazione:
 
 ```bash
-cat docs/README_V18_INDEX.md
+cat docs/README_V19.1_INDEX.md
 ```
+
+## v19.1 AI Ops Center
+
+- New `AI OPS` tab with futuristic cockpit UI.
+- Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
+- Visual RCA, realtime timeline, animated dependency graph and safe `AUTO FIX` remediation staging.
+- See `docs/V19_1_AI_OPS_CENTER.md` and `docs/V19_1_RELEASE_NOTES.md`.
