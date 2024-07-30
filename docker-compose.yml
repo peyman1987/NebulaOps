@@ -124,7 +124,7 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
       AI_OPS_SERVICE_URL: http://ai-ops-service:8085
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-1}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-2}
       GRAFANA_URL: http://grafana:3000
       GRAFANA_AUTH: admin:admin
     volumes:
