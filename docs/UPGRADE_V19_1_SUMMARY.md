@@ -1,4 +1,4 @@
-# Upgrade Summary: v18 -> v19.1
+# Upgrade Summary: v18 -> v19.2
 
 ## Completed
 
@@ -13,7 +13,7 @@
 - Added Python FastAPI `ai-engine`.
 - Routed `/api/ai-ops/**` through gateway-service.
 - Updated Docker Compose files.
-- Added v19.1 markdown documentation and SVG diagram.
+- Added v19.2 markdown documentation and SVG diagram.
 
 ## Files to review first
 
@@ -22,6 +22,6 @@
 - `frontend/src/app/app.component.css`
 - `backend/ai-ops-service/`
 - `ai-engine/`
-- `docs/V19_1_AI_OPS_CENTER.md`
-- `docs/V19_1_RELEASE_NOTES.md`
-- `docs/diagrams/nebulaops-v19-1-ai-ops-architecture.svg`
+- `docs/V19_2_AI_OPS_CENTER.md`
+- `docs/V19_2_RELEASE_NOTES.md`
+- `docs/diagrams/nebulaops-v19-2-ai-ops-architecture.svg`

@@ -1,17 +1,17 @@
-# NebulaOps v19.1 — Terraform DevOps Control Plane
+# NebulaOps v19.2 — Terraform DevOps Control Plane
 
-NebulaOps v19.1 è un progetto portfolio Cloud/DevOps local-first con Angular, microservizi, Docker Compose, Kubernetes,
-Helm, Grafana, ArgoCD/GitLab flow e **Terraform integrato nella root del repository**.
+NebulaOps v19.2 è un progetto portfolio Cloud/DevOps local-first con Angular, microservizi, Docker Compose, Kubernetes,
+Helm, Grafana, Prometheus, Argo CD/GitLab flow e **Terraform integrato nella root del repository**.
 
 ## Cosa include
 
 - Frontend Angular cockpit con login demo e tab operativi.
-- Backend/microservizi ereditati dalla v17.
-- Docker Compose per esecuzione locale.
+- Backend/microservizi Spring Boot, Go worker, MongoDB, RabbitMQ e Redis ereditati ed estesi dalla v17/v18.
+- Docker Compose per esecuzione locale e supporto WSL.
 - Kubernetes/Helm per scenario platform.
 - Terraform per generare configurazioni locali e baseline.
 - SVG architetturali aggiornati.
-- Documentazione v19.1 aggiornata.
+- Documentazione v19.2 aggiornata.
 
 ## Quick start
 
@@ -45,19 +45,29 @@ terraform apply -auto-approve -var-file examples/local-kind/terraform.tfvars
 
 ## Documentazione
 
-- `docs/README_V19.1_INDEX.md`
-- `docs/V19.1_RELEASE_NOTES.md`
-- `docs/TERRAFORM_V19.1_GUIDE.md`
-- `docs/V19.1_FRONTEND_STYLE_GUIDE.md`
-- `docs/diagrams/nebulaops-v19.1-terraform-control-plane.svg`
+- `docs/README_V19.2_INDEX.md`
+- `docs/V19.2_RELEASE_NOTES.md`
+- `docs/TERRAFORM_V19.2_GUIDE.md`
+- `docs/V19.2_FRONTEND_STYLE_GUIDE.md`
+- `docs/diagrams/nebulaops-v19.2-terraform-control-plane.svg`
 
 ## Autore
 
 Sviluppato da Peyman Eshghi Malayeri — 2024/2026 portfolio evolution.
 
-## v19.1 AI Ops Center
+## v19.2 AI Ops Center
 
 - New `AI OPS` tab with futuristic cockpit UI.
 - Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
 - Visual RCA, realtime timeline, animated dependency graph and safe `AUTO FIX` remediation staging.
-- See `docs/V19_1_AI_OPS_CENTER.md` and `docs/V19_1_RELEASE_NOTES.md`.
+- See `docs/V19_2_AI_OPS_CENTER.md` and `docs/V19_2_RELEASE_NOTES.md`.
+
+## Diagrammi principali
+
+- `docs/diagrams/runtime-architecture.svg`
+- `docs/diagrams/gitlab-argocd-flow.svg`
+- `docs/diagrams/messaging-cache-flow.svg`
+- `docs/diagrams/kubernetes-helm-view.svg`
+- `docs/diagrams/request-flow-sequence.svg`
+- `docs/diagrams/service-port-map.svg`
+- `docs/diagrams/nebulaops-v19-2-kubernetes-visual-cluster.svg`
