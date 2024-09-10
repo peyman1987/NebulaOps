@@ -1,6 +1,6 @@
-# NebulaOps v17 Architecture
+# NebulaOps v19.3 Architecture
 
-NebulaOps v17 is a personal-machine platform engineering lab. It is intentionally advanced but still executable on one
+NebulaOps v19.3 is a personal-machine platform engineering lab. It is intentionally advanced but still executable on one
 WSL/Linux machine.
 
 ## Layers

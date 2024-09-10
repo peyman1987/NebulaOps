@@ -1,4 +1,4 @@
-# NebulaOps v17.1 - 3D UI and SVG Upgrade
+# NebulaOps v19.3 - 3D UI and SVG Upgrade
 
 Questa patch migliora la v17 con:
 

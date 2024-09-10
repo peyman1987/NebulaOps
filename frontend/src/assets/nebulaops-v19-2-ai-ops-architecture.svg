@@ -1,5 +1,5 @@
 <svg aria-labelledby="title desc" role="img" viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg">
-    <title id="title">NebulaOps v19.2 AI Ops Center Architecture</title>
+    <title id="title">NebulaOps v19.3 AI Ops Center Architecture</title>
     <desc id="desc">Animated cyber grid architecture with AI Ops cockpit, Spring Boot service, FastAPI engine and
         Kubernetes remediation loop.
     </desc>
@@ -118,7 +118,7 @@
         <text class="label" x="900" y="528">AUTO FIX</text>
         <text class="small" x="900" y="564">staged Helm/YAML remediation</text>
     </g>
-    <text fill="#67e8f9" font-family="Segoe UI,Arial" font-size="34" font-weight="900" x="64" y="56">NebulaOps v19.2 ·
+    <text fill="#67e8f9" font-family="Segoe UI,Arial" font-size="34" font-weight="900" x="64" y="56">NebulaOps v19.3 ·
         AI Ops Center
     </text>
 </svg>

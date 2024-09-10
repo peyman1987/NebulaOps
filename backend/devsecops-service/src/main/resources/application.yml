@@ -1,0 +1,11 @@
+server: { port: 8086 }
+spring:
+  application: { name: devsecops-service }
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: devsecops-service

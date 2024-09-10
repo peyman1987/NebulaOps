@@ -3,9 +3,9 @@
     <div class="login-orb one"></div>
     <div class="login-orb two"></div>
     <form (ngSubmit)="login()" class="login-card">
-        <div class="brand"><span>N19.2</span>
+        <div class="brand"><span>N19.3</span>
             <div><p>Terraform enabled SaaS cockpit</p>
-                <h1>NebulaOps v19.2</h1></div>
+                <h1>NebulaOps v19.3</h1></div>
         </div>
         <p class="lead">DevOps portfolio platform with Docker, Kubernetes, Helm, Terraform, GitOps, observability,
             FinOps and backup operations.</p>
@@ -20,7 +20,7 @@
 <main *ngIf="isAuthenticated()" class="shell">
     <header class="hero">
         <nav class="topbar">
-            <div class="brand"><span>N19.2</span>
+            <div class="brand"><span>N19.3</span>
                 <div><p>NEBULAOPS</p>
                     <h2>Terraform Control Plane</h2></div>
             </div>
@@ -30,22 +30,23 @@
         </nav>
         <section class="hero-grid">
             <div class="hero-copy">
-                <p class="eyebrow">v19.2 · Infrastructure as Code · Local-first</p>
+                <p class="eyebrow">v19.3 · Infrastructure as Code · Local-first</p>
                 <h1>DevOps Enterprise cockpit</h1>
                 <p class="lead">Controlla risorse Kubernetes, simula Terraform plan, monitora log, gestisci task,
                     pipeline, rischi, costi e backup da una UI dark 3D.</p>
                 <div class="quick-actions">
-                    <button (click)="setTab('TERRAFORM')">Terraform</button>
+                    <button (click)="setTab('OVERVIEW')">Home launcher</button>
+                    <button (click)="openLauncher(homeLaunchers[0])">Grafana</button>
+                    <button (click)="openLauncher(homeLaunchers[1])">ArgoCD</button>
+                    <button (click)="setTab('AI OPS')">AI OPS</button>
                     <button (click)="setTab('KUBERNETES')">Kubernetes</button>
-                    <button (click)="setTab('OBSERVABILITY')">Live logs</button>
-                    <button (click)="setTab('FINOPS')">FinOps</button>
                 </div>
                 <div class="metrics">
                     <span><b>{{ resources().length }}</b> resources</span><span><b>{{ workloads().length }}</b> workloads</span><span><b>{{ terraformModules.length }}</b> tf modules</span><span><b>{{ openRisks() }}</b> open risks</span>
                 </div>
             </div>
             <div aria-label="Animated architecture" class="orbit">
-                <div class="core">NebulaOps<br><b>v19.2</b></div>
+                <div class="core">NebulaOps<br><b>v19.3</b></div>
                 <button (click)="setTab('TERRAFORM')" class="node n1"><span
                         class='brand-icon terraform-icon'>T</span><b>Terraform</b></button>
                 <button (click)="setTab('KUBERNETES')" class="node n2"><span class='brand-icon kubernetes-icon'>☸</span><b>K8s</b>
@@ -67,6 +68,19 @@
     <p *ngIf="apiError()" class="api-error">{{ apiError() }}</p>
 
     <section *ngIf="activeTab()==='OVERVIEW'" class="page overview">
+        <article class="panel wide home-command-center">
+            <div class="title"><p>Home Command Center</p>
+                <h2>Feature launcher</h2></div>
+            <div class="launcher-grid">
+                <button (click)="openLauncher(item)" *ngFor="let item of homeLaunchers" [ngClass]="item.accent"
+                        class="launcher-card">
+                    <span>{{ item.icon }}</span>
+                    <b>{{ item.title }}</b>
+                    <small>{{ item.subtitle }}</small>
+                    <em>{{ item.status }}</em>
+                </button>
+            </div>
+        </article>
         <article class="panel wide">
             <div class="title"><p>Runtime map</p>
                 <h2>Service galaxy</h2></div>
@@ -78,16 +92,21 @@
         </article>
         <article class="panel">
             <div class="title"><p>Architecture</p>
-                <h2>v19.2 AI Ops architecture</h2></div>
-            <img alt="NebulaOps v19.2 AI Ops architecture" class="diagram"
-                 src="assets/nebulaops-v19-2-ai-ops-architecture.svg"></article>
+                <h2>v19.3 AI Ops architecture</h2></div>
+            <img alt="NebulaOps v19.3 AI Ops architecture" class="diagram"
+                 src="assets/nebulaops-v19-3-ai-ops-architecture.svg"></article>
+        <article class="panel">
+            <div class="title"><p>Architecture</p>
+                <h2>v19.3 Kubernetes Visual Cluster</h2></div>
+            <img alt="NebulaOps v19.3 Kubernetes Visual Cluster" class="diagram"
+                 src="assets/nebulaops-v19-3-kubernetes-visual-cluster.svg"></article>
+        <article class="panel">
+            <div class="title"><p>Architecture</p>
+                <h2>v19.3 DevSecOps Module</h2></div>
+            <img alt="NebulaOps v19.3 DevSecOps Module" class="diagram"
+                 src="assets/nebulaops-v19-3-devsecops-module.svg"></article>
     </section>
 
-    <article class="panel">
-        <div class="title"><p>Architecture</p>
-            <h2>v19.2 Kubernetes Visual Cluster</h2></div>
-        <img alt="NebulaOps v19.2 Kubernetes Visual Cluster" class="diagram"
-             src="assets/nebulaops-v19-2-kubernetes-visual-cluster.svg"></article>
     <section *ngIf="activeTab()==='TASKS'" class="page">
         <article class="panel">
             <div class="title"><p>Task CRUD</p>
@@ -115,7 +134,7 @@
 
     <section *ngIf="activeTab()==='KUBERNETES'" class="page k8s-visual-page">
         <article class="panel cluster-hero glass-card">
-            <div class="title"><p>Kubernetes Visual Cluster v19.2</p>
+            <div class="title"><p>Kubernetes Visual Cluster v19.3</p>
                 <h2>3D live cluster topology</h2>
                 <div>
                     <button (click)="loadK8sFromApi()">Refresh live</button>
@@ -186,8 +205,8 @@
                 <label>Restart risk <i><em [style.width.%]="resourceRestarts(selected()) * 25"></em></i></label>
             </div>
             <div *ngIf="selectedClusterMode()==='events'" class="cluster-events">
-                <div *ngFor="let e of clusterEvents()" [class]="priorityClass(e.severity)"><b>{{ e.time }}
-                    · {{ e.type }} · {{ e.target }}</b><span>{{ e.message }}</span></div>
+                <div *ngFor="let e of clusterEvents()" [class]="priorityClass(e.severity)"><b>{{ e.time }}· {{ e.type }}
+                    · {{ e.target }}</b><span>{{ e.message }}</span></div>
             </div>
             <textarea (ngModelChange)="updateSelectedYaml($event)" *ngIf="selectedClusterMode()==='yaml'"
                       [ngModel]="selected()?.yaml" class="yaml visual-yaml"></textarea>
@@ -295,7 +314,7 @@
     <section *ngIf="activeTab()==='AI OPS'" class="page aiops-page">
         <article class="panel aiops-hero-panel">
             <div class="aiops-particles"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="title"><p>AI Ops Center v19.2</p>
+            <div class="title"><p>AI Ops Center v19.3</p>
                 <h2>Futuristic incident cockpit</h2>
                 <div>
                     <button (click)="runAiOpsAnalysis()"
@@ -387,15 +406,76 @@
         </article>
     </section>
 
-    <section *ngIf="activeTab()==='SECURITY'" class="page">
-        <article class="panel">
-            <div class="title"><p>DevSecOps</p>
-                <h2>Policy checklist</h2></div>
-            <div *ngFor="let f of findings()" class="finding"><label><input (change)="toggleFinding(f.id)"
-                                                                            [checked]="f.done"
-                                                                            type="checkbox"><b>{{ f.id }}
+    <section *ngIf="activeTab()==='SECURITY' || activeTab()==='COMPLIANCE' || activeTab()==='VULNERABILITIES'"
+             class="page devsecops-page">
+        <article class="panel security-hero">
+            <div class="title"><p>DevSecOps Module v19.3</p>
+                <h2>Security · Compliance · Vulnerabilities</h2>
+                <button (click)="simulateSecurityScan()">RUN SCAN</button>
+            </div>
+            <div class="security-tabs">
+                <button (click)="setTab('SECURITY')" [class.active]="securitySubTab()==='SECURITY'">SECURITY</button>
+                <button (click)="setTab('COMPLIANCE')" [class.active]="securitySubTab()==='COMPLIANCE'">COMPLIANCE
+                </button>
+                <button (click)="setTab('VULNERABILITIES')" [class.active]="securitySubTab()==='VULNERABILITIES'">
+                    VULNERABILITIES
+                </button>
+            </div>
+            <div class="risk-wrap">
+                <div class="risk-orb"><span>{{ riskScore() }}</span><small>RISK SCORE</small></div>
+                <div class="radar">
+                    <i></i><i></i><i></i><b></b>
+                    <em *ngFor="let t of threatPoints()" [class]="priorityClass(t.severity)" [ngStyle]="threatCss(t)"
+                        [title]="t.name + ' · ' + t.vector"></em>
+                </div>
+                <div class="threat-map">
+                    <div *ngFor="let t of threatPoints()" [class]="'threat '+priorityClass(t.severity)">
+                        <b>{{ t.name }}</b><span>{{ t.vector }}</span><em>{{ t.severity }}</em>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article *ngIf="securitySubTab()==='SECURITY'" class="panel scan-grid">
+            <div class="title"><p>Trivy · Docker · SAST · Secrets</p>
+                <h2>Live security scanners</h2></div>
+            <div *ngFor="let scan of securityScans()" [class]="'scan-card '+scanStatusClass(scan.status)">
+                <div><b>{{ scan.tool }}</b><span>{{ scan.target }}</span></div>
+                <strong>{{ scan.status }}</strong>
+                <i><em [style.width.%]="scanWidth(scan)"></em></i>
+                <p><span class="critical">{{ scan.critical }} critical</span> · <span class="high">{{ scan.high }}
+                    high</span> · {{ scan.medium }} medium · {{ scan.duration }}</p>
+            </div>
+        </article>
+
+        <article *ngIf="securitySubTab()==='SECURITY'" class="panel">
+            <div class="title"><p>Critical alerts</p>
+                <h2>Pulsating policy checklist</h2></div>
+            <div *ngFor="let f of findings()" class="finding critical-alert"><label><input
+                    (change)="toggleFinding(f.id)" [checked]="f.done"
+                    type="checkbox"><b>{{ f.id }}
                 · {{ f.title }}</b></label><span [class]="priorityClass(f.severity)">{{ f.severity }}</span>
                 <p>{{ f.remediation }}</p></div>
+        </article>
+
+        <article *ngIf="securitySubTab()==='COMPLIANCE'" class="panel compliance-board">
+            <div class="title"><p>CIS · NIST · SOC2 · ISO</p>
+                <h2>Compliance controls</h2></div>
+            <div *ngFor="let c of complianceControls()" [class]="'control '+controlClass(c.status)">
+                <b>{{ c.id }}</b><span>{{ c.framework }}</span>
+                <p>{{ c.title }}</p>
+                <i><em [style.width.%]="c.score"></em></i><strong>{{ c.score }}%</strong>
+            </div>
+        </article>
+
+        <article *ngIf="securitySubTab()==='VULNERABILITIES'" class="panel cve-dashboard">
+            <div class="title"><p>CVE dashboard</p>
+                <h2>Dependency vulnerabilities</h2></div>
+            <div *ngFor="let cve of cveDashboard()" class="cve-row">
+                <b>{{ cve.cve }}</b><span>{{ cve.packageName }}</span><em
+                    [class]="priorityClass(cve.severity)">{{ cve.severity }}</em>
+                <p>{{ cve.image }} · fix: {{ cve.fixVersion }} · {{ cve.exploit }}</p>
+            </div>
         </article>
     </section>
 
@@ -442,7 +522,7 @@
     <section *ngIf="activeTab()==='DOCS'" class="page">
         <article class="panel">
             <div class="title"><p>Documentation</p>
-                <h2>Updated v19.2 docs</h2></div>
+                <h2>Updated v19.3 docs</h2></div>
             <div class="doc-grid">
                 <div *ngFor="let d of docs"><b>{{ d.title }}</b><code>{{ d.path }}</code><span>{{ d.why }}</span></div>
             </div>

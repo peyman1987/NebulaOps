@@ -1,6 +1,6 @@
-# NebulaOps v17 SVG Style Guide
+# NebulaOps v19.3 SVG Style Guide
 
-The v17 diagrams use a consistent professional SaaS visual language: dark canvas, glass panels, neon edge highlights,
+The v19.3 diagrams use a consistent professional SaaS visual language: dark canvas, glass panels, neon edge highlights,
 animated flow paths, clear labels and readable technical grouping.
 
 ## Design rules

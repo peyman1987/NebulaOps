@@ -1,10 +1,10 @@
-# NebulaOps v17 Validation Report
+# NebulaOps v19.3 Validation Report
 
-Generated package: `nebulaops-v17.zip`.
+Generated package: `nebulaops-v19-3.zip`.
 
 ## Static checks completed in the build environment
 
-- Project was upgraded from the v15 package structure to `nebulaops-v17`.
+- Project was upgraded from the v15 package structure to `nebulaops-v19-3`.
 - v15/v17 naming was normalized across scripts, compose and documentation.
 - Grafana provisioning was corrected to keep exactly one default datasource.
 - Duplicate Grafana datasource provisioning files were removed.
@@ -19,8 +19,8 @@ Generated package: `nebulaops-v17.zip`.
 ```bash
 ./scripts/wsl/start.sh
 ./scripts/wsl/smoke-test.sh
-docker compose -p nebulaops-v17 ps
-docker compose -p nebulaops-v17 logs --tail=120 grafana
+docker compose -p nebulaops-v19-3 ps
+docker compose -p nebulaops-v19-3 logs --tail=120 grafana
 curl -I http://localhost:3000
 ```
 

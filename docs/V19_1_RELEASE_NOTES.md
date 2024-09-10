@@ -1,8 +1,8 @@
-# NebulaOps v19.2 Release Notes
+# NebulaOps v19.3 Release Notes
 
 ## Headline
 
-v19.2 introduces **AI Ops Center** as the main product feature: a futuristic incident cockpit that combines realtime
+v19.3 introduces **AI Ops Center** as the main product feature: a futuristic incident cockpit that combines realtime
 events, visual root cause analysis, dependency graph animation, Kubernetes explainability and safe auto-fix staging.
 
 ## New features
