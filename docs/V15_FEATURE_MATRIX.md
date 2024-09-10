@@ -1,6 +1,6 @@
-# NebulaOps v17 Feature Matrix
+# NebulaOps v19.3 Feature Matrix
 
-| Area                 | v17 capability                                    | Real backend action                            |
+| Area                 | v19.3 capability                                  | Real backend action                            |
 |----------------------|---------------------------------------------------|------------------------------------------------|
 | Docker containers    | List/start/stop/restart/remove                    | Docker CLI through gateway and Docker socket   |
 | Docker images        | List local images                                 | `docker images`                                |

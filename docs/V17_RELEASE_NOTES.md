@@ -1,6 +1,6 @@
-# NebulaOps v17 — Release Notes
+# NebulaOps v19.3 — Release Notes
 
-NebulaOps v17 introduces a professional dark SaaS visual identity, animated SVG architecture diagrams and a refined
+NebulaOps v19.3 introduces a professional dark SaaS visual identity, animated SVG architecture diagrams and a refined
 Angular operations dashboard. The release focuses on clarity, portfolio presentation quality and practical local
 execution.
 

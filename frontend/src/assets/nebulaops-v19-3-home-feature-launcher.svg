@@ -1,0 +1,84 @@
+<svg height="720" viewBox="0 0 1200 720" width="1200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bg" x1="0" x2="1">
+            <stop offset="0" stop-color="#020617"/>
+            <stop offset="1" stop-color="#111827"/>
+        </linearGradient>
+        <linearGradient id="g" x1="0" x2="1">
+            <stop offset="0" stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#8b5cf6"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur result="b" stdDeviation="5"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+    <rect fill="url(#bg)" height="720" width="1200"/>
+    <g opacity=".22" stroke="#38bdf8">
+        <path d="M0 90H1200M0 180H1200M0 270H1200M0 360H1200M0 450H1200M0 540H1200M0 630H1200M100 0V720M250 0V720M400 0V720M550 0V720M700 0V720M850 0V720M1000 0V720M1150 0V720"/>
+    </g>
+    <text fill="#e0f2fe" font-family="Inter,Arial" font-size="42" font-weight="800" x="60" y="78">NebulaOps v19.3 Home
+        Feature Launcher
+    </text>
+    <text fill="#7dd3fc" font-family="Inter,Arial" font-size="18" x="60" y="116">Quick access to Grafana, ArgoCD,
+        Prometheus and internal platform modules
+    </text>
+    <g filter="url(#glow)">
+        <circle cx="600" cy="360" fill="#0f172a" r="86" stroke="url(#g)" stroke-width="4"/>
+        <text fill="#fff" font-family="Inter,Arial" font-size="28" font-weight="900" text-anchor="middle" x="600"
+              y="350">HOME
+        </text>
+        <text fill="#a5f3fc" font-family="Inter,Arial" font-size="18" text-anchor="middle" x="600" y="382">COMMAND
+            CENTER
+        </text>
+    </g>
+    <g font-family="Inter,Arial" font-weight="800">
+        <g>
+            <rect fill="#111827" height="110" rx="26" stroke="#f97316" width="210" x="100" y="190"/>
+            <text fill="#fb923c" font-size="28" text-anchor="middle" x="205" y="238">Grafana</text>
+            <text fill="#cbd5e1" font-size="16" text-anchor="middle" x="205" y="270">localhost:3000</text>
+        </g>
+        <g>
+            <rect fill="#111827" height="110" rx="26" stroke="#fb7185" width="210" x="365" y="190"/>
+            <text fill="#fb7185" font-size="28" text-anchor="middle" x="470" y="238">ArgoCD</text>
+            <text fill="#cbd5e1" font-size="16" text-anchor="middle" x="470" y="270">localhost:8080</text>
+        </g>
+        <g>
+            <rect fill="#111827" height="110" rx="26" stroke="#f59e0b" width="210" x="630" y="190"/>
+            <text fill="#f59e0b" font-size="28" text-anchor="middle" x="735" y="238">Prometheus</text>
+            <text fill="#cbd5e1" font-size="16" text-anchor="middle" x="735" y="270">localhost:9090</text>
+        </g>
+        <g>
+            <rect fill="#111827" height="110" rx="26" stroke="#60a5fa" width="210" x="895" y="190"/>
+            <text fill="#60a5fa" font-size="28" text-anchor="middle" x="1000" y="238">K8S</text>
+            <text fill="#cbd5e1" font-size="16" text-anchor="middle" x="1000" y="270">Visual Cluster</text>
+        </g>
+        <g>
+            <rect fill="#111827" height="110" rx="26" stroke="#c084fc" width="210" x="235" y="465"/>
+            <text fill="#c084fc" font-size="28" text-anchor="middle" x="340" y="513">AI OPS</text>
+            <text fill="#cbd5e1" font-size="16" text-anchor="middle" x="340" y="545">RCA + Auto Fix</text>
+        </g>
+        <g>
+            <rect fill="#111827" height="110" rx="26" stroke="#f87171" width="210" x="495" y="465"/>
+            <text fill="#f87171" font-size="28" text-anchor="middle" x="600" y="513">Security</text>
+            <text fill="#cbd5e1" font-size="16" text-anchor="middle" x="600" y="545">DevSecOps</text>
+        </g>
+        <g>
+            <rect fill="#111827" height="110" rx="26" stroke="#2dd4bf" width="210" x="755" y="465"/>
+            <text fill="#2dd4bf" font-size="28" text-anchor="middle" x="860" y="513">Helm</text>
+            <text fill="#cbd5e1" font-size="16" text-anchor="middle" x="860" y="545">Releases</text>
+        </g>
+    </g>
+    <g opacity=".8" stroke="url(#g)" stroke-dasharray="8 10" stroke-width="3">
+        <path d="M310 245L520 330"/>
+        <path d="M575 260L585 282"/>
+        <path d="M735 300L665 330"/>
+        <path d="M895 245L680 335"/>
+        <path d="M445 500L540 420"/>
+        <path d="M600 465V446"/>
+        <path d="M755 505L665 420"/>
+    </g>
+</svg>

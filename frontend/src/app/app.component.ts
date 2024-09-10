@@ -15,6 +15,8 @@ type MainTab =
     | 'AI OPS'
     | 'CICD'
     | 'SECURITY'
+    | 'COMPLIANCE'
+    | 'VULNERABILITIES'
     | 'FINOPS'
     | 'BACKUPS'
     | 'DOCS';
@@ -88,6 +90,45 @@ interface SecurityFinding {
     done: boolean;
 }
 
+type SecurityTab = 'SECURITY' | 'COMPLIANCE' | 'VULNERABILITIES';
+type ScanStatus = 'PASSED' | 'RUNNING' | 'FAILED' | 'QUEUED';
+
+interface SecurityScan {
+    id: string;
+    tool: 'Trivy' | 'Docker' | 'SAST' | 'Secrets' | 'Dependency';
+    target: string;
+    status: ScanStatus;
+    critical: number;
+    high: number;
+    medium: number;
+    duration: string;
+}
+
+interface CveItem {
+    cve: string;
+    packageName: string;
+    severity: Priority;
+    image: string;
+    fixVersion: string;
+    exploit: string;
+}
+
+interface ComplianceControl {
+    id: string;
+    framework: string;
+    title: string;
+    score: number;
+    status: 'pass' | 'warn' | 'fail';
+}
+
+interface ThreatPoint {
+    name: string;
+    x: number;
+    y: number;
+    severity: Priority;
+    vector: string;
+}
+
 interface AiOpsEvent {
     time: string;
     service: string;
@@ -154,12 +195,23 @@ interface LiveMetric {
     trend: string;
 }
 
-const TASKS_KEY = 'nebulaops.v19_2.tasks';
-const K8S_KEY = 'nebulaops.v19_2.k8s';
-const SESSION_KEY = 'nebulaops.v19_2.session';
+interface HomeLauncher {
+    title: string;
+    subtitle: string;
+    kind: 'internal' | 'external';
+    tab?: MainTab;
+    url?: string;
+    icon: string;
+    accent: string;
+    status: string;
+}
+
+const TASKS_KEY = 'nebulaops.v19_3.tasks';
+const K8S_KEY = 'nebulaops.v19_3.k8s';
+const SESSION_KEY = 'nebulaops.v19_3.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-2\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-3\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -187,13 +239,13 @@ function res(kind: K8sKind, namespace: string, name: string, replicas = 0): K8sR
     styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
-    readonly tabs: MainTab[] = ['OVERVIEW', 'TASKS', 'KUBERNETES', 'TERRAFORM', 'HELM', 'OBSERVABILITY', 'AI OPS', 'CICD', 'SECURITY', 'FINOPS', 'BACKUPS', 'DOCS'];
+    readonly tabs: MainTab[] = ['OVERVIEW', 'TASKS', 'KUBERNETES', 'TERRAFORM', 'HELM', 'OBSERVABILITY', 'AI OPS', 'CICD', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'FINOPS', 'BACKUPS', 'DOCS'];
     readonly columns: Status[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
     readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_2.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_3.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -277,6 +329,81 @@ export class AppComponent implements OnInit, OnDestroy {
         {label: 'Pod restarts', value: 3, unit: 'last 10m', trend: '+3'},
         {label: 'Ingress RPS', value: 1280, unit: 'req/s', trend: '+21%'}
     ]);
+    readonly homeLaunchers: HomeLauncher[] = [
+        {
+            title: 'Grafana',
+            subtitle: 'Dashboards, logs, metrics',
+            kind: 'external',
+            url: 'http://localhost:3000',
+            icon: '◉',
+            accent: 'grafana',
+            status: 'localhost:3000'
+        },
+        {
+            title: 'ArgoCD',
+            subtitle: 'GitOps sync center',
+            kind: 'external',
+            url: 'http://localhost:8080',
+            icon: '∞',
+            accent: 'argocd',
+            status: 'localhost:8080'
+        },
+        {
+            title: 'Prometheus',
+            subtitle: 'Metrics query engine',
+            kind: 'external',
+            url: 'http://localhost:9090',
+            icon: '▲',
+            accent: 'prometheus',
+            status: 'localhost:9090'
+        },
+        {
+            title: 'AI OPS',
+            subtitle: 'RCA, anomaly, auto-fix',
+            kind: 'internal',
+            tab: 'AI OPS',
+            icon: '✦',
+            accent: 'aiops',
+            status: 'cockpit'
+        },
+        {
+            title: 'K8S Cluster',
+            subtitle: '3D topology + pod drilldown',
+            kind: 'internal',
+            tab: 'KUBERNETES',
+            icon: '☸',
+            accent: 'kubernetes',
+            status: 'live'
+        },
+        {
+            title: 'Security',
+            subtitle: 'DevSecOps scans + CVE',
+            kind: 'internal',
+            tab: 'SECURITY',
+            icon: '⬢',
+            accent: 'security',
+            status: 'v19.3'
+        },
+        {
+            title: 'Helm',
+            subtitle: 'Release lifecycle',
+            kind: 'internal',
+            tab: 'HELM',
+            icon: '⎈',
+            accent: 'helm',
+            status: 'releases'
+        },
+        {
+            title: 'Observability',
+            subtitle: 'Live logs and service traces',
+            kind: 'internal',
+            tab: 'OBSERVABILITY',
+            icon: '≋',
+            accent: 'observability',
+            status: 'stream'
+        }
+    ];
+
     readonly terraformModules: TfModule[] = [
         {
             name: 'local-kind',
@@ -337,6 +464,131 @@ export class AppComponent implements OnInit, OnDestroy {
             done: false
         }
     ]);
+    readonly securitySubTab = signal<SecurityTab>('SECURITY');
+    readonly riskScore = signal(87);
+    readonly securityScans = signal<SecurityScan[]>([
+        {
+            id: 'SCAN-TRIVY-API',
+            tool: 'Trivy',
+            target: 'gateway-service:19.3.0',
+            status: 'RUNNING',
+            critical: 1,
+            high: 4,
+            medium: 9,
+            duration: '42s'
+        },
+        {
+            id: 'SCAN-DOCKER-FE',
+            tool: 'Docker',
+            target: 'frontend:19.3.0',
+            status: 'PASSED',
+            critical: 0,
+            high: 1,
+            medium: 4,
+            duration: '31s'
+        },
+        {
+            id: 'SCAN-SAST-BE',
+            tool: 'SAST',
+            target: 'backend/**/*.java',
+            status: 'FAILED',
+            critical: 1,
+            high: 3,
+            medium: 7,
+            duration: '58s'
+        },
+        {
+            id: 'SCAN-SECRETS',
+            tool: 'Secrets',
+            target: 'repo tree',
+            status: 'PASSED',
+            critical: 0,
+            high: 0,
+            medium: 2,
+            duration: '12s'
+        },
+        {
+            id: 'SCAN-DEPS',
+            tool: 'Dependency',
+            target: 'package-lock/pom.xml',
+            status: 'QUEUED',
+            critical: 0,
+            high: 5,
+            medium: 14,
+            duration: '-'
+        }
+    ]);
+    readonly cveDashboard = signal<CveItem[]>([
+        {
+            cve: 'CVE-2025-7421',
+            packageName: 'netty-codec-http2',
+            severity: 'CRITICAL',
+            image: 'gateway-service',
+            fixVersion: '4.1.118+',
+            exploit: 'remote DoS'
+        },
+        {
+            cve: 'CVE-2025-2198',
+            packageName: 'openssl',
+            severity: 'HIGH',
+            image: 'frontend-nginx',
+            fixVersion: '3.3.4-r1',
+            exploit: 'TLS edge'
+        },
+        {
+            cve: 'CVE-2024-9982',
+            packageName: 'lodash',
+            severity: 'HIGH',
+            image: 'frontend build',
+            fixVersion: '4.17.22+',
+            exploit: 'prototype pollution'
+        },
+        {
+            cve: 'CVE-2024-6123',
+            packageName: 'spring-web',
+            severity: 'MEDIUM',
+            image: 'task-service',
+            fixVersion: '6.1.15+',
+            exploit: 'header parsing'
+        }
+    ]);
+    readonly complianceControls = signal<ComplianceControl[]>([
+        {
+            id: 'CIS-K8S-1.2.7',
+            framework: 'CIS Kubernetes',
+            title: 'Disable anonymous API server access',
+            score: 96,
+            status: 'pass'
+        },
+        {
+            id: 'NIST-SC-7',
+            framework: 'NIST 800-53',
+            title: 'Network boundary protection and ingress isolation',
+            score: 82,
+            status: 'warn'
+        },
+        {
+            id: 'SOC2-CC6.1',
+            framework: 'SOC2',
+            title: 'Least privilege service account policy',
+            score: 74,
+            status: 'warn'
+        },
+        {
+            id: 'ISO-A.8.8',
+            framework: 'ISO 27001',
+            title: 'Technical vulnerability management',
+            score: 89,
+            status: 'pass'
+        }
+    ]);
+    readonly threatPoints = signal<ThreatPoint[]>([
+        {name: 'Secrets leak', x: 18, y: 32, severity: 'CRITICAL', vector: 'repo'},
+        {name: 'Image CVE', x: 46, y: 58, severity: 'HIGH', vector: 'registry'},
+        {name: 'Ingress probe', x: 72, y: 28, severity: 'MEDIUM', vector: 'edge'},
+        {name: 'Dependency drift', x: 83, y: 72, severity: 'HIGH', vector: 'supply chain'}
+    ]);
+
     readonly pipeline: PipelineStage[] = [
         {name: 'lint', status: 'passed', duration: '18s', detail: 'YAML, Markdown and Angular checks'},
         {
@@ -367,8 +619,19 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/diagrams/nebulaops-v19-2-ai-ops-architecture.svg',
+            path: 'docs/diagrams/nebulaops-v19-3-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
+        },
+        {
+            title: 'V19.3 DevSecOps',
+            path: 'docs/V19_3_DEVSECOPS_MODULE.md',
+            why: 'Security, compliance and vulnerability cockpit'
+        },
+        {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
+        {
+            title: 'DevSecOps SVG',
+            path: 'docs/diagrams/nebulaops-v19-3-devsecops-module.svg',
+            why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
     readonly workloads = computed(() => this.resources().filter(r => ['Deployment', 'StatefulSet', 'DaemonSet'].includes(r.kind)));
@@ -397,7 +660,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v19_2.user', u);
+            localStorage.setItem('nebulaops.v19_3.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -409,8 +672,20 @@ export class AppComponent implements OnInit, OnDestroy {
         this.isAuthenticated.set(false);
     }
 
+
+    openLauncher(item: HomeLauncher): void {
+        if (item.kind === 'internal' && item.tab) {
+            this.setTab(item.tab);
+            return;
+        }
+        if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
+
     setTab(tab: MainTab): void {
         this.activeTab.set(tab);
+        if (tab === 'COMPLIANCE') this.securitySubTab.set('COMPLIANCE');
+        if (tab === 'VULNERABILITIES') this.securitySubTab.set('VULNERABILITIES');
+        if (tab === 'SECURITY') this.securitySubTab.set('SECURITY');
         if (tab === 'KUBERNETES' || tab === 'OVERVIEW') this.loadK8sFromApi();
         if (tab === 'HELM') this.loadHelm();
         if (tab === 'OBSERVABILITY') this.refreshLogs(); else this.stopLogsAutoRefresh();
@@ -705,6 +980,36 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
         this.findings.set(this.findings().map(f => f.id === id ? {...f, done: !f.done} : f));
     }
 
+    setSecuritySubTab(tab: SecurityTab): void {
+        this.securitySubTab.set(tab);
+    }
+
+    scanWidth(scan: SecurityScan): number {
+        return Math.min(100, 8 + scan.critical * 24 + scan.high * 9 + scan.medium * 2);
+    }
+
+    scanStatusClass(status: ScanStatus): string {
+        return status.toLowerCase();
+    }
+
+    controlClass(status: ComplianceControl['status']): string {
+        return `control-${status}`;
+    }
+
+    threatCss(t: ThreatPoint): Record<string, string> {
+        return {'left.%': String(t.x), 'top.%': String(t.y)};
+    }
+
+    simulateSecurityScan(): void {
+        const nextRisk = Math.max(41, Math.min(98, this.riskScore() + (Math.random() > 0.5 ? -4 : 3)));
+        this.riskScore.set(nextRisk);
+        this.securityScans.set(this.securityScans().map((s, i) => i === 0 ? {
+            ...s,
+            status: s.status === 'RUNNING' ? 'FAILED' : 'RUNNING',
+            high: Math.max(1, s.high + (s.status === 'RUNNING' ? 1 : -1))
+        } : s));
+    }
+
     stageWidth(s: PipelineStage): number {
         return s.status === 'passed' ? 100 : s.status === 'running' ? 65 : s.status === 'queued' ? 25 : 8;
     }
@@ -819,7 +1124,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
     private fallbackAiOps(prompt = this.aiOpsPrompt()): AiOpsAnalysis {
         const now = new Date().toLocaleTimeString();
         return {
-            incidentId: 'AIOPS-19-2-CRASH-042',
+            incidentId: 'AIOPS-19-3-CRASH-042',
             summary: 'CrashLoopBackOff detected on gateway-service with readiness degradation propagated to frontend and notification-service.',
             rootCause: prompt.toLowerCase().includes('image') ? 'Image pull / tag mismatch combined with readiness probe timeout.' : 'Readiness probe timeout after deployment; downstream gateway route saturation detected.',
             confidence: 0.91,

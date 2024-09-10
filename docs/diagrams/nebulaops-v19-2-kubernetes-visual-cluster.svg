@@ -33,7 +33,7 @@
     </defs>
     <rect width="1400" height="860" fill="url(#bg)"/>
     <rect width="1400" height="860" fill="url(#grid)" opacity=".8"/>
-    <text x="70" y="90" class="title">NebulaOps v19.2 · Kubernetes Visual Cluster</text>
+    <text x="70" y="90" class="title">NebulaOps v19.3 · Kubernetes Visual Cluster</text>
     <text x="72" y="128" class="sub">3D topology · live pods · services · ingress · volumes · logs · terminal · metrics
         · events · YAML
     </text>

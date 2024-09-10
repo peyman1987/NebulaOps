@@ -1,6 +1,6 @@
-# WSL Guide for NebulaOps v17
+# WSL Guide for NebulaOps v19.3
 
-NebulaOps v17 does not require Docker Desktop. It installs Docker Engine directly inside WSL Ubuntu.
+NebulaOps v19.3 does not require Docker Desktop. It installs Docker Engine directly inside WSL Ubuntu.
 
 ## Requirements
 
@@ -34,6 +34,6 @@ kind version
 ## Start NebulaOps
 
 ```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v17
+./scripts/linux/create-kind-cluster.sh nebulaops-v19-3
 ./scripts/linux/start-native.sh
 ```

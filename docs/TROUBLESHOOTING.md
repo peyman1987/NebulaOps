@@ -1,4 +1,4 @@
-# NebulaOps v17 Troubleshooting
+# NebulaOps v19.3 Troubleshooting
 
 ## Docker daemon is not reachable
 
@@ -29,7 +29,7 @@ docker compose up -d
 Create or select the kind cluster:
 
 ```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v17
+./scripts/linux/create-kind-cluster.sh nebulaops-v19-3
 kubectl config current-context
 cp ~/.kube/config .kube/config
 ```

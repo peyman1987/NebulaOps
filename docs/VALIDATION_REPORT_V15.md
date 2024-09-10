@@ -2,7 +2,7 @@
 
 ## Static checks performed
 
-- Project unpacked from v14 ZIP and copied to `nebulaops-v17`.
+- Project unpacked from v14 ZIP and copied to `nebulaops-v19-3`.
 - Version references updated to v17 in primary files.
 - Gateway runtime controller added for Docker, Helm and Grafana.
 - Frontend tabs added for Docker, Helm and Grafana.
@@ -22,6 +22,6 @@ WSL/Linux and then run the project locally.
 docker compose config
 docker compose up -d --build
 ./scripts/smoke-test.sh
-./scripts/linux/create-kind-cluster.sh nebulaops-v17
+./scripts/linux/create-kind-cluster.sh nebulaops-v19-3
 ./scripts/linux/helm-install-nebulaops.sh nebulaops
 ```

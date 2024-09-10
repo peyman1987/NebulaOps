@@ -1,3 +1,5 @@
+name: nebulaops-v19-3
+
 services:
   mongodb:
     image: mongo:7
@@ -42,6 +44,7 @@ services:
     ports:
       - 8089:8081
   auth-service:
+    image: nebulaops-v19-3-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
@@ -53,6 +56,7 @@ services:
     ports:
       - 8081:8081
   task-service:
+    image: nebulaops-v19-3-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -70,6 +74,7 @@ services:
     ports:
       - 8082:8082
   notification-service:
+    image: nebulaops-v19-3-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -87,6 +92,7 @@ services:
     ports:
       - 8083:8083
   file-service:
+    image: nebulaops-v19-3-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
@@ -98,12 +104,14 @@ services:
     ports:
       - 8084:8084
   ai-engine:
+    image: nebulaops-v19-3-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
     ports:
       - 8095:8095
   ai-ops-service:
+    image: nebulaops-v19-3-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
@@ -113,7 +121,15 @@ services:
       - ai-engine
     ports:
       - 8085:8085
+  devsecops-service:
+    image: nebulaops-v19-3-devsecops-service:latest
+    build:
+      context: .
+      dockerfile: backend/devsecops-service/Dockerfile
+    ports:
+      - 8086:8086
   gateway-service:
+    image: nebulaops-v19-3-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
@@ -123,8 +139,9 @@ services:
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
       AI_OPS_SERVICE_URL: http://ai-ops-service:8085
+      DEVSECOPS_SERVICE_URL: http://devsecops-service:8086
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-2}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-3}
       GRAFANA_URL: http://grafana:3000
       GRAFANA_AUTH: admin:admin
     volumes:
@@ -142,9 +159,12 @@ services:
         condition: service_started
       ai-ops-service:
         condition: service_started
+      devsecops-service:
+        condition: service_started
     ports:
       - 8080:8080
   frontend:
+    image: nebulaops-v19-3-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -165,6 +185,7 @@ services:
       - notification-service
       - file-service
       - ai-ops-service
+      - devsecops-service
   grafana:
     image: grafana/grafana:11.1.0
     restart: unless-stopped
@@ -224,6 +245,7 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
+    image: nebulaops-v19-3-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -242,6 +264,7 @@ services:
     ports:
       - 8091:8091
   go-event-worker:
+    image: nebulaops-v19-3-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile

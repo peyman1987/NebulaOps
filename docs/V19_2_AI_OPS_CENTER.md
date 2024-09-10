@@ -1,8 +1,8 @@
-# AI Ops Center v19.2
+# AI Ops Center v19.3
 
 ## Purpose
 
-AI Ops Center is the main v19.2 feature. It turns NebulaOps into an operational cockpit for detecting, explaining and
+AI Ops Center is the main v19.3 feature. It turns NebulaOps into an operational cockpit for detecting, explaining and
 remediating Kubernetes incidents.
 
 ## Frontend
