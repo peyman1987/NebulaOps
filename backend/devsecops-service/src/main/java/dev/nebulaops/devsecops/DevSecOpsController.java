@@ -11,12 +11,12 @@ public class DevSecOpsController {
     @GetMapping("/dashboard")
     public Map<String, Object> dashboard() {
         return Map.of(
-                "version", "19.3",
+                "version", "19.4",
                 "riskScore", 87,
                 "updatedAt", Instant.now().toString(),
                 "scans", List.of(
-                        scan("SCAN-TRIVY-API", "Trivy", "gateway-service:19.3.0", "RUNNING", 1, 4, 9),
-                        scan("SCAN-DOCKER-FE", "Docker", "frontend:19.3.0", "PASSED", 0, 1, 4),
+                        scan("SCAN-TRIVY-API", "Trivy", "gateway-service:19.4.0", "RUNNING", 1, 4, 9),
+                        scan("SCAN-DOCKER-FE", "Docker", "frontend:19.4.0", "PASSED", 0, 1, 4),
                         scan("SCAN-SAST-BE", "SAST", "backend/**/*.java", "FAILED", 1, 3, 7),
                         scan("SCAN-SECRETS", "Secrets", "repo tree", "PASSED", 0, 0, 2)
                 ),
@@ -32,7 +32,7 @@ public class DevSecOpsController {
     @PostMapping("/scan")
     public Map<String, Object> scanNow(@RequestBody(required = false) Map<String, Object> body) {
         String target = Objects.toString(body == null ? "repo tree" : body.getOrDefault("target", "repo tree"));
-        return Map.of("status", "started", "target", target, "scanId", "DEVSECOPS-19-3-" + System.currentTimeMillis(), "startedAt", Instant.now().toString());
+        return Map.of("status", "started", "target", target, "scanId", "DEVSECOPS-19-4-" + System.currentTimeMillis(), "startedAt", Instant.now().toString());
     }
 
     private Map<String, Object> scan(String id, String tool, String target, String status, int critical, int high, int medium) {

@@ -19,6 +19,12 @@ spring:
         - id: ai-ops
           uri: ${AI_OPS_SERVICE_URL:http://localhost:8085}
           predicates: [ Path=/api/ai-ops/** ]
+        - id: devsecops
+          uri: ${DEVSECOPS_SERVICE_URL:http://localhost:8086}
+          predicates: [ Path=/api/devsecops/** ]
+        - id: pipeline-engine
+          uri: ${PIPELINE_ENGINE_SERVICE_URL:http://localhost:8087}
+          predicates: [ Path=/api/pipeline-engine/** ]
 management:
   endpoints:
     web:

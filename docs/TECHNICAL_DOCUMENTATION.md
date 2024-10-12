@@ -105,8 +105,11 @@ Redis handles:
 | Notification Service |  8083 | Async processing API/health      |
 | File Service         |  8084 | File metadata API                |
 | Go Cache Service     |  8091 | Redis-backed cache API           |
+| Pipeline Engine      |  8087 | CI/CD pipeline designer API      |
 | MongoDB              | 27017 | Persistence                      |
+| Mongo Express        |  8088 | MongoDB web console              |
 | Redis                |  6379 | Cache                            |
+| Redis Commander      |  8089 | Redis web console                |
 | RabbitMQ AMQP        |  5672 | Broker protocol                  |
 | RabbitMQ UI          | 15672 | Management dashboard             |
 | Prometheus           |  9090 | Metrics collection               |

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
+    <defs>
+        <linearGradient id="g" x1="0" x2="1">
+            <stop stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#facc15"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="6" result="b"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+    <rect width="1400" height="760" fill="#020617"/>
+    <text x="64" y="82" fill="#e0f2fe" font-family="Inter,Arial" font-size="42" font-weight="900">NebulaOps v19.4 ·
+        CI/CD Pipeline Designer
+    </text>
+    <text x="66" y="122" fill="#7dd3fc" font-family="Inter,Arial" font-size="18">Build → Test → Security Scan → Docker
+        Build → Helm Deploy → Smoke Test
+    </text>
+    <path d="M120 370 C300 170 430 560 610 350 S1010 170 1260 380" fill="none" stroke="url(#g)" stroke-width="8"
+          stroke-dasharray="22 18" filter="url(#glow)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-80" dur="1.3s" repeatCount="indefinite"/>
+    </path>
+    <g font-family="Inter,Arial" text-anchor="middle" font-weight="800">
+        <g transform="translate(130 370)">
+            <circle r="72" fill="#0f172a" stroke="#22d3ee" stroke-width="3" filter="url(#glow)"/>
+            <text y="-8" fill="#fff" font-size="22">Build</text>
+            <text y="22" fill="#bae6fd" font-size="14">npm · maven</text>
+        </g>
+        <g transform="translate(355 300)">
+            <circle r="72" fill="#0f172a" stroke="#4ade80" stroke-width="3" filter="url(#glow)"/>
+            <text y="-8" fill="#fff" font-size="22">Test</text>
+            <text y="22" fill="#bae6fd" font-size="14">unit · integration</text>
+        </g>
+        <g transform="translate(575 400)">
+            <circle r="78" fill="#0f172a" stroke="#f87171" stroke-width="3" filter="url(#glow)"/>
+            <text y="-8" fill="#fff" font-size="22">Security Scan</text>
+            <text y="22" fill="#fecaca" font-size="14">Trivy · SAST</text>
+        </g>
+        <g transform="translate(805 338)">
+            <circle r="72" fill="#0f172a" stroke="#60a5fa" stroke-width="3" filter="url(#glow)"/>
+            <text y="-8" fill="#fff" font-size="22">Docker Build</text>
+            <text y="22" fill="#bae6fd" font-size="14">buildx image</text>
+        </g>
+        <g transform="translate(1035 300)">
+            <circle r="72" fill="#0f172a" stroke="#2dd4bf" stroke-width="3" filter="url(#glow)"/>
+            <text y="-8" fill="#fff" font-size="22">Helm Deploy</text>
+            <text y="22" fill="#bae6fd" font-size="14">upgrade install</text>
+        </g>
+        <g transform="translate(1260 380)">
+            <circle r="72" fill="#0f172a" stroke="#facc15" stroke-width="3" filter="url(#glow)"/>
+            <text y="-8" fill="#fff" font-size="22">Smoke Test</text>
+            <text y="22" fill="#fde68a" font-size="14">curl health</text>
+        </g>
+    </g>
+    <rect x="110" y="590" width="1180" height="82" rx="24" fill="#0f172a" stroke="#334155"/>
+    <text x="150" y="640" fill="#cbd5e1" font-family="Inter,Arial" font-size="22">pipeline-engine-service · JSON/YAML
+        save · GitLab export · ArgoCD sync simulation
+    </text>
+</svg>

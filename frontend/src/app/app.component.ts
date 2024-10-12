@@ -14,6 +14,7 @@ type MainTab =
     | 'OBSERVABILITY'
     | 'AI OPS'
     | 'CICD'
+    | 'INFRA'
     | 'SECURITY'
     | 'COMPLIANCE'
     | 'VULNERABILITIES'
@@ -81,6 +82,27 @@ interface PipelineStage {
     detail: string;
 }
 
+interface PipelineDesignerNode {
+    id: string;
+    name: string;
+    status: PipelineDesignerStatus;
+    icon: string;
+    tool: string;
+    x: number;
+    y: number;
+    yaml: string;
+}
+
+interface InfraLink {
+    title: string;
+    description: string;
+    url?: string;
+    tab?: MainTab;
+    kind: 'external' | 'internal';
+    icon: string;
+    status: string;
+}
+
 interface SecurityFinding {
     id: string;
     area: string;
@@ -92,6 +114,7 @@ interface SecurityFinding {
 
 type SecurityTab = 'SECURITY' | 'COMPLIANCE' | 'VULNERABILITIES';
 type ScanStatus = 'PASSED' | 'RUNNING' | 'FAILED' | 'QUEUED';
+type PipelineDesignerStatus = 'success' | 'running' | 'queued' | 'blocked';
 
 interface SecurityScan {
     id: string;
@@ -206,12 +229,12 @@ interface HomeLauncher {
     status: string;
 }
 
-const TASKS_KEY = 'nebulaops.v19_3.tasks';
-const K8S_KEY = 'nebulaops.v19_3.k8s';
-const SESSION_KEY = 'nebulaops.v19_3.session';
+const TASKS_KEY = 'nebulaops.v19_4.tasks';
+const K8S_KEY = 'nebulaops.v19_4.k8s';
+const SESSION_KEY = 'nebulaops.v19_4.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-3\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-4\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -239,13 +262,13 @@ function res(kind: K8sKind, namespace: string, name: string, replicas = 0): K8sR
     styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
-    readonly tabs: MainTab[] = ['OVERVIEW', 'TASKS', 'KUBERNETES', 'TERRAFORM', 'HELM', 'OBSERVABILITY', 'AI OPS', 'CICD', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'FINOPS', 'BACKUPS', 'DOCS'];
+    readonly tabs: MainTab[] = ['OVERVIEW', 'INFRA', 'TASKS', 'KUBERNETES', 'TERRAFORM', 'HELM', 'OBSERVABILITY', 'AI OPS', 'CICD', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'FINOPS', 'BACKUPS', 'DOCS'];
     readonly columns: Status[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
     readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_3.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_4.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -343,10 +366,28 @@ export class AppComponent implements OnInit, OnDestroy {
             title: 'ArgoCD',
             subtitle: 'GitOps sync center',
             kind: 'external',
-            url: 'http://localhost:8080',
+            url: 'http://localhost:8087/actuator/health',
             icon: '∞',
             accent: 'argocd',
-            status: 'localhost:8080'
+            status: 'pipeline:8087'
+        },
+        {
+            title: 'CI/CD Designer',
+            subtitle: 'Drag & drop pipeline canvas',
+            kind: 'internal',
+            tab: 'CICD',
+            icon: '⚡',
+            accent: 'cicd',
+            status: 'v19.4'
+        },
+        {
+            title: 'INFRA',
+            subtitle: 'External links hub',
+            kind: 'internal',
+            tab: 'INFRA',
+            icon: '▣',
+            accent: 'infra',
+            status: 'links'
         },
         {
             title: 'Prometheus',
@@ -382,7 +423,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v19.3'
+            status: 'v19.4'
         },
         {
             title: 'Helm',
@@ -470,7 +511,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-TRIVY-API',
             tool: 'Trivy',
-            target: 'gateway-service:19.3.0',
+            target: 'gateway-service:19.4.0',
             status: 'RUNNING',
             critical: 1,
             high: 4,
@@ -480,7 +521,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-DOCKER-FE',
             tool: 'Docker',
-            target: 'frontend:19.3.0',
+            target: 'frontend:19.4.0',
             status: 'PASSED',
             critical: 0,
             high: 1,
@@ -589,6 +630,179 @@ export class AppComponent implements OnInit, OnDestroy {
         {name: 'Dependency drift', x: 83, y: 72, severity: 'HIGH', vector: 'supply chain'}
     ]);
 
+    readonly pipelineDesignerNodes = signal<PipelineDesignerNode[]>([
+        {
+            id: 'build', name: 'Build', status: 'success', icon: '⚙', tool: 'npm + maven', x: 7, y: 42, yaml: `build:
+  stage: build
+  script:
+    - npm ci
+    - mvn -q package`
+        },
+        {
+            id: 'test', name: 'Test', status: 'success', icon: '✓', tool: 'unit/integration', x: 23, y: 42, yaml: `test:
+  stage: test
+  script:
+    - npm test
+    - mvn test`
+        },
+        {
+            id: 'security',
+            name: 'Security Scan',
+            status: 'running',
+            icon: '⬢',
+            tool: 'Trivy + SAST',
+            x: 39,
+            y: 42,
+            yaml: `security_scan:
+  stage: security
+  script:
+    - trivy fs .
+    - gitleaks detect`
+        },
+        {
+            id: 'docker', name: 'Docker Build', status: 'queued', icon: '◆', tool: 'buildx', x: 55, y: 42, yaml: `docker_build:
+  stage: package
+  script:
+    - docker build -t nebulaops/frontend:$CI_COMMIT_SHA frontend`
+        },
+        {
+            id: 'helm', name: 'Helm Deploy', status: 'queued', icon: '⎈', tool: 'helm upgrade', x: 71, y: 42, yaml: `helm_deploy:
+  stage: deploy
+  script:
+    - helm upgrade --install nebulaops infrastructure/helm`
+        },
+        {
+            id: 'smoke', name: 'Smoke Test', status: 'blocked', icon: '☁', tool: 'curl + ArgoCD', x: 87, y: 42, yaml: `smoke_test:
+  stage: verify
+  script:
+    - curl -f http://gateway-service:8080/actuator/health`
+        }
+    ]);
+    readonly selectedPipelineNode = signal<PipelineDesignerNode | null>(null);
+    readonly pipelineYaml = computed(() => this.pipelineDesignerNodes().map(n => n.yaml).join('\n\n'));
+    readonly infraLinks: InfraLink[] = [
+        {
+            title: 'Grafana',
+            description: 'Dashboards, Loki logs and runtime metrics',
+            kind: 'external',
+            url: 'http://localhost:3000',
+            icon: '◉',
+            status: 'localhost:3000'
+        },
+        {
+            title: 'Redis Commander',
+            description: 'Redis browser, keys, cache inspection and commands',
+            kind: 'external',
+            url: 'http://localhost:8089',
+            icon: '◆',
+            status: 'localhost:8089'
+        },
+        {
+            title: 'Mongo Express',
+            description: 'MongoDB collections, documents and indexes console',
+            kind: 'external',
+            url: 'http://localhost:8088',
+            icon: '▰',
+            status: 'localhost:8088'
+        },
+        {
+            title: 'RabbitMQ',
+            description: 'Queue dashboard, exchanges, bindings and consumers',
+            kind: 'external',
+            url: 'http://localhost:15672',
+            icon: '✉',
+            status: 'localhost:15672'
+        },
+        {
+            title: 'Prometheus',
+            description: 'Metrics query engine, targets and service discovery',
+            kind: 'external',
+            url: 'http://localhost:9090',
+            icon: '▲',
+            status: 'localhost:9090'
+        },
+        {
+            title: 'Gateway API',
+            description: 'Public API entrypoint and actuator health',
+            kind: 'external',
+            url: 'http://localhost:8080/actuator/health',
+            icon: '⇄',
+            status: 'localhost:8080'
+        },
+        {
+            title: 'Pipeline Engine API',
+            description: 'CI/CD Pipeline Designer backend service health',
+            kind: 'external',
+            url: 'http://localhost:8087/actuator/health',
+            icon: '⚙',
+            status: 'localhost:8087'
+        },
+        {
+            title: 'ArgoCD Integration',
+            description: 'Open the CI/CD designer GitOps sync and rollback gates',
+            kind: 'internal',
+            tab: 'CICD',
+            icon: '∞',
+            status: 'internal'
+        },
+        {
+            title: 'Kubernetes Console',
+            description: '3D cluster topology, logs, events, metrics and YAML',
+            kind: 'internal',
+            tab: 'KUBERNETES',
+            icon: '☸',
+            status: 'internal'
+        },
+        {
+            title: 'CI/CD Designer',
+            description: 'Build/test/security/docker/helm/smoke pipeline canvas',
+            kind: 'internal',
+            tab: 'CICD',
+            icon: '⚡',
+            status: 'internal'
+        },
+        {
+            title: 'DevSecOps',
+            description: 'Trivy, Docker scan, SAST, secrets, CVE and compliance',
+            kind: 'internal',
+            tab: 'SECURITY',
+            icon: '⬢',
+            status: 'internal'
+        },
+        {
+            title: 'Observability',
+            description: 'SLO, traces, logs, metrics and runtime dashboards',
+            kind: 'internal',
+            tab: 'OBSERVABILITY',
+            icon: '◌',
+            status: 'internal'
+        },
+        {
+            title: 'AI OPS',
+            description: 'RCA, anomaly detection and auto-fix simulation',
+            kind: 'internal',
+            tab: 'AI OPS',
+            icon: '✦',
+            status: 'internal'
+        },
+        {
+            title: 'FinOps',
+            description: 'Cloud cost scorecards and waste reduction',
+            kind: 'internal',
+            tab: 'FINOPS',
+            icon: '€',
+            status: 'internal'
+        },
+        {
+            title: 'Backups',
+            description: 'Restore points, snapshots and DR checks',
+            kind: 'internal',
+            tab: 'BACKUPS',
+            icon: '↺',
+            status: 'internal'
+        }
+    ];
+
     readonly pipeline: PipelineStage[] = [
         {name: 'lint', status: 'passed', duration: '18s', detail: 'YAML, Markdown and Angular checks'},
         {
@@ -619,18 +833,28 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/diagrams/nebulaops-v19-3-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v19-4-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
-            title: 'V19.3 DevSecOps',
+            title: 'V19.4 DevSecOps',
             path: 'docs/V19_3_DEVSECOPS_MODULE.md',
             why: 'Security, compliance and vulnerability cockpit'
         },
         {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
         {
+            title: 'V19.4 release notes',
+            path: 'docs/V19_4_RELEASE_NOTES.md',
+            why: 'CI/CD Pipeline Designer and INFRA hub'
+        },
+        {
+            title: 'V19.4 CI/CD Designer',
+            path: 'docs/V19_4_CICD_PIPELINE_DESIGNER.md',
+            why: 'drag-drop pipeline canvas and pipeline-engine-service'
+        },
+        {
             title: 'DevSecOps SVG',
-            path: 'docs/diagrams/nebulaops-v19-3-devsecops-module.svg',
+            path: 'docs/nebulaops-v19-4-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -660,7 +884,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v19_3.user', u);
+            localStorage.setItem('nebulaops.v19_4.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -670,6 +894,40 @@ export class AppComponent implements OnInit, OnDestroy {
     logout(): void {
         localStorage.removeItem(SESSION_KEY);
         this.isAuthenticated.set(false);
+    }
+
+
+    openInfraLink(item: InfraLink): void {
+        if (item.kind === 'internal' && item.tab) {
+            this.setTab(item.tab);
+            return;
+        }
+        if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
+
+    selectPipelineNode(node: PipelineDesignerNode): void {
+        this.selectedPipelineNode.set(node);
+    }
+
+    pipelineNodeClass(node: PipelineDesignerNode): string {
+        return 'designer-node ' + node.status;
+    }
+
+    pipelineDesignerDrop(event: CdkDragDrop<PipelineDesignerNode[]>): void {
+        const nodes = [...this.pipelineDesignerNodes()];
+        const [moved] = nodes.splice(event.previousIndex, 1);
+        if (!moved) return;
+        nodes.splice(event.currentIndex, 0, moved);
+        this.pipelineDesignerNodes.set(nodes.map((n, i) => ({...n, x: 7 + i * 16, y: 42})));
+    }
+
+    simulatePipelineRun(): void {
+        const order: PipelineDesignerStatus[] = ['success', 'success', 'running', 'queued', 'queued', 'blocked'];
+        this.pipelineDesignerNodes.set(this.pipelineDesignerNodes().map((n, i) => ({
+            ...n,
+            status: order[i] ?? n.status
+        })));
+        this.selectedPipelineNode.set(this.pipelineDesignerNodes()[2] ?? null);
     }
 
 

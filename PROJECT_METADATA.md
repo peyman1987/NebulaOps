@@ -2,17 +2,17 @@
 
 | Field     | Value                              |
 |-----------|------------------------------------|
-| Project   | NebulaOps v19.3                    |
+| Project   | NebulaOps v19.4                    |
 | Developer | Peyman Eshghi Malayeri             |
 | Email     | peyman_em@yahoo.com                |
 | Year      | 2024                               |
 | Edition   | Professional DevOps Control Center |
 
-NebulaOps v19.3 is a local-first platform engineering project for WSL/Linux execution. It demonstrates microservices,
+NebulaOps v19.4 is a local-first platform engineering project for WSL/Linux execution. It demonstrates microservices,
 Docker Engine operations, Kubernetes console workflows, Helm release management, Grafana/Prometheus observability,
 RabbitMQ, Redis, MongoDB and a modern Angular frontend.
 
-## v19.3 AI Ops Center
+## v19.4 AI Ops Center
 
 - New `AI OPS` tab with futuristic cockpit UI.
 - Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
@@ -21,7 +21,7 @@ RabbitMQ, Redis, MongoDB and a modern Angular frontend.
 
 ## Documentation patch status
 
-Versione documentale corrente: **v19.3**.
+Versione documentale corrente: **v19.4**.
 
 Aggiornati:
 
@@ -35,9 +35,9 @@ Aggiornati:
 - `docs/V19_3_FRONTEND_STYLE_GUIDE.md`
 - `docs/V19_3_DIAGRAMS.md`
 - `docs/diagrams/README.md`
-- SVG v19.3 in `docs/diagrams` e `frontend/src/assets`
+- SVG v19.4 in `docs/diagrams` e `frontend/src/assets`
 
-## v19.3 Corrected - Home Feature Launcher
+## v19.4 Corrected - Home Feature Launcher
 
 La home ora include un Command Center con tasti grandi per aprire rapidamente Grafana, ArgoCD, Prometheus e i moduli
 interni AI OPS, Kubernetes Visual Cluster, Security, Helm e Observability.
