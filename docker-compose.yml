@@ -1,4 +1,4 @@
-name: nebulaops-v19-4
+name: nebulaops-v19-5
 
 services:
   mongodb:
@@ -44,7 +44,7 @@ services:
     ports:
       - 8089:8081
   auth-service:
-    image: nebulaops-v19-4-auth-service:latest
+    image: nebulaops-v19-5-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
@@ -56,7 +56,7 @@ services:
     ports:
       - 8081:8081
   task-service:
-    image: nebulaops-v19-4-task-service:latest
+    image: nebulaops-v19-5-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -74,7 +74,7 @@ services:
     ports:
       - 8082:8082
   notification-service:
-    image: nebulaops-v19-4-notification-service:latest
+    image: nebulaops-v19-5-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -92,7 +92,7 @@ services:
     ports:
       - 8083:8083
   file-service:
-    image: nebulaops-v19-4-file-service:latest
+    image: nebulaops-v19-5-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
@@ -104,14 +104,14 @@ services:
     ports:
       - 8084:8084
   ai-engine:
-    image: nebulaops-v19-4-ai-engine:latest
+    image: nebulaops-v19-5-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
     ports:
       - 8095:8095
   ai-ops-service:
-    image: nebulaops-v19-4-ai-ops-service:latest
+    image: nebulaops-v19-5-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
@@ -122,21 +122,21 @@ services:
     ports:
       - 8085:8085
   devsecops-service:
-    image: nebulaops-v19-4-devsecops-service:latest
+    image: nebulaops-v19-5-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
     ports:
       - 8086:8086
   pipeline-engine-service:
-    image: nebulaops-v19-4-pipeline-engine-service:latest
+    image: nebulaops-v19-5-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
     ports:
       - 8087:8087
   gateway-service:
-    image: nebulaops-v19-4-gateway-service:latest
+    image: nebulaops-v19-5-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
@@ -149,7 +149,7 @@ services:
       DEVSECOPS_SERVICE_URL: http://devsecops-service:8086
       PIPELINE_ENGINE_SERVICE_URL: http://pipeline-engine-service:8087
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-4}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-5}
       GRAFANA_URL: http://grafana:3000
       GRAFANA_AUTH: admin:admin
     volumes:
@@ -174,7 +174,7 @@ services:
     ports:
       - 8080:8080
   frontend:
-    image: nebulaops-v19-4-frontend:latest
+    image: nebulaops-v19-5-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -196,6 +196,29 @@ services:
       - file-service
       - ai-ops-service
       - devsecops-service
+  loki:
+    image: grafana/loki:2.9.10
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - 3100:3100
+  tempo:
+    image: grafana/tempo:2.5.0
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./infrastructure/observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+    ports:
+      - 3200:3200
+      - 4317:4317
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    command: [ "--config=/etc/otelcol/config.yaml" ]
+    volumes:
+      - ./infrastructure/observability/otel-collector/config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - 4318:4318
+    depends_on:
+      - tempo
+      - loki
   grafana:
     image: grafana/grafana:11.1.0
     restart: unless-stopped
@@ -213,6 +236,8 @@ services:
       - 3000:3000
     depends_on:
       - prometheus
+      - loki
+      - tempo
     healthcheck:
       test: [ "CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -255,7 +280,7 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v19-4-go-cache-service:latest
+    image: nebulaops-v19-5-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -274,7 +299,7 @@ services:
     ports:
       - 8091:8091
   go-event-worker:
-    image: nebulaops-v19-4-go-event-worker:latest
+    image: nebulaops-v19-5-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile

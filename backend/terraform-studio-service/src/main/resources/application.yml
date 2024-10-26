@@ -1,0 +1,8 @@
+server: { port: 8096 }
+spring:
+  application: { name: terraform-studio-service }
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

@@ -1,4 +1,4 @@
-# NebulaOps v19.4 Release Notes
+# NebulaOps v19.5 Release Notes
 
 ## Added
 
@@ -7,15 +7,15 @@
 - New CI/CD Pipeline Designer module with animated canvas and glowing nodes.
 - New `pipeline-engine-service` backend on port `8087`.
 - GitLab export and ArgoCD sync simulation endpoints.
-- New v19.4 docs for CI/CD Designer and INFRA Hub.
+- New v19.5 docs for CI/CD Designer and INFRA Hub.
 
 ## Updated
 
-- Frontend branding and local storage keys moved from v19.3 to v19.4.
+- Frontend branding and local storage keys moved from v19.3 to v19.5.
 - Home launcher now includes CI/CD Designer and INFRA access; INFRA is the dedicated hub for all external consoles and
   platform modules.
 - Gateway now routes both DevSecOps and Pipeline Engine APIs.
-- Docker Compose image names and project names updated to `nebulaops-v19-4`.
+- Docker Compose image names and project names updated to `nebulaops-v19-5`.
 
 ## Portfolio value
 

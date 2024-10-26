@@ -1,0 +1,8 @@
+server: { port: 8094 }
+spring:
+  application: { name: environment-manager-service }
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
