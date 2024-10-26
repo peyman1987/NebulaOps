@@ -1,3 +1,5 @@
+name: nebulaops-v19-5
+
 services:
   mongodb:
     image: mongo:7
@@ -17,11 +19,34 @@ services:
       - 27017:27017
     volumes:
       - mongo-data:/data/db
-    networks:
-      - nebulaops-network
+  mongo-express:
+    image: mongo-express:1.0.2-20
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: nebula
+      ME_CONFIG_MONGODB_ADMINPASSWORD: nebula
+      ME_CONFIG_MONGODB_URL: mongodb://nebula:nebula@mongodb:27017/?authSource=admin
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - 8088:8081
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      REDIS_HOSTS: local:redis:6379
+      HTTP_USER: admin
+      HTTP_PASSWORD: admin
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - 8089:8081
   auth-service:
+    image: nebulaops-v19-5-auth-service:latest
     build:
-      context: ..
+      context: .
       dockerfile: backend/auth-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_auth?authSource=admin
@@ -31,8 +56,9 @@ services:
     ports:
       - 8081:8081
   task-service:
+    image: nebulaops-v19-5-task-service:latest
     build:
-      context: ..
+      context: .
       dockerfile: backend/task-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_task?authSource=admin
@@ -48,8 +74,9 @@ services:
     ports:
       - 8082:8082
   notification-service:
+    image: nebulaops-v19-5-notification-service:latest
     build:
-      context: ..
+      context: .
       dockerfile: backend/notification-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_notification?authSource=admin
@@ -65,8 +92,9 @@ services:
     ports:
       - 8083:8083
   file-service:
+    image: nebulaops-v19-5-file-service:latest
     build:
-      context: ..
+      context: .
       dockerfile: backend/file-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_file?authSource=admin
@@ -76,14 +104,16 @@ services:
     ports:
       - 8084:8084
   ai-engine:
+    image: nebulaops-v19-5-ai-engine:latest
     build:
-      context: ..
+      context: .
       dockerfile: ai-engine/Dockerfile
     ports:
       - 8095:8095
   ai-ops-service:
+    image: nebulaops-v19-5-ai-ops-service:latest
     build:
-      context: ..
+      context: .
       dockerfile: backend/ai-ops-service/Dockerfile
     environment:
       AI_ENGINE_URL: http://ai-engine:8095
@@ -91,9 +121,24 @@ services:
       - ai-engine
     ports:
       - 8085:8085
-  gateway-service:
+  devsecops-service:
+    image: nebulaops-v19-5-devsecops-service:latest
     build:
-      context: ..
+      context: .
+      dockerfile: backend/devsecops-service/Dockerfile
+    ports:
+      - 8086:8086
+  pipeline-engine-service:
+    image: nebulaops-v19-5-pipeline-engine-service:latest
+    build:
+      context: .
+      dockerfile: backend/pipeline-engine-service/Dockerfile
+    ports:
+      - 8087:8087
+  gateway-service:
+    image: nebulaops-v19-5-gateway-service:latest
+    build:
+      context: .
       dockerfile: backend/gateway-service/Dockerfile
     environment:
       AUTH_SERVICE_URL: http://auth-service:8081
@@ -101,11 +146,16 @@ services:
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
       AI_OPS_SERVICE_URL: http://ai-ops-service:8085
+      DEVSECOPS_SERVICE_URL: http://devsecops-service:8086
+      PIPELINE_ENGINE_SERVICE_URL: http://pipeline-engine-service:8087
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-1}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v19-5}
+      GRAFANA_URL: http://grafana:3000
+      GRAFANA_AUTH: admin:admin
     volumes:
-      - ../.kube/config:/kube/config:ro
+      - ./.kube/config:/kube/config:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infrastructure:/app/infrastructure:ro
     depends_on:
       auth-service:
         condition: service_started
@@ -117,11 +167,16 @@ services:
         condition: service_started
       ai-ops-service:
         condition: service_started
+      devsecops-service:
+        condition: service_started
+      pipeline-engine-service:
+        condition: service_started
     ports:
       - 8080:8080
   frontend:
+    image: nebulaops-v19-5-frontend:latest
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
     depends_on:
       - gateway-service
@@ -130,7 +185,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.53.0
     volumes:
-      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - 9090:9090
     depends_on:
@@ -140,19 +195,54 @@ services:
       - notification-service
       - file-service
       - ai-ops-service
+      - devsecops-service
+  loki:
+    image: grafana/loki:2.9.10
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - 3100:3100
+  tempo:
+    image: grafana/tempo:2.5.0
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./infrastructure/observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+    ports:
+      - 3200:3200
+      - 4317:4317
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    command: [ "--config=/etc/otelcol/config.yaml" ]
+    volumes:
+      - ./infrastructure/observability/otel-collector/config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - 4318:4318
+    depends_on:
+      - tempo
+      - loki
   grafana:
     image: grafana/grafana:11.1.0
+    restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_SERVER_ROOT_URL: http://localhost:3000
     volumes:
-      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/observability/grafana/dashboards:/etc/grafana/dashboards:ro
     ports:
       - 3000:3000
     depends_on:
       - prometheus
+      - loki
+      - tempo
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
   redis:
     image: redis:7-alpine
     command:
@@ -190,8 +280,9 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
+    image: nebulaops-v19-5-go-cache-service:latest
     build:
-      context: ..
+      context: .
       dockerfile: go/cache-service/Dockerfile
     environment:
       PORT: 8091
@@ -208,8 +299,9 @@ services:
     ports:
       - 8091:8091
   go-event-worker:
+    image: nebulaops-v19-5-go-event-worker:latest
     build:
-      context: ..
+      context: .
       dockerfile: go/event-worker/Dockerfile
     environment:
       RABBITMQ_HTTP_URL: http://rabbitmq:15672
@@ -224,3 +316,7 @@ volumes:
   redis-data: null
   rabbitmq-data: null
   grafana-data: null
+
+networks:
+  default:
+    name: nebulaops-network

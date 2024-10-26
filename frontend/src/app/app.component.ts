@@ -9,11 +9,15 @@ type MainTab =
     'OVERVIEW'
     | 'TASKS'
     | 'KUBERNETES'
+    | 'CONTAINERS'
     | 'TERRAFORM'
     | 'HELM'
     | 'OBSERVABILITY'
     | 'AI OPS'
     | 'CICD'
+    | 'GITOPS'
+    | 'ENVIRONMENTS'
+    | 'TERRAFORM STUDIO'
     | 'INFRA'
     | 'SECURITY'
     | 'COMPLIANCE'
@@ -64,6 +68,50 @@ interface K8sSnapshot {
     cluster: { name: string; provider: string; version: string; status: string };
     resources: K8sResource[];
     logs: ServiceLog[];
+}
+
+interface DockerContainer {
+    id: string;
+    name: string;
+    image: string;
+    status: 'running' | 'stopped' | 'restarting' | 'paused';
+    cpu: number;
+    memory: number;
+    ports: string;
+    network: string;
+    logs: string[];
+}
+
+interface DockerImage {
+    repository: string;
+    tag: string;
+    size: string;
+    vulnerabilities: number;
+    created: string;
+}
+
+interface DockerVolume {
+    name: string;
+    driver: string;
+    mount: string;
+    size: string;
+}
+
+interface K8sController {
+    kind: string;
+    name: string;
+    namespace: string;
+    desired: number;
+    available: number;
+    strategy: string;
+    age: string;
+}
+
+interface LensAction {
+    title: string;
+    target: string;
+    command: string;
+    severity: Priority;
 }
 
 interface TfModule {
@@ -229,12 +277,12 @@ interface HomeLauncher {
     status: string;
 }
 
-const TASKS_KEY = 'nebulaops.v19_4.tasks';
-const K8S_KEY = 'nebulaops.v19_4.k8s';
-const SESSION_KEY = 'nebulaops.v19_4.session';
+const TASKS_KEY = 'nebulaops.v19_5.tasks';
+const K8S_KEY = 'nebulaops.v19_5.k8s';
+const SESSION_KEY = 'nebulaops.v19_5.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-4\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-5\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -262,13 +310,13 @@ function res(kind: K8sKind, namespace: string, name: string, replicas = 0): K8sR
     styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
-    readonly tabs: MainTab[] = ['OVERVIEW', 'INFRA', 'TASKS', 'KUBERNETES', 'TERRAFORM', 'HELM', 'OBSERVABILITY', 'AI OPS', 'CICD', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'FINOPS', 'BACKUPS', 'DOCS'];
+    readonly tabs: MainTab[] = ['OVERVIEW', 'INFRA', 'TASKS', 'CONTAINERS', 'KUBERNETES', 'TERRAFORM', 'TERRAFORM STUDIO', 'HELM', 'OBSERVABILITY', 'GITOPS', 'ENVIRONMENTS', 'AI OPS', 'CICD', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'FINOPS', 'BACKUPS', 'DOCS'];
     readonly columns: Status[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
     readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_4.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_5.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -314,7 +362,54 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly logsAutoRefresh = signal(false);
     readonly logsRefreshSeconds = signal(5);
     readonly lastLogsRefresh = signal('never');
-    readonly dockerContainers = signal<any[]>([]);
+    readonly dockerContainers = signal<DockerContainer[]>(this.syntheticDockerContainers());
+    readonly dockerImages = signal<DockerImage[]>([
+        {repository: 'nebulaops/frontend', tag: 'v19.5', size: '186MB', vulnerabilities: 0, created: 'today'},
+        {repository: 'nebulaops/gateway-service', tag: 'v19.5', size: '292MB', vulnerabilities: 1, created: 'today'},
+        {repository: 'mongo', tag: '7', size: '739MB', vulnerabilities: 2, created: 'cached'},
+        {repository: 'redis', tag: '7-alpine', size: '42MB', vulnerabilities: 0, created: 'cached'},
+        {repository: 'rabbitmq', tag: '3-management', size: '286MB', vulnerabilities: 1, created: 'cached'}
+    ]);
+    readonly dockerVolumes = signal<DockerVolume[]>([
+        {name: 'nebulaops_mongo_data', driver: 'local', mount: '/data/db', size: '1.2GB'},
+        {name: 'nebulaops_redis_data', driver: 'local', mount: '/data', size: '128MB'},
+        {name: 'nebulaops_grafana_data', driver: 'local', mount: '/var/lib/grafana', size: '84MB'}
+    ]);
+    readonly selectedDockerContainer = signal<DockerContainer | null>(null);
+    readonly containerTerminal = signal('docker compose ps && kubectl get pods -A');
+    readonly k8sControllers = signal<K8sController[]>(this.syntheticK8sControllers());
+    readonly lensActions = signal<LensAction[]>([
+        {
+            title: 'Restart selected pod',
+            target: 'Pod',
+            command: 'kubectl rollout restart deployment/gateway-service -n nebulaops',
+            severity: 'HIGH'
+        },
+        {
+            title: 'Scale workload +1',
+            target: 'Deployment',
+            command: 'kubectl scale deploy/frontend --replicas=3 -n nebulaops',
+            severity: 'MEDIUM'
+        },
+        {
+            title: 'Edit service YAML',
+            target: 'Service',
+            command: 'kubectl edit service gateway-service -n nebulaops',
+            severity: 'LOW'
+        },
+        {
+            title: 'Describe ingress',
+            target: 'Ingress',
+            command: 'kubectl describe ingress nebulaops-ingress -n nebulaops',
+            severity: 'LOW'
+        },
+        {
+            title: 'Drain node simulation',
+            target: 'Node',
+            command: 'kubectl drain kind-worker --ignore-daemonsets',
+            severity: 'CRITICAL'
+        }
+    ]);
     readonly helmReleases = signal<any[]>([]);
     readonly grafanaHealth = signal<any>({});
     readonly terraformPlan = signal('terraform plan not executed yet');
@@ -378,7 +473,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v19.4'
+            status: 'v19.5'
         },
         {
             title: 'INFRA',
@@ -408,6 +503,15 @@ export class AppComponent implements OnInit, OnDestroy {
             status: 'cockpit'
         },
         {
+            title: 'Containers',
+            subtitle: 'Docker Desktop + OpenLens console',
+            kind: 'internal',
+            tab: 'CONTAINERS',
+            icon: '🐳',
+            accent: 'docker',
+            status: 'runtime ops'
+        },
+        {
             title: 'K8S Cluster',
             subtitle: '3D topology + pod drilldown',
             kind: 'internal',
@@ -423,7 +527,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v19.4'
+            status: 'v19.5'
         },
         {
             title: 'Helm',
@@ -436,12 +540,39 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'Observability',
-            subtitle: 'Live logs and service traces',
+            subtitle: 'Prometheus · Loki · Tempo · OTel',
             kind: 'internal',
             tab: 'OBSERVABILITY',
             icon: '≋',
             accent: 'observability',
-            status: 'stream'
+            status: 'enterprise'
+        },
+        {
+            title: 'GitOps Control Plane',
+            subtitle: 'Drift, rollback, ArgoCD live sync',
+            kind: 'internal',
+            tab: 'GITOPS',
+            icon: '∞',
+            accent: 'argocd',
+            status: 'v19.5'
+        },
+        {
+            title: 'Multi-Env Manager',
+            subtitle: 'LOCAL · DEV · STAGING · PROD',
+            kind: 'internal',
+            tab: 'ENVIRONMENTS',
+            icon: '◈',
+            accent: 'infra',
+            status: 'namespaces'
+        },
+        {
+            title: 'Terraform Studio',
+            subtitle: 'Digital twin graph + plan + cost',
+            kind: 'internal',
+            tab: 'TERRAFORM STUDIO',
+            icon: 'T',
+            accent: 'terraform',
+            status: '3D graph'
         }
     ];
 
@@ -511,7 +642,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-TRIVY-API',
             tool: 'Trivy',
-            target: 'gateway-service:19.4.0',
+            target: 'gateway-service:19.5.0',
             status: 'RUNNING',
             critical: 1,
             high: 4,
@@ -521,7 +652,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-DOCKER-FE',
             tool: 'Docker',
-            target: 'frontend:19.4.0',
+            target: 'frontend:19.5.0',
             status: 'PASSED',
             critical: 0,
             high: 1,
@@ -623,6 +754,81 @@ export class AppComponent implements OnInit, OnDestroy {
             status: 'pass'
         }
     ]);
+
+    readonly observabilityStack = [
+        {name: 'Prometheus', role: 'metrics', endpoint: 'http://localhost:9090', health: 99, signal: '2.4k series'},
+        {name: 'Loki', role: 'logs', endpoint: 'http://localhost:3100', health: 96, signal: '18k log lines'},
+        {name: 'Tempo', role: 'traces', endpoint: 'http://localhost:3200', health: 94, signal: '742 spans'},
+        {name: 'Grafana', role: 'dashboards', endpoint: 'http://localhost:3000', health: 98, signal: '12 panels'},
+        {name: 'OpenTelemetry', role: 'collector', endpoint: 'http://localhost:4318', health: 97, signal: 'OTLP active'}
+    ];
+    readonly traceFlow = [
+        {from: 'frontend', to: 'gateway', latency: 24, status: 'ok'},
+        {from: 'gateway', to: 'task-service', latency: 68, status: 'warm'},
+        {from: 'task-service', to: 'mongodb', latency: 112, status: 'hot'},
+        {from: 'notification-service', to: 'rabbitmq', latency: 39, status: 'ok'},
+        {from: 'worker', to: 'loki', latency: 51, status: 'warm'}
+    ];
+    readonly latencyHeatmap = [18, 24, 31, 48, 62, 80, 96, 72, 44, 28, 35, 57, 89, 121, 76, 42];
+    readonly kafkaEvents = ['task.created', 'scan.completed', 'deploy.synced', 'trace.exported', 'drift.detected', 'rollback.ready'];
+    readonly gitOpsState = signal({sync: 'OutOfSync', drift: 3, revision: 'a19f5c2', health: 'Degraded'});
+    readonly deploymentWaves = [
+        {wave: 'wave-0', target: 'namespaces + CRDs', status: 'synced'},
+        {wave: 'wave-1', target: 'databases + queues', status: 'synced'},
+        {wave: 'wave-2', target: 'backend services', status: 'running'},
+        {wave: 'wave-3', target: 'frontend + ingress', status: 'pending'}
+    ];
+    readonly commitStream = ['feat(obs): add tempo traces', 'fix(gitops): rollback gate', 'infra(env): staging namespace', 'tf: cost estimate module'];
+    readonly environments = signal([
+        {
+            name: 'LOCAL',
+            namespace: 'nebulaops-local',
+            cluster: 'kind-nebula',
+            health: 96,
+            cost: 0,
+            drift: 0,
+            workspace: 'local'
+        },
+        {
+            name: 'DEV',
+            namespace: 'nebulaops-dev',
+            cluster: 'dev-eu-west',
+            health: 91,
+            cost: 42,
+            drift: 1,
+            workspace: 'dev'
+        },
+        {
+            name: 'STAGING',
+            namespace: 'nebulaops-staging',
+            cluster: 'stg-eu-west',
+            health: 88,
+            cost: 118,
+            drift: 2,
+            workspace: 'staging'
+        },
+        {
+            name: 'PROD',
+            namespace: 'nebulaops-prod',
+            cluster: 'prod-eu-west',
+            health: 99,
+            cost: 410,
+            drift: 0,
+            workspace: 'prod'
+        }
+    ]);
+    readonly activeEnvironment = signal('LOCAL');
+    readonly terraformStudioNodes = [
+        {name: 'VPC', type: 'network', x: 12, y: 42, z: 8, cost: 18, drift: 0},
+        {name: 'Subnets', type: 'network', x: 29, y: 25, z: 14, cost: 12, drift: 0},
+        {name: 'Load Balancer', type: 'edge', x: 46, y: 38, z: 22, cost: 44, drift: 1},
+        {name: 'K8s Cluster', type: 'compute', x: 62, y: 54, z: 30, cost: 210, drift: 0},
+        {name: 'MongoDB', type: 'database', x: 78, y: 30, z: 16, cost: 65, drift: 1},
+        {name: 'Redis', type: 'cache', x: 84, y: 68, z: 12, cost: 25, drift: 0}
+    ];
+    readonly terraformPlanPreview = `Terraform will perform the following actions:\n  + module.vpc.aws_vpc.main\n  + module.eks.aws_eks_cluster.nebulaops\n  ~ module.mongodb.storage_size 20Gi -> 40Gi\n  + module.observability.helm_release.tempo\nPlan: 12 to add, 3 to change, 0 to destroy.`;
+    readonly terraformCostEstimate = signal({monthly: 374, delta: 42, currency: 'EUR'});
+
     readonly threatPoints = signal<ThreatPoint[]>([
         {name: 'Secrets leak', x: 18, y: 32, severity: 'CRITICAL', vector: 'repo'},
         {name: 'Image CVE', x: 46, y: 58, severity: 'HIGH', vector: 'registry'},
@@ -722,6 +928,38 @@ export class AppComponent implements OnInit, OnDestroy {
             status: 'localhost:9090'
         },
         {
+            title: 'Loki',
+            description: 'Centralized logs backend for Grafana Explore',
+            kind: 'external',
+            url: 'http://localhost:3100/ready',
+            icon: '≋',
+            status: 'localhost:3100'
+        },
+        {
+            title: 'Tempo',
+            description: 'Distributed tracing backend and span storage',
+            kind: 'external',
+            url: 'http://localhost:3200/ready',
+            icon: '⌁',
+            status: 'localhost:3200'
+        },
+        {
+            title: 'OpenTelemetry Collector',
+            description: 'OTLP traces, metrics and logs ingestion endpoint',
+            kind: 'external',
+            url: 'http://localhost:4318',
+            icon: '◎',
+            status: 'localhost:4318'
+        },
+        {
+            title: 'ArgoCD Console',
+            description: 'GitOps application console, sync and rollback',
+            kind: 'external',
+            url: 'http://localhost:8081',
+            icon: '∞',
+            status: 'localhost:8081'
+        },
+        {
             title: 'Gateway API',
             description: 'Public API entrypoint and actuator health',
             kind: 'external',
@@ -743,6 +981,22 @@ export class AppComponent implements OnInit, OnDestroy {
             kind: 'internal',
             tab: 'CICD',
             icon: '∞',
+            status: 'internal'
+        },
+        {
+            title: 'Docker Desktop Console',
+            description: 'Containers, images, volumes, networks, logs and exec terminal',
+            kind: 'internal',
+            tab: 'CONTAINERS',
+            icon: '🐳',
+            status: 'internal'
+        },
+        {
+            title: 'OpenLens Console',
+            description: 'Pods, deployments, services, controllers, ingress, scale, restart and YAML editor',
+            kind: 'internal',
+            tab: 'CONTAINERS',
+            icon: '☸',
             status: 'internal'
         },
         {
@@ -771,10 +1025,34 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'Observability',
-            description: 'SLO, traces, logs, metrics and runtime dashboards',
+            description: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry',
             kind: 'internal',
             tab: 'OBSERVABILITY',
             icon: '◌',
+            status: 'internal'
+        },
+        {
+            title: 'GitOps Control Plane',
+            description: 'Sync state, drift detection, live sync and visual rollback',
+            kind: 'internal',
+            tab: 'GITOPS',
+            icon: '∞',
+            status: 'internal'
+        },
+        {
+            title: 'Multi-Environment Manager',
+            description: 'LOCAL, DEV, STAGING and PROD cluster switching',
+            kind: 'internal',
+            tab: 'ENVIRONMENTS',
+            icon: '◈',
+            status: 'internal'
+        },
+        {
+            title: 'Smart Terraform Studio',
+            description: '3D infra graph, plan preview, cost and drift',
+            kind: 'internal',
+            tab: 'TERRAFORM STUDIO',
+            icon: 'T',
             status: 'internal'
         },
         {
@@ -833,28 +1111,48 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v19-4-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v19-5-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
-            title: 'V19.4 DevSecOps',
+            title: 'V19.5 DevSecOps',
             path: 'docs/V19_3_DEVSECOPS_MODULE.md',
             why: 'Security, compliance and vulnerability cockpit'
         },
         {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
         {
-            title: 'V19.4 release notes',
-            path: 'docs/V19_4_RELEASE_NOTES.md',
-            why: 'CI/CD Pipeline Designer and INFRA hub'
+            title: 'V19.5 release notes',
+            path: 'docs/V19_5_RELEASE_NOTES.md',
+            why: 'Observability, GitOps, environments and Terraform Studio'
         },
         {
-            title: 'V19.4 CI/CD Designer',
-            path: 'docs/V19_4_CICD_PIPELINE_DESIGNER.md',
+            title: 'V19.5 Observability',
+            path: 'docs/V19_5_ADVANCED_OBSERVABILITY.md',
+            why: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry'
+        },
+        {
+            title: 'V19.5 GitOps Control Plane',
+            path: 'docs/V19_5_GITOPS_CONTROL_PLANE.md',
+            why: 'drift detection, ArgoCD live sync and rollback'
+        },
+        {
+            title: 'V19.5 Multi-Environment Manager',
+            path: 'docs/V19_5_MULTI_ENVIRONMENT_MANAGER.md',
+            why: 'LOCAL, DEV, STAGING and PROD provisioning'
+        },
+        {
+            title: 'V19.5 Smart Terraform Studio',
+            path: 'docs/V19_5_SMART_TERRAFORM_STUDIO.md',
+            why: 'digital twin graph, plan preview and cost estimation'
+        },
+        {
+            title: 'V19.5 CI/CD Designer',
+            path: 'docs/V19_5_CICD_PIPELINE_DESIGNER.md',
             why: 'drag-drop pipeline canvas and pipeline-engine-service'
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v19-4-devsecops-module.svg',
+            path: 'docs/nebulaops-v19-5-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -884,7 +1182,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v19_4.user', u);
+            localStorage.setItem('nebulaops.v19_5.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -937,6 +1235,20 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
         if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
+
+    setEnvironment(name: string): void {
+        this.activeEnvironment.set(name);
+    }
+
+    simulateGitOpsSync(): void {
+        const current = this.gitOpsState();
+        this.gitOpsState.set({
+            sync: current.sync === 'Synced' ? 'OutOfSync' : 'Synced',
+            drift: current.sync === 'Synced' ? 3 : 0,
+            revision: 'b' + Math.floor(Math.random() * 999999).toString(16),
+            health: current.sync === 'Synced' ? 'Degraded' : 'Healthy'
+        });
     }
 
     setTab(tab: MainTab): void {
@@ -1064,8 +1376,206 @@ export class AppComponent implements OnInit, OnDestroy {
         });
     }
 
+    syntheticDockerContainers(): DockerContainer[] {
+        return [
+            {
+                id: 'c-front',
+                name: 'nebulaops-frontend',
+                image: 'nebulaops/frontend:v19.5',
+                status: 'running',
+                cpu: 12,
+                memory: 148,
+                ports: '4200:80',
+                network: 'nebulaops-net',
+                logs: ['nginx started', 'serving Angular shell', 'healthcheck OK']
+            },
+            {
+                id: 'c-gateway',
+                name: 'gateway-service',
+                image: 'nebulaops/gateway-service:v19.5',
+                status: 'running',
+                cpu: 34,
+                memory: 512,
+                ports: '8080:8080',
+                network: 'nebulaops-net',
+                logs: ['Spring Boot started', 'Kubernetes client initialized', 'runtime proxy ready']
+            },
+            {
+                id: 'c-mongo',
+                name: 'mongodb',
+                image: 'mongo:7',
+                status: 'running',
+                cpu: 18,
+                memory: 768,
+                ports: '27017:27017',
+                network: 'nebulaops-net',
+                logs: ['WiredTiger opened', 'checkpoint completed', 'connections: 8']
+            },
+            {
+                id: 'c-redis',
+                name: 'redis',
+                image: 'redis:7-alpine',
+                status: 'running',
+                cpu: 5,
+                memory: 96,
+                ports: '6379:6379',
+                network: 'nebulaops-net',
+                logs: ['ready to accept connections', 'cache hit ratio 94%', 'AOF disabled for local demo']
+            },
+            {
+                id: 'c-rabbit',
+                name: 'rabbitmq',
+                image: 'rabbitmq:3-management',
+                status: 'running',
+                cpu: 9,
+                memory: 256,
+                ports: '5672/15672',
+                network: 'nebulaops-net',
+                logs: ['management plugin enabled', 'queues mirrored', 'consumer gateway-service online']
+            },
+            {
+                id: 'c-grafana',
+                name: 'grafana',
+                image: 'grafana/grafana:latest',
+                status: 'running',
+                cpu: 7,
+                memory: 184,
+                ports: '3000:3000',
+                network: 'nebulaops-net',
+                logs: ['provisioning dashboards', 'datasource prometheus OK', 'datasource loki OK']
+            }
+        ];
+    }
+
+    syntheticK8sControllers(): K8sController[] {
+        return [
+            {
+                kind: 'Deployment',
+                name: 'frontend',
+                namespace: 'nebulaops',
+                desired: 2,
+                available: 2,
+                strategy: 'RollingUpdate',
+                age: '2h'
+            },
+            {
+                kind: 'Deployment',
+                name: 'gateway-service',
+                namespace: 'nebulaops',
+                desired: 2,
+                available: 1,
+                strategy: 'RollingUpdate',
+                age: '2h'
+            },
+            {
+                kind: 'StatefulSet',
+                name: 'mongodb',
+                namespace: 'nebulaops',
+                desired: 1,
+                available: 1,
+                strategy: 'OrderedReady',
+                age: '2h'
+            },
+            {
+                kind: 'DaemonSet',
+                name: 'otel-node-agent',
+                namespace: 'observability',
+                desired: 3,
+                available: 3,
+                strategy: 'OnDelete',
+                age: '45m'
+            },
+            {
+                kind: 'Ingress',
+                name: 'nebulaops-ingress',
+                namespace: 'nebulaops',
+                desired: 1,
+                available: 1,
+                strategy: 'nginx',
+                age: '2h'
+            }
+        ];
+    }
+
+    selectDockerContainer(c: DockerContainer): void {
+        this.selectedDockerContainer.set(c);
+    }
+
+    dockerAction(action: 'start' | 'stop' | 'restart' | 'pause', container?: DockerContainer | null): void {
+        const current = container || this.selectedDockerContainer() || this.dockerContainers()[0];
+        if (!current) return;
+        const nextStatus: DockerContainer['status'] = action === 'stop' ? 'stopped' : action === 'pause' ? 'paused' : action === 'restart' ? 'restarting' : 'running';
+        const updated = {
+            ...current,
+            status: nextStatus,
+            logs: [`${new Date().toLocaleTimeString()} docker ${action} ${current.name}`, ...current.logs].slice(0, 8)
+        };
+        this.dockerContainers.set(this.dockerContainers().map(c => c.id === current.id ? updated : c));
+        this.selectedDockerContainer.set(updated);
+        if (action === 'restart') {
+            setTimeout(() => this.dockerContainers.set(this.dockerContainers().map(c => c.id === current.id ? {
+                ...c,
+                status: 'running'
+            } : c)), 650);
+        }
+    }
+
+    pruneDocker(): void {
+        this.dockerImages.set(this.dockerImages().filter(i => i.repository.startsWith('nebulaops') || i.vulnerabilities === 0));
+    }
+
+    scaleController(ctrl: K8sController, delta: number): void {
+        const desired = Math.max(0, ctrl.desired + delta);
+        const updated = {...ctrl, desired, available: Math.min(desired, Math.max(0, ctrl.available + delta))};
+        this.k8sControllers.set(this.k8sControllers().map(c => c.name === ctrl.name && c.kind === ctrl.kind ? updated : c));
+        const match = this.resources().find(r => r.name === ctrl.name && (r.kind === 'Deployment' || r.kind === 'StatefulSet' || r.kind === 'DaemonSet'));
+        if (match) this.scale(match, delta);
+    }
+
+    restartController(ctrl: K8sController): void {
+        this.k8sControllers.set(this.k8sControllers().map(c => c.name === ctrl.name && c.kind === ctrl.kind ? {
+            ...c,
+            available: Math.max(0, c.available - 1)
+        } : c));
+        const event: ClusterEvent = {
+            time: new Date().toLocaleTimeString(),
+            type: 'ROLLOUT',
+            target: ctrl.name,
+            message: `OpenLens-style restart issued for ${ctrl.kind}/${ctrl.name}`,
+            severity: 'HIGH'
+        };
+        this.clusterEvents.set([event, ...this.clusterEvents()].slice(0, 8));
+    }
+
+    applyLensAction(action: LensAction): void {
+        this.containerTerminal.set(action.command);
+        if (action.target === 'Pod') this.simulatePodRestart();
+    }
+
+    containerTerminalOutput(): string {
+        const selected = this.selectedDockerContainer() || this.dockerContainers()[0];
+        const dockerSummary = this.dockerContainers()
+            .map(c => `${c.name.padEnd(22)} ${c.status.padEnd(10)} ${c.ports}`)
+            .join('\n');
+        const k8sSummary = this.k8sControllers()
+            .map(c => `${c.kind}/${c.name} desired=${c.desired} available=${c.available} ns=${c.namespace}`)
+            .join('\n');
+        const selectedLogs = (selected?.logs || []).join('\n');
+
+        return `$ ${this.containerTerminal()}
+
+Docker Desktop simulation:
+${dockerSummary}
+
+OpenLens simulation:
+${k8sSummary}
+
+Selected logs: ${selected?.name || 'none'}
+${selectedLogs}`;
+    }
+
     loadDocker(): void {
-        forkJoin({containers: this.http.get<any[]>('/api/runtime/docker/containers').pipe(catchError(() => of([])))}).subscribe(r => this.dockerContainers.set(r.containers));
+        forkJoin({containers: this.http.get<DockerContainer[]>('/api/runtime/docker/containers').pipe(catchError(() => of([])))}).subscribe(r => this.dockerContainers.set(r.containers.length ? r.containers : this.syntheticDockerContainers()));
     }
 
     loadHelm(): void {

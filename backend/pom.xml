@@ -11,7 +11,7 @@
 
     <groupId>dev.nebulaops</groupId>
     <artifactId>nebulaops-backend</artifactId>
-    <version>19.4.0</version>
+    <version>19.5.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -23,6 +23,10 @@
         <module>ai-ops-service</module>
         <module>devsecops-service</module>
         <module>pipeline-engine-service</module>
+        <module>terraform-studio-service</module>
+        <module>environment-manager-service</module>
+        <module>gitops-control-service</module>
+        <module>observability-service</module>
     </modules>
 
     <properties>
