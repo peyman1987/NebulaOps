@@ -27,6 +27,18 @@ func main() {
 		w.Header().Set("content-type", "application/json")
 		_, _ = w.Write([]byte(`{"status":"UP","service":"go-cache-service"}`))
 	})
+
+	mux.HandleFunc("/cache/stats", func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+		defer cancel()
+		stats, err := svc.Stats(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), 502)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(stats)
+	})
 	mux.HandleFunc("/cache/", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 		defer cancel()

@@ -1,0 +1,167 @@
+<svg height="860" viewBox="0 0 1400 860" width="1400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop stop-color="#020617"/>
+            <stop offset=".55" stop-color="#071633"/>
+            <stop offset="1" stop-color="#111827"/>
+        </linearGradient>
+        <linearGradient id="beam" x1="0" x2="1">
+            <stop stop-color="#38bdf8"/>
+            <stop offset=".5" stop-color="#326ce5"/>
+            <stop offset="1" stop-color="#a78bfa"/>
+        </linearGradient>
+        <filter id="glow">
+            <feGaussianBlur result="b" stdDeviation="5"/>
+            <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <pattern height="42" id="grid" patternUnits="userSpaceOnUse" width="42">
+            <path d="M42 0H0v42" fill="none" stroke="#38bdf8" stroke-opacity=".13"/>
+        </pattern>
+        <style>
+            .title {
+                font: 900 54px Inter, Arial;
+                fill: #e0f2fe
+            }
+
+            .sub {
+                font: 500 22px Inter, Arial;
+                fill: #93c5fd
+            }
+
+            .node {
+                fill: #0f172a;
+                stroke: #60a5fa;
+                stroke-width: 2;
+                filter: url(#glow)
+            }
+
+            .node-ok {
+                stroke: #2dd4bf
+            }
+
+            .node-warn {
+                stroke: #fbbf24
+            }
+
+            .node-bad {
+                stroke: #fb7185
+            }
+
+            .txt {
+                font: 800 22px Inter, Arial;
+                fill: white
+            }
+
+            .small {
+                font: 600 15px Inter, Arial;
+                fill: #bae6fd
+            }
+
+            .beam {
+                stroke: url(#beam);
+                stroke-width: 4;
+                stroke-dasharray: 12 18;
+                filter: url(#glow)
+            }
+
+            .hot {
+                stroke: #fb7185
+            }
+
+            .bar-bg {
+                fill: #172554
+            }
+
+            .bar {
+                fill: url(#beam)
+            }
+
+            @keyframes dash {
+                to {
+                    stroke-dashoffset: -120
+                }
+            }
+
+            @keyframes pulse {
+                50% {
+                    r: 58;
+                    opacity: .55
+                }
+            }
+
+            @keyframes float {
+                50% {
+                    transform: translateY(-10px)
+                }
+            }
+
+            .beam {
+                animation: dash 2s linear infinite
+            }
+
+            .badpulse {
+                animation: pulse 1s ease-in-out infinite
+            }
+
+            .float {
+                animation: float 4s ease-in-out infinite
+            }
+        </style>
+    </defs>
+    <rect fill="url(#bg)" height="860" width="1400"/>
+    <rect fill="url(#grid)" height="860" opacity=".8" width="1400"/>
+    <text class="title" x="70" y="90">NebulaOps v20.1 · Kubernetes Visual Cluster</text>
+    <text class="sub" x="72" y="128">3D topology · live pods · services · ingress · volumes · logs · terminal · metrics
+        · events · YAML
+    </text>
+    <g opacity=".85">
+        <path class="beam" d="M170 420 C260 260 360 245 470 260"/>
+        <path class="beam hot" d="M530 300 C610 350 650 385 715 430"/>
+        <path class="beam" d="M770 390 C880 250 955 250 1060 285"/>
+        <path class="beam" d="M785 475 C900 585 1000 610 1125 635"/>
+        <path class="beam" d="M1125 330 C1190 415 1195 520 1138 605"/>
+    </g>
+    <g class="float">
+        <circle class="node node-ok" cx="170" cy="420" r="70"/>
+        <text class="txt" x="130" y="412">Ingress</text>
+        <text class="small" x="114" y="442">edge traffic</text>
+    </g>
+    <g class="float">
+        <circle class="node node-warn" cx="490" cy="270" r="78"/>
+        <text class="txt" x="442" y="258">Frontend</text>
+        <text class="small" x="430" y="289">pods x2 · cpu 58%</text>
+        <rect class="bar-bg" height="10" rx="5" width="120" x="430" y="312"/>
+        <rect class="bar" height="10" rx="5" width="70" x="430" y="312"/>
+    </g>
+    <g class="float">
+        <circle class="node node-bad" cx="735" cy="435" r="82"/>
+        <circle class="badpulse" cx="735" cy="435" fill="none" opacity=".35" r="92" stroke="#fb7185" stroke-width="5"/>
+        <text class="txt" x="683" y="424">Gateway</text>
+        <text class="small" x="660" y="455">CrashLoop · cpu 91%</text>
+        <rect class="bar-bg" height="10" rx="5" width="120" x="675" y="478"/>
+        <rect fill="#fb7185" height="10" rx="5" width="110" x="675" y="478"/>
+    </g>
+    <g class="float">
+        <circle class="node node-warn" cx="1080" cy="295" r="74"/>
+        <text class="txt" x="1038" y="285">Tasks</text>
+        <text class="small" x="1015" y="316">deploy · hpa watch</text>
+    </g>
+    <g class="float">
+        <circle class="node node-ok" cx="1125" cy="635" r="74"/>
+        <text class="txt" x="1076" y="626">MongoDB</text>
+        <text class="small" x="1064" y="657">statefulset + pvc</text>
+    </g>
+    <g class="float">
+        <rect class="node node-ok" height="90" rx="28" width="190" x="535" y="650"/>
+        <text class="txt" x="585" y="690">RabbitMQ</text>
+        <text class="small" x="575" y="720">queue mesh healthy</text>
+    </g>
+    <g transform="translate(70 720)">
+        <rect fill="#0f172a" height="80" opacity=".9" rx="24" stroke="#38bdf8" width="390"/>
+        <text class="small" x="28" y="35">WOW EFFECT</text>
+        <text class="txt" x="28" y="63">Pod restart pulse + animated blast radius</text>
+    </g>
+</svg>
