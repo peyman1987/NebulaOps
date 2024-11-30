@@ -1,4 +1,4 @@
-# NebulaOps v19.5 Docker/OpenLens Build Fixes
+# NebulaOps v20.1 Docker/OpenLens Build Fixes
 
 This regenerated package fixes the Angular production build errors reported after adding the Docker Desktop + OpenLens
 section.

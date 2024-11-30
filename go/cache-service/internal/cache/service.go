@@ -47,6 +47,24 @@ func (s *Service) Put(ctx context.Context, item CacheItem) error {
 	return s.publish(ctx, payload)
 }
 
+func (s *Service) Stats(ctx context.Context) (map[string]string, error) {
+	info, err := s.redisRaw(ctx, "INFO", "stats")
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]string{"redisAddr": s.RedisAddr, "queue": s.Queue}
+	for _, line := range strings.Split(info, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.Contains(line, ":") {
+			parts := strings.SplitN(line, ":", 2)
+			if parts[0] == "keyspace_hits" || parts[0] == "keyspace_misses" || parts[0] == "total_commands_processed" || parts[0] == "instantaneous_ops_per_sec" {
+				out[parts[0]] = parts[1]
+			}
+		}
+	}
+	return out, nil
+}
+
 func (s *Service) Get(ctx context.Context, key string) (string, error) {
 	if key == "" {
 		return "", errors.New("key is required")

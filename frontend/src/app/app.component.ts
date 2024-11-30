@@ -162,6 +162,45 @@ interface SecurityFinding {
 
 type SecurityTab = 'SECURITY' | 'COMPLIANCE' | 'VULNERABILITIES';
 type ScanStatus = 'PASSED' | 'RUNNING' | 'FAILED' | 'QUEUED';
+
+interface ObservabilityStackItem {
+    name: string;
+    role: string;
+    endpoint: string;
+    health: number;
+    signal: string;
+}
+
+interface TraceHop {
+    from: string;
+    to: string;
+    latency: number;
+    status: string;
+}
+
+interface GitOpsState {
+    sync: string;
+    drift: number;
+    revision: string;
+    health: string;
+}
+
+interface DeploymentWave {
+    wave: string;
+    target: string;
+    status: string;
+}
+
+interface NebulaEnvironment {
+    name: string;
+    namespace: string;
+    cluster: string;
+    health: number;
+    cost: number;
+    drift: number;
+    workspace: string;
+}
+
 type PipelineDesignerStatus = 'success' | 'running' | 'queued' | 'blocked';
 
 interface SecurityScan {
@@ -277,12 +316,12 @@ interface HomeLauncher {
     status: string;
 }
 
-const TASKS_KEY = 'nebulaops.v19_5.tasks';
-const K8S_KEY = 'nebulaops.v19_5.k8s';
-const SESSION_KEY = 'nebulaops.v19_5.session';
+const TASKS_KEY = 'nebulaops.v20_1.tasks';
+const K8S_KEY = 'nebulaops.v20_1.k8s';
+const SESSION_KEY = 'nebulaops.v20_1.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v19-5\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v20-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -316,7 +355,7 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v19_5.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v20_1.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -364,8 +403,8 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly lastLogsRefresh = signal('never');
     readonly dockerContainers = signal<DockerContainer[]>(this.syntheticDockerContainers());
     readonly dockerImages = signal<DockerImage[]>([
-        {repository: 'nebulaops/frontend', tag: 'v19.5', size: '186MB', vulnerabilities: 0, created: 'today'},
-        {repository: 'nebulaops/gateway-service', tag: 'v19.5', size: '292MB', vulnerabilities: 1, created: 'today'},
+        {repository: 'nebulaops/frontend', tag: 'v20.1', size: '186MB', vulnerabilities: 0, created: 'today'},
+        {repository: 'nebulaops/gateway-service', tag: 'v20.1', size: '292MB', vulnerabilities: 1, created: 'today'},
         {repository: 'mongo', tag: '7', size: '739MB', vulnerabilities: 2, created: 'cached'},
         {repository: 'redis', tag: '7-alpine', size: '42MB', vulnerabilities: 0, created: 'cached'},
         {repository: 'rabbitmq', tag: '3-management', size: '286MB', vulnerabilities: 1, created: 'cached'}
@@ -473,7 +512,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v19.5'
+            status: 'v20.1'
         },
         {
             title: 'INFRA',
@@ -527,7 +566,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v19.5'
+            status: 'v20.1'
         },
         {
             title: 'Helm',
@@ -554,7 +593,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v19.5'
+            status: 'v20.1'
         },
         {
             title: 'Multi-Env Manager',
@@ -642,7 +681,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-TRIVY-API',
             tool: 'Trivy',
-            target: 'gateway-service:19.5.0',
+            target: 'gateway-service:20.1.0',
             status: 'RUNNING',
             critical: 1,
             high: 4,
@@ -652,7 +691,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-DOCKER-FE',
             tool: 'Docker',
-            target: 'frontend:19.5.0',
+            target: 'frontend:20.1.0',
             status: 'PASSED',
             critical: 0,
             high: 1,
@@ -755,30 +794,30 @@ export class AppComponent implements OnInit, OnDestroy {
         }
     ]);
 
-    readonly observabilityStack = [
+    readonly observabilityStack = signal<ObservabilityStackItem[]>([
         {name: 'Prometheus', role: 'metrics', endpoint: 'http://localhost:9090', health: 99, signal: '2.4k series'},
         {name: 'Loki', role: 'logs', endpoint: 'http://localhost:3100', health: 96, signal: '18k log lines'},
         {name: 'Tempo', role: 'traces', endpoint: 'http://localhost:3200', health: 94, signal: '742 spans'},
         {name: 'Grafana', role: 'dashboards', endpoint: 'http://localhost:3000', health: 98, signal: '12 panels'},
         {name: 'OpenTelemetry', role: 'collector', endpoint: 'http://localhost:4318', health: 97, signal: 'OTLP active'}
-    ];
-    readonly traceFlow = [
+    ]);
+    readonly traceFlow = signal<TraceHop[]>([
         {from: 'frontend', to: 'gateway', latency: 24, status: 'ok'},
         {from: 'gateway', to: 'task-service', latency: 68, status: 'warm'},
         {from: 'task-service', to: 'mongodb', latency: 112, status: 'hot'},
         {from: 'notification-service', to: 'rabbitmq', latency: 39, status: 'ok'},
         {from: 'worker', to: 'loki', latency: 51, status: 'warm'}
-    ];
-    readonly latencyHeatmap = [18, 24, 31, 48, 62, 80, 96, 72, 44, 28, 35, 57, 89, 121, 76, 42];
-    readonly kafkaEvents = ['task.created', 'scan.completed', 'deploy.synced', 'trace.exported', 'drift.detected', 'rollback.ready'];
+    ]);
+    readonly latencyHeatmap = signal<number[]>([18, 24, 31, 48, 62, 80, 96, 72, 44, 28, 35, 57, 89, 121, 76, 42]);
+    readonly kafkaEvents = signal<string[]>(['task.created', 'scan.completed', 'deploy.synced', 'trace.exported', 'drift.detected', 'rollback.ready']);
     readonly gitOpsState = signal({sync: 'OutOfSync', drift: 3, revision: 'a19f5c2', health: 'Degraded'});
-    readonly deploymentWaves = [
+    readonly deploymentWaves = signal<DeploymentWave[]>([
         {wave: 'wave-0', target: 'namespaces + CRDs', status: 'synced'},
         {wave: 'wave-1', target: 'databases + queues', status: 'synced'},
         {wave: 'wave-2', target: 'backend services', status: 'running'},
         {wave: 'wave-3', target: 'frontend + ingress', status: 'pending'}
-    ];
-    readonly commitStream = ['feat(obs): add tempo traces', 'fix(gitops): rollback gate', 'infra(env): staging namespace', 'tf: cost estimate module'];
+    ]);
+    readonly commitStream = signal<string[]>(['feat(obs): add tempo traces', 'fix(gitops): rollback gate', 'infra(env): staging namespace', 'tf: cost estimate module']);
     readonly environments = signal([
         {
             name: 'LOCAL',
@@ -1111,56 +1150,68 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v19-5-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v20-1-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
-            title: 'V19.5 DevSecOps',
+            title: 'V20.1 DevSecOps',
             path: 'docs/V19_3_DEVSECOPS_MODULE.md',
             why: 'Security, compliance and vulnerability cockpit'
         },
         {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
         {
-            title: 'V19.5 release notes',
-            path: 'docs/V19_5_RELEASE_NOTES.md',
+            title: 'V20.1 release notes',
+            path: 'docs/V20_1_RELEASE_NOTES.md',
             why: 'Observability, GitOps, environments and Terraform Studio'
         },
         {
-            title: 'V19.5 Observability',
-            path: 'docs/V19_5_ADVANCED_OBSERVABILITY.md',
+            title: 'V20.1 Observability',
+            path: 'docs/V20_1_ADVANCED_OBSERVABILITY.md',
             why: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry'
         },
         {
-            title: 'V19.5 GitOps Control Plane',
-            path: 'docs/V19_5_GITOPS_CONTROL_PLANE.md',
+            title: 'V20.1 GitOps Control Plane',
+            path: 'docs/V20_1_GITOPS_CONTROL_PLANE.md',
             why: 'drift detection, ArgoCD live sync and rollback'
         },
         {
-            title: 'V19.5 Multi-Environment Manager',
-            path: 'docs/V19_5_MULTI_ENVIRONMENT_MANAGER.md',
+            title: 'V20.1 Multi-Environment Manager',
+            path: 'docs/V20_1_MULTI_ENVIRONMENT_MANAGER.md',
             why: 'LOCAL, DEV, STAGING and PROD provisioning'
         },
         {
-            title: 'V19.5 Smart Terraform Studio',
-            path: 'docs/V19_5_SMART_TERRAFORM_STUDIO.md',
+            title: 'V20.1 Smart Terraform Studio',
+            path: 'docs/V20_1_SMART_TERRAFORM_STUDIO.md',
             why: 'digital twin graph, plan preview and cost estimation'
         },
         {
-            title: 'V19.5 CI/CD Designer',
-            path: 'docs/V19_5_CICD_PIPELINE_DESIGNER.md',
+            title: 'V20.1 CI/CD Designer',
+            path: 'docs/V20_1_CICD_PIPELINE_DESIGNER.md',
             why: 'drag-drop pipeline canvas and pipeline-engine-service'
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v19-5-devsecops-module.svg',
+            path: 'docs/nebulaops-v20-1-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
     readonly workloads = computed(() => this.resources().filter(r => ['Deployment', 'StatefulSet', 'DaemonSet'].includes(r.kind)));
-    readonly selectedNode = computed(() => {
+    readonly selectedNode = computed<ClusterNode3D>(() => {
+        const fallback: ClusterNode3D = {
+            id: 'none',
+            label: 'Select pod',
+            role: 'none',
+            cpu: 0,
+            ram: 0,
+            x: 50,
+            y: 50,
+            z: 0,
+            status: 'warning'
+        };
         const selected = this.selected();
-        if (!selected) return this.liveClusterNodes()[0] ?? null;
-        return this.liveClusterNodes().find(n => n.id === selected.name || n.label.toLowerCase().includes(selected.name.toLowerCase())) ?? this.liveClusterNodes()[0] ?? null;
+        const nodes = this.liveClusterNodes();
+        if (!selected) return nodes[0] ?? fallback;
+        return nodes.find(n => n.id === selected.name || n.label.toLowerCase().includes(selected.name.toLowerCase())) ?? nodes[0] ?? fallback;
     });
     readonly monthlyCost = computed(() => this.costItems.reduce((sum, item) => sum + item.monthly, 0));
     readonly openRisks = computed(() => this.findings().filter(f => !f.done).length);
@@ -1182,7 +1233,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v19_5.user', u);
+            localStorage.setItem('nebulaops.v20_1.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -1266,6 +1317,10 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadK8sFromApi();
         this.loadHelm();
         this.loadDocker();
+        this.loadObservability();
+        this.loadGitOps();
+        this.loadDevSecOps();
+        this.loadEnvironments();
         this.refreshLogs();
         this.runAiOpsAnalysis(false);
     }
@@ -1381,7 +1436,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-front',
                 name: 'nebulaops-frontend',
-                image: 'nebulaops/frontend:v19.5',
+                image: 'nebulaops/frontend:v20.1',
                 status: 'running',
                 cpu: 12,
                 memory: 148,
@@ -1392,7 +1447,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-gateway',
                 name: 'gateway-service',
-                image: 'nebulaops/gateway-service:v19.5',
+                image: 'nebulaops/gateway-service:v20.1',
                 status: 'running',
                 cpu: 34,
                 memory: 512,
@@ -1575,7 +1630,78 @@ ${selectedLogs}`;
     }
 
     loadDocker(): void {
-        forkJoin({containers: this.http.get<DockerContainer[]>('/api/runtime/docker/containers').pipe(catchError(() => of([])))}).subscribe(r => this.dockerContainers.set(r.containers.length ? r.containers : this.syntheticDockerContainers()));
+        forkJoin({
+            containers: this.http.get<any[]>('/api/runtime/docker/containers').pipe(catchError(() => of([]))),
+            images: this.http.get<any[]>('/api/runtime/docker/images').pipe(catchError(() => of([]))),
+            volumes: this.http.get<any[]>('/api/runtime/docker/volumes').pipe(catchError(() => of([])))
+        }).subscribe(r => {
+            const containers = r.containers.map((x, i) => this.normalizeDockerContainer(x, i));
+            this.dockerContainers.set(containers.length ? containers : this.syntheticDockerContainers());
+            if (r.images.length) this.dockerImages.set(r.images.map(x => ({
+                repository: x.Repository || x.repository || '<none>',
+                tag: x.Tag || x.tag || 'latest',
+                size: x.Size || x.size || '-',
+                vulnerabilities: Number(x.vulnerabilities || 0),
+                created: x.CreatedSince || x.created || x.CreatedAt || '-'
+            })));
+            if (r.volumes.length) this.dockerVolumes.set(r.volumes.map(x => ({
+                name: x.Name || x.name,
+                driver: x.Driver || x.driver || 'local',
+                mount: x.Mountpoint || x.mount || '-',
+                size: x.Scope || x.size || '-'
+            })));
+        });
+    }
+
+    normalizeDockerContainer(x: any, i: number): DockerContainer {
+        const rawStatus = String(x.status || x.Status || x.State || '').toLowerCase();
+        const status: DockerContainer['status'] = rawStatus.includes('pause') ? 'paused' : rawStatus.includes('restart') ? 'restarting' : rawStatus.includes('up') || rawStatus.includes('running') ? 'running' : 'stopped';
+        return {
+            id: x.id || x.ID || `docker-${i}`,
+            name: x.name || x.Names || x.Name || `container-${i}`,
+            image: x.image || x.Image || '-',
+            status,
+            cpu: Number(String(x.CPUPerc || x.cpu || '0').replace('%', '')) || 0,
+            memory: Number(String(x.MemUsage || x.memory || '0').split(/[A-Z]/)[0]) || 0,
+            ports: x.ports || x.Ports || '-',
+            network: x.network || x.Networks || '-',
+            logs: x.logs || [`${x.Names || x.Name || 'container'} ${x.Status || 'detected from Docker Engine'}`]
+        };
+    }
+
+    loadObservability(): void {
+        this.http.get<any>('/api/platform/observability').pipe(catchError(() => of(null))).subscribe(data => {
+            if (!data) return;
+            this.observabilityStack.set(data.stack || this.observabilityStack());
+            this.traceFlow.set(data.traceFlow || this.traceFlow());
+            this.latencyHeatmap.set(data.latencyHeatmap || this.latencyHeatmap());
+            this.kafkaEvents.set(data.eventStream || this.kafkaEvents());
+        });
+    }
+
+    loadGitOps(): void {
+        this.http.get<any>('/api/platform/gitops').pipe(catchError(() => of(null))).subscribe(data => {
+            if (!data) return;
+            this.gitOpsState.set(data.state || this.gitOpsState());
+            this.deploymentWaves.set(data.deploymentWaves || this.deploymentWaves());
+            this.commitStream.set(data.commitStream || this.commitStream());
+        });
+    }
+
+    loadDevSecOps(): void {
+        this.http.get<any>('/api/platform/devsecops').pipe(catchError(() => of(null))).subscribe(data => {
+            if (!data) return;
+            if (data.scans) this.securityScans.set(data.scans);
+            if (data.cves) this.cveDashboard.set(data.cves);
+            if (data.controls) this.complianceControls.set(data.controls);
+            if (data.threats) this.threatPoints.set(data.threats);
+        });
+    }
+
+    loadEnvironments(): void {
+        this.http.get<any[]>('/api/platform/environments').pipe(catchError(() => of([]))).subscribe(rows => {
+            if (rows.length) this.environments.set(rows);
+        });
     }
 
     loadHelm(): void {

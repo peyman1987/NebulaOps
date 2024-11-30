@@ -13,7 +13,7 @@
         </filter>
     </defs>
     <rect width="1200" height="520" rx="34" fill="#050816"/>
-    <text x="60" y="84" fill="#e2e8f0" font-family="Inter,Arial" font-size="38" font-weight="700">NebulaOps v19.5 ·
+    <text x="60" y="84" fill="#e2e8f0" font-family="Inter,Arial" font-size="38" font-weight="700">NebulaOps v20.1 ·
         Multi-Environment Manager
     </text>
     <path d="M120 280 C300 110 440 430 620 250 S900 120 1060 285" stroke="url(#g)" stroke-width="8" fill="none"

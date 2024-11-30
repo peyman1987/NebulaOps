@@ -1,6 +1,6 @@
-# NebulaOps v19.5 — CI/CD Pipeline Designer
+# NebulaOps v20.1 — CI/CD Pipeline Designer
 
-v19.5 introduces a portfolio-grade CI/CD Pipeline Designer with a visual drag-and-drop canvas and backend contract for
+v20.1 introduces a portfolio-grade CI/CD Pipeline Designer with a visual drag-and-drop canvas and backend contract for
 saving pipeline definitions.
 
 ## Frontend
@@ -23,7 +23,7 @@ New service: `backend/pipeline-engine-service`.
 
 Endpoints:
 
-- `GET /api/pipeline-engine/template` — returns default v19.5 stage map, GitLab YAML and ArgoCD metadata.
+- `GET /api/pipeline-engine/template` — returns default v20.1 stage map, GitLab YAML and ArgoCD metadata.
 - `POST /api/pipeline-engine/designs` — saves a JSON/YAML pipeline design in memory for demo use.
 - `GET /api/pipeline-engine/designs` — lists saved pipeline designs.
 - `POST /api/pipeline-engine/gitlab/export` — returns generated `.gitlab-ci.yml` content.

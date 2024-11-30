@@ -10,7 +10,7 @@ import java.util.*;
 public class ObservabilityServiceController {
     @GetMapping("/stack")
     public Map<String, Object> stack() {
-        return Map.of("version", "19.5", "stack", List.of("Prometheus", "Loki", "Tempo", "Grafana", "OpenTelemetry"), "generatedAt", Instant.now().toString());
+        return Map.of("version", "20.1", "stack", List.of("Prometheus", "Loki", "Tempo", "Grafana", "OpenTelemetry"), "generatedAt", Instant.now().toString());
     }
 
     @GetMapping("/traces")
