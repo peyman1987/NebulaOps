@@ -113,7 +113,7 @@
     </defs>
     <rect fill="url(#bg)" height="860" width="1400"/>
     <rect fill="url(#grid)" height="860" opacity=".8" width="1400"/>
-    <text class="title" x="70" y="90">NebulaOps v20.1 · Kubernetes Visual Cluster</text>
+    <text class="title" x="70" y="90">NebulaOps v20.2 · Kubernetes Visual Cluster</text>
     <text class="sub" x="72" y="128">3D topology · live pods · services · ingress · volumes · logs · terminal · metrics
         · events · YAML
     </text>

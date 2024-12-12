@@ -173,7 +173,7 @@ public class PlatformLiveController {
     private List<String> commits() {
         String log = shellQuiet("git log --oneline -4 --pretty=format:%s");
         if (log.isBlank())
-            return List.of("feat(v20.1): dynamic platform telemetry", "style(ui): glassmorphism console refresh", "backend: live DevSecOps endpoints", "go: runtime services ready");
+            return List.of("feat(v20.2): dynamic platform telemetry", "style(ui): glassmorphism console refresh", "backend: live DevSecOps endpoints", "go: runtime services ready");
         return Arrays.stream(log.split("\\R")).filter(s -> !s.isBlank()).toList();
     }
 

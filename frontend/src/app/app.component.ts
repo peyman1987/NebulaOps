@@ -24,7 +24,15 @@ type MainTab =
     | 'VULNERABILITIES'
     | 'FINOPS'
     | 'BACKUPS'
-    | 'DOCS';
+    | 'DOCS'
+    | 'REGISTRY'
+    | 'SERVICE MESH'
+    | 'SECRETS'
+    | 'DATABASES'
+    | 'QUEUES'
+    | 'SLO'
+    | 'INCIDENTS'
+    | 'AUDIT';
 type Status = 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 type K8sKind =
@@ -248,6 +256,15 @@ interface AiOpsEvent {
     recommendation: string;
 }
 
+interface PlatformTool {
+    title: string;
+    tab: MainTab;
+    icon: string;
+    description: string;
+    status: string;
+    category: string;
+}
+
 interface AiOpsNode {
     id: string;
     label: string;
@@ -316,12 +333,12 @@ interface HomeLauncher {
     status: string;
 }
 
-const TASKS_KEY = 'nebulaops.v20_1.tasks';
-const K8S_KEY = 'nebulaops.v20_1.k8s';
-const SESSION_KEY = 'nebulaops.v20_1.session';
+const TASKS_KEY = 'nebulaops.v20_2.tasks';
+const K8S_KEY = 'nebulaops.v20_2.k8s';
+const SESSION_KEY = 'nebulaops.v20_2.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v20-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v20-2\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -349,13 +366,87 @@ function res(kind: K8sKind, namespace: string, name: string, replicas = 0): K8sR
     styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
-    readonly tabs: MainTab[] = ['OVERVIEW', 'INFRA', 'TASKS', 'CONTAINERS', 'KUBERNETES', 'TERRAFORM', 'TERRAFORM STUDIO', 'HELM', 'OBSERVABILITY', 'GITOPS', 'ENVIRONMENTS', 'AI OPS', 'CICD', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'FINOPS', 'BACKUPS', 'DOCS'];
+    readonly tabs: MainTab[] = ['OVERVIEW', 'INFRA', 'TASKS', 'CONTAINERS', 'KUBERNETES', 'REGISTRY', 'TERRAFORM', 'TERRAFORM STUDIO', 'HELM', 'GITOPS', 'CICD', 'OBSERVABILITY', 'SLO', 'INCIDENTS', 'AI OPS', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'SECRETS', 'SERVICE MESH', 'DATABASES', 'QUEUES', 'ENVIRONMENTS', 'FINOPS', 'BACKUPS', 'AUDIT', 'DOCS'];
+    readonly sidebarGroups = [
+        {name: 'Command', tabs: ['OVERVIEW', 'INFRA', 'TASKS', 'DOCS'] as MainTab[]},
+        {name: 'Runtime', tabs: ['CONTAINERS', 'KUBERNETES', 'REGISTRY', 'HELM', 'SERVICE MESH'] as MainTab[]},
+        {name: 'Delivery', tabs: ['CICD', 'GITOPS', 'TERRAFORM', 'TERRAFORM STUDIO', 'ENVIRONMENTS'] as MainTab[]},
+        {name: 'Reliability', tabs: ['OBSERVABILITY', 'SLO', 'INCIDENTS', 'AI OPS'] as MainTab[]},
+        {name: 'Security', tabs: ['SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'SECRETS', 'AUDIT'] as MainTab[]},
+        {name: 'Data & Cost', tabs: ['DATABASES', 'QUEUES', 'FINOPS', 'BACKUPS'] as MainTab[]}
+    ];
+    readonly platformTools: PlatformTool[] = [
+        {
+            title: 'Container Registry',
+            tab: 'REGISTRY',
+            icon: '📦',
+            description: 'image inventory, tags, SBOM, scan status, promotions',
+            status: 'dynamic UI ready',
+            category: 'Runtime'
+        },
+        {
+            title: 'Service Mesh',
+            tab: 'SERVICE MESH',
+            icon: '🕸️',
+            description: 'Istio/Linkerd traffic split, mTLS, retries and routes',
+            status: 'mesh cockpit',
+            category: 'Runtime'
+        },
+        {
+            title: 'Secrets Vault',
+            tab: 'SECRETS',
+            icon: '🔐',
+            description: 'Vault/K8s secrets rotation, expiry and policy view',
+            status: 'rotation center',
+            category: 'Security'
+        },
+        {
+            title: 'Database Ops',
+            tab: 'DATABASES',
+            icon: '🛢️',
+            description: 'MongoDB/Postgres health, connections, backups and slow queries',
+            status: 'live cards',
+            category: 'Data'
+        },
+        {
+            title: 'Queues & Streams',
+            tab: 'QUEUES',
+            icon: '📨',
+            description: 'RabbitMQ/Kafka lag, consumers, DLQ and throughput',
+            status: 'event cockpit',
+            category: 'Data'
+        },
+        {
+            title: 'SLO Center',
+            tab: 'SLO',
+            icon: '🎯',
+            description: 'availability, latency, error budget and burn-rate monitor',
+            status: 'reliability',
+            category: 'Reliability'
+        },
+        {
+            title: 'Incident Room',
+            tab: 'INCIDENTS',
+            icon: '🚨',
+            description: 'timeline, ownership, mitigation steps and postmortem notes',
+            status: 'war room',
+            category: 'Reliability'
+        },
+        {
+            title: 'Audit Trail',
+            tab: 'AUDIT',
+            icon: '🧾',
+            description: 'operator actions, deploy events and compliance evidence',
+            status: 'governance',
+            category: 'Security'
+        }
+    ];
     readonly columns: Status[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
     readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v20_1.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v20_2.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -403,8 +494,8 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly lastLogsRefresh = signal('never');
     readonly dockerContainers = signal<DockerContainer[]>(this.syntheticDockerContainers());
     readonly dockerImages = signal<DockerImage[]>([
-        {repository: 'nebulaops/frontend', tag: 'v20.1', size: '186MB', vulnerabilities: 0, created: 'today'},
-        {repository: 'nebulaops/gateway-service', tag: 'v20.1', size: '292MB', vulnerabilities: 1, created: 'today'},
+        {repository: 'nebulaops/frontend', tag: 'v20.2', size: '186MB', vulnerabilities: 0, created: 'today'},
+        {repository: 'nebulaops/gateway-service', tag: 'v20.2', size: '292MB', vulnerabilities: 1, created: 'today'},
         {repository: 'mongo', tag: '7', size: '739MB', vulnerabilities: 2, created: 'cached'},
         {repository: 'redis', tag: '7-alpine', size: '42MB', vulnerabilities: 0, created: 'cached'},
         {repository: 'rabbitmq', tag: '3-management', size: '286MB', vulnerabilities: 1, created: 'cached'}
@@ -512,7 +603,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v20.1'
+            status: 'v20.2'
         },
         {
             title: 'INFRA',
@@ -566,7 +657,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v20.1'
+            status: 'v20.2'
         },
         {
             title: 'Helm',
@@ -593,7 +684,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v20.1'
+            status: 'v20.2'
         },
         {
             title: 'Multi-Env Manager',
@@ -681,7 +772,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-TRIVY-API',
             tool: 'Trivy',
-            target: 'gateway-service:20.1.0',
+            target: 'gateway-service:20.2.0',
             status: 'RUNNING',
             critical: 1,
             high: 4,
@@ -691,7 +782,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-DOCKER-FE',
             tool: 'Docker',
-            target: 'frontend:20.1.0',
+            target: 'frontend:20.2.0',
             status: 'PASSED',
             critical: 0,
             high: 1,
@@ -1150,48 +1241,48 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v20-1-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v20-2-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
-            title: 'V20.1 DevSecOps',
+            title: 'V20.2 DevSecOps',
             path: 'docs/V19_3_DEVSECOPS_MODULE.md',
             why: 'Security, compliance and vulnerability cockpit'
         },
         {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
         {
-            title: 'V20.1 release notes',
+            title: 'V20.2 release notes',
             path: 'docs/V20_1_RELEASE_NOTES.md',
             why: 'Observability, GitOps, environments and Terraform Studio'
         },
         {
-            title: 'V20.1 Observability',
+            title: 'V20.2 Observability',
             path: 'docs/V20_1_ADVANCED_OBSERVABILITY.md',
             why: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry'
         },
         {
-            title: 'V20.1 GitOps Control Plane',
+            title: 'V20.2 GitOps Control Plane',
             path: 'docs/V20_1_GITOPS_CONTROL_PLANE.md',
             why: 'drift detection, ArgoCD live sync and rollback'
         },
         {
-            title: 'V20.1 Multi-Environment Manager',
+            title: 'V20.2 Multi-Environment Manager',
             path: 'docs/V20_1_MULTI_ENVIRONMENT_MANAGER.md',
             why: 'LOCAL, DEV, STAGING and PROD provisioning'
         },
         {
-            title: 'V20.1 Smart Terraform Studio',
+            title: 'V20.2 Smart Terraform Studio',
             path: 'docs/V20_1_SMART_TERRAFORM_STUDIO.md',
             why: 'digital twin graph, plan preview and cost estimation'
         },
         {
-            title: 'V20.1 CI/CD Designer',
+            title: 'V20.2 CI/CD Designer',
             path: 'docs/V20_1_CICD_PIPELINE_DESIGNER.md',
             why: 'drag-drop pipeline canvas and pipeline-engine-service'
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v20-1-devsecops-module.svg',
+            path: 'docs/nebulaops-v20-2-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -1233,7 +1324,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v20_1.user', u);
+            localStorage.setItem('nebulaops.v20_2.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -1436,7 +1527,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-front',
                 name: 'nebulaops-frontend',
-                image: 'nebulaops/frontend:v20.1',
+                image: 'nebulaops/frontend:v20.2',
                 status: 'running',
                 cpu: 12,
                 memory: 148,
@@ -1447,7 +1538,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-gateway',
                 name: 'gateway-service',
-                image: 'nebulaops/gateway-service:v20.1',
+                image: 'nebulaops/gateway-service:v20.2',
                 status: 'running',
                 cpu: 34,
                 memory: 512,

@@ -1,4 +1,4 @@
-# NebulaOps v20.1 — INFRA Hub
+# NebulaOps v20.2 — INFRA Hub
 
 The `INFRA` tab is restored as a dedicated console and feature-access hub.
 

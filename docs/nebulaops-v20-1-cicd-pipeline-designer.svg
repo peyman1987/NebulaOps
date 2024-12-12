@@ -13,7 +13,7 @@
         </filter>
     </defs>
     <rect fill="#020617" height="760" width="1400"/>
-    <text fill="#e0f2fe" font-family="Inter,Arial" font-size="42" font-weight="900" x="64" y="82">NebulaOps v20.1 ·
+    <text fill="#e0f2fe" font-family="Inter,Arial" font-size="42" font-weight="900" x="64" y="82">NebulaOps v20.2 ·
         CI/CD Pipeline Designer
     </text>
     <text fill="#7dd3fc" font-family="Inter,Arial" font-size="18" x="66" y="122">Build → Test → Security Scan → Docker

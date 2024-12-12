@@ -1,4 +1,4 @@
-# NebulaOps v20.1 Documentation Index
+# NebulaOps v20.2 Documentation Index
 
 - [Release notes](./V20_1_RELEASE_NOTES.md)
 - [Docker Desktop + OpenLens console](./V19_5_DOCKER_DESKTOP_OPENLENS.md)
