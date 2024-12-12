@@ -1,4 +1,4 @@
-# NebulaOps v20.1 Documentation Index
+# NebulaOps v20.2 Documentation Index
 
 - V20_1_RELEASE_NOTES.md
 - V20_1_ADVANCED_OBSERVABILITY.md

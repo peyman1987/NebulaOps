@@ -1,4 +1,4 @@
-name: nebulaops-v20-1
+name: nebulaops-v20-2
 
 services:
   mongodb:
@@ -44,7 +44,7 @@ services:
     ports:
       - 8089:8081
   auth-service:
-    image: nebulaops-v20-1-auth-service:latest
+    image: nebulaops-v20-2-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
@@ -56,7 +56,7 @@ services:
     ports:
       - 8081:8081
   task-service:
-    image: nebulaops-v20-1-task-service:latest
+    image: nebulaops-v20-2-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -74,7 +74,7 @@ services:
     ports:
       - 8082:8082
   notification-service:
-    image: nebulaops-v20-1-notification-service:latest
+    image: nebulaops-v20-2-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -92,7 +92,7 @@ services:
     ports:
       - 8083:8083
   file-service:
-    image: nebulaops-v20-1-file-service:latest
+    image: nebulaops-v20-2-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
@@ -104,14 +104,14 @@ services:
     ports:
       - 8084:8084
   ai-engine:
-    image: nebulaops-v20-1-ai-engine:latest
+    image: nebulaops-v20-2-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
     ports:
       - 8095:8095
   ai-ops-service:
-    image: nebulaops-v20-1-ai-ops-service:latest
+    image: nebulaops-v20-2-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
@@ -122,21 +122,21 @@ services:
     ports:
       - 8085:8085
   devsecops-service:
-    image: nebulaops-v20-1-devsecops-service:latest
+    image: nebulaops-v20-2-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
     ports:
       - 8086:8086
   pipeline-engine-service:
-    image: nebulaops-v20-1-pipeline-engine-service:latest
+    image: nebulaops-v20-2-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
     ports:
       - 8087:8087
   gateway-service:
-    image: nebulaops-v20-1-gateway-service:latest
+    image: nebulaops-v20-2-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
@@ -149,7 +149,7 @@ services:
       DEVSECOPS_SERVICE_URL: http://devsecops-service:8086
       PIPELINE_ENGINE_SERVICE_URL: http://pipeline-engine-service:8087
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v20-1}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v20-2}
       GRAFANA_URL: http://grafana:3000
       GRAFANA_AUTH: admin:admin
     volumes:
@@ -174,7 +174,7 @@ services:
     ports:
       - 8080:8080
   frontend:
-    image: nebulaops-v20-1-frontend:latest
+    image: nebulaops-v20-2-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -280,7 +280,7 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v20-1-go-cache-service:latest
+    image: nebulaops-v20-2-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -299,7 +299,7 @@ services:
     ports:
       - 8091:8091
   go-event-worker:
-    image: nebulaops-v20-1-go-event-worker:latest
+    image: nebulaops-v20-2-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile

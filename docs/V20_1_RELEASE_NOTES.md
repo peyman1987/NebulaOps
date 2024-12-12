@@ -1,8 +1,8 @@
-# NebulaOps v20.1 — Dynamic Enterprise Runtime
+# NebulaOps v20.2 — Dynamic Enterprise Runtime
 
 ## Obiettivi
 
-La versione v20.1 rimuove il feeling statico della v19.5 e porta più dati reali nel frontend.
+La versione v20.2 rimuove il feeling statico della v19.5 e porta più dati reali nel frontend.
 
 ## Novità principali
 

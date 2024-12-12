@@ -1,6 +1,6 @@
-# NebulaOps v20.1 — Docker Desktop + OpenLens Console
+# NebulaOps v20.2 — Docker Desktop + OpenLens Console
 
-Questa build reintegra la sezione container delle versioni precedenti e la porta al livello v20.1.
+Questa build reintegra la sezione container delle versioni precedenti e la porta al livello v20.2.
 
 ## Nuovo tab: CONTAINERS
 
