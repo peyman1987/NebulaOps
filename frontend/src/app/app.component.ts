@@ -375,6 +375,77 @@ export class AppComponent implements OnInit, OnDestroy {
         {name: 'Security', tabs: ['SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'SECRETS', 'AUDIT'] as MainTab[]},
         {name: 'Data & Cost', tabs: ['DATABASES', 'QUEUES', 'FINOPS', 'BACKUPS'] as MainTab[]}
     ];
+    readonly sideCollapsed = signal(false);
+    readonly openSideGroups = signal<Record<string, boolean>>({
+        OpenLens: true,
+        Workloads: true,
+        Network: true,
+        Storage: true,
+        'Docker Desktop': true,
+        Platform: true
+    });
+    readonly activeLensSection = signal('Cluster');
+    readonly activeDockerSection = signal('Containers');
+    readonly sideTree: any[] = [
+        {
+            name: 'OpenLens', icon: '☸', children: [
+                {label: 'Cluster', tab: 'KUBERNETES', lens: 'Cluster'},
+                {label: 'Nodes', tab: 'KUBERNETES', lens: 'Nodes'},
+                {
+                    label: 'Workloads', group: 'Workloads', children: [
+                        {label: 'Overview', tab: 'KUBERNETES', lens: 'Workloads Overview'},
+                        {label: 'Pods', tab: 'KUBERNETES', lens: 'Pods'},
+                        {label: 'Deployments', tab: 'KUBERNETES', lens: 'Deployments'},
+                        {label: 'DaemonSets', tab: 'KUBERNETES', lens: 'DaemonSets'},
+                        {label: 'StatefulSets', tab: 'KUBERNETES', lens: 'StatefulSets'},
+                        {label: 'ReplicaSets', tab: 'KUBERNETES', lens: 'ReplicaSets'},
+                        {label: 'Jobs', tab: 'KUBERNETES', lens: 'Jobs'},
+                        {label: 'CronJobs', tab: 'KUBERNETES', lens: 'CronJobs'}
+                    ]
+                },
+                {label: 'Config', tab: 'KUBERNETES', lens: 'Config'},
+                {
+                    label: 'Network', group: 'Network', children: [
+                        {label: 'Services', tab: 'KUBERNETES', lens: 'Services'},
+                        {label: 'Endpoints', tab: 'KUBERNETES', lens: 'Endpoints'},
+                        {label: 'Ingresses', tab: 'KUBERNETES', lens: 'Ingresses'},
+                        {label: 'Network Policies', tab: 'KUBERNETES', lens: 'Network Policies'},
+                        {label: 'Port Forwarding', tab: 'KUBERNETES', lens: 'Port Forwarding'}
+                    ]
+                },
+                {
+                    label: 'Storage', group: 'Storage', children: [
+                        {label: 'Persistent Volume Claims', tab: 'KUBERNETES', lens: 'Persistent Volume Claims'},
+                        {label: 'Persistent Volumes', tab: 'KUBERNETES', lens: 'Persistent Volumes'},
+                        {label: 'Storage Classes', tab: 'KUBERNETES', lens: 'Storage Classes'}
+                    ]
+                },
+                {label: 'Namespaces', tab: 'KUBERNETES', lens: 'Namespaces'},
+                {label: 'Events', tab: 'KUBERNETES', lens: 'Events'},
+                {label: 'Helm', tab: 'HELM', lens: 'Helm'}
+            ]
+        },
+        {
+            name: 'Docker Desktop', icon: '🐳', children: [
+                {label: 'Containers', tab: 'CONTAINERS', docker: 'Containers'},
+                {label: 'Images', tab: 'CONTAINERS', docker: 'Images'},
+                {label: 'Volumes', tab: 'CONTAINERS', docker: 'Volumes'},
+                {label: 'Builds', tab: 'CONTAINERS', docker: 'Builds'},
+                {label: 'Dev Environments', tab: 'CONTAINERS', docker: 'Dev Environments'},
+                {label: 'Docker Scout', tab: 'CONTAINERS', docker: 'Docker Scout'}
+            ]
+        },
+        {
+            name: 'Platform', icon: '✦', children: [
+                {label: 'Dashboard', tab: 'OVERVIEW'}, {label: 'INFRA', tab: 'INFRA'}, {label: 'CI/CD', tab: 'CICD'},
+                {label: 'GitOps', tab: 'GITOPS'}, {label: 'Observability', tab: 'OBSERVABILITY'}, {
+                    label: 'Security',
+                    tab: 'SECURITY'
+                },
+                {label: 'Terraform', tab: 'TERRAFORM'}, {label: 'Docs', tab: 'DOCS'}
+            ]
+        }
+    ];
     readonly platformTools: PlatformTool[] = [
         {
             title: 'Container Registry',
@@ -494,8 +565,8 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly lastLogsRefresh = signal('never');
     readonly dockerContainers = signal<DockerContainer[]>(this.syntheticDockerContainers());
     readonly dockerImages = signal<DockerImage[]>([
-        {repository: 'nebulaops/frontend', tag: 'v20.2', size: '186MB', vulnerabilities: 0, created: 'today'},
-        {repository: 'nebulaops/gateway-service', tag: 'v20.2', size: '292MB', vulnerabilities: 1, created: 'today'},
+        {repository: 'nebulaops/frontend', tag: 'v20.3', size: '186MB', vulnerabilities: 0, created: 'today'},
+        {repository: 'nebulaops/gateway-service', tag: 'v20.3', size: '292MB', vulnerabilities: 1, created: 'today'},
         {repository: 'mongo', tag: '7', size: '739MB', vulnerabilities: 2, created: 'cached'},
         {repository: 'redis', tag: '7-alpine', size: '42MB', vulnerabilities: 0, created: 'cached'},
         {repository: 'rabbitmq', tag: '3-management', size: '286MB', vulnerabilities: 1, created: 'cached'}
@@ -603,7 +674,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v20.2'
+            status: 'v20.3'
         },
         {
             title: 'INFRA',
@@ -657,7 +728,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v20.2'
+            status: 'v20.3'
         },
         {
             title: 'Helm',
@@ -684,7 +755,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v20.2'
+            status: 'v20.3'
         },
         {
             title: 'Multi-Env Manager',
@@ -772,7 +843,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-TRIVY-API',
             tool: 'Trivy',
-            target: 'gateway-service:20.2.0',
+            target: 'gateway-service:20.3.0',
             status: 'RUNNING',
             critical: 1,
             high: 4,
@@ -782,7 +853,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {
             id: 'SCAN-DOCKER-FE',
             tool: 'Docker',
-            target: 'frontend:20.2.0',
+            target: 'frontend:20.3.0',
             status: 'PASSED',
             critical: 0,
             high: 1,
@@ -1245,38 +1316,38 @@ export class AppComponent implements OnInit, OnDestroy {
             why: 'AI Ops cockpit animated SVG'
         },
         {
-            title: 'V20.2 DevSecOps',
+            title: 'V20.3 DevSecOps',
             path: 'docs/V19_3_DEVSECOPS_MODULE.md',
             why: 'Security, compliance and vulnerability cockpit'
         },
         {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
         {
-            title: 'V20.2 release notes',
+            title: 'V20.3 release notes',
             path: 'docs/V20_1_RELEASE_NOTES.md',
             why: 'Observability, GitOps, environments and Terraform Studio'
         },
         {
-            title: 'V20.2 Observability',
+            title: 'V20.3 Observability',
             path: 'docs/V20_1_ADVANCED_OBSERVABILITY.md',
             why: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry'
         },
         {
-            title: 'V20.2 GitOps Control Plane',
+            title: 'V20.3 GitOps Control Plane',
             path: 'docs/V20_1_GITOPS_CONTROL_PLANE.md',
             why: 'drift detection, ArgoCD live sync and rollback'
         },
         {
-            title: 'V20.2 Multi-Environment Manager',
+            title: 'V20.3 Multi-Environment Manager',
             path: 'docs/V20_1_MULTI_ENVIRONMENT_MANAGER.md',
             why: 'LOCAL, DEV, STAGING and PROD provisioning'
         },
         {
-            title: 'V20.2 Smart Terraform Studio',
+            title: 'V20.3 Smart Terraform Studio',
             path: 'docs/V20_1_SMART_TERRAFORM_STUDIO.md',
             why: 'digital twin graph, plan preview and cost estimation'
         },
         {
-            title: 'V20.2 CI/CD Designer',
+            title: 'V20.3 CI/CD Designer',
             path: 'docs/V20_1_CICD_PIPELINE_DESIGNER.md',
             why: 'drag-drop pipeline canvas and pipeline-engine-service'
         },
@@ -1391,6 +1462,105 @@ export class AppComponent implements OnInit, OnDestroy {
             revision: 'b' + Math.floor(Math.random() * 999999).toString(16),
             health: current.sync === 'Synced' ? 'Degraded' : 'Healthy'
         });
+    }
+
+    toggleSidebar(): void {
+        this.sideCollapsed.update(v => !v);
+    }
+
+    toggleSideGroup(name: string): void {
+        const current = this.openSideGroups();
+        this.openSideGroups.set({...current, [name]: !current[name]});
+    }
+
+    isSideGroupOpen(name: string): boolean {
+        return this.openSideGroups()[name] !== false;
+    }
+
+    navigateSide(item: any): void {
+        if (item.lens) this.activeLensSection.set(item.lens);
+        if (item.docker) this.activeDockerSection.set(item.docker);
+        if (item.tab) this.setTab(item.tab as MainTab);
+    }
+
+    isSideItemActive(item: any): boolean {
+        return this.activeTab() === item.tab && (!item.lens || this.activeLensSection() === item.lens) && (!item.docker || this.activeDockerSection() === item.docker);
+    }
+
+    dockerSectionRows(): any[] {
+        const section = this.activeDockerSection();
+        if (section === 'Images') return this.dockerImages();
+        if (section === 'Volumes') return this.dockerVolumes();
+        if (section === 'Builds') return [
+            {name: 'frontend', status: 'success', image: 'nebulaops-v20-3-frontend', time: 'local build'},
+            {name: 'gateway-service', status: 'cached', image: 'spring boot layer', time: 'compose cache'},
+            {name: 'go-cache-service', status: 'success', image: 'golang alpine', time: 'multi-stage'}
+        ];
+        if (section === 'Dev Environments') return [
+            {name: 'local-wsl', status: 'running', image: 'Docker + kubectl + helm', time: 'localhost'},
+            {name: 'kind-nebulaops', status: 'ready', image: 'local Kubernetes', time: 'dev cluster'}
+        ];
+        if (section === 'Docker Scout') return this.dockerImages().map(i => ({
+            name: i.repository,
+            status: i.vulnerabilities ? 'attention' : 'clean',
+            image: i.tag,
+            time: 'CVE ' + i.vulnerabilities
+        }));
+        return this.dockerContainers();
+    }
+
+    lensRows(): any[] {
+        const section = this.activeLensSection();
+        const resources = this.resources();
+        if (section === 'Cluster') return this.liveMetrics();
+        if (section === 'Nodes') return this.liveClusterNodes();
+        if (section === 'Pods') return resources.filter(r => r.kind === 'Deployment').map(r => ({
+            ...r,
+            kind: 'Pod',
+            name: r.name + '-pod'
+        }));
+        if (section === 'Deployments') return resources.filter(r => r.kind === 'Deployment');
+        if (section === 'DaemonSets') return this.k8sControllers().filter(c => c.kind === 'DaemonSet');
+        if (section === 'StatefulSets') return resources.filter(r => r.kind === 'StatefulSet');
+        if (section === 'ReplicaSets') return this.k8sControllers().filter(c => c.kind === 'ReplicaSet');
+        if (section === 'Jobs') return [{name: 'db-migration', namespace: 'nebulaops', status: 'Complete', age: '12m'}];
+        if (section === 'CronJobs') return resources.filter(r => r.kind === 'CronJob');
+        if (section === 'Services') return resources.filter(r => r.kind === 'Service');
+        if (section === 'Ingresses') return resources.filter(r => r.kind === 'Ingress');
+        if (section === 'Namespaces') return Array.from(new Set(resources.map(r => r.namespace))).map(name => ({
+            name,
+            status: 'Active',
+            kind: 'Namespace'
+        }));
+        if (section === 'Events') return this.clusterEvents();
+        if (section === 'Config') return resources.filter(r => r.kind === 'ConfigMap' || r.kind === 'Secret');
+        if (section === 'Endpoints') return [{
+            name: 'gateway-service',
+            namespace: 'nebulaops',
+            status: '10.42.0.12:8080'
+        }, {name: 'frontend', namespace: 'nebulaops', status: '10.42.0.21:80'}];
+        if (section === 'Network Policies') return [{
+            name: 'deny-cross-namespace',
+            namespace: 'nebulaops',
+            status: 'enabled'
+        }, {name: 'allow-gateway-egress', namespace: 'nebulaops', status: 'enabled'}];
+        if (section === 'Port Forwarding') return [{
+            name: 'grafana',
+            namespace: 'monitoring',
+            status: '3000:3000'
+        }, {name: 'gateway', namespace: 'nebulaops', status: '8080:8080'}];
+        if (section.includes('Persistent')) return [{
+            name: 'mongo-data',
+            namespace: 'nebulaops',
+            status: 'Bound',
+            size: '10Gi'
+        }, {name: 'grafana-data', namespace: 'monitoring', status: 'Bound', size: '2Gi'}];
+        if (section === 'Storage Classes') return [{
+            name: 'standard',
+            status: 'default',
+            provisioner: 'kubernetes.io/no-provisioner'
+        }, {name: 'local-path', status: 'active', provisioner: 'rancher.io/local-path'}];
+        return [...resources, ...this.k8sControllers()];
     }
 
     setTab(tab: MainTab): void {
@@ -1527,7 +1697,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-front',
                 name: 'nebulaops-frontend',
-                image: 'nebulaops/frontend:v20.2',
+                image: 'nebulaops/frontend:v20.3',
                 status: 'running',
                 cpu: 12,
                 memory: 148,
@@ -1538,7 +1708,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-gateway',
                 name: 'gateway-service',
-                image: 'nebulaops/gateway-service:v20.2',
+                image: 'nebulaops/gateway-service:v20.3',
                 status: 'running',
                 cpu: 34,
                 memory: 512,

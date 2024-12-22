@@ -1,10 +1,9 @@
-FROM node:20.19.0 AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN rm -f package-lock.json && \
-    npm install --include=dev --legacy-peer-deps
+COPY package.json ./
+RUN npm install --include=dev --legacy-peer-deps --no-audit --no-fund --registry=https://registry.npmjs.org/
 
 COPY . .
 RUN npx ng build --configuration production
