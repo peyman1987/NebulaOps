@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
-PROJECT_NAME="nebulaops-v17"
+PROJECT_NAME="nebulaops-v20.4"
 ./scripts/wsl/check-wsl.sh
 ./scripts/wsl/prepare-kubeconfig-for-docker.sh
 echo "Validating Grafana provisioning..."
@@ -13,7 +13,7 @@ if [ "$DEFAULTS" -ne 1 ]; then
   grep -R "isDefault:" -n infrastructure/observability/grafana/provisioning/datasources || true
   exit 1
 fi
-echo "Starting NebulaOps v17 with Docker Compose..."
+echo "Starting NebulaOps v20.4 with Docker Compose..."
 docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" up --build -d
 echo "Waiting for gateway..."
 for i in {1..60}; do

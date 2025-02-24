@@ -517,7 +517,7 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v20_2.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v20_4.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -552,9 +552,7 @@ export class AppComponent implements OnInit, OnDestroy {
             status: 'DONE'
         }
     ]));
-    readonly resources = signal<K8sResource[]>(this.loadLocal(K8S_KEY, [
-        res('Namespace', 'nebulaops', 'nebulaops'), res('Deployment', 'nebulaops', 'frontend', 2), res('Deployment', 'nebulaops', 'gateway-service', 2), res('StatefulSet', 'nebulaops', 'mongodb', 1), res('Service', 'nebulaops', 'gateway-service'), res('Ingress', 'nebulaops', 'nebulaops-ingress'), res('ConfigMap', 'nebulaops', 'platform-config'), res('CronJob', 'nebulaops', 'backup-simulator')
-    ]));
+    readonly resources = signal<K8sResource[]>([]);
     readonly selected = signal<K8sResource | null>(this.resources()[0] ?? null);
     readonly logs = signal<ServiceLog[]>([]);
     readonly activeNamespace = signal('all');
@@ -563,22 +561,12 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly logsAutoRefresh = signal(false);
     readonly logsRefreshSeconds = signal(5);
     readonly lastLogsRefresh = signal('never');
-    readonly dockerContainers = signal<DockerContainer[]>(this.syntheticDockerContainers());
-    readonly dockerImages = signal<DockerImage[]>([
-        {repository: 'nebulaops/frontend', tag: 'v20.3', size: '186MB', vulnerabilities: 0, created: 'today'},
-        {repository: 'nebulaops/gateway-service', tag: 'v20.3', size: '292MB', vulnerabilities: 1, created: 'today'},
-        {repository: 'mongo', tag: '7', size: '739MB', vulnerabilities: 2, created: 'cached'},
-        {repository: 'redis', tag: '7-alpine', size: '42MB', vulnerabilities: 0, created: 'cached'},
-        {repository: 'rabbitmq', tag: '3-management', size: '286MB', vulnerabilities: 1, created: 'cached'}
-    ]);
-    readonly dockerVolumes = signal<DockerVolume[]>([
-        {name: 'nebulaops_mongo_data', driver: 'local', mount: '/data/db', size: '1.2GB'},
-        {name: 'nebulaops_redis_data', driver: 'local', mount: '/data', size: '128MB'},
-        {name: 'nebulaops_grafana_data', driver: 'local', mount: '/var/lib/grafana', size: '84MB'}
-    ]);
+    readonly dockerContainers = signal<DockerContainer[]>([]);
+    readonly dockerImages = signal<DockerImage[]>([]);
+    readonly dockerVolumes = signal<DockerVolume[]>([]);
     readonly selectedDockerContainer = signal<DockerContainer | null>(null);
     readonly containerTerminal = signal('docker compose ps && kubectl get pods -A');
-    readonly k8sControllers = signal<K8sController[]>(this.syntheticK8sControllers());
+    readonly k8sControllers = signal<K8sController[]>([]);
     readonly lensActions = signal<LensAction[]>([
         {
             title: 'Restart selected pod',
@@ -605,7 +593,7 @@ export class AppComponent implements OnInit, OnDestroy {
             severity: 'LOW'
         },
         {
-            title: 'Drain node simulation',
+            title: 'Drain selected node',
             target: 'Node',
             command: 'kubectl drain kind-worker --ignore-daemonsets',
             severity: 'CRITICAL'
@@ -641,7 +629,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {from: 'notification-service', to: 'rabbitmq', traffic: 38, status: 'ok'},
         {from: 'mongodb', to: 'persistent-volume', traffic: 34, status: 'ok'}
     ]);
-    readonly clusterEvents = signal<ClusterEvent[]>(this.syntheticClusterEvents());
+    readonly clusterEvents = signal<ClusterEvent[]>([]);
     readonly liveMetrics = signal<LiveMetric[]>([
         {label: 'Cluster CPU', value: 67, unit: '%', trend: '+8%'},
         {label: 'Cluster RAM', value: 74, unit: '%', trend: '+13%'},
@@ -674,7 +662,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v20.3'
+            status: 'v20.4'
         },
         {
             title: 'INFRA',
@@ -728,7 +716,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v20.3'
+            status: 'v20.4'
         },
         {
             title: 'Helm',
@@ -755,7 +743,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v20.3'
+            status: 'v20.4'
         },
         {
             title: 'Multi-Env Manager',
@@ -1258,7 +1246,7 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'AI OPS',
-            description: 'RCA, anomaly detection and auto-fix simulation',
+            description: 'RCA, anomaly detection and auto-fix from live telemetry',
             kind: 'internal',
             tab: 'AI OPS',
             icon: '✦',
@@ -1316,38 +1304,38 @@ export class AppComponent implements OnInit, OnDestroy {
             why: 'AI Ops cockpit animated SVG'
         },
         {
-            title: 'V20.3 DevSecOps',
+            title: 'V20.4 DevSecOps',
             path: 'docs/V19_3_DEVSECOPS_MODULE.md',
             why: 'Security, compliance and vulnerability cockpit'
         },
         {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
         {
-            title: 'V20.3 release notes',
+            title: 'V20.4 release notes',
             path: 'docs/V20_1_RELEASE_NOTES.md',
             why: 'Observability, GitOps, environments and Terraform Studio'
         },
         {
-            title: 'V20.3 Observability',
+            title: 'V20.4 Observability',
             path: 'docs/V20_1_ADVANCED_OBSERVABILITY.md',
             why: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry'
         },
         {
-            title: 'V20.3 GitOps Control Plane',
+            title: 'V20.4 GitOps Control Plane',
             path: 'docs/V20_1_GITOPS_CONTROL_PLANE.md',
             why: 'drift detection, ArgoCD live sync and rollback'
         },
         {
-            title: 'V20.3 Multi-Environment Manager',
+            title: 'V20.4 Multi-Environment Manager',
             path: 'docs/V20_1_MULTI_ENVIRONMENT_MANAGER.md',
             why: 'LOCAL, DEV, STAGING and PROD provisioning'
         },
         {
-            title: 'V20.3 Smart Terraform Studio',
+            title: 'V20.4 Smart Terraform Studio',
             path: 'docs/V20_1_SMART_TERRAFORM_STUDIO.md',
             why: 'digital twin graph, plan preview and cost estimation'
         },
         {
-            title: 'V20.3 CI/CD Designer',
+            title: 'V20.4 CI/CD Designer',
             path: 'docs/V20_1_CICD_PIPELINE_DESIGNER.md',
             why: 'drag-drop pipeline canvas and pipeline-engine-service'
         },
@@ -1682,12 +1670,12 @@ export class AppComponent implements OnInit, OnDestroy {
         })).subscribe(s => {
             if (s?.resources?.length) {
                 this.resources.set(s.resources);
-                this.logs.set(s.logs?.length ? s.logs : this.syntheticLogs());
+                this.logs.set(s.logs || []);
                 this.selected.set(this.resources()[0] ?? null);
                 this.k8sState.set(s.cluster.status === 'Connected' ? 'connected' : 'error');
             } else {
-                this.k8sState.set('local');
-                this.logs.set(this.syntheticLogs());
+                this.k8sState.set('error');
+                this.logs.set([]);
             }
         });
     }
@@ -1697,7 +1685,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-front',
                 name: 'nebulaops-frontend',
-                image: 'nebulaops/frontend:v20.3',
+                image: 'nebulaops/frontend:v20.4',
                 status: 'running',
                 cpu: 12,
                 memory: 148,
@@ -1708,7 +1696,7 @@ export class AppComponent implements OnInit, OnDestroy {
             {
                 id: 'c-gateway',
                 name: 'gateway-service',
-                image: 'nebulaops/gateway-service:v20.3',
+                image: 'nebulaops/gateway-service:v20.4',
                 status: 'running',
                 cpu: 34,
                 memory: 512,
@@ -1880,10 +1868,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
         return `$ ${this.containerTerminal()}
 
-Docker Desktop simulation:
+Docker Desktop live data:
 ${dockerSummary}
 
-OpenLens simulation:
+OpenLens live data:
 ${k8sSummary}
 
 Selected logs: ${selected?.name || 'none'}
@@ -1897,7 +1885,7 @@ ${selectedLogs}`;
             volumes: this.http.get<any[]>('/api/runtime/docker/volumes').pipe(catchError(() => of([])))
         }).subscribe(r => {
             const containers = r.containers.map((x, i) => this.normalizeDockerContainer(x, i));
-            this.dockerContainers.set(containers.length ? containers : this.syntheticDockerContainers());
+            this.dockerContainers.set(containers);
             if (r.images.length) this.dockerImages.set(r.images.map(x => ({
                 repository: x.Repository || x.repository || '<none>',
                 tag: x.Tag || x.tag || 'latest',
@@ -1971,7 +1959,7 @@ ${selectedLogs}`;
 
     refreshLogs(): void {
         this.http.get<ServiceLog[]>('/api/kubernetes/logs').pipe(catchError(() => of([]))).subscribe(rows => {
-            this.logs.set(rows.length ? rows : this.syntheticLogs());
+            this.logs.set(rows);
             this.lastLogsRefresh.set(new Date().toLocaleTimeString());
         });
     }

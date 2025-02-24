@@ -4,8 +4,7 @@ Fix rapido per la HOME v20.3:
 
 - aggiunti gli asset SVG mancanti `nebulaops-v20-2-*.svg` in `frontend/src/assets`;
 - aggiunte copie in `docs/` per la documentazione;
-- corrette le card Architecture che prima mostravano solo `alt`/box vuoto perché i file non esistevano nel bundle
-  Angular.
+- corrette le card Architecture che prima mostravano solo `alt`/box vuoto perché i file non esistevano nel bundle Angular.
 
 File principali:
 

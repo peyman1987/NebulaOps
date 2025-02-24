@@ -1,7 +1,6 @@
 # NebulaOps v20.2.3 - NPM/Docker Build Fix
 
-This release fixes the frontend Docker build failure caused by an out-of-sync `package-lock.json` and Angular 18 Node
-engine requirements.
+This release fixes the frontend Docker build failure caused by an out-of-sync `package-lock.json` and Angular 18 Node engine requirements.
 
 ## Changes
 
