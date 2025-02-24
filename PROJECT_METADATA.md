@@ -2,17 +2,17 @@
 
 | Field     | Value                              |
 |-----------|------------------------------------|
-| Project   | NebulaOps v20.3                    |
+| Project   | NebulaOps v20.4                    |
 | Developer | Peyman Eshghi Malayeri             |
 | Email     | peyman_em@yahoo.com                |
 | Year      | 2024                               |
 | Edition   | Professional DevOps Control Center |
 
-NebulaOps v20.3 is a local-first platform engineering project for WSL/Linux execution. It demonstrates microservices,
+NebulaOps v20.4 is a local-first platform engineering project for WSL/Linux execution. It demonstrates microservices,
 Docker Engine operations, Kubernetes console workflows, Helm release management, Grafana/Prometheus observability,
 RabbitMQ, Redis, MongoDB and a modern Angular frontend.
 
-## v20.3 AI Ops Center
+## v20.4 AI Ops Center
 
 - New `AI OPS` tab with futuristic cockpit UI.
 - Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
@@ -21,7 +21,7 @@ RabbitMQ, Redis, MongoDB and a modern Angular frontend.
 
 ## Documentation patch status
 
-Versione documentale corrente: **v20.3**.
+Versione documentale corrente: **v20.4**.
 
 Aggiornati:
 
@@ -35,26 +35,25 @@ Aggiornati:
 - `docs/V19_3_FRONTEND_STYLE_GUIDE.md`
 - `docs/V19_3_DIAGRAMS.md`
 - `docs/diagrams/README.md`
-- SVG v20.3 in `docs/diagrams` e `frontend/src/assets`
+- SVG v20.4 in `docs/diagrams` e `frontend/src/assets`
 
-## v20.3 Corrected - Home Feature Launcher
+## v20.4 Corrected - Home Feature Launcher
 
 La home ora include un Command Center con tasti grandi per aprire rapidamente Grafana, ArgoCD, Prometheus e i moduli
 interni AI OPS, Kubernetes Visual Cluster, Security, Helm e Observability.
 
 Documentazione: `docs/V19_3_HOME_FEATURE_LAUNCHER.md`.
 
-release_patch: v20.3-containers-openlens-refresh
+release_patch: v20.4-containers-openlens-refresh
 features_added:
 
 - Docker Desktop-like runtime console
 - OpenLens-like Kubernetes workload console
 - INFRA links for Docker/OpenLens internal consoles
 
-## v20.3 Dynamic Runtime Patch
+## v20.4 Dynamic Runtime Patch
 
-- release_patch: v20.3-live-runtime-services
-- gateway_endpoints: /api/platform/observability, /api/platform/gitops, /api/platform/devsecops,
-  /api/platform/environments
+- release_patch: v20.4-live-runtime-services
+- gateway_endpoints: /api/platform/observability, /api/platform/gitops, /api/platform/devsecops, /api/platform/environments
 - go_cache_stats: /cache/stats
 - frontend_style: Aurora Glass enterprise refresh
