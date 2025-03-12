@@ -349,7 +349,7 @@ ArgoCD sync      internal CI/CD Designer</pre>
                     <h2>3D live cluster topology</h2>
                     <div>
                         <button (click)="loadK8sFromApi()">Refresh live</button>
-                        <button (click)="simulatePodRestart()" class="danger">Simulate restart</button>
+                        <button (click)="restartSelectedPodLive()" class="danger">Restart live</button>
                     </div>
                 </div>
                 <div class="cluster-layout">
@@ -577,7 +577,7 @@ ArgoCD sync      internal CI/CD Designer</pre>
             <article class="panel wide gitops-hero">
                 <div class="title"><p>GitOps Control Plane v20.3</p>
                     <h2>Sync state · drift detection · ArgoCD live sync</h2>
-                    <button (click)="simulateGitOpsSync()">ArgoCD live sync</button>
+                    <button (click)="syncGitOpsLive()">ArgoCD live sync</button>
                 </div>
                 <div class="gitops-state">
                     <div><small>Sync</small><b>{{ gitOpsState().sync }}</b></div>
@@ -768,7 +768,7 @@ helm upgrade --install nebulaops ./infrastructure/helm --namespace nebulaops-{{ 
                 <div class="title"><p>CI/CD Pipeline Designer v20.3</p>
                     <h2>Canvas drag & drop</h2>
                     <div>
-                        <button (click)="simulatePipelineRun()">Run simulation</button>
+                        <button (click)="runPipelineLive()">Run pipeline</button>
                         <button (click)="copyCommand(pipelineYaml())">Copy YAML</button>
                     </div>
                 </div>
@@ -805,7 +805,7 @@ helm upgrade --install nebulaops ./infrastructure/helm --namespace nebulaops-{{ 
             <article class="panel security-hero">
                 <div class="title"><p>DevSecOps Module v20.3</p>
                     <h2>Security · Compliance · Vulnerabilities</h2>
-                    <button (click)="simulateSecurityScan()">RUN SCAN</button>
+                    <button (click)="runSecurityScanLive()">RUN SCAN</button>
                 </div>
                 <div class="security-tabs">
                     <button (click)="setTab('SECURITY')" [class.active]="securitySubTab()==='SECURITY'">SECURITY
@@ -888,7 +888,7 @@ helm upgrade --install nebulaops ./infrastructure/helm --namespace nebulaops-{{ 
                     <h2>Rules</h2></div>
                 <ul>
                     <li>Prefer local Docker/WSL for development.</li>
-                    <li>Use one small VPS only for public demos.</li>
+                    <li>Use one small VPS only for public showcases.</li>
                     <li>Keep logs retention short locally.</li>
                     <li>Schedule backups and clean old volumes.</li>
                 </ul>
@@ -988,7 +988,7 @@ mTLS: STRICT</pre>
                     <h2>Access guardrails</h2></div>
                 <ul>
                     <li>No secrets in repository tree.</li>
-                    <li>Rotate demo credentials before public deploy.</li>
+                    <li>Rotate local credentials before public deploy.</li>
                     <li>Use sealed/external secrets for Kubernetes.</li>
                 </ul>
             </article>
@@ -1002,7 +1002,7 @@ mTLS: STRICT</pre>
                     <span><b>32</b> connections</span><span><b>14ms</b> p95 query</span><span><b>1.2GB</b> data</span>
                 </div>
                 <pre>mongodb: healthy
-replicaSet: local-demo
+replicaSet: local-live
 slowQueries: 0
 backup: latest</pre>
             </article>

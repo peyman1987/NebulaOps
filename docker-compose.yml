@@ -1,4 +1,4 @@
-name: nebulaops-v20-4
+name: nebulaops-v20-5
 
 services:
   mongodb:
@@ -44,7 +44,7 @@ services:
     ports:
       - 8089:8081
   auth-service:
-    image: nebulaops-v20-4-auth-service:latest
+    image: nebulaops-v20-5-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
@@ -56,7 +56,7 @@ services:
     ports:
       - 8081:8081
   task-service:
-    image: nebulaops-v20-4-task-service:latest
+    image: nebulaops-v20-5-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -74,7 +74,7 @@ services:
     ports:
       - 8082:8082
   notification-service:
-    image: nebulaops-v20-4-notification-service:latest
+    image: nebulaops-v20-5-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -92,7 +92,7 @@ services:
     ports:
       - 8083:8083
   file-service:
-    image: nebulaops-v20-4-file-service:latest
+    image: nebulaops-v20-5-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
@@ -104,39 +104,106 @@ services:
     ports:
       - 8084:8084
   ai-engine:
-    image: nebulaops-v20-4-ai-engine:latest
+    image: nebulaops-v20-5-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
     ports:
       - 8095:8095
   ai-ops-service:
-    image: nebulaops-v20-4-ai-ops-service:latest
+    image: nebulaops-v20-5-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
     environment:
       AI_ENGINE_URL: http://ai-engine:8095
+    volumes:
+      - ./.kube/config:/root/.kube/config:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - ai-engine
     ports:
       - 8085:8085
   devsecops-service:
-    image: nebulaops-v20-4-devsecops-service:latest
+    image: nebulaops-v20-5-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
+    environment:
+      REPO_PATH: /workspace
+    volumes:
+      - ./:/workspace:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8086:8086
   pipeline-engine-service:
-    image: nebulaops-v20-4-pipeline-engine-service:latest
+    image: nebulaops-v20-5-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
+    environment:
+      REPO_PATH: /workspace
+      ARGOCD_APP: nebulaops
+    volumes:
+      - ./:/workspace
+      - ./.kube/config:/root/.kube/config:ro
     ports:
       - 8087:8087
+
+  observability-service:
+    image: nebulaops-v20-5-observability-service:latest
+    build:
+      context: .
+      dockerfile: backend/observability-service/Dockerfile
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+      LOKI_URL: http://loki:3100
+      TEMPO_URL: http://tempo:3200
+      GRAFANA_URL: http://grafana:3000
+    ports:
+      - 8092:8092
+
+  gitops-control-service:
+    image: nebulaops-v20-5-gitops-control-service:latest
+    build:
+      context: .
+      dockerfile: backend/gitops-control-service/Dockerfile
+    environment:
+      ARGOCD_APP: nebulaops
+    volumes:
+      - ./:/workspace
+      - ./.kube/config:/root/.kube/config:ro
+    working_dir: /workspace
+    ports:
+      - 8093:8093
+
+  environment-manager-service:
+    image: nebulaops-v20-5-environment-manager-service:latest
+    build:
+      context: .
+      dockerfile: backend/environment-manager-service/Dockerfile
+    volumes:
+      - ./.kube/config:/root/.kube/config:ro
+      - ./infrastructure:/workspace/infrastructure
+    working_dir: /workspace/infrastructure/terraform
+    ports:
+      - 8094:8094
+
+  terraform-studio-service:
+    image: nebulaops-v20-5-terraform-studio-service:latest
+    build:
+      context: .
+      dockerfile: backend/terraform-studio-service/Dockerfile
+    environment:
+      TERRAFORM_WORKDIR: /workspace/infrastructure/terraform
+      COST_CURRENCY: EUR
+    volumes:
+      - ./infrastructure:/workspace/infrastructure
+    ports:
+      - 8096:8096
+
   gateway-service:
-    image: nebulaops-v20-4-gateway-service:latest
+    image: nebulaops-v20-5-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
@@ -148,8 +215,12 @@ services:
       AI_OPS_SERVICE_URL: http://ai-ops-service:8085
       DEVSECOPS_SERVICE_URL: http://devsecops-service:8086
       PIPELINE_ENGINE_SERVICE_URL: http://pipeline-engine-service:8087
+      OBSERVABILITY_SERVICE_URL: http://observability-service:8092
+      GITOPS_CONTROL_SERVICE_URL: http://gitops-control-service:8093
+      ENVIRONMENT_MANAGER_SERVICE_URL: http://environment-manager-service:8094
+      TERRAFORM_STUDIO_SERVICE_URL: http://terraform-studio-service:8096
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v20-4}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v20-5}
       GRAFANA_URL: http://grafana:3000
       GRAFANA_AUTH: admin:admin
     volumes:
@@ -171,10 +242,18 @@ services:
         condition: service_started
       pipeline-engine-service:
         condition: service_started
+      observability-service:
+        condition: service_started
+      gitops-control-service:
+        condition: service_started
+      environment-manager-service:
+        condition: service_started
+      terraform-studio-service:
+        condition: service_started
     ports:
       - 8080:8080
   frontend:
-    image: nebulaops-v20-4-frontend:latest
+    image: nebulaops-v20-5-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -280,7 +359,7 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v20-4-go-cache-service:latest
+    image: nebulaops-v20-5-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -299,7 +378,7 @@ services:
     ports:
       - 8091:8091
   go-event-worker:
-    image: nebulaops-v20-4-go-event-worker:latest
+    image: nebulaops-v20-5-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile

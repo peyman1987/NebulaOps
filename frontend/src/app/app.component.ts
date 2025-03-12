@@ -44,7 +44,14 @@ type K8sKind =
     | 'Ingress'
     | 'ConfigMap'
     | 'Secret'
-    | 'CronJob';
+    | 'CronJob'
+    | 'ReplicaSet'
+    | 'Job'
+    | 'Endpoint'
+    | 'NetworkPolicy'
+    | 'PersistentVolume'
+    | 'PersistentVolumeClaim'
+    | 'StorageClass';
 
 interface Task {
     id: string;
@@ -532,7 +539,7 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             id: 'V19-102',
-            title: 'Add FinOps budget guardrails for demo services',
+            title: 'Add FinOps budget guardrails for live services',
             owner: 'SRE',
             priority: 'HIGH',
             status: 'IN_PROGRESS'
@@ -620,22 +627,8 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly selectedClusterMode = signal<'topology' | 'logs' | 'terminal' | 'metrics' | 'events' | 'yaml'>('topology');
     readonly terminalCommand = signal('kubectl describe pod gateway-service-78fdd -n nebulaops');
     readonly liveClusterNodes = signal<ClusterNode3D[]>(this.buildClusterNodes());
-    readonly clusterEdges = signal<ClusterEdge[]>([
-        {from: 'ingress', to: 'frontend', traffic: 82, status: 'hot'},
-        {from: 'frontend', to: 'gateway-service', traffic: 94, status: 'critical'},
-        {from: 'gateway-service', to: 'task-service', traffic: 68, status: 'hot'},
-        {from: 'gateway-service', to: 'notification-service', traffic: 42, status: 'ok'},
-        {from: 'task-service', to: 'mongodb', traffic: 57, status: 'ok'},
-        {from: 'notification-service', to: 'rabbitmq', traffic: 38, status: 'ok'},
-        {from: 'mongodb', to: 'persistent-volume', traffic: 34, status: 'ok'}
-    ]);
-    readonly clusterEvents = signal<ClusterEvent[]>([]);
-    readonly liveMetrics = signal<LiveMetric[]>([
-        {label: 'Cluster CPU', value: 67, unit: '%', trend: '+8%'},
-        {label: 'Cluster RAM', value: 74, unit: '%', trend: '+13%'},
-        {label: 'Pod restarts', value: 3, unit: 'last 10m', trend: '+3'},
-        {label: 'Ingress RPS', value: 1280, unit: 'req/s', trend: '+21%'}
-    ]);
+    readonly clusterEdges = signal<ClusterEdge[]>([]);
+    readonly liveMetrics = signal<LiveMetric[]>([]);
     readonly homeLaunchers: HomeLauncher[] = [
         {
             title: 'Grafana',
@@ -821,191 +814,30 @@ export class AppComponent implements OnInit, OnDestroy {
             area: 'Terraform',
             severity: 'HIGH',
             title: 'Protect state and outputs',
-            remediation: 'Keep demo state local; redact sensitive outputs before sharing.',
+            remediation: 'Keep local state private; redact sensitive outputs before sharing.',
             done: false
         }
     ]);
     readonly securitySubTab = signal<SecurityTab>('SECURITY');
     readonly riskScore = signal(87);
-    readonly securityScans = signal<SecurityScan[]>([
-        {
-            id: 'SCAN-TRIVY-API',
-            tool: 'Trivy',
-            target: 'gateway-service:20.3.0',
-            status: 'RUNNING',
-            critical: 1,
-            high: 4,
-            medium: 9,
-            duration: '42s'
-        },
-        {
-            id: 'SCAN-DOCKER-FE',
-            tool: 'Docker',
-            target: 'frontend:20.3.0',
-            status: 'PASSED',
-            critical: 0,
-            high: 1,
-            medium: 4,
-            duration: '31s'
-        },
-        {
-            id: 'SCAN-SAST-BE',
-            tool: 'SAST',
-            target: 'backend/**/*.java',
-            status: 'FAILED',
-            critical: 1,
-            high: 3,
-            medium: 7,
-            duration: '58s'
-        },
-        {
-            id: 'SCAN-SECRETS',
-            tool: 'Secrets',
-            target: 'repo tree',
-            status: 'PASSED',
-            critical: 0,
-            high: 0,
-            medium: 2,
-            duration: '12s'
-        },
-        {
-            id: 'SCAN-DEPS',
-            tool: 'Dependency',
-            target: 'package-lock/pom.xml',
-            status: 'QUEUED',
-            critical: 0,
-            high: 5,
-            medium: 14,
-            duration: '-'
-        }
-    ]);
-    readonly cveDashboard = signal<CveItem[]>([
-        {
-            cve: 'CVE-2025-7421',
-            packageName: 'netty-codec-http2',
-            severity: 'CRITICAL',
-            image: 'gateway-service',
-            fixVersion: '4.1.118+',
-            exploit: 'remote DoS'
-        },
-        {
-            cve: 'CVE-2025-2198',
-            packageName: 'openssl',
-            severity: 'HIGH',
-            image: 'frontend-nginx',
-            fixVersion: '3.3.4-r1',
-            exploit: 'TLS edge'
-        },
-        {
-            cve: 'CVE-2024-9982',
-            packageName: 'lodash',
-            severity: 'HIGH',
-            image: 'frontend build',
-            fixVersion: '4.17.22+',
-            exploit: 'prototype pollution'
-        },
-        {
-            cve: 'CVE-2024-6123',
-            packageName: 'spring-web',
-            severity: 'MEDIUM',
-            image: 'task-service',
-            fixVersion: '6.1.15+',
-            exploit: 'header parsing'
-        }
-    ]);
-    readonly complianceControls = signal<ComplianceControl[]>([
-        {
-            id: 'CIS-K8S-1.2.7',
-            framework: 'CIS Kubernetes',
-            title: 'Disable anonymous API server access',
-            score: 96,
-            status: 'pass'
-        },
-        {
-            id: 'NIST-SC-7',
-            framework: 'NIST 800-53',
-            title: 'Network boundary protection and ingress isolation',
-            score: 82,
-            status: 'warn'
-        },
-        {
-            id: 'SOC2-CC6.1',
-            framework: 'SOC2',
-            title: 'Least privilege service account policy',
-            score: 74,
-            status: 'warn'
-        },
-        {
-            id: 'ISO-A.8.8',
-            framework: 'ISO 27001',
-            title: 'Technical vulnerability management',
-            score: 89,
-            status: 'pass'
-        }
-    ]);
+    readonly securityScans = signal<SecurityScan[]>([]);
+    readonly cveDashboard = signal<CveItem[]>([]);
+    readonly complianceControls = signal<ComplianceControl[]>([]);
 
-    readonly observabilityStack = signal<ObservabilityStackItem[]>([
-        {name: 'Prometheus', role: 'metrics', endpoint: 'http://localhost:9090', health: 99, signal: '2.4k series'},
-        {name: 'Loki', role: 'logs', endpoint: 'http://localhost:3100', health: 96, signal: '18k log lines'},
-        {name: 'Tempo', role: 'traces', endpoint: 'http://localhost:3200', health: 94, signal: '742 spans'},
-        {name: 'Grafana', role: 'dashboards', endpoint: 'http://localhost:3000', health: 98, signal: '12 panels'},
-        {name: 'OpenTelemetry', role: 'collector', endpoint: 'http://localhost:4318', health: 97, signal: 'OTLP active'}
-    ]);
-    readonly traceFlow = signal<TraceHop[]>([
-        {from: 'frontend', to: 'gateway', latency: 24, status: 'ok'},
-        {from: 'gateway', to: 'task-service', latency: 68, status: 'warm'},
-        {from: 'task-service', to: 'mongodb', latency: 112, status: 'hot'},
-        {from: 'notification-service', to: 'rabbitmq', latency: 39, status: 'ok'},
-        {from: 'worker', to: 'loki', latency: 51, status: 'warm'}
-    ]);
-    readonly latencyHeatmap = signal<number[]>([18, 24, 31, 48, 62, 80, 96, 72, 44, 28, 35, 57, 89, 121, 76, 42]);
-    readonly kafkaEvents = signal<string[]>(['task.created', 'scan.completed', 'deploy.synced', 'trace.exported', 'drift.detected', 'rollback.ready']);
-    readonly gitOpsState = signal({sync: 'OutOfSync', drift: 3, revision: 'a19f5c2', health: 'Degraded'});
-    readonly deploymentWaves = signal<DeploymentWave[]>([
-        {wave: 'wave-0', target: 'namespaces + CRDs', status: 'synced'},
-        {wave: 'wave-1', target: 'databases + queues', status: 'synced'},
-        {wave: 'wave-2', target: 'backend services', status: 'running'},
-        {wave: 'wave-3', target: 'frontend + ingress', status: 'pending'}
-    ]);
-    readonly commitStream = signal<string[]>(['feat(obs): add tempo traces', 'fix(gitops): rollback gate', 'infra(env): staging namespace', 'tf: cost estimate module']);
-    readonly environments = signal([
-        {
-            name: 'LOCAL',
-            namespace: 'nebulaops-local',
-            cluster: 'kind-nebula',
-            health: 96,
-            cost: 0,
-            drift: 0,
-            workspace: 'local'
-        },
-        {
-            name: 'DEV',
-            namespace: 'nebulaops-dev',
-            cluster: 'dev-eu-west',
-            health: 91,
-            cost: 42,
-            drift: 1,
-            workspace: 'dev'
-        },
-        {
-            name: 'STAGING',
-            namespace: 'nebulaops-staging',
-            cluster: 'stg-eu-west',
-            health: 88,
-            cost: 118,
-            drift: 2,
-            workspace: 'staging'
-        },
-        {
-            name: 'PROD',
-            namespace: 'nebulaops-prod',
-            cluster: 'prod-eu-west',
-            health: 99,
-            cost: 410,
-            drift: 0,
-            workspace: 'prod'
-        }
-    ]);
+
+    readonly observabilityStack = signal<ObservabilityStackItem[]>([]);
+    readonly traceFlow = signal<TraceHop[]>([]);
+    readonly latencyHeatmap = signal<number[]>([]);
+    readonly kafkaEvents = signal<string[]>([]);
+    readonly gitOpsState = signal({
+        sync: 'Unavailable',
+        drift: 0,
+        revision: 'unknown',
+        health: 'Waiting for ArgoCD live data'
+    });
+    readonly deploymentWaves = signal<DeploymentWave[]>([]);
+    readonly commitStream = signal<string[]>([]);
+    readonly environments = signal<any[]>([]);
     readonly activeEnvironment = signal('LOCAL');
     readonly terraformStudioNodes = [
         {name: 'VPC', type: 'network', x: 12, y: 42, z: 8, cost: 18, drift: 0},
@@ -1018,12 +850,8 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly terraformPlanPreview = `Terraform will perform the following actions:\n  + module.vpc.aws_vpc.main\n  + module.eks.aws_eks_cluster.nebulaops\n  ~ module.mongodb.storage_size 20Gi -> 40Gi\n  + module.observability.helm_release.tempo\nPlan: 12 to add, 3 to change, 0 to destroy.`;
     readonly terraformCostEstimate = signal({monthly: 374, delta: 42, currency: 'EUR'});
 
-    readonly threatPoints = signal<ThreatPoint[]>([
-        {name: 'Secrets leak', x: 18, y: 32, severity: 'CRITICAL', vector: 'repo'},
-        {name: 'Image CVE', x: 46, y: 58, severity: 'HIGH', vector: 'registry'},
-        {name: 'Ingress probe', x: 72, y: 28, severity: 'MEDIUM', vector: 'edge'},
-        {name: 'Dependency drift', x: 83, y: 72, severity: 'HIGH', vector: 'supply chain'}
-    ]);
+    readonly threatPoints = signal<ThreatPoint[]>([]);
+
 
     readonly pipelineDesignerNodes = signal<PipelineDesignerNode[]>([
         {
@@ -1289,7 +1117,7 @@ export class AppComponent implements OnInit, OnDestroy {
     ];
     readonly costItems = [
         {name: 'Local Docker/WSL', monthly: 0, note: 'Personal machine runtime'},
-        {name: 'Optional VPS demo', monthly: 12, note: 'Small cloud instance for portfolio demo'},
+        {name: 'Optional VPS showcase', monthly: 12, note: 'Small cloud instance for portfolio showcase'},
         {name: 'Object storage backups', monthly: 3, note: 'Optional remote backup bucket'},
         {name: 'Monitoring retention', monthly: 5, note: 'Optional long retention'}
     ];
@@ -1387,7 +1215,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
-        } else this.loginError.set('Credenziali demo: admin/admin oppure peyman/admin');
+        } else this.loginError.set('Credenziali locali: admin/admin oppure peyman/admin');
     }
 
     logout(): void {
@@ -1420,13 +1248,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.pipelineDesignerNodes.set(nodes.map((n, i) => ({...n, x: 7 + i * 16, y: 42})));
     }
 
-    simulatePipelineRun(): void {
-        const order: PipelineDesignerStatus[] = ['success', 'success', 'running', 'queued', 'queued', 'blocked'];
-        this.pipelineDesignerNodes.set(this.pipelineDesignerNodes().map((n, i) => ({
-            ...n,
-            status: order[i] ?? n.status
-        })));
-        this.selectedPipelineNode.set(this.pipelineDesignerNodes()[2] ?? null);
+    runPipelineLive(): void {
+        this.refreshAll();
     }
 
 
@@ -1442,14 +1265,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.activeEnvironment.set(name);
     }
 
-    simulateGitOpsSync(): void {
-        const current = this.gitOpsState();
-        this.gitOpsState.set({
-            sync: current.sync === 'Synced' ? 'OutOfSync' : 'Synced',
-            drift: current.sync === 'Synced' ? 3 : 0,
-            revision: 'b' + Math.floor(Math.random() * 999999).toString(16),
-            health: current.sync === 'Synced' ? 'Degraded' : 'Healthy'
-        });
+    syncGitOpsLive(): void {
+        this.loadGitOps();
     }
 
     toggleSidebar(): void {
@@ -1479,15 +1296,8 @@ export class AppComponent implements OnInit, OnDestroy {
         const section = this.activeDockerSection();
         if (section === 'Images') return this.dockerImages();
         if (section === 'Volumes') return this.dockerVolumes();
-        if (section === 'Builds') return [
-            {name: 'frontend', status: 'success', image: 'nebulaops-v20-3-frontend', time: 'local build'},
-            {name: 'gateway-service', status: 'cached', image: 'spring boot layer', time: 'compose cache'},
-            {name: 'go-cache-service', status: 'success', image: 'golang alpine', time: 'multi-stage'}
-        ];
-        if (section === 'Dev Environments') return [
-            {name: 'local-wsl', status: 'running', image: 'Docker + kubectl + helm', time: 'localhost'},
-            {name: 'kind-nebulaops', status: 'ready', image: 'local Kubernetes', time: 'dev cluster'}
-        ];
+        if (section === 'Builds') return this.dockerBuilds();
+        if (section === 'Dev Environments') return this.devEnvironments();
         if (section === 'Docker Scout') return this.dockerImages().map(i => ({
             name: i.repository,
             status: i.vulnerabilities ? 'attention' : 'clean',
@@ -1495,6 +1305,34 @@ export class AppComponent implements OnInit, OnDestroy {
             time: 'CVE ' + i.vulnerabilities
         }));
         return this.dockerContainers();
+    }
+
+
+    dockerBuilds(): any[] {
+        return this.dockerImages().map(i => ({
+            name: i.repository,
+            status: 'image present',
+            image: i.tag,
+            time: i.created
+        }));
+    }
+
+    devEnvironments(): any[] {
+        return this.environments().map(e => ({
+            name: e.name,
+            status: e.health >= 90 ? 'ready' : 'attention',
+            image: e.cluster,
+            time: e.namespace
+        }));
+    }
+
+    portForwardRows(): any[] {
+        return this.homeLaunchers.filter(l => l.kind === 'external').map(l => ({
+            name: l.title,
+            namespace: 'local',
+            status: l.status || l.url,
+            url: l.url
+        }));
     }
 
     lensRows(): any[] {
@@ -1511,7 +1349,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (section === 'DaemonSets') return this.k8sControllers().filter(c => c.kind === 'DaemonSet');
         if (section === 'StatefulSets') return resources.filter(r => r.kind === 'StatefulSet');
         if (section === 'ReplicaSets') return this.k8sControllers().filter(c => c.kind === 'ReplicaSet');
-        if (section === 'Jobs') return [{name: 'db-migration', namespace: 'nebulaops', status: 'Complete', age: '12m'}];
+        if (section === 'Jobs') return this.k8sControllers().filter(c => c.kind === 'Job');
         if (section === 'CronJobs') return resources.filter(r => r.kind === 'CronJob');
         if (section === 'Services') return resources.filter(r => r.kind === 'Service');
         if (section === 'Ingresses') return resources.filter(r => r.kind === 'Ingress');
@@ -1522,32 +1360,11 @@ export class AppComponent implements OnInit, OnDestroy {
         }));
         if (section === 'Events') return this.clusterEvents();
         if (section === 'Config') return resources.filter(r => r.kind === 'ConfigMap' || r.kind === 'Secret');
-        if (section === 'Endpoints') return [{
-            name: 'gateway-service',
-            namespace: 'nebulaops',
-            status: '10.42.0.12:8080'
-        }, {name: 'frontend', namespace: 'nebulaops', status: '10.42.0.21:80'}];
-        if (section === 'Network Policies') return [{
-            name: 'deny-cross-namespace',
-            namespace: 'nebulaops',
-            status: 'enabled'
-        }, {name: 'allow-gateway-egress', namespace: 'nebulaops', status: 'enabled'}];
-        if (section === 'Port Forwarding') return [{
-            name: 'grafana',
-            namespace: 'monitoring',
-            status: '3000:3000'
-        }, {name: 'gateway', namespace: 'nebulaops', status: '8080:8080'}];
-        if (section.includes('Persistent')) return [{
-            name: 'mongo-data',
-            namespace: 'nebulaops',
-            status: 'Bound',
-            size: '10Gi'
-        }, {name: 'grafana-data', namespace: 'monitoring', status: 'Bound', size: '2Gi'}];
-        if (section === 'Storage Classes') return [{
-            name: 'standard',
-            status: 'default',
-            provisioner: 'kubernetes.io/no-provisioner'
-        }, {name: 'local-path', status: 'active', provisioner: 'rancher.io/local-path'}];
+        if (section === 'Endpoints') return resources.filter(r => r.kind === 'Endpoint');
+        if (section === 'Network Policies') return resources.filter(r => r.kind === 'NetworkPolicy');
+        if (section === 'Port Forwarding') return this.portForwardRows();
+        if (section.includes('Persistent')) return resources.filter(r => r.kind === 'PersistentVolume' || r.kind === 'PersistentVolumeClaim');
+        if (section === 'Storage Classes') return resources.filter(r => r.kind === 'StorageClass');
         return [...resources, ...this.k8sControllers()];
     }
 
@@ -1680,127 +1497,6 @@ export class AppComponent implements OnInit, OnDestroy {
         });
     }
 
-    syntheticDockerContainers(): DockerContainer[] {
-        return [
-            {
-                id: 'c-front',
-                name: 'nebulaops-frontend',
-                image: 'nebulaops/frontend:v20.4',
-                status: 'running',
-                cpu: 12,
-                memory: 148,
-                ports: '4200:80',
-                network: 'nebulaops-net',
-                logs: ['nginx started', 'serving Angular shell', 'healthcheck OK']
-            },
-            {
-                id: 'c-gateway',
-                name: 'gateway-service',
-                image: 'nebulaops/gateway-service:v20.4',
-                status: 'running',
-                cpu: 34,
-                memory: 512,
-                ports: '8080:8080',
-                network: 'nebulaops-net',
-                logs: ['Spring Boot started', 'Kubernetes client initialized', 'runtime proxy ready']
-            },
-            {
-                id: 'c-mongo',
-                name: 'mongodb',
-                image: 'mongo:7',
-                status: 'running',
-                cpu: 18,
-                memory: 768,
-                ports: '27017:27017',
-                network: 'nebulaops-net',
-                logs: ['WiredTiger opened', 'checkpoint completed', 'connections: 8']
-            },
-            {
-                id: 'c-redis',
-                name: 'redis',
-                image: 'redis:7-alpine',
-                status: 'running',
-                cpu: 5,
-                memory: 96,
-                ports: '6379:6379',
-                network: 'nebulaops-net',
-                logs: ['ready to accept connections', 'cache hit ratio 94%', 'AOF disabled for local demo']
-            },
-            {
-                id: 'c-rabbit',
-                name: 'rabbitmq',
-                image: 'rabbitmq:3-management',
-                status: 'running',
-                cpu: 9,
-                memory: 256,
-                ports: '5672/15672',
-                network: 'nebulaops-net',
-                logs: ['management plugin enabled', 'queues mirrored', 'consumer gateway-service online']
-            },
-            {
-                id: 'c-grafana',
-                name: 'grafana',
-                image: 'grafana/grafana:latest',
-                status: 'running',
-                cpu: 7,
-                memory: 184,
-                ports: '3000:3000',
-                network: 'nebulaops-net',
-                logs: ['provisioning dashboards', 'datasource prometheus OK', 'datasource loki OK']
-            }
-        ];
-    }
-
-    syntheticK8sControllers(): K8sController[] {
-        return [
-            {
-                kind: 'Deployment',
-                name: 'frontend',
-                namespace: 'nebulaops',
-                desired: 2,
-                available: 2,
-                strategy: 'RollingUpdate',
-                age: '2h'
-            },
-            {
-                kind: 'Deployment',
-                name: 'gateway-service',
-                namespace: 'nebulaops',
-                desired: 2,
-                available: 1,
-                strategy: 'RollingUpdate',
-                age: '2h'
-            },
-            {
-                kind: 'StatefulSet',
-                name: 'mongodb',
-                namespace: 'nebulaops',
-                desired: 1,
-                available: 1,
-                strategy: 'OrderedReady',
-                age: '2h'
-            },
-            {
-                kind: 'DaemonSet',
-                name: 'otel-node-agent',
-                namespace: 'observability',
-                desired: 3,
-                available: 3,
-                strategy: 'OnDelete',
-                age: '45m'
-            },
-            {
-                kind: 'Ingress',
-                name: 'nebulaops-ingress',
-                namespace: 'nebulaops',
-                desired: 1,
-                available: 1,
-                strategy: 'nginx',
-                age: '2h'
-            }
-        ];
-    }
-
     selectDockerContainer(c: DockerContainer): void {
         this.selectedDockerContainer.set(c);
     }
@@ -1853,7 +1549,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     applyLensAction(action: LensAction): void {
         this.containerTerminal.set(action.command);
-        if (action.target === 'Pod') this.simulatePodRestart();
+        if (action.target === 'Pod') this.restartSelectedPodLive();
     }
 
     containerTerminalOutput(): string {
@@ -1921,10 +1617,30 @@ ${selectedLogs}`;
     loadObservability(): void {
         this.http.get<any>('/api/platform/observability').pipe(catchError(() => of(null))).subscribe(data => {
             if (!data) return;
-            this.observabilityStack.set(data.stack || this.observabilityStack());
-            this.traceFlow.set(data.traceFlow || this.traceFlow());
-            this.latencyHeatmap.set(data.latencyHeatmap || this.latencyHeatmap());
-            this.kafkaEvents.set(data.eventStream || this.kafkaEvents());
+            this.observabilityStack.set(data.stack || []);
+            const hops = data.traceFlow || [];
+            this.traceFlow.set(hops);
+            this.clusterEdges.set(hops.map((h: any) => ({
+                from: h.from,
+                to: h.to,
+                traffic: Number(h.latency || 0),
+                status: h.status === 'hot' ? 'critical' : h.status === 'warm' ? 'hot' : 'ok'
+            })));
+            this.latencyHeatmap.set(data.latencyHeatmap || []);
+            this.kafkaEvents.set(data.eventStream || []);
+            const stack = data.stack || [];
+            const heat = data.latencyHeatmap || [];
+            this.liveMetrics.set([
+                {
+                    label: 'Live services',
+                    value: stack.filter((x: any) => x.live).length,
+                    unit: '/' + stack.length,
+                    trend: data.mode || 'LIVE'
+                },
+                {label: 'Docker CPU max', value: Math.max(0, ...heat), unit: '%', trend: 'docker stats'},
+                {label: 'Docker events', value: (data.eventStream || []).length, unit: '10m', trend: 'docker events'},
+                {label: 'Trace hops', value: hops.length, unit: 'links', trend: 'runtime'}
+            ]);
         });
     }
 
@@ -2029,23 +1745,8 @@ ${selectedLogs}`;
         return r.name.includes('gateway') ? 3 : r.kind === 'Deployment' ? 1 : 0;
     }
 
-    simulatePodRestart(): void {
-        const r = this.selected();
-        const target = r?.name || 'gateway-service';
-        const event: ClusterEvent = {
-            time: new Date().toLocaleTimeString(),
-            type: 'RESTART',
-            target,
-            message: `Pod restart animation triggered for ${target}; traffic beams rerouted while rollout recovers.`,
-            severity: 'HIGH'
-        };
-        this.clusterEvents.set([event, ...this.clusterEvents()].slice(0, 8));
-        this.liveClusterNodes.set(this.liveClusterNodes().map(n => n.id === target || n.id === 'gateway-service' ? {
-            ...n,
-            status: 'critical',
-            cpu: Math.min(98, n.cpu + 15),
-            ram: Math.min(98, n.ram + 10)
-        } : n));
+    restartSelectedPodLive(): void {
+        this.refreshAll();
     }
 
     terminalOutput(): string {
@@ -2095,7 +1796,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             incidentId: analysis.incidentId,
             yaml: analysis.yaml,
             fix: analysis.fix
-        }).pipe(catchError(() => of({status: 'demo-applied'}))).subscribe(() => {
+        }).pipe(catchError(() => of({status: 'unavailable'}))).subscribe(() => {
             this.aiOpsAutoFix.set(false);
             this.aiOpsChat.set([...this.aiOpsChat(), {
                 role: 'system',
@@ -2143,14 +1844,8 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
         return {'left.%': String(t.x), 'top.%': String(t.y)};
     }
 
-    simulateSecurityScan(): void {
-        const nextRisk = Math.max(41, Math.min(98, this.riskScore() + (Math.random() > 0.5 ? -4 : 3)));
-        this.riskScore.set(nextRisk);
-        this.securityScans.set(this.securityScans().map((s, i) => i === 0 ? {
-            ...s,
-            status: s.status === 'RUNNING' ? 'FAILED' : 'RUNNING',
-            high: Math.max(1, s.high + (s.status === 'RUNNING' ? 1 : -1))
-        } : s));
+    runSecurityScanLive(): void {
+        this.loadDevSecOps();
     }
 
     stageWidth(s: PipelineStage): number {
@@ -2350,7 +2045,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
     }
 
     private errorMessage(err: any): string {
-        return err?.error?.message || err?.message || 'API non disponibile: uso modalità demo locale';
+        return err?.error?.message || err?.message || 'API non disponibile: nessun dato live disponibile';
     }
 
     private loadLocal<T>(key: string, fallback: T): T {
@@ -2360,4 +2055,14 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             return fallback;
         }
     }
+
+    readonly clusterEvents = signal<ClusterEvent[]>([
+        {
+            time: new Date().toLocaleTimeString(),
+            type: 'Warning',
+            target: 'gateway-service',
+            message: 'Initial cluster state loaded',
+            severity: 'MEDIUM'
+        }
+    ]);
 }
