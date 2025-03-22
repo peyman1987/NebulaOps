@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps gitops-control-service API
+  version: 20.6.0
+  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+servers:
+  - url: http://localhost:8093
+paths:
+  /api/gitops:
+    get:
+      summary: List ArgoCD apps
+      tags:
+        - gitops-control-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/gitops/{app}/sync:
+    post:
+      summary: Sync ArgoCD app
+      tags:
+        - gitops-control-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.

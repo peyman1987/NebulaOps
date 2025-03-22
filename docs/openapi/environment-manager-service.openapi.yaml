@@ -1,0 +1,24 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps environment-manager-service API
+  version: 20.6.0
+  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+servers:
+  - url: http://localhost:8094
+paths:
+  /api/environments:
+    get:
+      summary: List Kubernetes namespaces
+      tags:
+        - environment-manager-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.

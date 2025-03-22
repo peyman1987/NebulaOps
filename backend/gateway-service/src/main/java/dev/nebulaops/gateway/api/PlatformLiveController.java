@@ -1,471 +1,136 @@
 package dev.nebulaops.gateway.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import dev.nebulaops.gateway.service.*;
+import org.springframework.web.bind.annotation.*;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/platform")
 public class PlatformLiveController {
+    private final ObservabilityPlatformService observability;
+    private final GitOpsPlatformService gitops;
+    private final SecurityPlatformService security;
+    private final KubernetesPlatformService kubernetes;
+    private final DockerRuntimeService docker;
+    private final TerraformPlatformService terraform;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    public PlatformLiveController(ObservabilityPlatformService observability, GitOpsPlatformService gitops, SecurityPlatformService security, KubernetesPlatformService kubernetes, DockerRuntimeService docker, TerraformPlatformService terraform) {
+        this.observability = observability;
+        this.gitops = gitops;
+        this.security = security;
+        this.kubernetes = kubernetes;
+        this.docker = docker;
+        this.terraform = terraform;
+    }
 
     @GetMapping("/observability")
     public Map<String, Object> observability() {
-        List<Map<String, Object>> stack = List.of(
-                probe("Prometheus", "metrics", env("PROMETHEUS_URL", "http://prometheus:9090"), "/-/ready"),
-                probe("Loki", "logs", env("LOKI_URL", "http://loki:3100"), "/ready"),
-                probe("Tempo", "traces", env("TEMPO_URL", "http://tempo:3200"), "/ready"),
-                probe("Grafana", "dashboards", env("GRAFANA_URL", "http://grafana:3000"), "/api/health"),
-                probe("OpenTelemetry", "collector", env("OTEL_COLLECTOR_URL", "http://otel-collector:4318"), "/")
-        );
+        return observability.stack();
+    }
 
-        List<Map<String, Object>> stats = dockerStats();
-        int gateway = latencyFromStats(stats, "gateway", 0);
-        int task = latencyFromStats(stats, "task", 0);
-        int db = latencyFromStats(stats, "mongo", 0);
+    @GetMapping("/observability/prometheus")
+    public Map<String, Object> prometheus(@RequestParam(defaultValue = "up") String query) {
+        return observability.prometheusQuery(query);
+    }
 
-        return Map.of(
-                "generatedAt", Instant.now().toString(),
-                "mode", "LIVE_ONLY",
-                "stack", stack,
-                "traceFlow", List.of(
-                        hop("frontend", "gateway", gateway),
-                        hop("gateway", "task-service", task),
-                        hop("task-service", "mongodb", db),
-                        hop("notification-service", "rabbitmq", latencyFromStats(stats, "rabbit", 0)),
-                        hop("otel-collector", "tempo", latencyFromStats(stats, "tempo", 0))
-                ),
-                "latencyHeatmap", heatmapFromStats(stats),
-                "eventStream", recentDockerEvents()
-        );
+    @GetMapping("/observability/loki")
+    public Map<String, Object> loki(@RequestParam(required = false) String query) {
+        return observability.lokiQuery(query);
     }
 
     @GetMapping("/gitops")
     public Map<String, Object> gitops() {
-        String apps = shellQuiet("argocd app list -o json 2>/dev/null");
-        if (apps.isBlank()) {
-            return Map.of(
-                    "state", Map.of(
-                            "sync", "Unavailable",
-                            "drift", 0,
-                            "revision", revision(),
-                            "health", "ArgoCD CLI/API not configured"
-                    ),
-                    "deploymentWaves", List.of(),
-                    "commitStream", commits(),
-                    "mode", "LIVE_ONLY"
-            );
-        }
+        return gitops.applications();
+    }
 
-        int drift = count(apps, "OutOfSync");
-        return Map.of(
-                "state", Map.of(
-                        "sync", drift == 0 ? "Synced" : "OutOfSync",
-                        "drift", drift,
-                        "revision", revision(),
-                        "health", count(apps, "Degraded") > 0 ? "Degraded" : "Healthy"
-                ),
-                "deploymentWaves", parseArgoWaves(apps),
-                "commitStream", commits(),
-                "mode", "LIVE_ONLY"
-        );
+    @PostMapping("/gitops/{app}/sync")
+    public Map<String, Object> sync(@PathVariable String app) {
+        return gitops.sync(app);
+    }
+
+    @PostMapping("/gitops/{app}/rollback/{revision}")
+    public Map<String, Object> rollback(@PathVariable String app, @PathVariable String revision) {
+        return gitops.rollback(app, revision);
     }
 
     @GetMapping("/devsecops")
-    public Map<String, Object> devsecops() {
-        String trivy = shellQuiet("trivy fs --format json --quiet . 2>/dev/null");
-        int critical = count(trivy, "CRITICAL");
-        int high = count(trivy, "HIGH");
-        int medium = count(trivy, "MEDIUM");
-        boolean trivyAvailable = !trivy.isBlank();
-        int secrets = secretFindings();
-        List<Map<String, Object>> images = dockerImages();
+    public Map<String, Object> devsecops(@RequestParam(defaultValue = ".") String path) {
+        return security.trivyFs(path);
+    }
 
-        return Map.of(
-                "scans", List.of(
-                        scan("SCAN-TRIVY-FS", "Trivy", "repository filesystem", trivyAvailable ? (critical > 0 ? "FAILED" : "PASSED") : "QUEUED", critical, high, medium, trivyAvailable ? "completed" : "trivy not installed/configured"),
-                        scan("SCAN-DOCKER", "Docker", "local images", images.isEmpty() ? "QUEUED" : "PASSED", 0, 0, 0, images.size() + " images discovered"),
-                        scan("SCAN-SECRETS", "Secrets", "git tracked files", secrets > 0 ? "FAILED" : "PASSED", secrets, 0, 0, "grep-based live check")
-                ),
-                "cves", trivyAvailable ? cvesFromTrivy(trivy) : List.of(),
-                "controls", complianceFromCluster(),
-                "threats", threatsFromLive(critical, high, medium),
-                "mode", "LIVE_ONLY"
-        );
+    @GetMapping("/devsecops/secrets")
+    public Map<String, Object> secrets(@RequestParam(defaultValue = ".") String path) {
+        return security.secretScan(path);
     }
 
     @GetMapping("/environments")
-    public List<Map<String, Object>> environments() {
-        String json = shellQuiet("kubectl get namespaces -o json 2>/dev/null");
-        if (json.isBlank()) {
-            return List.of();
-        }
-
-        try {
-            Map<String, Object> root = mapper.readValue(json, new TypeReference<>() {});
-            List<Map<String, Object>> items = asListOfMaps(root.getOrDefault("items", List.of()));
-            List<Map<String, Object>> rows = new ArrayList<>();
-
-            for (Map<String, Object> item : items) {
-                Map<String, Object> meta = asMap(item.getOrDefault("metadata", Map.of()));
-                String ns = Objects.toString(meta.get("name"), "default");
-                rows.add(Map.of(
-                        "name", ns.toUpperCase(Locale.ROOT),
-                        "namespace", ns,
-                        "cluster", clusterName(),
-                        "health", namespaceHealth(ns),
-                        "cost", 0,
-                        "drift", 0,
-                        "workspace", ns
-                ));
-            }
-            return rows;
-        } catch (Exception e) {
-            return List.of();
-        }
+    public Map<String, Object> environments() {
+        return kubernetes.namespaces();
     }
 
-    private Map<String, Object> probe(String name, String role, String endpoint, String path) {
-        Probe p = httpProbe(endpoint + path);
-        return Map.of(
-                "name", name,
-                "role", role,
-                "endpoint", endpoint,
-                "health", p.ok ? 100 : 0,
-                "signal", p.ok ? "HTTP " + p.code + " in " + p.ms + "ms" : "unreachable",
-                "live", p.ok
-        );
+    @GetMapping("/k8s/cluster")
+    public Map<String, Object> cluster() {
+        return kubernetes.cluster();
     }
 
-    private Map<String, Object> hop(String from, String to, int latency) {
-        return Map.of(
-                "from", from,
-                "to", to,
-                "latency", latency,
-                "status", latency == 0 ? "unknown" : latency > 100 ? "hot" : latency > 55 ? "warm" : "ok"
-        );
+    @GetMapping("/k8s/nodes")
+    public Map<String, Object> nodes() {
+        return kubernetes.nodes();
     }
 
-    private List<Integer> heatmapFromStats(List<Map<String, Object>> stats) {
-        List<Integer> rows = new ArrayList<>();
-        for (Map<String, Object> s : stats) {
-            rows.add(parsePercent(Objects.toString(s.getOrDefault("CPUPerc", "0"), "0")));
-        }
-        while (rows.size() < 16) {
-            rows.add(0);
-        }
-        return rows.subList(0, 16);
+    @GetMapping("/k8s/{kind}")
+    public Map<String, Object> k8s(@PathVariable String kind, @RequestParam(required = false) String namespace) {
+        return kubernetes.resource(kind, namespace);
     }
 
-    private List<String> recentDockerEvents() {
-        String out = shellQuiet("docker events --since 10m --until 0s --format '{{.Type}}.{{.Action}} {{.Actor.Attributes.name}}' 2>/dev/null | tail -20");
-        if (out.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(out.split("\\R")).filter(s -> !s.isBlank()).toList();
+    @GetMapping("/helm/releases")
+    public Map<String, Object> helm(@RequestParam(required = false) String namespace) {
+        return kubernetes.helmReleases(namespace);
     }
 
-    private List<Map<String, Object>> dockerStats() {
-        return jsonLines("docker stats --no-stream --format '{{json .}}' 2>/dev/null");
+    @GetMapping("/docker/containers")
+    public Map<String, Object> containers() {
+        return docker.containers();
     }
 
-    private List<Map<String, Object>> dockerImages() {
-        return jsonLines("docker images --format '{{json .}}' 2>/dev/null");
+    @GetMapping("/docker/images")
+    public Map<String, Object> images() {
+        return docker.images();
     }
 
-    private List<Map<String, Object>> jsonLines(String cmd) {
-        String out = shellQuiet(cmd);
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (String line : out.split("\\R")) {
-            if (line.isBlank()) {
-                continue;
-            }
-            try {
-                rows.add(mapper.readValue(line, new TypeReference<>() {}));
-            } catch (Exception ignored) {
-                // Ignore malformed Docker CLI lines.
-            }
-        }
-        return rows;
+    @GetMapping("/docker/volumes")
+    public Map<String, Object> volumes() {
+        return docker.volumes();
     }
 
-    private int latencyFromStats(List<Map<String, Object>> stats, String name, int fallback) {
-        for (Map<String, Object> s : stats) {
-            String n = Objects.toString(s.getOrDefault("Name", ""), "").toLowerCase(Locale.ROOT);
-            if (n.contains(name)) {
-                return Math.max(1, parsePercent(Objects.toString(s.getOrDefault("CPUPerc", "0"), "0")) * 3);
-            }
-        }
-        return fallback;
+    @GetMapping("/docker/networks")
+    public Map<String, Object> networks() {
+        return docker.networks();
     }
 
-    private int parsePercent(String v) {
-        try {
-            return (int) Math.round(Double.parseDouble(v.replace("%", "").trim()));
-        } catch (Exception e) {
-            return 0;
-        }
+    @GetMapping("/docker/builds")
+    public Map<String, Object> builds() {
+        return docker.builds();
     }
 
-    private List<Map<String, Object>> parseArgoWaves(String apps) {
-        try {
-            List<Map<String, Object>> arr = mapper.readValue(apps, new TypeReference<>() {});
-            List<Map<String, Object>> out = new ArrayList<>();
-            for (Map<String, Object> app : arr) {
-                Map<String, Object> status = asMap(app.getOrDefault("status", Map.of()));
-                Object syncObj = status.getOrDefault("sync", Map.of());
-                String sync;
-
-                if (syncObj instanceof Map) {
-                    Map<?, ?> syncMap = (Map<?, ?>) syncObj;
-                    Object statusValue = syncMap.get("status");
-                    sync = statusValue != null ? statusValue.toString() : "unknown";
-                } else {
-                    sync = syncObj != null ? syncObj.toString() : "unknown";
-                }
-
-                out.add(Map.of(
-                        "wave", Objects.toString(app.getOrDefault("name", "app")),
-                        "target", Objects.toString(app.getOrDefault("project", "default")),
-                        "status", sync
-                ));
-            }
-            return out;
-        } catch (Exception e) {
-            // If ArgoCD CLI is not configured, return a placeholder wave to indicate the issue.
-            return List.of(Map.of(
-                    "wave", "N/A",
-                    "target", "N/A",
-                    "status", "ArgoCD CLI/API not configured"
-            ));
-        }
+    @GetMapping("/docker/scout")
+    public Map<String, Object> scout() {
+        return docker.scout();
     }
 
-    private Map<String, Object> scan(String id, String tool, String target, String status, int c, int h, int m, String detail) {
-        return Map.of(
-                "id", id,
-                "tool", tool,
-                "target", target,
-                "status", status,
-                "critical", c,
-                "high", h,
-                "medium", m,
-                "duration", detail
-        );
+    @GetMapping("/terraform/plan")
+    public Map<String, Object> terraformPlan(@RequestParam(required = false) String workspace) {
+        return terraform.plan(workspace);
     }
 
-    private List<Map<String, Object>> cvesFromTrivy(String trivy) {
-        List<Map<String, Object>> out = new ArrayList<>();
-        try {
-            Map<String, Object> root = mapper.readValue(trivy, new TypeReference<>() {});
-            List<Map<String, Object>> results = asListOfMaps(root.getOrDefault("Results", List.of()));
-
-            for (Map<String, Object> result : results) {
-                List<Map<String, Object>> vulns = asListOfMaps(result.getOrDefault("Vulnerabilities", List.of()));
-                for (Map<String, Object> vuln : vulns) {
-                    out.add(Map.of(
-                            "cve", Objects.toString(vuln.getOrDefault("VulnerabilityID", "CVE")),
-                            "packageName", Objects.toString(vuln.getOrDefault("PkgName", "unknown")),
-                            "severity", normalizeSeverity(Objects.toString(vuln.getOrDefault("Severity", "MEDIUM"))),
-                            "image", Objects.toString(result.getOrDefault("Target", "filesystem")),
-                            "fixVersion", Objects.toString(vuln.getOrDefault("FixedVersion", "not published")),
-                            "exploit", Objects.toString(vuln.getOrDefault("Status", "detected"))
-                    ));
-                    if (out.size() >= 25) {
-                        return out;
-                    }
-                }
-            }
-        } catch (Exception ignored) {
-            return List.of();
-        }
-        return out;
+    @GetMapping("/terraform/graph")
+    public Map<String, Object> terraformGraph(@RequestParam(required = false) String workspace) {
+        return terraform.graph(workspace);
     }
 
-    private String normalizeSeverity(String s) {
-        String u = s == null ? "MEDIUM" : s.toUpperCase(Locale.ROOT);
-        return Set.of("LOW", "MEDIUM", "HIGH", "CRITICAL").contains(u) ? u : "MEDIUM";
-    }
-
-    private List<Map<String, Object>> complianceFromCluster() {
-        boolean k8s = !shellQuiet("kubectl version --client -o json 2>/dev/null").isBlank();
-        boolean docker = !dockerImages().isEmpty();
-        return List.of(
-                control("LIVE-K8S", "Runtime", "Kubernetes API reachable", k8s ? 100 : 0, k8s ? "pass" : "fail"),
-                control("LIVE-DOCKER", "Runtime", "Docker socket reachable", docker ? 100 : 0, docker ? "pass" : "fail")
-        );
-    }
-
-    private Map<String, Object> control(String id, String framework, String title, int score, String status) {
-        return Map.of(
-                "id", id,
-                "framework", framework,
-                "title", title,
-                "score", score,
-                "status", status
-        );
-    }
-
-    private List<Map<String, Object>> threatsFromLive(int critical, int high, int medium) {
-        List<Map<String, Object>> out = new ArrayList<>();
-        if (critical > 0) {
-            out.add(threat("Critical CVE", 20, 32, "CRITICAL", "trivy"));
-        }
-        if (high > 0) {
-            out.add(threat("High CVE", 48, 58, "HIGH", "dependency"));
-        }
-        if (secretFindings() > 0) {
-            out.add(threat("Possible secret", 72, 28, "CRITICAL", "repo"));
-        }
-        return out;
-    }
-
-    private Map<String, Object> threat(String name, int x, int y, String severity, String vector) {
-        return Map.of(
-                "name", name,
-                "x", x,
-                "y", y,
-                "severity", severity,
-                "vector", vector
-        );
-    }
-
-    private int secretFindings() {
-        String out = shellQuiet("grep -RIE --exclude-dir=.git --exclude-dir=node_modules '(password|secret|token|apikey|api_key)[[:space:]]*[:=]' . 2>/dev/null | wc -l");
-        try {
-            return Integer.parseInt(out.trim());
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    private int namespaceHealth(String namespace) {
-        String out = shellQuiet("kubectl get pods -n " + safe(namespace) + " --no-headers 2>/dev/null");
-        if (out.isBlank()) {
-            return 100;
-        }
-
-        long total = Arrays.stream(out.split("\\R")).filter(s -> !s.isBlank()).count();
-        long bad = Arrays.stream(out.split("\\R"))
-                .filter(s -> !s.contains("Running") && !s.contains("Completed"))
-                .count();
-
-        return total == 0 ? 100 : (int) Math.max(0, 100 - (bad * 100 / total));
-    }
-
-    private String clusterName() {
-        String n = shellQuiet("kubectl config current-context 2>/dev/null");
-        return n.isBlank() ? "kubernetes" : n.trim();
-    }
-
-    private String env(String key, String fallback) {
-        return System.getenv().getOrDefault(key, fallback);
-    }
-
-    private String revision() {
-        String rev = shellQuiet("git rev-parse --short HEAD 2>/dev/null");
-        return rev.isBlank() ? "unknown" : rev.trim();
-    }
-
-    private List<String> commits() {
-        String log = shellQuiet("git log --oneline -4 --pretty=format:%s 2>/dev/null");
-        return log.isBlank() ? List.of() : Arrays.stream(log.split("\\R")).filter(s -> !s.isBlank()).toList();
-    }
-
-    private int count(String body, String needle) {
-        if (body == null || body.isBlank() || needle == null || needle.isBlank()) {
-            return 0;
-        }
-
-        int c = 0;
-        int i = 0;
-        while ((i = body.indexOf(needle, i)) >= 0) {
-            c++;
-            i += needle.length();
-        }
-        return c;
-    }
-
-    private String safe(String s) {
-        return s == null ? "" : s.replaceAll("[^A-Za-z0-9_.:-]", "");
-    }
-
-    private Probe httpProbe(String url) {
-        long start = System.nanoTime();
-        try {
-            HttpURLConnection c = (HttpURLConnection) URI.create(url).toURL().openConnection();
-            c.setConnectTimeout(900);
-            c.setReadTimeout(900);
-            c.setRequestMethod("GET");
-            int code = c.getResponseCode();
-            long ms = (System.nanoTime() - start) / 1_000_000;
-            return new Probe(code >= 200 && code < 500, code, ms);
-        } catch (Exception e) {
-            return new Probe(false, 0, 0);
-        }
-    }
-
-    private String shellQuiet(String command) {
-        try {
-            Process p = new ProcessBuilder("bash", "-lc", command)
-                    .redirectErrorStream(true)
-                    .start();
-
-            String out;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
-                out = reader.lines().reduce("", (a, b) -> a + b + "\n");
-            }
-
-            if (!p.waitFor(8, TimeUnit.SECONDS)) {
-                p.destroyForcibly();
-                return "";
-            }
-            return p.exitValue() == 0 ? out.trim() : "";
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> asMap(Object value) {
-        if (value instanceof Map<?, ?> map) {
-            return (Map<String, Object>) map;
-        }
-        return Map.of();
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> asListOfMaps(Object value) {
-        if (value instanceof List<?> list) {
-            List<Map<String, Object>> out = new ArrayList<>();
-            for (Object item : list) {
-                if (item instanceof Map<?, ?> map) {
-                    out.add((Map<String, Object>) map);
-                }
-            }
-            return out;
-        }
-        return List.of();
-    }
-
-    private record Probe(boolean ok, int code, long ms) {
+    @GetMapping("/terraform/modules")
+    public Map<String, Object> terraformModules(@RequestParam(required = false) String workspace) {
+        return terraform.modules(workspace);
     }
 }

@@ -1,0 +1,269 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps gateway-service API
+  version: 20.6.0
+  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/platform/observability:
+    get:
+      summary: Read live observability stack from configured APIs
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/observability/prometheus:
+    get:
+      summary: Execute live Prometheus query
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/observability/loki:
+    get:
+      summary: Execute live Loki query
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/gitops:
+    get:
+      summary: Read ArgoCD applications
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/devsecops:
+    get:
+      summary: Run live DevSecOps scan adapter
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/environments:
+    get:
+      summary: Read Kubernetes namespaces
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/k8s/cluster:
+    get:
+      summary: Read Kubernetes cluster info
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/k8s/nodes:
+    get:
+      summary: Read Kubernetes nodes
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/k8s/{kind}:
+    get:
+      summary: Read Kubernetes resource by kind
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/helm/releases:
+    get:
+      summary: Read Helm releases
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/docker/containers:
+    get:
+      summary: Read Docker containers
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/docker/images:
+    get:
+      summary: Read Docker images
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/docker/volumes:
+    get:
+      summary: Read Docker volumes
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/docker/networks:
+    get:
+      summary: Read Docker networks
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/terraform/plan:
+    get:
+      summary: Run Terraform plan/show JSON
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/terraform/graph:
+    get:
+      summary: Run Terraform graph
+      tags:
+        - gateway-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/platform/observability:
+    get:
+      summary: Live observability stack probes
+      responses:
+        '200': { description: Stack probe result }

@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps devsecops-service API
+  version: 20.6.0
+  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+servers:
+  - url: http://localhost:8086
+paths:
+  /api/devsecops/scan:
+    get:
+      summary: Run Trivy filesystem scan
+      tags:
+        - devsecops-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/devsecops/secrets:
+    get:
+      summary: Run repository secret grep scan
+      tags:
+        - devsecops-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.

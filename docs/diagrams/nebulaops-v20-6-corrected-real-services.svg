@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+    <defs>
+        <linearGradient id="g" x1="0" x2="1">
+            <stop offset="0" stop-color="#111827"/>
+            <stop offset="1" stop-color="#312e81"/>
+        </linearGradient>
+        <style>.t{font:700 26px Arial;fill:#fff}.s{font:500 16px
+            Arial;fill:#dbeafe}.b{fill:#0f172a;stroke:#38bdf8;stroke-width:2;rx:18}.a{stroke:#a78bfa;stroke-width:3;marker-end:url(#m)}.small{font:500
+            13px Arial;fill:#cbd5e1}
+        </style>
+        <marker id="m" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#a78bfa"/>
+        </marker>
+    </defs>
+    <rect width="1200" height="720" fill="url(#g)"/>
+    <text x="42" y="58" class="t">NebulaOps v20.6 Corrected — Real Services Architecture</text>
+    <text x="42" y="88" class="s">No mock/statistical backend data. Every response comes from API, socket, repository or
+        CLI adapter.
+    </text>
+    <rect class="b" x="60" y="150" width="210" height="110"/>
+    <text x="95" y="205" class="s">Controller Layer</text>
+    <text x="82" y="232" class="small">thin REST endpoints</text>
+    <rect class="b" x="350" y="150" width="210" height="110"/>
+    <text x="398" y="205" class="s">Service Layer</text>
+    <text x="374" y="232" class="small">business orchestration</text>
+    <rect class="b" x="640" y="150" width="230" height="110"/>
+    <text x="682" y="205" class="s">Client / Adapter</text>
+    <text x="665" y="232" class="small">HTTP, socket, CLI, repo</text>
+    <rect class="b" x="950" y="150" width="190" height="110"/>
+    <text x="985" y="196" class="s">Real Tools</text>
+    <text x="972" y="224" class="small">Docker/K8s/Terraform</text>
+    <line class="a" x1="270" y1="205" x2="350" y2="205"/>
+    <line class="a" x1="560" y1="205" x2="640" y2="205"/>
+    <line class="a" x1="870" y1="205" x2="950" y2="205"/>
+    <rect class="b" x="90" y="350" width="250" height="90"/>
+    <text x="125" y="392" class="s">Gateway API</text>
+    <text x="112" y="418" class="small">OpenAPI / Swagger</text>
+    <rect class="b" x="475" y="350" width="250" height="90"/>
+    <text x="520" y="392" class="s">Domain Services</text>
+    <text x="500" y="418" class="small">Docker, K8s, GitOps, Security</text>
+    <rect class="b" x="860" y="350" width="250" height="90"/>
+    <text x="905" y="392" class="s">Runtime Mounts</text>
+    <text x="885" y="418" class="small">socket, kubeconfig, workspace</text>
+    <line class="a" x1="340" y1="395" x2="475" y2="395"/>
+    <line class="a" x1="725" y1="395" x2="860" y2="395"/>
+    <text x="86" y="560" class="s">Tool missing?</text>
+    <text x="86" y="590" class="small">Return live:false + toolStatus. Do not fabricate values.</text>
+    <text x="475" y="560" class="s">OpenAPI 3</text>
+    <text x="475" y="590" class="small">/v3/api-docs and docs/openapi/*.yaml</text>
+    <text x="850" y="560" class="s">Docker build</text>
+    <text x="850" y="590" class="small">No curl downloads of enterprise CLIs.</text>
+</svg>

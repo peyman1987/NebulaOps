@@ -340,7 +340,7 @@ interface HomeLauncher {
     status: string;
 }
 
-const TASKS_KEY = 'nebulaops.v20_2.tasks';
+const TASKS_KEY = 'nebulaops.v20_2.tasks'; // legacy key, no longer used for live task data
 const K8S_KEY = 'nebulaops.v20_2.k8s';
 const SESSION_KEY = 'nebulaops.v20_2.session';
 
@@ -444,7 +444,10 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             name: 'Platform', icon: '✦', children: [
-                {label: 'Dashboard', tab: 'OVERVIEW'}, {label: 'INFRA', tab: 'INFRA'}, {label: 'CI/CD', tab: 'CICD'},
+                {label: 'Dashboard', tab: 'OVERVIEW'}, {label: 'INFRA', tab: 'INFRA'}, {
+                    label: 'Tasks',
+                    tab: 'TASKS'
+                }, {label: 'CI/CD', tab: 'CICD'},
                 {label: 'GitOps', tab: 'GITOPS'}, {label: 'Observability', tab: 'OBSERVABILITY'}, {
                     label: 'Security',
                     tab: 'SECURITY'
@@ -529,36 +532,8 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
     readonly k8sState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
-    readonly tasks = signal<Task[]>(this.loadLocal(TASKS_KEY, [
-        {
-            id: 'V19-101',
-            title: 'Provision local kind cluster with Terraform',
-            owner: 'Platform',
-            priority: 'CRITICAL',
-            status: 'TODO'
-        },
-        {
-            id: 'V19-102',
-            title: 'Add FinOps budget guardrails for live services',
-            owner: 'SRE',
-            priority: 'HIGH',
-            status: 'IN_PROGRESS'
-        },
-        {
-            id: 'V19-103',
-            title: 'Validate Helm render and ArgoCD sync gates',
-            owner: 'DevOps',
-            priority: 'HIGH',
-            status: 'REVIEW'
-        },
-        {
-            id: 'V19-104',
-            title: 'Document WSL onboarding and smoke tests',
-            owner: 'Peyman',
-            priority: 'MEDIUM',
-            status: 'DONE'
-        }
-    ]));
+    readonly tasks = signal<Task[]>([]);
+    readonly tasksState = signal<'syncing' | 'connected' | 'error' | 'empty'>('syncing');
     readonly resources = signal<K8sResource[]>([]);
     readonly selected = signal<K8sResource | null>(this.resources()[0] ?? null);
     readonly logs = signal<ServiceLog[]>([]);
@@ -628,6 +603,7 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly terminalCommand = signal('kubectl describe pod gateway-service-78fdd -n nebulaops');
     readonly liveClusterNodes = signal<ClusterNode3D[]>(this.buildClusterNodes());
     readonly clusterEdges = signal<ClusterEdge[]>([]);
+    readonly clusterEvents = signal<ClusterEvent[]>(this.syntheticClusterEvents());
     readonly liveMetrics = signal<LiveMetric[]>([]);
     readonly homeLaunchers: HomeLauncher[] = [
         {
@@ -1374,6 +1350,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (tab === 'VULNERABILITIES') this.securitySubTab.set('VULNERABILITIES');
         if (tab === 'SECURITY') this.securitySubTab.set('SECURITY');
         if (tab === 'KUBERNETES' || tab === 'OVERVIEW') this.loadK8sFromApi();
+        if (tab === 'TASKS') this.loadTasks();
         if (tab === 'HELM') this.loadHelm();
         if (tab === 'OBSERVABILITY') this.refreshLogs(); else this.stopLogsAutoRefresh();
         if (tab === 'AI OPS') this.runAiOpsAnalysis();
@@ -1381,6 +1358,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     refreshAll(): void {
         this.loadK8sFromApi();
+        this.loadTasks();
         this.loadHelm();
         this.loadDocker();
         this.loadObservability();
@@ -1398,23 +1376,78 @@ export class AppComponent implements OnInit, OnDestroy {
     drop(event: CdkDragDrop<Task[]>, status: Status): void {
         const item = event.previousContainer.data[event.previousIndex];
         if (!item) return;
-        this.tasks.set(this.tasks().map(t => t.id === item.id ? {...t, status} : t));
-        this.saveTasks();
+        this.updateTaskStatus(item, status);
+    }
+
+    loadTasks(): void {
+        this.tasksState.set('syncing');
+        this.http.get<any[]>('/api/tasks?organizationId=default-org').pipe(catchError(err => {
+            this.tasksState.set('error');
+            this.apiError.set('Tasks REST error: ' + this.errorMessage(err));
+            return of([]);
+        })).subscribe(rows => {
+            const tasks = (rows || []).map(t => this.normalizeTask(t));
+            this.tasks.set(tasks);
+            this.tasksState.set(tasks.length ? 'connected' : 'empty');
+        });
     }
 
     createTask(): void {
         if (!this.taskForm.title.trim()) return;
-        this.tasks.set([{
-            ...this.taskForm,
-            id: this.taskForm.id || `V19-${Date.now().toString().slice(-5)}`
-        }, ...this.tasks()]);
-        this.saveTasks();
-        this.taskForm = {id: '', title: '', owner: 'Platform', priority: 'MEDIUM', status: 'TODO'};
+        const payload = {
+            organizationId: 'default-org',
+            projectId: 'portfolio',
+            title: this.taskForm.title,
+            description: '',
+            priority: this.taskForm.priority,
+            assigneeId: this.taskForm.owner,
+            labels: []
+        };
+        this.http.post<any>('/api/tasks', payload).pipe(catchError(err => {
+            this.tasksState.set('error');
+            this.apiError.set('Create task REST error: ' + this.errorMessage(err));
+            return of(null);
+        })).subscribe(saved => {
+            if (!saved) return;
+            this.tasks.set([this.normalizeTask(saved), ...this.tasks()]);
+            this.tasksState.set('connected');
+            this.taskForm = {id: '', title: '', owner: 'Platform', priority: 'MEDIUM', status: 'TODO'};
+        });
+    }
+
+    updateTaskStatus(item: Task, status: Status): void {
+        this.http.patch<any>(`/api/tasks/${encodeURIComponent(item.id)}/status/${status}`, {}).pipe(catchError(err => {
+            this.tasksState.set('error');
+            this.apiError.set('Update task REST error: ' + this.errorMessage(err));
+            return of(null);
+        })).subscribe(saved => {
+            if (!saved) return;
+            const normalized = this.normalizeTask(saved);
+            this.tasks.set(this.tasks().map(t => t.id === item.id ? normalized : t));
+            this.tasksState.set('connected');
+        });
     }
 
     deleteTask(id: string): void {
-        this.tasks.set(this.tasks().filter(t => t.id !== id));
-        this.saveTasks();
+        this.http.delete<any>(`/api/tasks/${encodeURIComponent(id)}`).pipe(catchError(err => {
+            this.tasksState.set('error');
+            this.apiError.set('Delete task REST error: ' + this.errorMessage(err));
+            return of(null);
+        })).subscribe(res => {
+            if (!res) return;
+            this.tasks.set(this.tasks().filter(t => t.id !== id));
+            this.tasksState.set(this.tasks().length ? 'connected' : 'empty');
+        });
+    }
+
+    normalizeTask(t: any): Task {
+        return {
+            id: String(t.id || t._id || ''),
+            title: String(t.title || '(untitled task)'),
+            owner: String(t.assigneeId || t.owner || t.projectId || 'Platform'),
+            priority: (['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(String(t.priority)) ? t.priority : 'MEDIUM') as Priority,
+            status: (['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'].includes(String(t.status)) ? t.status : 'TODO') as Status
+        };
     }
 
     priorityClass(p: Priority): string {
@@ -2055,14 +2088,4 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             return fallback;
         }
     }
-
-    readonly clusterEvents = signal<ClusterEvent[]>([
-        {
-            time: new Date().toLocaleTimeString(),
-            type: 'Warning',
-            target: 'gateway-service',
-            message: 'Initial cluster state loaded',
-            severity: 'MEDIUM'
-        }
-    ]);
 }
