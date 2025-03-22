@@ -1,0 +1,11 @@
+flowchart TD
+  UI[Angular UI] --> GW[Gateway Service]
+  GW --> K8S[Kubernetes Platform Service]
+  GW --> DOCKER[Docker Runtime Service]
+  GW --> SEC[Security Service]
+  K8S --> KUBECTL[/kubectl mounted in /opt/nebula-tools/]
+  DOCKER --> DOCKERCLI[/docker CLI + /var/run/docker.sock/]
+  SEC --> TRIVY[/trivy if installed on host/]
+  GW --> JAVA[/Java absolute path: /opt/java/openjdk/bin/java/]
+  KUBECTL --> CLUSTER[(Kubernetes API)]
+  DOCKERCLI --> ENGINE[(Docker Engine API)]

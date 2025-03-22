@@ -1,0 +1,56 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps terraform-studio-service API
+  version: 20.6.0
+  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+servers:
+  - url: http://localhost:8096
+paths:
+  /api/terraform-studio/plan:
+    get:
+      summary: Run Terraform plan against workspace
+      tags:
+        - terraform-studio-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/terraform-studio/graph:
+    get:
+      summary: Run Terraform graph
+      tags:
+        - terraform-studio-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/terraform-studio/modules:
+    get:
+      summary: List Terraform module files
+      tags:
+        - terraform-studio-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.

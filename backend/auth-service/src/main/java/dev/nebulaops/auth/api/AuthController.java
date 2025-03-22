@@ -33,12 +33,12 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "email already exists"));
         }
 
-        var organizationId = req.organizationId() == null || req.organizationId().isBlank() ? "demo-org" : req.organizationId();
+        var organizationId = req.organizationId() == null || req.organizationId().isBlank() ? "default-org" : req.organizationId();
         var user = new UserAccount(
                 null,
                 req.email(),
                 req.displayName() == null ? req.email() : req.displayName(),
-                "demo-hash-" + req.password(),
+                "plain-dev-only-" + req.password(),
                 Set.of("USER"),
                 organizationId,
                 Instant.now());
@@ -51,7 +51,7 @@ public class AuthController {
     public Map<String, Object> login(@RequestBody LoginRequest req) {
         var user = users.findByEmail(req.email()).orElseThrow();
         return Map.of(
-                "accessToken", "demo-jwt-" + UUID.randomUUID(),
+                "accessToken", "dev-token-" + UUID.randomUUID(),
                 "tokenType", "Bearer",
                 "user", toResponse(user));
     }

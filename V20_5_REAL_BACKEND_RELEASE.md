@@ -1,4 +1,4 @@
-# NebulaOps v20.5 Real Backend Services
+# NebulaOps v20.6 Real Backend Services
 
 Questa release sostituisce i controller demo/statici con servizi runtime-driven.
 
@@ -14,7 +14,7 @@ Questa release sostituisce i controller demo/statici con servizi runtime-driven.
 - `ai-ops-service`: se l'AI engine non risponde, restituisce diagnostica live da `kubectl`/Docker invece di incidenti
   mock.
 
-## Principio v20.5
+## Principio v20.6
 
 Nessun controller deve inventare risorse, CVE, moduli Terraform, pipeline, namespace o stato GitOps. Se un tool non è
 disponibile, la risposta deve contenere `live:false` o `UNAVAILABLE` con `toolStatus`, non dati finti.

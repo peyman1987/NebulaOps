@@ -3,9 +3,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
-PROJECT_NAME="nebulaops-v20-5"
+PROJECT_NAME="nebulaops-v20-6"
+export COMPOSE_PARALLEL_LIMIT=${COMPOSE_PARALLEL_LIMIT:-2}
 ./scripts/wsl/check-wsl.sh
 ./scripts/wsl/prepare-kubeconfig-for-docker.sh
+./scripts/wsl/prepare-runtime-tools.sh
 echo "Validating Grafana provisioning..."
 DEFAULTS=$(grep -R "isDefault: true" -n infrastructure/observability/grafana/provisioning/datasources 2>/dev/null | wc -l || true)
 if [ "$DEFAULTS" -ne 1 ]; then
@@ -13,7 +15,7 @@ if [ "$DEFAULTS" -ne 1 ]; then
   grep -R "isDefault:" -n infrastructure/observability/grafana/provisioning/datasources || true
   exit 1
 fi
-echo "Starting NebulaOps v20.5 with Docker Compose..."
+echo "Starting NebulaOps v20.6.5 with Docker Compose..."
 docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" up --build -d
 echo "Waiting for gateway..."
 for i in {1..60}; do

@@ -22,7 +22,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskDocument> list(@RequestParam(defaultValue = "demo-org") String organizationId) {
+    public List<TaskDocument> list(@RequestParam(defaultValue = "default-org") String organizationId) {
         return repo.findByOrganizationId(organizationId);
     }
 
@@ -32,7 +32,7 @@ public class TaskController {
             throw new IllegalArgumentException("title is required");
         }
         var now = Instant.now();
-        var organizationId = r.organizationId() == null || r.organizationId().isBlank() ? "demo-org" : r.organizationId();
+        var organizationId = r.organizationId() == null || r.organizationId().isBlank() ? "default-org" : r.organizationId();
         var saved = repo.save(new TaskDocument(
                 null,
                 organizationId,

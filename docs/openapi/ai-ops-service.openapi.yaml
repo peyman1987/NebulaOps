@@ -1,0 +1,66 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps ai-ops-service API
+  version: 20.6.0
+  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+servers:
+  - url: http://localhost:8085
+paths:
+  /api/ai-ops/diagnostics:
+    get:
+      summary: Run live diagnostics
+      tags:
+        - ai-ops-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/ai-ops/k8s:
+    get:
+      summary: Read Kubernetes signal
+      tags:
+        - ai-ops-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/ai-ops/docker:
+    get:
+      summary: Read Docker signal
+      tags:
+        - ai-ops-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/ai-ops/analyze:
+    post:
+      summary: Analyze live Kubernetes/log signals
+      responses:
+        '200': { description: Live AI Ops analysis }
+  /api/ai-ops/autofix:
+    post:
+      summary: Apply reviewed Kubernetes manifest/action
+      responses:
+        '200': { description: Apply result }

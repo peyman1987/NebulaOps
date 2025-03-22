@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps observability-service API
+  version: 20.6.0
+  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+servers:
+  - url: http://localhost:8092
+paths:
+  /api/observability:
+    get:
+      summary: Probe live observability APIs
+      tags:
+        - observability-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/observability/prometheus:
+    get:
+      summary: Run Prometheus query
+      tags:
+        - observability-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/observability/loki:
+    get:
+      summary: Run Loki query
+      tags:
+        - observability-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
+  /api/observability/grafana:
+    get:
+      summary: Read Grafana health
+      tags:
+        - observability-service
+      responses:
+        '200':
+          description: Live response from backend service.
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request.
+        '500':
+          description: Runtime tool/API error.
