@@ -4,12 +4,10 @@ WORKDIR /workspace
 
 COPY backend/pom.xml backend/pom.xml
 COPY backend/gateway-service/pom.xml backend/gateway-service/pom.xml
-
-
 COPY backend/gateway-service/src backend/gateway-service/src
 
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn -B -f backend/gateway-service/pom.xml \
+# v21.1: NO Maven cache mount — ensures clean build without stale NormalizedApiController
+RUN mvn -B -f backend/gateway-service/pom.xml \
     -Dmaven.wagon.http.retryHandler.count=5 \
     -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
     -DskipTests -Dmaven.test.skip=true clean package
@@ -17,11 +15,6 @@ RUN --mount=type=cache,target=/root/.m2 \
 FROM eclipse-temurin:21-jre
 ENV PATH="/opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 WORKDIR /app
-
-# v20.6 corrected: no enterprise CLI downloads during image build.
-# Runtime tools must be provided by Docker volume mounts or custom base image:
-# docker, kubectl, helm, argocd, terraform, trivy.
 COPY --from=build /workspace/backend/gateway-service/target/*.jar app.jar
-
 EXPOSE 8080
 ENTRYPOINT ["/opt/java/openjdk/bin/java","-jar","/app/app.jar"]

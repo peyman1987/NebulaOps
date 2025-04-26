@@ -1,4 +1,4 @@
-# NebulaOps v20.6.1 Runtime Tools
+# NebulaOps v21.1 Runtime Tools
 
 NebulaOps backend services are **live-only**. They do not return mock/static data.
 
@@ -17,7 +17,7 @@ Run from the project root:
 ```bash
 ./scripts/wsl/prepare-kubeconfig-for-docker.sh
 ./scripts/wsl/prepare-runtime-tools.sh
-docker compose -p nebulaops-v20-6 -f docker-compose.yml up --build -d
+docker compose -p nebulaops-v21-1 -f docker-compose.yml up --build -d
 ```
 
 The script copies available host tools into `.runtime-tools/`, which is mounted read-only into backend containers

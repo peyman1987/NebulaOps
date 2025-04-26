@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img"
      aria-labelledby="title desc">
-    <title id="title">NebulaOps v19.3 DevSecOps Module</title>
+    <title id="title">NebulaOps v21.1 DevSecOps Module</title>
     <desc id="desc">Animated DevSecOps architecture with radar, scans, compliance and CVE dashboard.</desc>
     <defs>
         <linearGradient id="bg" x1="0" x2="1">
@@ -33,7 +33,7 @@
         <path d="M0 80h1400M0 160h1400M0 240h1400M0 320h1400M0 400h1400M0 480h1400M0 560h1400M0 640h1400M0 720h1400"/>
         <path d="M100 0v820M220 0v820M340 0v820M460 0v820M580 0v820M700 0v820M820 0v820M940 0v820M1060 0v820M1180 0v820M1300 0v820"/>
     </g>
-    <text x="64" y="70" font-size="36" font-weight="900" class="t">NebulaOps v19.3 · DevSecOps Module</text>
+    <text x="64" y="70" font-size="36" font-weight="900" class="t">NebulaOps v21.1 · DevSecOps Module</text>
     <text x="64" y="108" font-size="18" class="muted">SECURITY · COMPLIANCE · VULNERABILITIES · Trivy · Docker Image
         Scan · SAST · Secrets · CVE Dashboard
     </text>

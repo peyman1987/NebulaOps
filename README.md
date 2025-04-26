@@ -1,12 +1,12 @@
-## v20.6 Build Fix
+## v21.1 Build Fix
 
 - Fixed frontend Docker build where `ng` was not available during production image build.
 - Frontend Dockerfile now installs dev build tooling with `npm ci --include=dev` and invokes Angular
   through `./node_modules/.bin/ng`.
 
-# NebulaOps v20.6 — Terraform DevOps Control Plane
+# NebulaOps v21.1 — Terraform DevOps Control Plane
 
-NebulaOps v20.6 è un progetto portfolio Cloud/DevOps local-first con Angular, microservizi, Docker Compose, Kubernetes,
+NebulaOps v21.1 è un progetto portfolio Cloud/DevOps local-first con Angular, microservizi, Docker Compose, Kubernetes,
 Helm, Grafana, Prometheus, Argo CD/GitLab flow e **Terraform integrato nella root del repository**.
 
 ## Cosa include
@@ -17,7 +17,7 @@ Helm, Grafana, Prometheus, Argo CD/GitLab flow e **Terraform integrato nella roo
 - Kubernetes/Helm per scenario platform.
 - Terraform per generare configurazioni locali e baseline.
 - SVG architetturali aggiornati.
-- Documentazione v20.6 aggiornata.
+- Documentazione v21.1 aggiornata.
 
 ## Quick start
 
@@ -61,7 +61,7 @@ terraform apply -auto-approve -var-file examples/local-kind/terraform.tfvars
 
 Sviluppato da Peyman Eshghi Malayeri — 2024/2026 portfolio evolution.
 
-## v20.6 AI Ops Center
+## v21.1 AI Ops Center
 
 - New `AI OPS` tab with futuristic cockpit UI.
 - Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
@@ -78,9 +78,9 @@ Sviluppato da Peyman Eshghi Malayeri — 2024/2026 portfolio evolution.
 - `docs/diagrams/service-port-map.svg`
 - `docs/diagrams/nebulaops-v20-2-kubernetes-visual-cluster.svg`
 
-## v20.6 DevSecOps Module
+## v21.1 DevSecOps Module
 
-La v20.6 aggiunge i tab `SECURITY`, `COMPLIANCE` e `VULNERABILITIES` con radar animation, threat map, critical alerts,
+La v21.1 aggiunge i tab `SECURITY`, `COMPLIANCE` e `VULNERABILITIES` con radar animation, threat map, critical alerts,
 animated risk score, Trivy/Docker/SAST/secrets/dependency scan simulation e CVE dashboard.
 
 - `docs/V19_3_DEVSECOPS_MODULE.md`
@@ -88,20 +88,20 @@ animated risk score, Trivy/Docker/SAST/secrets/dependency scan simulation e CVE 
 - `docs/diagrams/nebulaops-v20-2-devsecops-module.svg`
 - `backend/devsecops-service`
 
-## v20.6 Documentation & diagrams patch
+## v21.1 Documentation & diagrams patch
 
 La documentazione ufficiale aggiornata della release è in `docs/README_V19_3_INDEX.md`.
 I diagrammi SVG aggiornati sono in `docs/diagrams/` e includono DevSecOps, Kubernetes Visual Cluster e AI Ops Center.
 
-## v20.6 Corrected Build Package
+## v21.1 Corrected Build Package
 
-This package includes the DevSecOps module and the v20.6 stabilization patch:
+This package includes the DevSecOps module and the v21.1 stabilization patch:
 
 - BuildKit Maven cache in all Spring service Dockerfiles.
 - Retry-hardened Maven commands to reduce Maven Central timeout failures.
 - Explicit Docker image names using `nebulaops-v20-2-*`.
 - Backend Maven versions aligned to `20.6.0`.
-- Docs, Markdown files, and SVG labels aligned to v20.6.
+- Docs, Markdown files, and SVG labels aligned to v21.1.
 
 Recommended command:
 
@@ -110,14 +110,14 @@ DOCKER_BUILDKIT=1 docker compose build --parallel=false
 docker compose up
 ```
 
-## v20.6 Corrected - Home Feature Launcher
+## v21.1 Corrected - Home Feature Launcher
 
 La home ora include un Command Center con tasti grandi per aprire rapidamente Grafana, ArgoCD, Prometheus e i moduli
 interni AI OPS, Kubernetes Visual Cluster, Security, Helm e Observability.
 
 Documentazione: `docs/V19_3_HOME_FEATURE_LAUNCHER.md`.
 
-## v20.6 Highlights
+## v21.1 Highlights
 
 - CI/CD Pipeline Designer with drag & drop canvas: Build, Test, Security Scan, Docker Build, Helm Deploy and Smoke Test.
 - `pipeline-engine-service` for JSON/YAML saving, GitLab export and ArgoCD sync simulation.
@@ -125,21 +125,21 @@ Documentazione: `docs/V19_3_HOME_FEATURE_LAUNCHER.md`.
 
 See `docs/README_V20_1_INDEX.md`.
 
-## NebulaOps v20.6
+## NebulaOps v21.1
 
 Adds Advanced Observability Stack, GitOps Control Plane, Multi-Environment Manager and Smart Terraform Studio. The INFRA
 tab now opens Grafana, Redis Commander, Mongo Express, RabbitMQ, Prometheus, Loki, Tempo, OpenTelemetry Collector,
 ArgoCD and all internal feature modules.
 
-## v20.6 Containers refresh
+## v21.1 Containers refresh
 
 This package includes a new `CONTAINERS` tab that integrates Docker Desktop-like runtime management and OpenLens-like
 Kubernetes workload operations: containers, images, volumes, logs, terminal, pod scaling, rollout restart,
 service/controller/ingress inspection and INFRA launchpad links.
 
-## v20.6 Live Runtime Upgrade
+## v21.1 Live Runtime Upgrade
 
-La release v20.6 aggiunge un livello dinamico sopra i moduli enterprise della v19.x:
+La release v21.1 aggiunge un livello dinamico sopra i moduli enterprise della v19.x:
 
 - UI restyling Aurora Glass per una dashboard più moderna e leggibile.
 - Backend Gateway con nuovi
@@ -150,12 +150,12 @@ La release v20.6 aggiunge un livello dinamico sopra i moduli enterprise della v1
 
 Vedi `docs/V20_1_RELEASE_NOTES.md` per i dettagli.
 
-## v20.6.3 NPM Build Fix
+## v21.1.3 NPM Build Fix
 
 Frontend Docker build hardened: Node 20.61.1, stale lockfile removed, npm install fallback for Angular dependencies. See
 V20_2_3_NPM_FIX.md.
 
-## v20.6 Corrected Real Services Backend
+## v21.1 Corrected Real Services Backend
 
 Questa build usa backend live-only con pattern `Controller → Service → Client/Adapter → Tool reale/API/CLI`.
 
@@ -165,7 +165,7 @@ Questa build usa backend live-only con pattern `Controller → Service → Clien
 - OpenAPI YAML: `docs/openapi/*.openapi.yaml`
 - Nessun dato statistico/mock nei backend live platform.
 
-## Runtime tools v20.6.1
+## Runtime tools v21.1.1
 
 Backend live endpoints require real CLI/API access. Before starting, run:
 
