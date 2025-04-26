@@ -1,4 +1,4 @@
-# NebulaOps v20.6 Corrected Release Notes
+# NebulaOps v21.1 Corrected Release Notes
 
 ## Backend
 

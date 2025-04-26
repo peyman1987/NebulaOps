@@ -1,4 +1,4 @@
-# NebulaOps v20.6.5 Runtime/Build Fix
+# NebulaOps v21.1 Runtime/Build Fix
 
 This package fixes the repeated Java runtime failure:
 
@@ -22,7 +22,7 @@ exec: "java": executable file not found in $PATH
 ```bash
 ./scripts/wsl/prepare-kubeconfig-for-docker.sh
 ./scripts/wsl/prepare-runtime-tools.sh
-COMPOSE_PARALLEL_LIMIT=2 docker compose -p nebulaops-v20-6 -f docker-compose.yml up --build -d
+COMPOSE_PARALLEL_LIMIT=2 docker compose -p nebulaops-v21-1 -f docker-compose.yml up --build -d
 ./scripts/wsl/diagnose-runtime.sh
 ```
 

@@ -341,11 +341,11 @@ interface HomeLauncher {
 }
 
 const TASKS_KEY = 'nebulaops.v20_2.tasks'; // legacy key, no longer used for live task data
-const K8S_KEY = 'nebulaops.v20_2.k8s';
-const SESSION_KEY = 'nebulaops.v20_2.session';
+const K8S_KEY = 'nebulaops.v21_1.k8s';
+const SESSION_KEY = 'nebulaops.v21_1.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v20-2\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -527,7 +527,7 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v20_4.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v21_1.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -631,7 +631,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v20.4'
+            status: 'v21.1'
         },
         {
             title: 'INFRA',
@@ -685,7 +685,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v20.4'
+            status: 'v21.1'
         },
         {
             title: 'Helm',
@@ -712,7 +712,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v20.4'
+            status: 'v21.1'
         },
         {
             title: 'Multi-Env Manager',
@@ -1104,7 +1104,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v20-2-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v21-1-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
@@ -1145,7 +1145,7 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v20-2-devsecops-module.svg',
+            path: 'docs/nebulaops-v21-1-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -1187,7 +1187,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v20_2.user', u);
+            localStorage.setItem('nebulaops.v21_1.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -2073,7 +2073,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             time: now,
             service,
             level: i === 2 ? 'PLAN' : 'INFO',
-            message: `${service} OK · v19.1 AI Ops telemetry`
+            message: `${service} OK · v21.1 AI Ops telemetry`
         }));
     }
 

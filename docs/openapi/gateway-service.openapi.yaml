@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: NebulaOps gateway-service API
-  version: 20.6.0
+  version: 21.1.0
   description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
 servers:
   - url: http://localhost:8080

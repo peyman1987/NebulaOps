@@ -1,6 +1,6 @@
-# NebulaOps v20.6 Diagrams
+# NebulaOps v21.1 Diagrams
 
-- `nebulaops-v20-6-corrected-real-services.svg`
-- `nebulaops-v20-6-live-toolchain-flow.svg`
+- `nebulaops-v21-1-corrected-real-services.svg`
+- `nebulaops-v21-1-live-toolchain-flow.svg`
 
 These diagrams document the corrected live-only backend model and runtime toolchain.

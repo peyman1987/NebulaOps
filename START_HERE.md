@@ -1,4 +1,4 @@
-# Start Here — NebulaOps v20.6
+# Start Here — NebulaOps v21.1
 
 1. Controlla Terraform:
 
@@ -27,14 +27,14 @@ ls terraform
 cat docs/README_V19_3_INDEX.md
 ```
 
-## v20.6 AI Ops Center
+## v21.1 AI Ops Center
 
 - New `AI OPS` tab with futuristic cockpit UI.
 - Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
 - Visual RCA, realtime timeline, animated dependency graph and safe `AUTO FIX` remediation staging.
 - See `docs/V19_1_AI_OPS_CENTER.md` and `docs/V19_1_RELEASE_NOTES.md`.
 
-## v20.6 docs aggiornati
+## v21.1 docs aggiornati
 
 - `docs/README_V19_3_INDEX.md`
 - `docs/V19_3_RELEASE_NOTES.md`
@@ -44,7 +44,7 @@ cat docs/README_V19_3_INDEX.md
 - `docs/V19_3_DIAGRAMS.md`
 - `docs/diagrams/README.md`
 
-## v20.6 Corrected Real Services Backend
+## v21.1 Corrected Real Services Backend
 
 Questa build usa backend live-only con pattern `Controller → Service → Client/Adapter → Tool reale/API/CLI`.
 
@@ -53,3 +53,18 @@ Questa build usa backend live-only con pattern `Controller → Service → Clien
 - Docs: `docs/V20_6_CORRECTED_REAL_SERVICES.md`
 - OpenAPI YAML: `docs/openapi/*.openapi.yaml`
 - Nessun dato statistico/mock nei backend live platform.
+
+## Se il gateway-service non parte (502 su tutti gli endpoint)
+
+Il gateway usa Maven layer cache — se la vecchia immagine WebFlux è ancora in cache,
+fare rebuild forzato:
+
+```bash
+docker compose -p nebulaops-v21-1 build --no-cache gateway-service
+docker compose -p nebulaops-v21-1 up -d
+```
+
+Oppure verificare i log del container:
+```bash
+docker compose -p nebulaops-v21-1 logs gateway-service
+```

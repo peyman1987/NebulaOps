@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
-PROJECT_NAME="nebulaops-v20-6"
+PROJECT_NAME="nebulaops-v21-1"
 export COMPOSE_PARALLEL_LIMIT=${COMPOSE_PARALLEL_LIMIT:-2}
 ./scripts/wsl/check-wsl.sh
 ./scripts/wsl/prepare-kubeconfig-for-docker.sh
@@ -15,7 +15,9 @@ if [ "$DEFAULTS" -ne 1 ]; then
   grep -R "isDefault:" -n infrastructure/observability/grafana/provisioning/datasources || true
   exit 1
 fi
-echo "Starting NebulaOps v20.6.5 with Docker Compose..."
+echo "Starting NebulaOps v21.1 with Docker Compose..."
+# Force no-cache rebuild of gateway-service (v21.1: switched from WebFlux to MVC)
+docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" build --no-cache gateway-service
 docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" up --build -d
 echo "Waiting for gateway..."
 for i in {1..60}; do
