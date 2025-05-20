@@ -1,4 +1,4 @@
-# NebulaOps v21.1 Runtime Tools Fix
+# NebulaOps v21.2 Runtime Tools Fix
 
 Fixes `kubectl: not found` and similar tool discovery errors inside backend containers.
 

@@ -2,8 +2,8 @@ apiVersion: v2
 name: nebulaops
 description: Helm chart for the NebulaOps Angular + Spring Boot + MongoDB + RabbitMQ + Redis platform
 type: application
-version: 21.1.0
-appVersion: "21.1.0"
+version: 21.2.1
+appVersion: "21.2.1"
 keywords:
   - spring-boot
   - angular

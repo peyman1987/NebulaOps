@@ -1,6 +1,6 @@
-# NebulaOps v20.6 Corrected — Real Services Backend
+# NebulaOps v21.2 Corrected — Real Services Backend
 
-Questa versione corregge la v20.6 per rispettare il modello:
+Questa versione corregge la v21.2 per rispettare il modello:
 
 ```text
 Controller

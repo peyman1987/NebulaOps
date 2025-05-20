@@ -6,7 +6,7 @@
     "Added springdoc OpenAPI 3 dependencies to all Spring Boot backend services.",
     "Added /v3/api-docs and /swagger-ui.html configuration to backend services.",
     "Added docs/openapi/*.openapi.yaml static OpenAPI 3 references.",
-    "Updated v21.1 docs and diagrams.",
+    "Updated v21.2 docs and diagrams.",
     "Validated no known corrupted Java fragments from previous generation."
   ],
   "runtime_tools": [

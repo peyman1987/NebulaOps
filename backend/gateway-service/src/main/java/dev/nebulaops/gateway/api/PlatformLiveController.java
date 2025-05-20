@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * v21.1 — Platform endpoints returning shapes Angular expects.
+ * v21.2 — Platform endpoints returning shapes Angular expects.
  */
 @SuppressWarnings({"unchecked","rawtypes"})
 @RestController
@@ -54,54 +54,16 @@ public class PlatformLiveController {
         return observability.lokiQuery(query);
     }
 
-    /** Angular expects { live, state, deploymentWaves, commitStream, tool } */
-    @GetMapping("/gitops")
-    public Map<String, Object> gitopsEnriched() {
-        Map raw  = gitops.applications();
-        boolean live = Boolean.TRUE.equals(raw.get("live"));
-        List<Map<String, Object>> waves = new ArrayList<>();
-        Object data = raw.get("data");
-        if (data instanceof List) {
-            for (Object app : (List) data) {
-                if (!(app instanceof Map)) continue;
-                Map a      = (Map) app;
-                Map status = asMap(a.get("status"));
-                Map health = asMap(status.get("health"));
-                Map sync   = asMap(status.get("sync"));
-                Map meta   = asMap(a.get("metadata"));
-                Map<String, Object> wave = new LinkedHashMap<>();
-                wave.put("app",    str(meta.getOrDefault("name", "app")));
-                wave.put("health", str(health.getOrDefault("status", "Unknown")));
-                wave.put("sync",   str(sync.getOrDefault("status", "Unknown")));
-                wave.put("live",   true);
-                waves.add(wave);
-            }
-        }
-        Map<String, Object> out = new LinkedHashMap<>();
-        out.put("live",            live);
-        out.put("state",           live && !waves.isEmpty() ? "Synced" : live ? "NoApps" : "Disconnected");
-        out.put("deploymentWaves", waves);
-        out.put("commitStream",    Collections.emptyList());
-        out.put("tool",            "argocd");
-        out.put("toolStatus",      raw.get("toolStatus"));
-        return out;
-    }
-
-    @PostMapping("/gitops/{app}/sync")
-    public Map<String, Object> sync(@PathVariable String app) { return gitops.sync(app); }
-
-    @PostMapping("/gitops/{app}/rollback/{revision}")
-    public Map<String, Object> rollback(@PathVariable String app, @PathVariable String revision) {
-        return gitops.rollback(app, revision);
-    }
-
-    /** Angular expects { live, scans, cves, controls, threats } */
+    /** v21.2.1 — Returns shape: { live, scans, cves, controls, threats } matching Angular interfaces. */
     @GetMapping("/devsecops")
     public Map<String, Object> devsecopsEnriched(@RequestParam(defaultValue = ".") String path) {
         Map trivyRaw = security.trivyFs(path);
         boolean live = Boolean.TRUE.equals(trivyRaw.get("live"));
+
         List<Map<String, Object>> scans = new ArrayList<>();
         List<Map<String, Object>> cves  = new ArrayList<>();
+        int critSum = 0, highSum = 0, medSum = 0;
+
         Object trivyData = trivyRaw.get("data");
         if (trivyData instanceof Map) {
             Object results = ((Map) trivyData).get("Results");
@@ -111,34 +73,89 @@ public class PlatformLiveController {
                     Map result = (Map) res;
                     String target = str(result.getOrDefault("Target", "unknown"));
                     Object vulns  = result.get("Vulnerabilities");
+                    int c = 0, h = 0, m = 0;
                     if (vulns instanceof List) {
-                        Map<String, Object> scan = new LinkedHashMap<>();
-                        scan.put("target", target);
-                        scan.put("count",  ((List) vulns).size());
-                        scan.put("live",   true);
-                        scans.add(scan);
                         for (Object v : (List) vulns) {
                             if (!(v instanceof Map)) continue;
                             Map vuln = (Map) v;
+                            String sev = str(vuln.getOrDefault("Severity", "UNKNOWN")).toUpperCase();
+                            if ("CRITICAL".equals(sev)) c++;
+                            else if ("HIGH".equals(sev)) h++;
+                            else if ("MEDIUM".equals(sev)) m++;
+
                             Map<String, Object> cve = new LinkedHashMap<>();
-                            cve.put("id",       str(vuln.getOrDefault("VulnerabilityID", "")));
-                            cve.put("severity", str(vuln.getOrDefault("Severity", "UNKNOWN")));
-                            cve.put("pkg",      str(vuln.getOrDefault("PkgName", "")));
-                            cve.put("title",    str(vuln.getOrDefault("Title", "")));
+                            cve.put("cve",         str(vuln.getOrDefault("VulnerabilityID", "CVE-UNKNOWN")));
+                            cve.put("packageName", str(vuln.getOrDefault("PkgName", "")));
+                            cve.put("severity",    sev);
+                            cve.put("image",       target);
+                            cve.put("fixVersion",  str(vuln.getOrDefault("FixedVersion", "n/a")));
+                            cve.put("exploit",     str(vuln.getOrDefault("Title", "")));
                             cves.add(cve);
                         }
+                        critSum += c; highSum += h; medSum += m;
+                        Map<String, Object> scan = new LinkedHashMap<>();
+                        scan.put("id",       "scan-" + scans.size());
+                        scan.put("tool",     "Trivy");
+                        scan.put("target",   target);
+                        scan.put("status",   (c > 0 ? "failed" : (h > 0 ? "running" : "passed")));
+                        scan.put("critical", c);
+                        scan.put("high",     h);
+                        scan.put("medium",   m);
+                        scan.put("duration", "live");
+                        scans.add(scan);
                     }
                 }
             }
         }
+
+        // If no live data, expose a clear placeholder scan so the UI shows tool state
+        if (scans.isEmpty()) {
+            scans.add(Map.of(
+                "id", "scan-trivy-status",
+                "tool", "Trivy",
+                "target", path,
+                "status", live ? "passed" : "queued",
+                "critical", 0, "high", 0, "medium", 0,
+                "duration", live ? "0s" : "not-run"
+            ));
+        }
+
+        // Synthesize compliance controls from scan results (CIS-flavored, derived from real data)
+        List<Map<String, Object>> controls = new ArrayList<>();
+        controls.add(controlOf("CIS-DI-0001", "CIS Docker",  "No critical vulnerabilities in scanned images", critSum == 0 ? 100 : 0,    critSum == 0 ? "pass" : "fail"));
+        controls.add(controlOf("CIS-DI-0002", "CIS Docker",  "Limit high severity findings to acceptable levels", highSum <= 3 ? 100 : 60, highSum <= 3 ? "pass" : "warn"));
+        controls.add(controlOf("NIST-SI-2",   "NIST 800-53", "Flaw remediation — track and fix CVEs",            cves.isEmpty() ? 100 : Math.max(30, 100 - cves.size() * 5), cves.size() < 10 ? "pass" : "warn"));
+        controls.add(controlOf("SOC2-CC7-1",  "SOC2",        "System monitoring — live scan tool reachable",      live ? 100 : 0,            live ? "pass" : "fail"));
+
+        // Threat radar — derive from real CVE counts (geometric positioning around the radar)
+        List<Map<String, Object>> threats = new ArrayList<>();
+        int idx = 0;
+        for (Map<String, Object> cve : cves) {
+            if (idx >= 6) break;
+            double angle = (idx * 60.0) * Math.PI / 180.0;
+            double radius = "CRITICAL".equals(cve.get("severity")) ? 30 : "HIGH".equals(cve.get("severity")) ? 50 : 70;
+            threats.add(Map.of(
+                "name",     cve.get("cve"),
+                "x",        50 + radius * Math.cos(angle) / 100.0 * 50,
+                "y",        50 + radius * Math.sin(angle) / 100.0 * 50,
+                "severity", cve.get("severity"),
+                "vector",   cve.get("packageName")
+            ));
+            idx++;
+        }
+
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("live",       live);
         out.put("scans",      scans);
         out.put("cves",       cves);
-        out.put("controls",   Collections.emptyList());
-        out.put("threats",    Collections.emptyList());
+        out.put("controls",   controls);
+        out.put("threats",    threats);
         out.put("toolStatus", trivyRaw.get("toolStatus"));
         return out;
+    }
+
+    private Map<String, Object> controlOf(String id, String framework, String title, int score, String status) {
+        return Map.of("id", id, "framework", framework, "title", title, "score", score, "status", status);
     }
 
     @GetMapping("/devsecops/secrets")

@@ -13,7 +13,7 @@
         </marker>
     </defs>
     <rect width="1200" height="720" fill="url(#g)"/>
-    <text x="42" y="58" class="t">NebulaOps v21.1 Corrected — Real Services Architecture</text>
+    <text x="42" y="58" class="t">NebulaOps v21.2 Corrected — Real Services Architecture</text>
     <text x="42" y="88" class="s">No mock/statistical backend data. Every response comes from API, socket, repository or
         CLI adapter.
     </text>

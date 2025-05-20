@@ -4,6 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {CdkDragDrop, DragDropModule} from '@angular/cdk/drag-drop';
 import {HttpClient} from '@angular/common/http';
 import {catchError, forkJoin, of} from 'rxjs';
+import {API, APP_VERSION, APP_RELEASE} from './api.config';
 
 type MainTab =
     'OVERVIEW'
@@ -176,7 +177,7 @@ interface SecurityFinding {
 }
 
 type SecurityTab = 'SECURITY' | 'COMPLIANCE' | 'VULNERABILITIES';
-type ScanStatus = 'PASSED' | 'RUNNING' | 'FAILED' | 'QUEUED';
+type ScanStatus = 'PASSED' | 'RUNNING' | 'FAILED' | 'QUEUED' | 'failed';
 
 interface ObservabilityStackItem {
     name: string;
@@ -341,11 +342,11 @@ interface HomeLauncher {
 }
 
 const TASKS_KEY = 'nebulaops.v20_2.tasks'; // legacy key, no longer used for live task data
-const K8S_KEY = 'nebulaops.v21_1.k8s';
-const SESSION_KEY = 'nebulaops.v21_1.session';
+const K8S_KEY = 'nebulaops.v21_2_1.k8s';
+const SESSION_KEY = 'nebulaops.v21_2_1.session';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-2-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -527,7 +528,7 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
     readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v21_1.user') || 'admin');
+    readonly currentUser = signal(localStorage.getItem('nebulaops.v21_2_1.user') || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -631,7 +632,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v21.1'
+            status: 'v21.2'
         },
         {
             title: 'INFRA',
@@ -685,7 +686,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v21.1'
+            status: 'v21.2'
         },
         {
             title: 'Helm',
@@ -712,7 +713,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v21.1'
+            status: 'v21.2'
         },
         {
             title: 'Multi-Env Manager',
@@ -1104,7 +1105,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v21-1-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v21-2-1-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
@@ -1145,7 +1146,7 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v21-1-devsecops-module.svg',
+            path: 'docs/nebulaops-v21-2-1-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -1187,7 +1188,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const p = this.loginForm.password.trim();
         if ((u === 'admin' || u === 'peyman') && p === 'admin') {
             localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v21_1.user', u);
+            localStorage.setItem('nebulaops.v21_2_1.user', u);
             this.currentUser.set(u);
             this.isAuthenticated.set(true);
             this.refreshAll();
@@ -1354,6 +1355,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (tab === 'HELM') this.loadHelm();
         if (tab === 'OBSERVABILITY') this.refreshLogs(); else this.stopLogsAutoRefresh();
         if (tab === 'AI OPS') this.runAiOpsAnalysis();
+        if (tab === 'SECURITY' || tab === 'COMPLIANCE' || tab === 'VULNERABILITIES') this.loadDevSecOps();
     }
 
     refreshAll(): void {
@@ -1381,7 +1383,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     loadTasks(): void {
         this.tasksState.set('syncing');
-        this.http.get<any[]>('/api/tasks?organizationId=default-org').pipe(catchError(err => {
+        this.http.get<any[]>(API.tasks.list('default-org')).pipe(catchError(err => {
             this.tasksState.set('error');
             this.apiError.set('Tasks REST error: ' + this.errorMessage(err));
             return of([]);
@@ -1403,7 +1405,7 @@ export class AppComponent implements OnInit, OnDestroy {
             assigneeId: this.taskForm.owner,
             labels: []
         };
-        this.http.post<any>('/api/tasks', payload).pipe(catchError(err => {
+        this.http.post<any>(API.tasks.create, payload).pipe(catchError(err => {
             this.tasksState.set('error');
             this.apiError.set('Create task REST error: ' + this.errorMessage(err));
             return of(null);
@@ -1416,7 +1418,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     updateTaskStatus(item: Task, status: Status): void {
-        this.http.patch<any>(`/api/tasks/${encodeURIComponent(item.id)}/status/${status}`, {}).pipe(catchError(err => {
+        this.http.patch<any>(API.tasks.status(item.id, status), {}).pipe(catchError(err => {
             this.tasksState.set('error');
             this.apiError.set('Update task REST error: ' + this.errorMessage(err));
             return of(null);
@@ -1429,7 +1431,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     deleteTask(id: string): void {
-        this.http.delete<any>(`/api/tasks/${encodeURIComponent(id)}`).pipe(catchError(err => {
+        this.http.delete<any>(API.tasks.delete(id)).pipe(catchError(err => {
             this.tasksState.set('error');
             this.apiError.set('Delete task REST error: ' + this.errorMessage(err));
             return of(null);
@@ -1514,7 +1516,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     loadK8sFromApi(): void {
         this.k8sState.set('syncing');
-        this.http.get<K8sSnapshot>('/api/kubernetes/snapshot').pipe(catchError(err => {
+        this.http.get<K8sSnapshot>(API.kubernetes.snapshot).pipe(catchError(err => {
             this.apiError.set(this.errorMessage(err));
             return of(null);
         })).subscribe(s => {
@@ -1522,13 +1524,31 @@ export class AppComponent implements OnInit, OnDestroy {
                 this.resources.set(s.resources);
                 this.logs.set(s.logs || []);
                 this.selected.set(this.resources()[0] ?? null);
-                this.k8sState.set(s.cluster.status === 'Connected' ? 'connected' : 'error');
+                const state = s.cluster.status === 'Connected' ? 'connected' : 'error';
+                this.k8sState.set(state);
+                this.runtimeState.set(state);
+                this.k8sControllers.set(this.buildControllersFromResources(s.resources));
             } else {
                 this.k8sState.set('error');
+                this.runtimeState.set('error');
                 this.logs.set([]);
             }
         });
     }
+
+    private buildControllersFromResources(resources: K8sResource[]): K8sController[] {
+        return resources
+            .filter(r => ['Deployment','StatefulSet','DaemonSet'].includes(r.kind))
+            .map(r => ({
+                kind: r.kind, name: r.name, namespace: r.namespace,
+                desired: r.replicas || 1, available: r.replicas || 1,
+                strategy: r.kind === 'StatefulSet' ? 'RollingUpdate' : 'RollingUpdate',
+                age: '1d'
+            }));
+    }
+
+
+
 
     selectDockerContainer(c: DockerContainer): void {
         this.selectedDockerContainer.set(c);
@@ -1609,12 +1629,13 @@ ${selectedLogs}`;
 
     loadDocker(): void {
         forkJoin({
-            containers: this.http.get<any[]>('/api/runtime/docker/containers').pipe(catchError(() => of([]))),
-            images: this.http.get<any[]>('/api/runtime/docker/images').pipe(catchError(() => of([]))),
-            volumes: this.http.get<any[]>('/api/runtime/docker/volumes').pipe(catchError(() => of([])))
+            containers: this.http.get<any[]>(API.runtime.dockerContainers).pipe(catchError(() => of([]))),
+            images: this.http.get<any[]>(API.runtime.dockerImages).pipe(catchError(() => of([]))),
+            volumes: this.http.get<any[]>(API.runtime.dockerVolumes).pipe(catchError(() => of([])))
         }).subscribe(r => {
             const containers = r.containers.map((x, i) => this.normalizeDockerContainer(x, i));
             this.dockerContainers.set(containers);
+            if (containers.length > 0) this.runtimeState.set('connected');
             if (r.images.length) this.dockerImages.set(r.images.map(x => ({
                 repository: x.Repository || x.repository || '<none>',
                 tag: x.Tag || x.tag || 'latest',
@@ -1630,6 +1651,9 @@ ${selectedLogs}`;
             })));
         });
     }
+
+
+
 
     normalizeDockerContainer(x: any, i: number): DockerContainer {
         const rawStatus = String(x.status || x.Status || x.State || '').toLowerCase();
@@ -1648,7 +1672,7 @@ ${selectedLogs}`;
     }
 
     loadObservability(): void {
-        this.http.get<any>('/api/platform/observability').pipe(catchError(() => of(null))).subscribe(data => {
+        this.http.get<any>(API.platform.observability).pipe(catchError(() => of(null))).subscribe(data => {
             if (!data) return;
             this.observabilityStack.set(data.stack || []);
             const hops = data.traceFlow || [];
@@ -1678,7 +1702,7 @@ ${selectedLogs}`;
     }
 
     loadGitOps(): void {
-        this.http.get<any>('/api/platform/gitops').pipe(catchError(() => of(null))).subscribe(data => {
+        this.http.get<any>(API.platform.gitops).pipe(catchError(() => of(null))).subscribe(data => {
             if (!data) return;
             this.gitOpsState.set(data.state || this.gitOpsState());
             this.deploymentWaves.set(data.deploymentWaves || this.deploymentWaves());
@@ -1687,27 +1711,55 @@ ${selectedLogs}`;
     }
 
     loadDevSecOps(): void {
-        this.http.get<any>('/api/platform/devsecops').pipe(catchError(() => of(null))).subscribe(data => {
-            if (!data) return;
-            if (data.scans) this.securityScans.set(data.scans);
-            if (data.cves) this.cveDashboard.set(data.cves);
-            if (data.controls) this.complianceControls.set(data.controls);
-            if (data.threats) this.threatPoints.set(data.threats);
+        this.http.get<any>(API.platform.devsecops).pipe(catchError(() => of(null))).subscribe(data => {
+            if (!data) {
+                // v21.2.1: surface a clear offline state so the section never looks empty/broken
+                this.securityScans.set([{
+                    id: 'trivy-offline',
+                    tool: 'Trivy',
+                    target: 'gateway unreachable',
+                    status: 'failed' as ScanStatus,
+                    critical: 0,
+                    high: 0,
+                    medium: 0,
+                    duration: 'n/a'
+                }]);
+                this.complianceControls.set([{
+                    id: 'GW-1',
+                    framework: 'NebulaOps',
+                    title: 'Gateway reachability',
+                    score: 0,
+                    status: 'fail' as ComplianceControl['status']
+                }]);
+                this.cveDashboard.set([]);
+                this.threatPoints.set([]);
+                return;
+            }
+            this.securityScans.set(data.scans ?? []);
+            this.cveDashboard.set(data.cves ?? []);
+            this.complianceControls.set(data.controls ?? []);
+            this.threatPoints.set(data.threats ?? []);
+            // Recompute risk score from real findings
+            const cvesCount = (data.cves ?? []).length;
+            const critical = (data.scans ?? []).reduce((s: number, x: any) => s + (x.critical || 0), 0);
+            const high     = (data.scans ?? []).reduce((s: number, x: any) => s + (x.high     || 0), 0);
+            const score = Math.max(0, 100 - critical * 25 - high * 10 - cvesCount * 2);
+            this.riskScore.set(score);
         });
     }
 
     loadEnvironments(): void {
-        this.http.get<any[]>('/api/platform/environments').pipe(catchError(() => of([]))).subscribe(rows => {
+        this.http.get<any[]>(API.platform.environments).pipe(catchError(() => of([]))).subscribe(rows => {
             if (rows.length) this.environments.set(rows);
         });
     }
 
     loadHelm(): void {
-        this.http.get<any[]>('/api/runtime/helm/releases?namespace=all').pipe(catchError(() => of([]))).subscribe(r => this.helmReleases.set(r));
+        this.http.get<any[]>(API.runtime.helmReleases).pipe(catchError(() => of([]))).subscribe(r => this.helmReleases.set(r));
     }
 
     refreshLogs(): void {
-        this.http.get<ServiceLog[]>('/api/kubernetes/logs').pipe(catchError(() => of([]))).subscribe(rows => {
+        this.http.get<ServiceLog[]>(API.kubernetes.logs).pipe(catchError(() => of([]))).subscribe(rows => {
             this.logs.set(rows);
             this.lastLogsRefresh.set(new Date().toLocaleTimeString());
         });
@@ -1807,7 +1859,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             text: prompt,
             time: new Date().toLocaleTimeString()
         }]);
-        this.http.post<AiOpsAnalysis>('/api/ai-ops/analyze', {
+        this.http.post<AiOpsAnalysis>(API.aiOps.analyze, {
             prompt,
             logs: this.visibleLogs(),
             resources: this.resources()
@@ -1825,7 +1877,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
     autoFix(): void {
         const analysis = this.aiOpsAnalysis();
         this.aiOpsAutoFix.set(true);
-        this.http.post('/api/ai-ops/autofix', {
+        this.http.post(API.aiOps.autofix, {
             incidentId: analysis.incidentId,
             yaml: analysis.yaml,
             fix: analysis.fix
@@ -2073,7 +2125,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             time: now,
             service,
             level: i === 2 ? 'PLAN' : 'INFO',
-            message: `${service} OK · v21.1 AI Ops telemetry`
+            message: `${service} OK · v21.2 AI Ops telemetry`
         }));
     }
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+# v21.2 — Stop NebulaOps stack.
 set -euo pipefail
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$ROOT_DIR"
-COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
-PROJECT_NAME="nebulaops-v21-1"
-docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" down --remove-orphans
-echo "Stopped NebulaOps v21.1 Data volumes preserved."
+source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
+
+log_step "Stopping NebulaOps v21.2"
+dc down "$@"
+log_ok "All services stopped"

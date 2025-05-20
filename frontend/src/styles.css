@@ -1,1 +1,118 @@
-html,body{margin:0;background:#05070d}*{box-sizing:border-box}.cdk-drag-preview{box-shadow:0 30px 70px rgba(0,0,0,.45);border-radius:18px}.cdk-drag-placeholder{opacity:.2}.cdk-drag-animating{transition:transform .25s ease}
+/* v21.2 — Global design tokens. Single source of truth for colors,
+   spacing, radii, shadows and motion. Loaded before app.component.css. */
+
+:root {
+  /* === Color palette === */
+  --bg-deep:        #020617;
+  --bg-base:        #07111f;
+  --bg-mid:         #0f1028;
+  --bg-elev:        rgba(8, 17, 39, 0.88);
+  --bg-overlay:     rgba(2, 6, 23, 0.74);
+
+  --fg-primary:     #f8fafc;
+  --fg-soft:        #e5f2ff;
+  --fg-muted:       #c6d3e5;
+  --fg-dim:         #94a3b8;
+
+  --accent-cyan:    #22d3ee;
+  --accent-blue:    #38bdf8;
+  --accent-violet:  #8b5cf6;
+  --accent-purple:  #a78bfa;
+  --accent-pink:    #ec4899;
+  --accent-amber:   #f59e0b;
+  --accent-emerald: #10b981;
+  --accent-rose:    #f43f5e;
+
+  --grad-primary:   linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%);
+  --grad-accent:    linear-gradient(135deg, #38bdf8 0%, #ec4899 100%);
+  --grad-success:   linear-gradient(135deg, #10b981 0%, #22d3ee 100%);
+  --grad-warning:   linear-gradient(135deg, #f59e0b 0%, #f43f5e 100%);
+  --grad-bg-app:    radial-gradient(circle at 8% 0%, rgba(56, 189, 248, 0.18), transparent 28%),
+                    radial-gradient(circle at 86% 4%, rgba(168, 85, 247, 0.20), transparent 30%),
+                    linear-gradient(135deg, #020617 0%, #07111f 48%, #0f1028 100%);
+
+  /* === Status colors === */
+  --status-ok:      #10b981;
+  --status-warn:    #f59e0b;
+  --status-error:   #f43f5e;
+  --status-info:    #38bdf8;
+
+  /* === Borders === */
+  --border-soft:    rgba(186, 230, 253, 0.18);
+  --border-mid:     rgba(186, 230, 253, 0.28);
+  --border-strong:  rgba(103, 232, 249, 0.45);
+
+  /* === Radii === */
+  --radius-sm:      12px;
+  --radius-md:      18px;
+  --radius-lg:      24px;
+  --radius-xl:      30px;
+  --radius-pill:    999px;
+
+  /* === Shadows === */
+  --shadow-sm:      0 4px 14px rgba(0, 0, 0, 0.18);
+  --shadow-md:      0 14px 40px rgba(0, 0, 0, 0.28);
+  --shadow-lg:      0 28px 80px rgba(0, 0, 0, 0.42);
+  --shadow-glow:    0 0 36px rgba(34, 211, 238, 0.28);
+
+  /* === Spacing === */
+  --space-1:        4px;
+  --space-2:        8px;
+  --space-3:        12px;
+  --space-4:        16px;
+  --space-5:        20px;
+  --space-6:        24px;
+  --space-8:        32px;
+
+  /* === Motion === */
+  --motion-fast:    0.18s ease;
+  --motion-base:    0.25s ease;
+  --motion-slow:    0.4s ease;
+
+  /* === Type === */
+  --font-sans:      'Inter', ui-sans-serif, system-ui, 'Segoe UI', Arial, sans-serif;
+  --font-mono:      ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--fg-soft);
+  background: var(--grad-bg-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Scrollbar styling — match the dark aurora theme */
+::-webkit-scrollbar          { width: 10px; height: 10px; }
+::-webkit-scrollbar-track    { background: rgba(2, 6, 23, 0.5); }
+::-webkit-scrollbar-thumb    { background: linear-gradient(180deg, #22d3ee, #8b5cf6);
+                               border-radius: var(--radius-pill); }
+::-webkit-scrollbar-thumb:hover { filter: brightness(1.2); }
+
+/* Selection */
+::selection { background: rgba(34, 211, 238, 0.35); color: #fff; }
+
+/* Focus outlines */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions on interactive elements */
+button { transition: transform var(--motion-fast), filter var(--motion-fast),
+                     box-shadow var(--motion-fast), border-color var(--motion-fast); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
