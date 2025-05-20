@@ -1,70 +1,43 @@
-# Start Here — NebulaOps v21.1
+# Start here — NebulaOps v21.2
 
-1. Controlla Terraform:
-
-```bash
-ls terraform
-./scripts/terraform/plan-local.sh
-```
-
-2. Genera i file locali:
+## Run it
 
 ```bash
-./scripts/terraform/apply-local.sh
+./scripts/wsl/start.sh
 ```
 
-3. Avvia la piattaforma:
+Wait ~60s for all 25 containers. Then open **http://localhost:4200**.
+
+## If something's off
 
 ```bash
-./scripts/local-up.sh
+./scripts/wsl/health.sh           # green/red status of every endpoint
+./scripts/wsl/logs.sh <service>   # tail any service
+./scripts/wsl/gateway-logs.sh     # focused gateway diagnostic
 ```
 
-4. Entra nel frontend con `admin/admin` e visita i tab `TERRAFORM`, `KUBERNETES`, `OBSERVABILITY`, `FINOPS`, `BACKUPS`.
+## Common cases
 
-5. Consulta la documentazione:
-
+**Gateway returns 502 on all endpoints**
+Cached image. Force rebuild:
 ```bash
-cat docs/README_V19_3_INDEX.md
+./scripts/wsl/start.sh --rebuild-gateway
 ```
 
-## v21.1 AI Ops Center
+**No Kubernetes cluster available**
+Live K8s endpoints return `live:false` — UI shows empty state. Everything
+else (tasks, auth, observability) keeps working.
 
-- New `AI OPS` tab with futuristic cockpit UI.
-- Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
-- Visual RCA, realtime timeline, animated dependency graph and safe `AUTO FIX` remediation staging.
-- See `docs/V19_1_AI_OPS_CENTER.md` and `docs/V19_1_RELEASE_NOTES.md`.
-
-## v21.1 docs aggiornati
-
-- `docs/README_V19_3_INDEX.md`
-- `docs/V19_3_RELEASE_NOTES.md`
-- `docs/V19_3_DEVSECOPS_MODULE.md`
-- `docs/V19_3_KUBERNETES_VISUAL_CLUSTER.md`
-- `docs/V19_3_AI_OPS_CENTER.md`
-- `docs/V19_3_DIAGRAMS.md`
-- `docs/diagrams/README.md`
-
-## v21.1 Corrected Real Services Backend
-
-Questa build usa backend live-only con pattern `Controller → Service → Client/Adapter → Tool reale/API/CLI`.
-
-- OpenAPI 3: `/v3/api-docs`
-- Swagger UI: `/swagger-ui.html`
-- Docs: `docs/V20_6_CORRECTED_REAL_SERVICES.md`
-- OpenAPI YAML: `docs/openapi/*.openapi.yaml`
-- Nessun dato statistico/mock nei backend live platform.
-
-## Se il gateway-service non parte (502 su tutti gli endpoint)
-
-Il gateway usa Maven layer cache — se la vecchia immagine WebFlux è ancora in cache,
-fare rebuild forzato:
-
+**Want to wipe state and start fresh**
 ```bash
-docker compose -p nebulaops-v21-1 build --no-cache gateway-service
-docker compose -p nebulaops-v21-1 up -d
+./scripts/wsl/stop.sh -v
+./scripts/wsl/docker-cache-repair.sh   # last-resort cache wipe
+./scripts/wsl/start.sh
 ```
 
-Oppure verificare i log del container:
-```bash
-docker compose -p nebulaops-v21-1 logs gateway-service
-```
+## Read next
+
+- `README.md` — full overview, project layout, all URLs
+- `ARCHITECTURE.md` — component diagram and data flow
+- `RELEASE_NOTES_v21.2.md` — what changed from v21.1
+- `config/platform.yml` — every service URL in one place

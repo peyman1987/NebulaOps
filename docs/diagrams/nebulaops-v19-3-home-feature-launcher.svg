@@ -20,7 +20,7 @@
     <g opacity=".22" stroke="#38bdf8">
         <path d="M0 90H1200M0 180H1200M0 270H1200M0 360H1200M0 450H1200M0 540H1200M0 630H1200M100 0V720M250 0V720M400 0V720M550 0V720M700 0V720M850 0V720M1000 0V720M1150 0V720"/>
     </g>
-    <text x="60" y="78" fill="#e0f2fe" font-family="Inter,Arial" font-size="42" font-weight="800">NebulaOps v21.1 Home
+    <text x="60" y="78" fill="#e0f2fe" font-family="Inter,Arial" font-size="42" font-weight="800">NebulaOps v21.2 Home
         Feature Launcher
     </text>
     <text x="60" y="116" fill="#7dd3fc" font-family="Inter,Arial" font-size="18">Quick access to Grafana, ArgoCD,

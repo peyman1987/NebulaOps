@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="NebulaOps v21.1 SaaS Flow">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="NebulaOps v21.2 SaaS Flow">
     <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#07111f"/>
@@ -50,7 +50,7 @@
     <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
     <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
     <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <text x="70" y="72" class="title">NebulaOps v21.1 SaaS Flow</text>
+    <text x="70" y="72" class="title">NebulaOps v21.2 SaaS Flow</text>
     <text x="72" y="102" class="sub">Browser, Angular, Gateway, services, data stores and observability in one local
         platform.
     </text>

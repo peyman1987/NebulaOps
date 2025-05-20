@@ -1,177 +1,142 @@
-## v21.1 Build Fix
+# NebulaOps v21.2
 
-- Fixed frontend Docker build where `ng` was not available during production image build.
-- Frontend Dockerfile now installs dev build tooling with `npm ci --include=dev` and invokes Angular
-  through `./node_modules/.bin/ng`.
+End-to-end DevOps and platform engineering portfolio: Angular frontend, Spring Boot
+microservices, Go services, Python AI engine, full observability stack
+(Prometheus, Loki, Tempo, Grafana), GitOps and DevSecOps tooling — all
+orchestrated locally with Docker Compose.
 
-# NebulaOps v21.1 — Terraform DevOps Control Plane
-
-NebulaOps v21.1 è un progetto portfolio Cloud/DevOps local-first con Angular, microservizi, Docker Compose, Kubernetes,
-Helm, Grafana, Prometheus, Argo CD/GitLab flow e **Terraform integrato nella root del repository**.
-
-## Cosa include
-
-- Frontend Angular cockpit con login demo e tab operativi.
-- Backend/microservizi Spring Boot, Go worker, MongoDB, RabbitMQ e Redis ereditati ed estesi dalla v17/v18.
-- Docker Compose per esecuzione locale e supporto WSL.
-- Kubernetes/Helm per scenario platform.
-- Terraform per generare configurazioni locali e baseline.
-- SVG architetturali aggiornati.
-- Documentazione v21.1 aggiornata.
-
-## Quick start
+## Quickstart (WSL2 or Linux)
 
 ```bash
-cp .env.example .env
-./scripts/terraform/plan-local.sh
-./scripts/terraform/apply-local.sh
-./scripts/local-up.sh
-./scripts/smoke-test.sh
+./scripts/wsl/start.sh
 ```
 
-Frontend: apri la porta configurata nel compose. Login demo: `admin/admin`.
+Visit **http://localhost:4200**.
 
-## Terraform
-
-La cartella principale è:
-
-```text
-terraform/
-```
-
-Comandi:
-
+To force-rebuild the gateway after editing controllers or proxy config:
 ```bash
-cd terraform
-terraform init
-terraform validate
-terraform plan -var-file examples/local-kind/terraform.tfvars
-terraform apply -auto-approve -var-file examples/local-kind/terraform.tfvars
+./scripts/wsl/start.sh --rebuild-gateway
 ```
 
-## Documentazione
+## Architecture overview
 
-- `docs/README_V19_3_INDEX.md`
-- `docs/V19_3_RELEASE_NOTES.md`
-- `docs/TERRAFORM_V19_3_GUIDE.md`
-- `docs/V19_3_FRONTEND_STYLE_GUIDE.md`
-- `docs/diagrams/nebulaops-v20-2-devsecops-module.svg`
+```
+┌──────────┐     ┌──────────────┐     ┌────────────────────────┐
+│ Browser  │ →   │  Frontend    │ →   │  Gateway (Spring MVC)  │
+│ :4200    │     │  (nginx)     │     │  :8080                 │
+└──────────┘     └──────────────┘     └────────────────────────┘
+                                                │
+                ┌───────────────┬───────────────┼───────────────┬───────────────┐
+                ▼               ▼               ▼               ▼               ▼
+            auth-svc        task-svc       ai-ops-svc     pipeline-svc     ... 9 more
+            (Spring         (Spring        (Spring        (Spring          backend
+             Boot 21)       Boot 21)       Boot 21)       Boot 21)         services
+                │                              │
+                ▼                              ▼
+            MongoDB                       Python ai-engine
+            RabbitMQ                      (FastAPI :8095)
+            Redis
+```
 
-## Autore
+The **gateway** owns:
+- Live infrastructure endpoints (Kubernetes/Docker/Helm/Terraform/Grafana,
+  via `kubectl`/`docker`/`helm`/`terraform` on the host)
+- Frontend-shaped responses (`/api/kubernetes/snapshot`, `/api/platform/*`,
+  `/api/runtime/*`) so Angular doesn't have to reshape JSON
+- HTTP proxying to downstream microservices (`/api/tasks`, `/api/auth/*`,
+  `/api/ai-ops/*`)
 
-Sviluppato da Peyman Eshghi Malayeri — 2024/2026 portfolio evolution.
+## Centralized configuration
 
-## v21.1 AI Ops Center
+All service URLs come from one file:
 
-- New `AI OPS` tab with futuristic cockpit UI.
-- Spring Boot `ai-ops-service` plus Python FastAPI `ai-engine`.
-- Visual RCA, realtime timeline, animated dependency graph and safe `AUTO FIX` remediation staging.
-- See `docs/V19_3_AI_OPS_CENTER.md` and `docs/V19_3_RELEASE_NOTES.md`.
+**`config/platform.yml`** — service hostnames, ports, API routes
 
-## Diagrammi principali
+Consumers:
+- `frontend/src/app/api.config.ts` — typed API wrapper used by `app.component.ts`
+- `backend/gateway-service/src/main/resources/application.yml` — `proxy.*` keys
+- `docker-compose.yml` — environment variables injected per service
 
-- `docs/diagrams/runtime-architecture.svg`
-- `docs/diagrams/gitlab-argocd-flow.svg`
-- `docs/diagrams/messaging-cache-flow.svg`
-- `docs/diagrams/kubernetes-helm-view.svg`
-- `docs/diagrams/request-flow-sequence.svg`
-- `docs/diagrams/service-port-map.svg`
-- `docs/diagrams/nebulaops-v20-2-kubernetes-visual-cluster.svg`
+Change a port or hostname → edit `config/platform.yml`, propagate to the three
+consumers above, restart.
 
-## v21.1 DevSecOps Module
+## Common operations
 
-La v21.1 aggiunge i tab `SECURITY`, `COMPLIANCE` e `VULNERABILITIES` con radar animation, threat map, critical alerts,
-animated risk score, Trivy/Docker/SAST/secrets/dependency scan simulation e CVE dashboard.
+| Task                        | Command                                     |
+| --------------------------- | ------------------------------------------- |
+| Start everything            | `./scripts/wsl/start.sh`                    |
+| Force gateway rebuild       | `./scripts/wsl/start.sh --rebuild-gateway`  |
+| Quick gateway restart       | `./scripts/wsl/restart-gateway.sh`          |
+| Stop everything             | `./scripts/wsl/stop.sh`                     |
+| Health check all services   | `./scripts/wsl/health.sh`                   |
+| Tail a service              | `./scripts/wsl/logs.sh gateway-service`     |
+| Gateway logs + health probe | `./scripts/wsl/gateway-logs.sh`             |
+| Diagnose runtime tools      | `./scripts/wsl/diagnose-runtime.sh`         |
+| Reset Docker cache (last resort) | `./scripts/wsl/docker-cache-repair.sh` |
 
-- `docs/V19_3_DEVSECOPS_MODULE.md`
-- `docs/V19_3_RELEASE_NOTES.md`
-- `docs/diagrams/nebulaops-v20-2-devsecops-module.svg`
-- `backend/devsecops-service`
+## Service URLs
 
-## v21.1 Documentation & diagrams patch
+| Service        | URL                              | Credentials   |
+| -------------- | -------------------------------- | ------------- |
+| Frontend       | http://localhost:4200            | —             |
+| Gateway        | http://localhost:8080            | —             |
+| Grafana        | http://localhost:3000            | admin/admin   |
+| Prometheus     | http://localhost:9090            | —             |
+| Loki           | http://localhost:3100            | —             |
+| Tempo          | http://localhost:3200            | —             |
+| Mongo Express  | http://localhost:8088            | admin/admin   |
+| Redis Commander| http://localhost:8089            | admin/admin   |
+| RabbitMQ       | http://localhost:15672           | guest/guest   |
+| AI Engine      | http://localhost:8095/docs       | —             |
 
-La documentazione ufficiale aggiornata della release è in `docs/README_V19_3_INDEX.md`.
-I diagrammi SVG aggiornati sono in `docs/diagrams/` e includono DevSecOps, Kubernetes Visual Cluster e AI Ops Center.
+## Required host tools
 
-## v21.1 Corrected Build Package
+Mounted into containers from `.runtime-tools/`:
+- `kubectl` (auto-detected from host)
+- `docker` (uses host daemon socket)
+- `helm`
 
-This package includes the DevSecOps module and the v21.1 stabilization patch:
+Optional (endpoints return `live:false` if missing):
+- `trivy`, `terraform`, `argocd`
 
-- BuildKit Maven cache in all Spring service Dockerfiles.
-- Retry-hardened Maven commands to reduce Maven Central timeout failures.
-- Explicit Docker image names using `nebulaops-v20-2-*`.
-- Backend Maven versions aligned to `20.6.0`.
-- Docs, Markdown files, and SVG labels aligned to v21.1.
+## Troubleshooting
 
-Recommended command:
-
+**Gateway returns 502 on all endpoints**
+The image is stale. Run:
 ```bash
-DOCKER_BUILDKIT=1 docker compose build --parallel=false
-docker compose up
+./scripts/wsl/start.sh --rebuild-gateway
+./scripts/wsl/gateway-logs.sh
 ```
 
-## v21.1 Corrected - Home Feature Launcher
+**`kubectl` reports no cluster**
+Install kind or docker-desktop's kubernetes, or update `.kube/config`. The
+gateway will keep working — affected endpoints return `live: false`.
 
-La home ora include un Command Center con tasti grandi per aprire rapidamente Grafana, ArgoCD, Prometheus e i moduli
-interni AI OPS, Kubernetes Visual Cluster, Security, Helm e Observability.
+**Frontend shows "Disconnected"**
+Run `./scripts/wsl/health.sh` to see which downstream service is down.
 
-Documentazione: `docs/V19_3_HOME_FEATURE_LAUNCHER.md`.
+## Project layout
 
-## v21.1 Highlights
-
-- CI/CD Pipeline Designer with drag & drop canvas: Build, Test, Security Scan, Docker Build, Helm Deploy and Smoke Test.
-- `pipeline-engine-service` for JSON/YAML saving, GitLab export and ArgoCD sync simulation.
-- Restored `INFRA` tab with Grafana, ArgoCD, Prometheus, RabbitMQ and internal feature links.
-
-See `docs/README_V20_1_INDEX.md`.
-
-## NebulaOps v21.1
-
-Adds Advanced Observability Stack, GitOps Control Plane, Multi-Environment Manager and Smart Terraform Studio. The INFRA
-tab now opens Grafana, Redis Commander, Mongo Express, RabbitMQ, Prometheus, Loki, Tempo, OpenTelemetry Collector,
-ArgoCD and all internal feature modules.
-
-## v21.1 Containers refresh
-
-This package includes a new `CONTAINERS` tab that integrates Docker Desktop-like runtime management and OpenLens-like
-Kubernetes workload operations: containers, images, volumes, logs, terminal, pod scaling, rollout restart,
-service/controller/ingress inspection and INFRA launchpad links.
-
-## v21.1 Live Runtime Upgrade
-
-La release v21.1 aggiunge un livello dinamico sopra i moduli enterprise della v19.x:
-
-- UI restyling Aurora Glass per una dashboard più moderna e leggibile.
-- Backend Gateway con nuovi
-  endpoint `/api/platform/observability`, `/api/platform/gitops`, `/api/platform/devsecops`, `/api/platform/environments`.
-- Observability, GitOps, DevSecOps e ambienti ora leggono dati runtime quando tool e servizi sono disponibili.
-- Docker Desktop panel normalizza output reale Docker Engine per container, immagini e volumi.
-- Go cache-service espone `/cache/stats` con statistiche Redis live.
-
-Vedi `docs/V20_1_RELEASE_NOTES.md` per i dettagli.
-
-## v21.1.3 NPM Build Fix
-
-Frontend Docker build hardened: Node 20.61.1, stale lockfile removed, npm install fallback for Angular dependencies. See
-V20_2_3_NPM_FIX.md.
-
-## v21.1 Corrected Real Services Backend
-
-Questa build usa backend live-only con pattern `Controller → Service → Client/Adapter → Tool reale/API/CLI`.
-
-- OpenAPI 3: `/v3/api-docs`
-- Swagger UI: `/swagger-ui.html`
-- Docs: `docs/V20_6_CORRECTED_REAL_SERVICES.md`
-- OpenAPI YAML: `docs/openapi/*.openapi.yaml`
-- Nessun dato statistico/mock nei backend live platform.
-
-## Runtime tools v21.1.1
-
-Backend live endpoints require real CLI/API access. Before starting, run:
-
-```bash
-./scripts/wsl/prepare-runtime-tools.sh
+```
+.
+├── config/platform.yml              ← centralized URL registry
+├── docker-compose.yml               ← stack definition
+├── frontend/                        ← Angular 18
+│   └── src/app/api.config.ts        ← typed API wrapper
+├── backend/                         ← Spring Boot 3.3 / Java 21
+│   ├── gateway-service/             ← MVC gateway + proxy
+│   ├── auth-service/
+│   ├── task-service/
+│   ├── ai-ops-service/
+│   └── ... 8 more services
+├── go/                              ← Go cache + event worker
+├── ai-engine/                       ← Python FastAPI inference
+├── infrastructure/                  ← Helm charts, Grafana, OTel configs
+├── terraform/                       ← IaC modules
+├── docs/                            ← Diagrams + ADRs
+└── scripts/wsl/                     ← Operational scripts (use lib/common.sh)
 ```
 
-This mounts Docker, kubectl, helm, trivy, terraform and argocd from the host into backend containers
-through `.runtime-tools`. If a tool is missing, the API returns `live:false` with `toolStatus` instead of mock data.
+## Version
+
+**v21.2.1** — see `RELEASE_NOTES_v21.2.md` for details.

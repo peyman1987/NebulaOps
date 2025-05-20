@@ -1,0 +1,55 @@
+# NebulaOps v21.2 — Centralized service URL registry
+# Single source of truth for all inter-service communication URLs.
+# Used by: gateway-service application.yml, docker-compose.yml,
+# frontend api.config.ts (via build-time injection in scripts/sync-config.sh).
+
+version: 21.2.1
+release: v21.2
+
+# Internal service URLs (used by gateway-service ProxyController)
+# Hostnames match docker-compose service names
+services:
+  auth:          { host: auth-service,                port: 8081 }
+  task:          { host: task-service,                port: 8082 }
+  notification:  { host: notification-service,        port: 8083 }
+  file:          { host: file-service,                port: 8084 }
+  ai-ops:        { host: ai-ops-service,              port: 8085 }
+  devsecops:     { host: devsecops-service,           port: 8086 }
+  pipeline:      { host: pipeline-engine-service,     port: 8087 }
+  observability: { host: observability-service,       port: 8092 }
+  gitops:        { host: gitops-control-service,      port: 8093 }
+  environment:   { host: environment-manager-service, port: 8094 }
+  terraform:     { host: terraform-studio-service,    port: 8096 }
+  ai-engine:     { host: ai-engine,                   port: 8095 }
+  go-cache:      { host: go-cache-service,            port: 8091 }
+  gateway:       { host: gateway-service,             port: 8080 }
+
+# Infrastructure dependencies
+infra:
+  mongodb:    { host: mongodb,    port: 27017 }
+  rabbitmq:   { host: rabbitmq,   port: 5672 }
+  redis:      { host: redis,      port: 6379 }
+  prometheus: { host: prometheus, port: 9090 }
+  loki:       { host: loki,       port: 3100 }
+  tempo:      { host: tempo,      port: 3200 }
+  grafana:    { host: grafana,    port: 3000 }
+
+# Frontend → gateway API routes (consumed by api.config.ts)
+api:
+  base: /api
+  routes:
+    health:                 /health
+    auth:                   /auth
+    tasks:                  /tasks
+    kubernetes-snapshot:    /kubernetes/snapshot
+    kubernetes-logs:        /kubernetes/logs
+    docker-containers:      /runtime/docker/containers
+    docker-images:          /runtime/docker/images
+    docker-volumes:         /runtime/docker/volumes
+    helm-releases:          /runtime/helm/releases
+    platform-observability: /platform/observability
+    platform-gitops:        /platform/gitops
+    platform-devsecops:     /platform/devsecops
+    platform-environments:  /platform/environments
+    ai-ops-analyze:         /ai-ops/analyze
+    ai-ops-autofix:         /ai-ops/autofix

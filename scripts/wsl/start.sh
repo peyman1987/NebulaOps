@@ -1,37 +1,75 @@
 #!/usr/bin/env bash
+# v21.2 — NebulaOps startup script.
+# Usage: ./scripts/wsl/start.sh [--rebuild-gateway]
 set -euo pipefail
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
+
+REBUILD_GATEWAY=false
+for arg in "$@"; do
+  case "$arg" in
+    --rebuild-gateway) REBUILD_GATEWAY=true ;;
+    -h|--help)
+      cat <<USAGE
+Usage: $0 [--rebuild-gateway]
+  --rebuild-gateway    Force no-cache rebuild of the gateway-service image
+                       (use when gateway routes/config changed)
+USAGE
+      exit 0
+      ;;
+  esac
+done
+
 cd "$ROOT_DIR"
-COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
-PROJECT_NAME="nebulaops-v21-1"
-export COMPOSE_PARALLEL_LIMIT=${COMPOSE_PARALLEL_LIMIT:-2}
-./scripts/wsl/check-wsl.sh
-./scripts/wsl/prepare-kubeconfig-for-docker.sh
-./scripts/wsl/prepare-runtime-tools.sh
-echo "Validating Grafana provisioning..."
-DEFAULTS=$(grep -R "isDefault: true" -n infrastructure/observability/grafana/provisioning/datasources 2>/dev/null | wc -l || true)
-if [ "$DEFAULTS" -ne 1 ]; then
-  echo "FAIL Grafana datasource provisioning must contain exactly one isDefault: true, found $DEFAULTS"
-  grep -R "isDefault:" -n infrastructure/observability/grafana/provisioning/datasources || true
+
+log_step "Pre-flight checks"
+"$ROOT_DIR/scripts/wsl/check-wsl.sh"
+
+log_step "Preparing kubeconfig and runtime tools"
+"$ROOT_DIR/scripts/wsl/prepare-kubeconfig-for-docker.sh"
+"$ROOT_DIR/scripts/wsl/prepare-runtime-tools.sh"
+
+log_step "Validating Grafana provisioning"
+defaults=$(grep -R "isDefault: true" -n \
+  infrastructure/observability/grafana/provisioning/datasources 2>/dev/null | wc -l || true)
+if [ "$defaults" -ne 1 ]; then
+  log_err "Grafana must have exactly one isDefault datasource (found $defaults)"
   exit 1
 fi
-echo "Starting NebulaOps v21.1 with Docker Compose..."
-# Force no-cache rebuild of gateway-service (v21.1: switched from WebFlux to MVC)
-docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" build --no-cache gateway-service
-docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" up --build -d
-echo "Waiting for gateway..."
-for i in {1..60}; do
-  if curl -fsS http://localhost:8080/actuator/health >/dev/null 2>&1; then echo "Gateway is healthy."; break; fi
-  sleep 3
-  [[ "$i" == "60" ]] && echo "Gateway not ready yet. Check: ./scripts/wsl/logs.sh gateway-service"
-done
-cat <<'INFO'
-NebulaOps URLs:
-  Frontend:   http://localhost:4200
-  Gateway:    http://localhost:8080/actuator/health
-  Grafana:    http://localhost:3000  admin/admin
-  Prometheus: http://localhost:9090
-Run smoke test: ./scripts/wsl/smoke-test.sh
-Open service map: http://localhost:4200
+log_ok "Grafana datasource provisioning OK"
+
+log_step "Rebuilding gateway-service (always no-cache — prevents 502 from stale image)"
+dc build --no-cache gateway-service
+
+if [ "$REBUILD_GATEWAY" = "true" ]; then
+  log_step "Full no-cache rebuild requested for all services"
+  dc build --no-cache
+fi
+
+log_step "Starting NebulaOps v21.2"
+export COMPOSE_PARALLEL_LIMIT="${COMPOSE_PARALLEL_LIMIT:-2}"
+dc up --build -d
+
+log_step "Waiting for gateway-service"
+wait_http "http://localhost:8080/actuator/health" 60 "gateway-service" || \
+  log_warn "Inspect logs: ./scripts/wsl/logs.sh gateway-service"
+
+cat <<INFO
+
+${C_BOLD}NebulaOps v21.2 is running.${C_RESET}
+
+  ${C_CYAN}Frontend${C_RESET}    http://localhost:4200
+  ${C_CYAN}Gateway${C_RESET}     http://localhost:8080/actuator/health
+  ${C_CYAN}Grafana${C_RESET}     http://localhost:3000        admin/admin
+  ${C_CYAN}Prometheus${C_RESET}  http://localhost:9090
+  ${C_CYAN}RabbitMQ${C_RESET}    http://localhost:15672       guest/guest
+  ${C_CYAN}Mongo${C_RESET}       http://localhost:8088        admin/admin
+
+Useful:  ./scripts/wsl/health.sh        — overall status
+         ./scripts/wsl/logs.sh <svc>    — tail service logs
+         ./scripts/wsl/restart-gateway.sh — quick gateway restart
+         ./scripts/wsl/stop.sh          — shut everything down
+
 INFO
-command -v explorer.exe >/dev/null 2>&1 && explorer.exe http://localhost:4200 >/dev/null 2>&1 || true
+
+command -v explorer.exe >/dev/null 2>&1 && \
+  explorer.exe http://localhost:4200 >/dev/null 2>&1 || true

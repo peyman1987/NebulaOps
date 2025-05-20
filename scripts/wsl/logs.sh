@@ -1,8 +1,23 @@
 #!/usr/bin/env bash
+# v21.2 — Tail service logs. Usage: ./logs.sh [service-name] [--lines N]
 set -euo pipefail
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$ROOT_DIR"
-COMPOSE_FILE="$ROOT_DIR/infrastructure/docker-compose.yml"
-PROJECT_NAME="nebulaops"
-service="${1:-}"
-if [[ -n "$service" ]]; then docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" logs -f --tail=200 "$service"; else docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" logs -f --tail=120; fi
+source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
+
+if [ $# -eq 0 ]; then
+  log_info "Available services:"
+  dc config --services | sort | sed 's/^/  /'
+  echo
+  log_info "Usage: $0 <service-name> [--lines N]"
+  exit 0
+fi
+
+SVC="$1"; shift || true
+LINES=200
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --lines|-n) LINES="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
+dc logs --tail="$LINES" -f "$SVC"

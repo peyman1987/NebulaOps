@@ -1,4 +1,4 @@
-# NebulaOps v21.1 Corrected Real Services
+# NebulaOps v21.2 Corrected Real Services
 
 ## Cosa è stato corretto
 
@@ -6,7 +6,7 @@
 - Dockerfile backend ripuliti da download runtime fragili.
 - OpenAPI 3 aggiunto ai servizi Spring Boot tramite `springdoc-openapi`.
 - Specifiche YAML in `docs/openapi`.
-- Documentazione e diagrammi v21.1 aggiornati.
+- Documentazione e diagrammi v21.2 aggiornati.
 - Nessun dato statistico statico nei backend live platform.
 
 ## Endpoint documentazione
