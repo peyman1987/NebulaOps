@@ -1,4 +1,4 @@
-# v21.2 — Gateway service config.
+# v21.3 — Gateway service config.
 # Service URLs centralized: defaults match docker-compose hostnames,
 # can be overridden via environment variables (see docker-compose.yml).
 server:
@@ -17,6 +17,13 @@ proxy:
   ai-ops:       ${AI_OPS_SERVICE_URL:http://ai-ops-service:8085}
   devsecops:    ${DEVSECOPS_SERVICE_URL:http://devsecops-service:8086}
   pipeline:     ${PIPELINE_ENGINE_SERVICE_URL:http://pipeline-engine-service:8087}
+  observability: ${OBSERVABILITY_SERVICE_URL:http://observability-service:8092}
+  gitops:       ${GITOPS_CONTROL_SERVICE_URL:http://gitops-control-service:8093}
+  environment:  ${ENVIRONMENT_MANAGER_SERVICE_URL:http://environment-manager-service:8094}
+  terraform:    ${TERRAFORM_STUDIO_SERVICE_URL:http://terraform-studio-service:8096}
+  # v21.3 NEW
+  cost:         ${COST_ANALYTICS_SERVICE_URL:http://cost-analytics-service:8097}
+  notify-ws:    ${NOTIFICATION_WS_SERVICE_URL:http://notification-ws-service:8098}
 
 management:
   endpoints:

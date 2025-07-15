@@ -1,4 +1,4 @@
-# NebulaOps v21.2
+# NebulaOps v21.3
 
 End-to-end DevOps and platform engineering portfolio: Angular frontend, Spring Boot
 microservices, Go services, Python AI engine, full observability stack
@@ -139,4 +139,4 @@ Run `./scripts/wsl/health.sh` to see which downstream service is down.
 
 ## Version
 
-**v21.2.1** — see `RELEASE_NOTES_v21.2.md` for details.
+**v21.3.1** — see `RELEASE_NOTES_v21.3.md` for details.

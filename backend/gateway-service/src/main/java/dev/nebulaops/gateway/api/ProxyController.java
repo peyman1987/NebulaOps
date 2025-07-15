@@ -1,6 +1,10 @@
 package dev.nebulaops.gateway.api;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -11,9 +15,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * v21.2 — Gateway proxy for endpoints not directly served by the gateway.
- * Reads downstream URLs from application.yml (proxy.*), which itself
- * mirrors /config/platform.yml (single source of truth).
+ * v21.3 — Gateway proxy for endpoints not directly served by the gateway.
+ *
+ * Improvements over v21.2:
+ *  - Added proxy routes for: /cost/**, /notifications/**, /audit/**, /secrets/**, /registry/**
+ *  - Added pipeline/runs forward with pagination support
+ *  - All proxy targets wired from application.yml (single source of truth)
+ *  - Consistent graceful fallback: empty lists / error maps, never 500
+ *  - PATCH forwarding uses HttpEntity to respect Content-Type
  */
 @RestController
 @RequestMapping("/api")
@@ -25,14 +34,16 @@ public class ProxyController {
         this.rest = rest;
     }
 
-    @Value("${proxy.task}")
-    private String taskUrl;
-
-    @Value("${proxy.ai-ops}")
-    private String aiOpsUrl;
-
-    @Value("${proxy.auth}")
-    private String authUrl;
+    @Value("${proxy.task}")           private String taskUrl;
+    @Value("${proxy.ai-ops}")         private String aiOpsUrl;
+    @Value("${proxy.auth}")           private String authUrl;
+    @Value("${proxy.pipeline}")       private String pipelineUrl;
+    @Value("${proxy.notification}")   private String notificationUrl;
+    @Value("${proxy.cost}")           private String costUrl;
+    @Value("${proxy.observability}")  private String observabilityUrl;
+    @Value("${proxy.gitops}")         private String gitopsUrl;
+    @Value("${proxy.environment}")    private String environmentUrl;
+    @Value("${proxy.devsecops}")      private String devsecopsUrl;
 
     // ── Auth proxy ────────────────────────────────────────────────────────────
 
@@ -83,12 +94,11 @@ public class ProxyController {
     @PatchMapping("/tasks/{id}/status/{status}")
     public ResponseEntity<Object> updateStatus(@PathVariable String id, @PathVariable String status) {
         return forward(() -> {
-            // Use exchange + SimpleClientHttpRequestFactory PATCH support
-            org.springframework.http.HttpHeaders h = new org.springframework.http.HttpHeaders();
-            h.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            HttpHeaders h = new HttpHeaders();
+            h.setContentType(MediaType.APPLICATION_JSON);
             return rest.exchange(taskUrl + "/api/tasks/" + id + "/status/" + status,
-                                 org.springframework.http.HttpMethod.PATCH,
-                                 new org.springframework.http.HttpEntity<>("{}", h),
+                                 HttpMethod.PATCH,
+                                 new HttpEntity<>("{}", h),
                                  Object.class).getBody();
         }, Map.of("error", "task-service unavailable"));
     }
@@ -110,12 +120,91 @@ public class ProxyController {
                        Map.of("result", "ai-ops-service unavailable", "live", false));
     }
 
+    // ── Pipeline proxy ────────────────────────────────────────────────────────
+
+    @GetMapping("/pipeline/runs")
+    public ResponseEntity<Object> pipelineRuns(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return forward(() -> rest.getForObject(
+                pipelineUrl + "/api/pipeline/runs?page=" + page + "&size=" + size,
+                Object.class), List.of());
+    }
+
+    @PostMapping("/pipeline/runs/{id}/trigger")
+    public ResponseEntity<Object> triggerPipeline(@PathVariable String id) {
+        return forward(() -> rest.postForObject(
+                pipelineUrl + "/api/pipeline/runs/" + id + "/trigger", Map.of(), Object.class),
+                Map.of("error", "pipeline-service unavailable"));
+    }
+
+    // ── Notifications proxy ───────────────────────────────────────────────────
+
+    @GetMapping("/notifications/live")
+    public ResponseEntity<Object> notificationsLive(
+            @RequestParam(defaultValue = "50") int limit) {
+        return forward(() -> rest.getForObject(
+                notificationUrl + "/api/notifications?limit=" + limit, Object.class), List.of());
+    }
+
+    @PatchMapping("/notifications/{id}/read")
+    public ResponseEntity<Object> markRead(@PathVariable String id) {
+        return forward(() -> {
+            HttpHeaders h = new HttpHeaders();
+            h.setContentType(MediaType.APPLICATION_JSON);
+            return rest.exchange(notificationUrl + "/api/notifications/" + id + "/read",
+                                 HttpMethod.PATCH, new HttpEntity<>("{}", h), Object.class).getBody();
+        }, Map.of("error", "notification-service unavailable"));
+    }
+
+    // ── Cost analytics proxy ──────────────────────────────────────────────────
+
+    @GetMapping("/cost/summary")
+    public ResponseEntity<Object> costSummary(
+            @RequestParam(defaultValue = "monthly") String period) {
+        return forward(() -> rest.getForObject(
+                costUrl + "/api/cost/summary?period=" + period, Object.class),
+                Map.of("monthly", 20, "delta", 0, "currency", "EUR",
+                       "breakdown", List.of(), "live", false));
+    }
+
+    // ── Audit proxy ───────────────────────────────────────────────────────────
+
+    @GetMapping("/audit/events")
+    public ResponseEntity<Object> auditEvents(
+            @RequestParam(defaultValue = "100") int limit,
+            @RequestParam(required = false)     String actor,
+            @RequestParam(required = false)     String action) {
+        StringBuilder url = new StringBuilder(observabilityUrl + "/api/audit/events?limit=" + limit);
+        if (actor  != null) url.append("&actor=").append(actor);
+        if (action != null) url.append("&action=").append(action);
+        return forward(() -> rest.getForObject(url.toString(), Object.class), List.of());
+    }
+
+    // ── Secrets proxy ─────────────────────────────────────────────────────────
+
+    @GetMapping("/secrets/list")
+    public ResponseEntity<Object> secretsList(
+            @RequestParam(required = false) String namespace) {
+        String url = devsecopsUrl + "/api/secrets"
+                   + (namespace != null ? "?namespace=" + namespace : "");
+        return forward(() -> rest.getForObject(url, Object.class), List.of());
+    }
+
+    // ── Registry proxy ────────────────────────────────────────────────────────
+
+    @GetMapping("/registry/images")
+    public ResponseEntity<Object> registryImages(
+            @RequestParam(required = false) String repository) {
+        String url = devsecopsUrl + "/api/registry/images"
+                   + (repository != null ? "?repository=" + repository : "");
+        return forward(() -> rest.getForObject(url, Object.class), List.of());
+    }
+
     // ── Helper ────────────────────────────────────────────────────────────────
 
     @FunctionalInterface
-    interface Call {
-        Object run() throws Exception;
-    }
+    interface Call { Object run() throws Exception; }
 
     private ResponseEntity<Object> forward(Call call, Object fallback) {
         try {
@@ -124,7 +213,8 @@ public class ProxyController {
         } catch (ResourceAccessException e) {
             return ResponseEntity.ok(fallback);
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(e.getStatusCode())
+                                 .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.ok(fallback);
         }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v21.2 — NebulaOps startup script.
+# v21.3 — NebulaOps startup script.
 # Usage: ./scripts/wsl/start.sh [--rebuild-gateway]
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
@@ -37,25 +37,22 @@ if [ "$defaults" -ne 1 ]; then
 fi
 log_ok "Grafana datasource provisioning OK"
 
-log_step "Rebuilding gateway-service (always no-cache — prevents 502 from stale image)"
-dc build --no-cache gateway-service
-
 if [ "$REBUILD_GATEWAY" = "true" ]; then
-  log_step "Full no-cache rebuild requested for all services"
-  dc build --no-cache
+  log_step "Force-rebuilding gateway-service (no cache)"
+  dc build --no-cache gateway-service
 fi
 
-log_step "Starting NebulaOps v21.2"
+log_step "Starting NebulaOps v21.3"
 export COMPOSE_PARALLEL_LIMIT="${COMPOSE_PARALLEL_LIMIT:-2}"
 dc up --build -d
 
 log_step "Waiting for gateway-service"
-wait_http "http://localhost:8080/actuator/health" 60 "gateway-service" || \
+wait_http "http://localhost:8080/api/health" 120 "gateway-service" || \
   log_warn "Inspect logs: ./scripts/wsl/logs.sh gateway-service"
 
 cat <<INFO
 
-${C_BOLD}NebulaOps v21.2 is running.${C_RESET}
+${C_BOLD}NebulaOps v21.3 is running.${C_RESET}
 
   ${C_CYAN}Frontend${C_RESET}    http://localhost:4200
   ${C_CYAN}Gateway${C_RESET}     http://localhost:8080/actuator/health
