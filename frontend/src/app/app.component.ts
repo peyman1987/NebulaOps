@@ -3,8 +3,9 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CdkDragDrop, DragDropModule} from '@angular/cdk/drag-drop';
 import {HttpClient} from '@angular/common/http';
-import {catchError, forkJoin, of} from 'rxjs';
-import {API, APP_VERSION, APP_RELEASE} from './api.config';
+import {catchError, forkJoin, of, throwError} from 'rxjs';
+import {API, APP_VERSION, APP_RELEASE, JWT_KEY as _JWT_KEY, USER_KEY as _USER_KEY} from './api.config';
+// Note: SESSION_KEY below must stay in sync with JWT_KEY above
 
 type MainTab =
     'OVERVIEW'
@@ -342,11 +343,12 @@ interface HomeLauncher {
 }
 
 const TASKS_KEY = 'nebulaops.v20_2.tasks'; // legacy key, no longer used for live task data
-const K8S_KEY = 'nebulaops.v21_2_1.k8s';
-const SESSION_KEY = 'nebulaops.v21_2_1.session';
+const K8S_KEY = 'nebulaops.v21_3_0.k8s';
+const SESSION_KEY = 'nebulaops.v21_3.jwt';
+const USER_KEY    = 'nebulaops.v21_3.user';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-2-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-3-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -527,8 +529,8 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
     readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     readonly activeTab = signal<MainTab>('OVERVIEW');
-    readonly isAuthenticated = signal(localStorage.getItem(SESSION_KEY) === 'active');
-    readonly currentUser = signal(localStorage.getItem('nebulaops.v21_2_1.user') || 'admin');
+    readonly isAuthenticated = signal(!!localStorage.getItem(SESSION_KEY));
+    readonly currentUser = signal(localStorage.getItem(USER_KEY) || 'admin');
     readonly loginError = signal('');
     readonly apiError = signal('');
     readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
@@ -632,7 +634,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v21.2'
+            status: 'v21.3'
         },
         {
             title: 'INFRA',
@@ -686,7 +688,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v21.2'
+            status: 'v21.3'
         },
         {
             title: 'Helm',
@@ -713,7 +715,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v21.2'
+            status: 'v21.3'
         },
         {
             title: 'Multi-Env Manager',
@@ -1105,7 +1107,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v21-2-1-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v21-3-1-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
@@ -1146,7 +1148,7 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v21-2-1-devsecops-module.svg',
+            path: 'docs/nebulaops-v21-3-1-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -1186,18 +1188,48 @@ export class AppComponent implements OnInit, OnDestroy {
     login(): void {
         const u = this.loginForm.username.trim();
         const p = this.loginForm.password.trim();
-        if ((u === 'admin' || u === 'peyman') && p === 'admin') {
-            localStorage.setItem(SESSION_KEY, 'active');
-            localStorage.setItem('nebulaops.v21_2_1.user', u);
-            this.currentUser.set(u);
-            this.isAuthenticated.set(true);
-            this.refreshAll();
-        } else this.loginError.set('Credenziali locali: admin/admin oppure peyman/admin');
+        if (!u || !p) { this.loginError.set('Inserisci email e password'); return; }
+        this.loginError.set('');
+
+        // Call real JWT API — falls back to dev-mode if unreachable
+        this.http.post<any>(API.auth.login, { email: u, password: p })
+        .pipe(catchError(() => {
+            // Dev fallback when auth-service is not reachable
+            if ((u === 'admin' || u === 'peyman') && p === 'admin') {
+                return of({ accessToken: 'dev-jwt-local-' + Date.now(),
+                            user: { displayName: u, email: u } });
+            }
+            return throwError(() => new Error('Invalid credentials'));
+        }))
+        .subscribe({
+            next: (res: any) => {
+                const token       = res.accessToken || res.token || '';
+                const displayName = res.user?.displayName || res.user?.email || u;
+                localStorage.setItem(SESSION_KEY, token);
+                localStorage.setItem(USER_KEY, displayName);
+                this.currentUser.set(displayName);
+                this.isAuthenticated.set(true);
+                this.refreshAll();
+            },
+            error: () => this.loginError.set('Credenziali non valide')
+        });
     }
 
     logout(): void {
+        const token = localStorage.getItem(SESSION_KEY);
+        if (token) {
+            this.http.post(API.auth.logout, {}, {
+                headers: { Authorization: 'Bearer ' + token }
+            }).pipe(catchError(() => of(null))).subscribe();
+        }
         localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(USER_KEY);
         this.isAuthenticated.set(false);
+    }
+
+    private authHeaders(): { [h: string]: string } {
+        const token = localStorage.getItem(SESSION_KEY) || '';
+        return token ? { Authorization: 'Bearer ' + token } : {};
     }
 
 
@@ -1490,17 +1522,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.k8sForm = {kind: 'Deployment', namespace: 'nebulaops', name: '', replicas: 1};
     }
 
-    applyYaml(): void {
-        const r = this.selected();
-        if (!r) return;
-        this.resources.set(this.resources().map(x => x.id === r.id ? {
-            ...r,
-            status: 'Applied',
-            updatedAt: new Date().toISOString()
-        } : x));
-        this.saveK8s();
-    }
-
     deleteResource(r: K8sResource): void {
         this.resources.set(this.resources().filter(x => x.id !== r.id));
         this.selected.set(this.resources()[0] ?? null);
@@ -1524,80 +1545,219 @@ export class AppComponent implements OnInit, OnDestroy {
                 this.resources.set(s.resources);
                 this.logs.set(s.logs || []);
                 this.selected.set(this.resources()[0] ?? null);
-                const state = s.cluster.status === 'Connected' ? 'connected' : 'error';
-                this.k8sState.set(state);
-                this.runtimeState.set(state);
-                this.k8sControllers.set(this.buildControllersFromResources(s.resources));
+                this.k8sState.set(s.cluster.status === 'Connected' ? 'connected' : 'error');
             } else {
                 this.k8sState.set('error');
-                this.runtimeState.set('error');
                 this.logs.set([]);
             }
         });
     }
 
-    private buildControllersFromResources(resources: K8sResource[]): K8sController[] {
-        return resources
-            .filter(r => ['Deployment','StatefulSet','DaemonSet'].includes(r.kind))
-            .map(r => ({
-                kind: r.kind, name: r.name, namespace: r.namespace,
-                desired: r.replicas || 1, available: r.replicas || 1,
-                strategy: r.kind === 'StatefulSet' ? 'RollingUpdate' : 'RollingUpdate',
-                age: '1d'
-            }));
-    }
-
-
-
-
     selectDockerContainer(c: DockerContainer): void {
         this.selectedDockerContainer.set(c);
     }
 
-    dockerAction(action: 'start' | 'stop' | 'restart' | 'pause', container?: DockerContainer | null): void {
+    dockerAction(action: 'start' | 'stop' | 'restart' | 'pause' | 'unpause' | 'remove',
+                 container?: DockerContainer | null): void {
         const current = container || this.selectedDockerContainer() || this.dockerContainers()[0];
         if (!current) return;
-        const nextStatus: DockerContainer['status'] = action === 'stop' ? 'stopped' : action === 'pause' ? 'paused' : action === 'restart' ? 'restarting' : 'running';
-        const updated = {
-            ...current,
-            status: nextStatus,
-            logs: [`${new Date().toLocaleTimeString()} docker ${action} ${current.name}`, ...current.logs].slice(0, 8)
-        };
-        this.dockerContainers.set(this.dockerContainers().map(c => c.id === current.id ? updated : c));
-        this.selectedDockerContainer.set(updated);
-        if (action === 'restart') {
-            setTimeout(() => this.dockerContainers.set(this.dockerContainers().map(c => c.id === current.id ? {
-                ...c,
-                status: 'running'
-            } : c)), 650);
+        const id = current.id;
+
+        // Optimistic UI update
+        const nextStatus: DockerContainer['status'] =
+            action === 'stop'    ? 'stopped'    :
+            action === 'pause'   ? 'paused'     :
+            action === 'restart' ? 'restarting' : 'running';
+
+        if (action !== 'remove') {
+            const updated = { ...current, status: nextStatus,
+                logs: [`${new Date().toLocaleTimeString()} ${action} ${current.name}`, ...current.logs].slice(0, 8) };
+            this.dockerContainers.set(this.dockerContainers().map(c => c.id === id ? updated : c));
+            this.selectedDockerContainer.set(updated);
         }
+
+        // Real API call
+        const urlMap: Record<string, string> = {
+            start:   API.runtime.containerStart(id),
+            stop:    API.runtime.containerStop(id),
+            restart: API.runtime.containerRestart(id),
+            pause:   API.runtime.containerPause(id),
+            unpause: API.runtime.containerUnpause(id),
+            remove:  API.runtime.containerRemove(id),
+        };
+        const url = urlMap[action];
+        if (!url) return;
+
+        const req$ = action === 'remove'
+            ? this.http.delete<any>(url, { headers: this.authHeaders() })
+            : this.http.post<any>(url, {}, { headers: this.authHeaders() });
+
+        req$.pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            if (action === 'remove') {
+                this.dockerContainers.set(this.dockerContainers().filter(c => c.id !== id));
+                if (this.selectedDockerContainer()?.id === id) this.selectedDockerContainer.set(null);
+            } else if (action === 'restart') {
+                setTimeout(() => {
+                    this.dockerContainers.set(this.dockerContainers().map(c =>
+                        c.id === id ? { ...c, status: 'running' } : c));
+                }, 2000);
+                // Refresh from API after restart
+                setTimeout(() => this.loadDocker(), 3500);
+            }
+        });
+    }
+
+    removeDockerImage(image: DockerImage): void {
+        const tag = image.repository + ':' + image.tag;
+        this.http.delete<any>(API.runtime.imageRemove(encodeURIComponent(tag)),
+            { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(() => {
+            this.dockerImages.set(this.dockerImages().filter(i =>
+                !(i.repository === image.repository && i.tag === image.tag)));
+        });
+    }
+
+    removeDockerVolume(volume: DockerVolume): void {
+        this.http.delete<any>(API.runtime.volumeRemove(encodeURIComponent(volume.name)),
+            { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(() => {
+            this.dockerVolumes.set(this.dockerVolumes().filter(v => v.name !== volume.name));
+        });
+    }
+
+    loadContainerLogs(container: DockerContainer): void {
+        this.http.get<any>(API.runtime.containerLogs(container.id) + '?tail=100',
+            { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false, logs: [] }))).subscribe(res => {
+            if (res.ok && res.logs) {
+                const updated = { ...container, logs: res.logs };
+                this.dockerContainers.set(this.dockerContainers().map(c =>
+                    c.id === container.id ? updated : c));
+                this.selectedDockerContainer.set(updated);
+            }
+        });
     }
 
     pruneDocker(): void {
-        this.dockerImages.set(this.dockerImages().filter(i => i.repository.startsWith('nebulaops') || i.vulnerabilities === 0));
+        this.http.post<any>(API.runtime.imagesPrune, {}, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(() => this.loadDocker());
+    }
+
+    pruneVolumes(): void {
+        this.http.post<any>(API.runtime.volumesPrune, {}, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(() => this.loadDocker());
     }
 
     scaleController(ctrl: K8sController, delta: number): void {
         const desired = Math.max(0, ctrl.desired + delta);
-        const updated = {...ctrl, desired, available: Math.min(desired, Math.max(0, ctrl.available + delta))};
-        this.k8sControllers.set(this.k8sControllers().map(c => c.name === ctrl.name && c.kind === ctrl.kind ? updated : c));
-        const match = this.resources().find(r => r.name === ctrl.name && (r.kind === 'Deployment' || r.kind === 'StatefulSet' || r.kind === 'DaemonSet'));
-        if (match) this.scale(match, delta);
+        const updated = { ...ctrl, desired, available: Math.min(desired, Math.max(0, ctrl.available + delta)) };
+        this.k8sControllers.set(this.k8sControllers().map(c =>
+            c.name === ctrl.name && c.kind === ctrl.kind ? updated : c));
+
+        const ns   = ctrl.namespace || 'nebulaops';
+        const name = ctrl.name;
+        const url  = ctrl.kind === 'StatefulSet'
+            ? API.kubernetes.scaleStatefulSet(ns, name)
+            : API.kubernetes.scaleDeployment(ns, name);
+
+        this.http.post<any>(url, { replicas: desired }, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            if (!res.ok) {
+                // Rollback optimistic update
+                this.k8sControllers.set(this.k8sControllers().map(c =>
+                    c.name === ctrl.name && c.kind === ctrl.kind ? ctrl : c));
+            }
+        });
     }
 
     restartController(ctrl: K8sController): void {
-        this.k8sControllers.set(this.k8sControllers().map(c => c.name === ctrl.name && c.kind === ctrl.kind ? {
-            ...c,
-            available: Math.max(0, c.available - 1)
-        } : c));
-        const event: ClusterEvent = {
-            time: new Date().toLocaleTimeString(),
-            type: 'ROLLOUT',
-            target: ctrl.name,
-            message: `OpenLens-style restart issued for ${ctrl.kind}/${ctrl.name}`,
-            severity: 'HIGH'
+        this.k8sControllers.set(this.k8sControllers().map(c =>
+            c.name === ctrl.name && c.kind === ctrl.kind ? { ...c, available: Math.max(0, c.available - 1) } : c));
+
+        const ns   = ctrl.namespace || 'nebulaops';
+        const name = ctrl.name;
+        const url  = ctrl.kind === 'StatefulSet'
+            ? API.kubernetes.restartStatefulSet(ns, name)
+            : API.kubernetes.restartDeployment(ns, name);
+
+        this.http.post<any>(url, {}, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            const event: ClusterEvent = {
+                time:     new Date().toLocaleTimeString(),
+                type:     'ROLLOUT',
+                target:   ctrl.name,
+                message:  res.ok
+                    ? `Rolling restart issued for ${ctrl.kind}/${ctrl.name}`
+                    : `Restart failed for ${ctrl.kind}/${ctrl.name} — kubectl unavailable`,
+                severity: 'HIGH',
+            };
+            this.clusterEvents.set([event, ...this.clusterEvents()].slice(0, 8));
+            // Re-fetch after 4s
+            setTimeout(() => this.loadK8sFromApi(), 4000);
+        });
+    }
+
+    deletePod(pod: K8sResource, force = false): void {
+        const ns   = pod.namespace || 'nebulaops';
+        const name = pod.name;
+        this.http.delete<any>(
+            API.kubernetes.deletePod(ns, name) + (force ? '?force=true' : ''),
+            { headers: this.authHeaders() }
+        ).pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            const ev: ClusterEvent = {
+                time: new Date().toLocaleTimeString(), type: 'DELETE',
+                target: name, severity: 'HIGH',
+                message: res.ok ? `Pod ${name} deleted` : `Delete failed — kubectl unavailable`,
+            };
+            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
+            setTimeout(() => this.loadK8sFromApi(), 2000);
+        });
+    }
+
+    restartPod(pod: K8sResource): void {
+        const ns   = pod.namespace || 'nebulaops';
+        const name = pod.name;
+        this.http.post<any>(API.kubernetes.restartPod(ns, name), {}, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            const ev: ClusterEvent = {
+                time: new Date().toLocaleTimeString(), type: 'ROLLOUT',
+                target: name, severity: 'MEDIUM',
+                message: res.ok ? `Restart issued for pod ${name}` : `Restart failed — kubectl unavailable`,
+            };
+            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
+            setTimeout(() => this.loadK8sFromApi(), 4000);
+        });
+    }
+
+    loadPodLogs(pod: K8sResource): void {
+        const ns   = pod.namespace || 'nebulaops';
+        const name = pod.name;
+        this.http.get<any>(API.kubernetes.podLogs(ns, name) + '?tail=200',
+            { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false, stdout: '' }))).subscribe(res => {
+            const lines = (res.stdout || '').split('\\n').filter((l: string) => l.trim());
+            const logEntries = lines.map((l: string) => ({
+                time: new Date().toISOString(), service: name, level: 'INFO', message: l
+            }));
+            this.logs.set(logEntries.slice(-100));
+        });
+    }
+
+    getResourceYaml(kind: string, ns: string, name: string): void {
+        const urlFn: Record<string, Function> = {
+            Deployment:  API.kubernetes.deploymentYaml,
+            Service:     API.kubernetes.serviceYaml,
+            Ingress:     API.kubernetes.ingressYaml,
         };
-        this.clusterEvents.set([event, ...this.clusterEvents()].slice(0, 8));
+        const fn = urlFn[kind];
+        if (!fn) return;
+        this.http.get<any>(fn(ns, name), { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false, stdout: '' }))).subscribe(res => {
+            if (res.ok && res.stdout) {
+                const sel = this.resources().find(r => r.name === name && r.kind === kind);
+                if (sel) this.selected.set({ ...sel, yaml: res.stdout });
+            }
+        });
     }
 
     applyLensAction(action: LensAction): void {
@@ -1635,7 +1795,6 @@ ${selectedLogs}`;
         }).subscribe(r => {
             const containers = r.containers.map((x, i) => this.normalizeDockerContainer(x, i));
             this.dockerContainers.set(containers);
-            if (containers.length > 0) this.runtimeState.set('connected');
             if (r.images.length) this.dockerImages.set(r.images.map(x => ({
                 repository: x.Repository || x.repository || '<none>',
                 tag: x.Tag || x.tag || 'latest',
@@ -1651,9 +1810,6 @@ ${selectedLogs}`;
             })));
         });
     }
-
-
-
 
     normalizeDockerContainer(x: any, i: number): DockerContainer {
         const rawStatus = String(x.status || x.Status || x.State || '').toLowerCase();
@@ -1713,7 +1869,7 @@ ${selectedLogs}`;
     loadDevSecOps(): void {
         this.http.get<any>(API.platform.devsecops).pipe(catchError(() => of(null))).subscribe(data => {
             if (!data) {
-                // v21.2.1: surface a clear offline state so the section never looks empty/broken
+                // v21.3.1: surface a clear offline state so the section never looks empty/broken
                 this.securityScans.set([{
                     id: 'trivy-offline',
                     tool: 'Trivy',
@@ -2125,10 +2281,79 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             time: now,
             service,
             level: i === 2 ? 'PLAN' : 'INFO',
-            message: `${service} OK · v21.2 AI Ops telemetry`
+            message: `${service} OK · v21.3 AI Ops telemetry`
         }));
     }
 
+    // ── Node actions ─────────────────────────────────────────────────────────
+    cordonNode(nodeName: string): void {
+        this.http.post<any>(API.kubernetes.cordonNode(nodeName), {}, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            const ev: ClusterEvent = {
+                time: new Date().toLocaleTimeString(), type: 'CORDON',
+                target: nodeName, severity: 'HIGH',
+                message: res.ok ? `Node ${nodeName} cordoned` : `Cordon failed — kubectl unavailable`,
+            };
+            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
+            setTimeout(() => this.loadK8sFromApi(), 2000);
+        });
+    }
+
+    uncordonNode(nodeName: string): void {
+        this.http.post<any>(API.kubernetes.uncordonNode(nodeName), {}, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            const ev: ClusterEvent = {
+                time: new Date().toLocaleTimeString(), type: 'UNCORDON',
+                target: nodeName, severity: 'MEDIUM',
+                message: res.ok ? `Node ${nodeName} uncordoned` : `Uncordon failed — kubectl unavailable`,
+            };
+            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
+            setTimeout(() => this.loadK8sFromApi(), 2000);
+        });
+    }
+
+    drainNode(nodeName: string): void {
+        const ev: ClusterEvent = {
+            time: new Date().toLocaleTimeString(), type: 'DRAIN',
+            target: nodeName, severity: 'CRITICAL',
+            message: `Draining node ${nodeName}...`,
+        };
+        this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
+        this.http.post<any>(API.kubernetes.drainNode(nodeName), {}, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            const done: ClusterEvent = {
+                time: new Date().toLocaleTimeString(), type: 'DRAIN',
+                target: nodeName, severity: res.ok ? 'MEDIUM' : 'HIGH',
+                message: res.ok ? `Node ${nodeName} drained` : `Drain failed — ${res.stderr || 'kubectl unavailable'}`,
+            };
+            this.clusterEvents.set([done, ...this.clusterEvents()].slice(0, 8));
+            setTimeout(() => this.loadK8sFromApi(), 2000);
+        });
+    }
+
+    createNamespace(name: string): void {
+        if (!name?.trim()) return;
+        this.http.post<any>(API.kubernetes.createNamespace, { name: name.trim() }, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
+            if (res.ok) setTimeout(() => this.loadK8sFromApi(), 1000);
+        });
+    }
+
+    applyYaml(yaml: string): void {
+        if (!yaml?.trim()) return;
+        this.http.post<any>(API.kubernetes.apply, { yaml }, { headers: this.authHeaders() })
+        .pipe(catchError(() => of({ ok: false, stderr: 'kubectl unavailable' }))).subscribe(res => {
+            const ev: ClusterEvent = {
+                time: new Date().toLocaleTimeString(), type: 'APPLY',
+                target: 'manifest', severity: res.ok ? 'LOW' : 'HIGH',
+                message: res.ok ? `kubectl apply OK: ${res.stdout?.split('\n')[0] || ''}` : `Apply failed: ${res.stderr || ''}`,
+            };
+            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
+            setTimeout(() => this.loadK8sFromApi(), 2000);
+        });
+    }
+
+    // ── errorMessage ──────────────────────────────────────────────────────────
     private errorMessage(err: any): string {
         return err?.error?.message || err?.message || 'API non disponibile: nessun dato live disponibile';
     }

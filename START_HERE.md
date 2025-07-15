@@ -1,4 +1,4 @@
-# Start here — NebulaOps v21.2
+# Start here — NebulaOps v21.3
 
 ## Run it
 
@@ -39,5 +39,5 @@ else (tasks, auth, observability) keeps working.
 
 - `README.md` — full overview, project layout, all URLs
 - `ARCHITECTURE.md` — component diagram and data flow
-- `RELEASE_NOTES_v21.2.md` — what changed from v21.1
+- `RELEASE_NOTES_v21.3.md` — what changed from v21.1
 - `config/platform.yml` — every service URL in one place

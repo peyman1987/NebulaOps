@@ -3,9 +3,9 @@
     <div class="login-orb one"></div>
     <div class="login-orb two"></div>
     <form (ngSubmit)="login()" class="login-card">
-        <div class="brand"><span>N21.2</span>
+        <div class="brand"><span>N20.6</span>
             <div><p>Terraform enabled SaaS cockpit</p>
-                <h1>NebulaOps v21.2</h1></div>
+                <h1>NebulaOps v21.3</h1></div>
         </div>
         <p class="lead">DevOps portfolio platform with Docker, Kubernetes, Helm, Terraform, GitOps, observability,
             FinOps and backup operations.</p>
@@ -19,7 +19,7 @@
 
 <main *ngIf="isAuthenticated()" class="app-shell">
     <aside [class.collapsed]="sideCollapsed()" class="sidebar">
-        <div class="side-brand"><span>N21.2</span><b>Full Platform</b><small>{{ runtimeState() }}</small></div>
+        <div class="side-brand"><span>N20.6</span><b>Full Platform</b><small>{{ runtimeState() }}</small></div>
         <button (click)="toggleSidebar()" class="sidebar-toggle">
             <span>{{ sideCollapsed() ? '☰' : '←' }}</span><b>{{ sideCollapsed() ? '' : 'Chiudi menu' }}</b></button>
         <div *ngFor="let group of sideTree" class="side-tree">
@@ -48,7 +48,7 @@
     <section class="content-shell">
         <header class="hero">
             <nav class="topbar">
-                <div class="brand"><span>N21.2</span>
+                <div class="brand"><span>N20.6</span>
                     <div><p>NEBULAOPS</p>
                         <h2>Terraform Control Plane</h2></div>
                 </div>
@@ -58,7 +58,7 @@
             </nav>
             <section class="hero-grid">
                 <div class="hero-copy">
-                    <p class="eyebrow">v21.2 · Infrastructure as Code · Local-first</p>
+                    <p class="eyebrow">v21.3 · Infrastructure as Code · Local-first</p>
                     <h1>DevOps Enterprise cockpit</h1>
                     <p class="lead">Controlla risorse Kubernetes, simula Terraform plan, monitora log, gestisci task,
                         pipeline, rischi, costi e backup da una UI dark 3D.</p>
@@ -76,7 +76,7 @@
                     </div>
                 </div>
                 <div aria-label="Animated architecture" class="orbit">
-                    <div class="core">NebulaOps<br><b>v21.2</b></div>
+                    <div class="core">NebulaOps<br><b>v21.3</b></div>
                     <button (click)="setTab('TERRAFORM')" class="node n1"><span
                             class='brand-icon terraform-icon'>T</span><b>Terraform</b></button>
                     <button (click)="setTab('KUBERNETES')" class="node n2"><span
@@ -115,7 +115,7 @@
                 </div>
             </article>
             <article class="panel wide full-platform-panel">
-                <div class="title"><p>v21.2 Full Platform</p>
+                <div class="title"><p>v21.3 Full Platform</p>
                     <h2>Enterprise tool matrix</h2></div>
                 <div class="tool-grid">
                     <button (click)="setTab(tool.tab)" *ngFor="let tool of platformTools" class="tool-card">
@@ -135,29 +135,29 @@
             </article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.2 AI Ops architecture</h2></div>
-                <img alt="NebulaOps v21.2 AI Ops architecture" class="diagram"
-                     src="assets/nebulaops-v21-2-ai-ops-architecture.svg"></article>
+                    <h2>v21.3 AI Ops architecture</h2></div>
+                <img alt="NebulaOps v21.3 AI Ops architecture" class="diagram"
+                     src="assets/nebulaops-v21-3-ai-ops-architecture.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.2 Kubernetes Visual Cluster</h2></div>
-                <img alt="NebulaOps v21.2 Kubernetes Visual Cluster" class="diagram"
-                     src="assets/nebulaops-v21-2-kubernetes-visual-cluster.svg"></article>
+                    <h2>v21.3 Kubernetes Visual Cluster</h2></div>
+                <img alt="NebulaOps v21.3 Kubernetes Visual Cluster" class="diagram"
+                     src="assets/nebulaops-v21-3-kubernetes-visual-cluster.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.2 DevSecOps Module</h2></div>
-                <img alt="NebulaOps v21.2 DevSecOps Module" class="diagram"
-                     src="assets/nebulaops-v21-2-devsecops-module.svg"></article>
+                    <h2>v21.3 DevSecOps Module</h2></div>
+                <img alt="NebulaOps v21.3 DevSecOps Module" class="diagram"
+                     src="assets/nebulaops-v21-3-devsecops-module.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.2 CI/CD Pipeline Designer</h2></div>
-                <img alt="NebulaOps v21.2 CI/CD Pipeline Designer" class="diagram"
-                     src="assets/nebulaops-v21-2-cicd-pipeline-designer.svg"></article>
+                    <h2>v21.3 CI/CD Pipeline Designer</h2></div>
+                <img alt="NebulaOps v21.3 CI/CD Pipeline Designer" class="diagram"
+                     src="assets/nebulaops-v21-3-cicd-pipeline-designer.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.2 INFRA Hub</h2></div>
-                <img alt="NebulaOps v21.2 INFRA Hub" class="diagram"
-                     src="assets/nebulaops-v21-2-infra-hub.svg"></article>
+                    <h2>v21.3 INFRA Hub</h2></div>
+                <img alt="NebulaOps v21.3 INFRA Hub" class="diagram"
+                     src="assets/nebulaops-v21-3-infra-hub.svg"></article>
         </section>
 
         <section *ngIf="activeTab()==='INFRA'" class="page infra-page">
@@ -240,7 +240,7 @@ ArgoCD sync      internal CI/CD Designer</pre>
 
         <section *ngIf="activeTab()==='CONTAINERS'" class="page containers-page">
             <article class="panel wide containers-hero">
-                <div class="title"><p>Docker Desktop + OpenLens v21.2</p>
+                <div class="title"><p>Docker Desktop + OpenLens v21.3</p>
                     <h2>Container runtime and Kubernetes workload console</h2>
                     <div>
                         <button (click)="loadDocker()">Refresh Docker</button>
@@ -282,17 +282,44 @@ ArgoCD sync      internal CI/CD Designer</pre>
                 <div class="title"><p>Docker Desktop</p>
                     <h2>Containers</h2>
                     <div>
-                        <button (click)="dockerAction('restart')">Restart selected</button>
-                        <button (click)="dockerAction('stop')" class="danger">Stop</button>
+                        <button (click)="loadDocker()">↻ Refresh</button>
+                        <button (click)="pruneVolumes()" class="danger">Prune</button>
                     </div>
                 </div>
                 <div class="container-list">
-                    <button (click)="selectDockerContainer(c)" *ngFor="let c of dockerContainers()"
-                            [class.active]="selectedDockerContainer()?.id===c.id">
-                        <b>{{ c.name }}</b><span>{{ c.image }}</span><em>{{ c.status }}</em>
-                        <i><u [style.width.%]="c.cpu"></u></i><small>CPU {{ c.cpu }}% · RAM {{ c.memory }}MB
-                        · {{ c.ports }}</small>
-                    </button>
+                    <div *ngFor="let c of dockerContainers()" class="ctr-item"
+                         [class.active]="selectedDockerContainer()?.id===c.id"
+                         [class.ctr-running]="c.status==='running'"
+                         [class.ctr-stopped]="c.status==='stopped'"
+                         [class.ctr-paused]="c.status==='paused'"
+                         [class.ctr-restarting]="c.status==='restarting'"
+                         (click)="selectDockerContainer(c)">
+                        <div class="ctr-main">
+                            <b class="ctr-name">{{ c.name }}</b>
+                            <span class="ctr-image">{{ c.image }}</span>
+                            <em class="ctr-status-badge">{{ c.status }}</em>
+                        </div>
+                        <div class="ctr-metrics">
+                            <i class="ctr-bar"><u [style.width.%]="c.cpu"></u></i>
+                            <small>CPU {{ c.cpu }}%  ·  RAM {{ c.memory }}MB  ·  {{ c.ports }}</small>
+                        </div>
+                        <div class="ctr-actions-row" (click)="$event.stopPropagation()">
+                            <button *ngIf="c.status!=='running'" class="act-btn act-start"
+                                    (click)="dockerAction('start',c)" title="Start">▶ Start</button>
+                            <button *ngIf="c.status==='running'" class="act-btn act-restart"
+                                    (click)="dockerAction('restart',c)" title="Restart">↺ Restart</button>
+                            <button *ngIf="c.status==='running'" class="act-btn act-stop"
+                                    (click)="dockerAction('stop',c)" title="Stop">■ Stop</button>
+                            <button *ngIf="c.status==='running'" class="act-btn act-pause"
+                                    (click)="dockerAction('pause',c)" title="Pause">⏸</button>
+                            <button *ngIf="c.status==='paused'" class="act-btn act-start"
+                                    (click)="dockerAction('unpause',c)" title="Unpause">▶</button>
+                            <button class="act-btn act-logs"
+                                    (click)="loadContainerLogs(c)" title="View logs">≡ Logs</button>
+                            <button class="act-btn act-delete"
+                                    (click)="dockerAction('remove',c)" title="Remove container">✕</button>
+                        </div>
+                    </div>
                 </div>
             </article>
 
@@ -302,7 +329,8 @@ ArgoCD sync      internal CI/CD Designer</pre>
                     <button (click)="pruneDocker()">Prune safe cache</button>
                 </div>
                 <div class="asset-table">
-                    <div *ngFor="let i of dockerImages()"><b>{{ i.repository }}:{{ i.tag }}</b><span>{{ i.size }}
+                    <div *ngFor="let i of dockerImages()" class="asset-row">
+                        <b>{{ i.repository }}:{{ i.tag }}</b><span>{{ i.size }}
                         · CVE {{ i.vulnerabilities }} · {{ i.created }}</span></div>
                     <div *ngFor="let v of dockerVolumes()"><b>{{ v.name }}</b><span>{{ v.driver }} · {{ v.mount }}
                         · {{ v.size }}</span></div>
@@ -348,7 +376,7 @@ ArgoCD sync      internal CI/CD Designer</pre>
 
         <section *ngIf="activeTab()==='KUBERNETES'" class="page k8s-visual-page">
             <article class="panel cluster-hero glass-card">
-                <div class="title"><p>Kubernetes Visual Cluster v21.2</p>
+                <div class="title"><p>Kubernetes Visual Cluster v21.3</p>
                     <h2>3D live cluster topology</h2>
                     <div>
                         <button (click)="loadK8sFromApi()">Refresh live</button>
@@ -399,9 +427,45 @@ ArgoCD sync      internal CI/CD Designer</pre>
                             [class.active]="activeLensSection()===s">{{ s }}
                     </button>
                 </div>
-                <div class="smart-table">
-                    <div *ngFor="let row of lensRows()">
-                        <b>{{ row.kind || row.label || row.type || 'item' }} {{ row.name || row.target || row.label }}</b><span>{{ row.namespace || row.role || row.message || row.status }}</span><em>{{ row.status || row.age || row.trend || row.size }}</em>
+                <div class="smart-table lens-table">
+                    <div *ngFor="let row of lensRows()" class="lens-row"
+                         [class.row-pod]="row.kind==='Pod'"
+                         [class.row-running]="row.status==='Running' || row.status==='Available'"
+                         [class.row-stopped]="row.status==='Stopped' || row.status==='Failed'">
+                        <span class="row-kind">{{ row.kind || row.type || '—' }}</span>
+                        <b class="row-name">{{ row.name || row.target || row.label }}</b>
+                        <span class="row-ns">{{ row.namespace || row.role || '' }}</span>
+                        <span class="row-status" [class.status-ok]="row.status==='Running'||row.status==='Available'"
+                              [class.status-err]="row.status==='Failed'||row.status==='Stopped'||row.status==='NotReady'">
+                            {{ row.status || row.age || '—' }}</span>
+                        <span class="row-detail">{{ row.replicas ? (row.replicas + ' replicas') : (row.size || '') }}</span>
+                        <!-- Pod actions -->
+                        <div class="row-actions" *ngIf="row.kind==='Pod'">
+                            <button class="act-btn act-restart" (click)="restartPod(row)" title="Restart pod">↺</button>
+                            <button class="act-btn act-logs"    (click)="loadPodLogs(row)" title="View logs">≡</button>
+                            <button class="act-btn act-delete"  (click)="deletePod(row)" title="Delete pod">✕</button>
+                        </div>
+                        <!-- Deployment/StatefulSet actions -->
+                        <div class="row-actions" *ngIf="row.kind==='Deployment'||row.kind==='StatefulSet'">
+                            <button class="act-btn act-restart" (click)="restartController({kind:row.kind,name:row.name,namespace:row.namespace,desired:row.replicas||1,available:row.replicas||1,strategy:'RollingUpdate',age:'1d'})" title="Restart rollout">↺</button>
+                            <button class="act-btn act-scale-up"   (click)="scaleController({kind:row.kind,name:row.name,namespace:row.namespace,desired:row.replicas||1,available:row.replicas||1,strategy:'RollingUpdate',age:'1d'},1)" title="Scale +1">▲</button>
+                            <button class="act-btn act-scale-down" (click)="scaleController({kind:row.kind,name:row.name,namespace:row.namespace,desired:row.replicas||1,available:row.replicas||1,strategy:'RollingUpdate',age:'1d'},-1)" title="Scale -1">▼</button>
+                            <button class="act-btn act-yaml" (click)="getResourceYaml(row.kind,row.namespace||'nebulaops',row.name)" title="View YAML">YAML</button>
+                        </div>
+                        <!-- Service actions -->
+                        <div class="row-actions" *ngIf="row.kind==='Service'">
+                            <button class="act-btn act-yaml" (click)="getResourceYaml('Service',row.namespace||'nebulaops',row.name)" title="View YAML">YAML</button>
+                        </div>
+                        <!-- Ingress actions -->
+                        <div class="row-actions" *ngIf="row.kind==='Ingress'">
+                            <button class="act-btn act-yaml" (click)="getResourceYaml('Ingress',row.namespace||'nebulaops',row.name)" title="View YAML">YAML</button>
+                        </div>
+                        <!-- Node actions -->
+                        <div class="row-actions" *ngIf="row.kind==='Node'">
+                            <button class="act-btn act-cordon"  (click)="cordonNode(row.name)"   title="Cordon node">⛔ Cordon</button>
+                            <button class="act-btn act-restart" (click)="uncordonNode(row.name)" title="Uncordon node">✅ Uncordon</button>
+                            <button class="act-btn act-delete"  (click)="drainNode(row.name)"    title="Drain node">💧 Drain</button>
+                        </div>
                     </div>
                 </div>
             </article>
@@ -529,7 +593,7 @@ ArgoCD sync      internal CI/CD Designer</pre>
 
         <section *ngIf="activeTab()==='OBSERVABILITY'" class="page observability-enterprise-page">
             <article class="panel wide obs-hero">
-                <div class="title"><p>Advanced Observability Stack v21.2</p>
+                <div class="title"><p>Advanced Observability Stack v21.3</p>
                     <h2>Prometheus · Loki · Tempo · Grafana · OpenTelemetry</h2>
                     <div>
                         <button (click)="refreshLogs()">Refresh streams</button>
@@ -579,7 +643,7 @@ ArgoCD sync      internal CI/CD Designer</pre>
 
         <section *ngIf="activeTab()==='GITOPS'" class="page gitops-page">
             <article class="panel wide gitops-hero">
-                <div class="title"><p>GitOps Control Plane v21.2</p>
+                <div class="title"><p>GitOps Control Plane v21.3</p>
                     <h2>Sync state · drift detection · ArgoCD live sync</h2>
                     <button (click)="syncGitOpsLive()">ArgoCD live sync</button>
                 </div>
@@ -614,7 +678,7 @@ kubectl rollout status deploy/gateway-service -n nebulaops</pre>
 
         <section *ngIf="activeTab()==='ENVIRONMENTS'" class="page env-page">
             <article class="panel wide env-hero">
-                <div class="title"><p>Multi-Environment Manager v21.2</p>
+                <div class="title"><p>Multi-Environment Manager v21.3</p>
                     <h2>LOCAL · DEV · STAGING · PROD</h2></div>
                 <div class="env-switcher">
                     <button (click)="setEnvironment(e.name)" *ngFor="let e of environments()"
@@ -643,7 +707,7 @@ helm upgrade --install nebulaops ./infrastructure/helm --namespace nebulaops-{{ 
 
         <section *ngIf="activeTab()==='TERRAFORM STUDIO'" class="page tf-studio-page">
             <article class="panel wide tf-digital-twin">
-                <div class="title"><p>Smart Terraform Studio v21.2</p>
+                <div class="title"><p>Smart Terraform Studio v21.3</p>
                     <h2>Digital twin infrastructure graph</h2>
                     <button (click)="copyCommand(terraformPlanPreview)">Copy plan</button>
                 </div>
@@ -685,7 +749,7 @@ helm upgrade --install nebulaops ./infrastructure/helm --namespace nebulaops-{{ 
         <section *ngIf="activeTab()==='AI OPS'" class="page aiops-page">
             <article class="panel aiops-hero-panel">
                 <div class="aiops-particles"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                <div class="title"><p>AI Ops Center v21.2.1</p>
+                <div class="title"><p>AI Ops Center v21.3.1</p>
                     <h2>Futuristic incident cockpit</h2>
                     <span class="conn-status" [class.live]="aiOpsAnalysis().confidence > 0" [class.offline]="aiOpsAnalysis().confidence === 0">
                         {{ aiOpsAnalysis().confidence > 0 ? 'connected' : 'offline · fallback' }}
@@ -772,7 +836,7 @@ helm upgrade --install nebulaops ./infrastructure/helm --namespace nebulaops-{{ 
 
         <section *ngIf="activeTab()==='CICD'" class="page cicd-designer-page">
             <article class="panel wide designer-hero">
-                <div class="title"><p>CI/CD Pipeline Designer v21.2</p>
+                <div class="title"><p>CI/CD Pipeline Designer v21.3</p>
                     <h2>Canvas drag & drop</h2>
                     <div>
                         <button (click)="runPipelineLive()">Run pipeline</button>
@@ -810,7 +874,7 @@ helm upgrade --install nebulaops ./infrastructure/helm --namespace nebulaops-{{ 
         <section *ngIf="activeTab()==='SECURITY' || activeTab()==='COMPLIANCE' || activeTab()==='VULNERABILITIES'"
                  class="page devsecops-page">
             <article class="panel security-hero">
-                <div class="title"><p>DevSecOps Module v21.2.1</p>
+                <div class="title"><p>DevSecOps Module v21.3.1</p>
                     <h2>Security · Compliance · Vulnerabilities</h2>
                     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                         <span class="conn-status" [class.live]="(securityScans()[0] && securityScans()[0].status !== 'failed' && securityScans().length > 0)"
@@ -1088,7 +1152,7 @@ backup: latest</pre>
                 <div class="title"><p>Governance</p>
                     <h2>Audit trail</h2></div>
                 <div class="log-console"><p><span>{{ lastLogsRefresh() }}</span><b>admin</b><em>deploy</em> promoted
-                    frontend:v21.2</p>
+                    frontend:v21.3</p>
                     <p><span>{{ lastLogsRefresh() }}</span><b>platform</b><em>scan</em> DevSecOps report generated</p>
                     <p><span>{{ lastLogsRefresh() }}</span><b>sre</b><em>rollback</em> checkpoint created</p></div>
             </article>
@@ -1106,7 +1170,7 @@ backup: latest</pre>
         <section *ngIf="activeTab()==='DOCS'" class="page">
             <article class="panel">
                 <div class="title"><p>Documentation</p>
-                    <h2>Updated v21.2 docs</h2></div>
+                    <h2>Updated v21.3 docs</h2></div>
                 <div class="doc-grid">
                     <div *ngFor="let d of docs"><b>{{ d.title }}</b><code>{{ d.path }}</code><span>{{ d.why }}</span>
                     </div>

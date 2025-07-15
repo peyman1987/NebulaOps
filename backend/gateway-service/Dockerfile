@@ -6,6 +6,7 @@ COPY backend/pom.xml backend/pom.xml
 COPY backend/gateway-service/pom.xml backend/gateway-service/pom.xml
 COPY backend/gateway-service/src backend/gateway-service/src
 
+# v21.2: NO Maven cache mount for gateway — ensures clean build without stale NormalizedApiController
 RUN mvn -B -f backend/gateway-service/pom.xml \
     -Dmaven.wagon.http.retryHandler.count=5 \
     -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \

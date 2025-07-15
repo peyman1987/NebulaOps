@@ -1,0 +1,18 @@
+server:
+  port: 8097
+
+spring:
+  application:
+    name: cost-analytics-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongodb:27017/nebulaops}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: cost-analytics-service
