@@ -2,9 +2,13 @@ import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/c
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CdkDragDrop, DragDropModule} from '@angular/cdk/drag-drop';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {catchError, forkJoin, of, throwError} from 'rxjs';
-import {API, APP_VERSION, APP_RELEASE, JWT_KEY as _JWT_KEY, USER_KEY as _USER_KEY} from './api.config';
+import {
+    API, APP_VERSION, APP_RELEASE,
+    JWT_KEY as _JWT_KEY, USER_KEY as _USER_KEY,
+    KC_AUTH_URL, KC_TOKEN_URL, KC_LOGOUT_URL, KC_CLIENT_ID, KC_REDIRECT_URI, KC_REALM, KC_BASE
+} from './api.config';
 // Note: SESSION_KEY below must stay in sync with JWT_KEY above
 
 type MainTab =
@@ -344,11 +348,11 @@ interface HomeLauncher {
 
 const TASKS_KEY = 'nebulaops.v20_2.tasks'; // legacy key, no longer used for live task data
 const K8S_KEY = 'nebulaops.v21_3_0.k8s';
-const SESSION_KEY = 'nebulaops.v21_3.jwt';
-const USER_KEY    = 'nebulaops.v21_3.user';
+const SESSION_KEY = 'nebulaops.v21_4.jwt';
+const USER_KEY    = 'nebulaops.v21_4.user';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-3-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-4\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -610,6 +614,15 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly liveMetrics = signal<LiveMetric[]>([]);
     readonly homeLaunchers: HomeLauncher[] = [
         {
+            title: 'Keycloak',
+            subtitle: 'Identity & Access Management',
+            kind: 'external',
+            url: 'http://localhost:8180/admin/master/console',
+            icon: '🔑',
+            accent: 'keycloak',
+            status: 'localhost:8180'
+        },
+        {
             title: 'Grafana',
             subtitle: 'Dashboards, logs, metrics',
             kind: 'external',
@@ -634,7 +647,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v21.3'
+            status: 'v21.4'
         },
         {
             title: 'INFRA',
@@ -688,7 +701,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v21.3'
+            status: 'v21.4'
         },
         {
             title: 'Helm',
@@ -715,7 +728,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v21.3'
+            status: 'v21.4'
         },
         {
             title: 'Multi-Env Manager',
@@ -883,6 +896,14 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly selectedPipelineNode = signal<PipelineDesignerNode | null>(null);
     readonly pipelineYaml = computed(() => this.pipelineDesignerNodes().map(n => n.yaml).join('\n\n'));
     readonly infraLinks: InfraLink[] = [
+        {
+            title: 'Keycloak Admin',
+            description: 'Identity & Access Management — realm nebulaops, users and roles',
+            kind: 'external',
+            url: 'http://localhost:8180/admin/master/console',
+            icon: '🔑',
+            status: 'localhost:8180'
+        },
         {
             title: 'Grafana',
             description: 'Dashboards, Loki logs and runtime metrics',
@@ -1107,7 +1128,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v21-3-1-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v21-4-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
@@ -1148,7 +1169,7 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v21-3-1-devsecops-module.svg',
+            path: 'docs/nebulaops-v21-4-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -1175,7 +1196,17 @@ export class AppComponent implements OnInit, OnDestroy {
     private http = inject(HttpClient);
     private logsTimer: any = null;
 
+
+
     ngOnInit(): void {
+        // Handle Keycloak OIDC callback (?code=...&state=...)
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const state = params.get('state');
+        if (code && state) {
+            this.handleOidcCallback(code, state);
+            return;
+        }
         if (this.isAuthenticated()) {
             this.refreshAll();
         }
@@ -1185,46 +1216,105 @@ export class AppComponent implements OnInit, OnDestroy {
         this.stopLogsAutoRefresh();
     }
 
-    login(): void {
-        const u = this.loginForm.username.trim();
-        const p = this.loginForm.password.trim();
-        if (!u || !p) { this.loginError.set('Inserisci email e password'); return; }
-        this.loginError.set('');
+    // ── Keycloak OIDC helpers ──────────────────────────────────────
+    private async generatePKCE(): Promise<{ verifier: string; challenge: string }> {
+        const array = new Uint8Array(32);
+        crypto.getRandomValues(array);
+        const verifier = btoa(String.fromCharCode(...array))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        const encoder = new TextEncoder();
+        const data = encoder.encode(verifier);
+        const digest = await crypto.subtle.digest('SHA-256', data);
+        const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        return { verifier, challenge };
+    }
 
-        // Call real JWT API — falls back to dev-mode if unreachable
-        this.http.post<any>(API.auth.login, { email: u, password: p })
-        .pipe(catchError(() => {
-            // Dev fallback when auth-service is not reachable
-            if ((u === 'admin' || u === 'peyman') && p === 'admin') {
-                return of({ accessToken: 'dev-jwt-local-' + Date.now(),
-                            user: { displayName: u, email: u } });
-            }
-            return throwError(() => new Error('Invalid credentials'));
-        }))
-        .subscribe({
-            next: (res: any) => {
-                const token       = res.accessToken || res.token || '';
-                const displayName = res.user?.displayName || res.user?.email || u;
-                localStorage.setItem(SESSION_KEY, token);
-                localStorage.setItem(USER_KEY, displayName);
-                this.currentUser.set(displayName);
-                this.isAuthenticated.set(true);
-                this.refreshAll();
-            },
-            error: () => this.loginError.set('Credenziali non valide')
+    login(): void {
+        // Check if this is a Keycloak OIDC callback (has ?code= in URL)
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const state = params.get('state');
+        if (code && state) {
+            this.handleOidcCallback(code, state);
+            return;
+        }
+        // Otherwise initiate Keycloak redirect
+        this.initiateKeycloakLogin();
+    }
+
+    private async initiateKeycloakLogin(): Promise<void> {
+        const { verifier, challenge } = await this.generatePKCE();
+        const state = btoa(crypto.getRandomValues(new Uint8Array(16)).join(''));
+        sessionStorage.setItem('pkce_verifier', verifier);
+        sessionStorage.setItem('oauth_state', state);
+
+        const url = new URL(KC_AUTH_URL);
+        url.searchParams.set('client_id', KC_CLIENT_ID);
+        url.searchParams.set('redirect_uri', KC_REDIRECT_URI);
+        url.searchParams.set('response_type', 'code');
+        url.searchParams.set('scope', 'openid profile email');
+        url.searchParams.set('state', state);
+        url.searchParams.set('code_challenge', challenge);
+        url.searchParams.set('code_challenge_method', 'S256');
+        window.location.href = url.toString();
+    }
+
+    private handleOidcCallback(code: string, state: string): void {
+        const savedState = sessionStorage.getItem('oauth_state');
+        const verifier   = sessionStorage.getItem('pkce_verifier');
+        sessionStorage.removeItem('oauth_state');
+        sessionStorage.removeItem('pkce_verifier');
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname);
+
+        if (state !== savedState || !verifier) {
+            this.loginError.set('Errore di sicurezza OAuth — riprova');
+            return;
+        }
+
+        const body = new URLSearchParams({
+            grant_type:    'authorization_code',
+            client_id:     KC_CLIENT_ID,
+            redirect_uri:  KC_REDIRECT_URI,
+            code,
+            code_verifier: verifier,
+        });
+
+        this.http.post<any>(KC_TOKEN_URL, body.toString(), {
+            headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' })
+        }).pipe(catchError(err => {
+            this.loginError.set('Token exchange fallito — verifica che Keycloak sia in esecuzione su :8180');
+            return throwError(() => err);
+        })).subscribe(tokens => {
+            const token       = tokens.access_token || '';
+            const idToken     = tokens.id_token || '';
+            let   displayName = 'user';
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                displayName = payload.preferred_username || payload.email || payload.sub || 'user';
+            } catch (_) {}
+            localStorage.setItem(SESSION_KEY, token);
+            localStorage.setItem('nebulaops.v21_4.id_token', idToken);
+            localStorage.setItem(USER_KEY, displayName);
+            this.currentUser.set(displayName);
+            this.isAuthenticated.set(true);
+            this.refreshAll();
         });
     }
 
     logout(): void {
-        const token = localStorage.getItem(SESSION_KEY);
-        if (token) {
-            this.http.post(API.auth.logout, {}, {
-                headers: { Authorization: 'Bearer ' + token }
-            }).pipe(catchError(() => of(null))).subscribe();
-        }
+        const idToken = localStorage.getItem('nebulaops.v21_4.id_token') || '';
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem('nebulaops.v21_4.id_token');
         this.isAuthenticated.set(false);
+        // Redirect to Keycloak logout then back to app
+        const logoutUrl = new URL(`${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/logout`);
+        logoutUrl.searchParams.set('client_id', KC_CLIENT_ID);
+        if (idToken) logoutUrl.searchParams.set('id_token_hint', idToken);
+        logoutUrl.searchParams.set('post_logout_redirect_uri', KC_REDIRECT_URI);
+        window.location.href = logoutUrl.toString();
     }
 
     private authHeaders(): { [h: string]: string } {
@@ -1268,6 +1358,10 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
         if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
+
+    openKeycloakAdmin(): void {
+        window.open('http://localhost:8180/admin/master/console', '_blank', 'noopener,noreferrer');
     }
 
     setEnvironment(name: string): void {
@@ -2281,7 +2375,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             time: now,
             service,
             level: i === 2 ? 'PLAN' : 'INFO',
-            message: `${service} OK · v21.3 AI Ops telemetry`
+            message: `${service} OK · v21.4 AI Ops telemetry`
         }));
     }
 

@@ -1,6 +1,55 @@
-name: nebulaops-v21-3
+name: nebulaops-v21-4
 
 services:
+  keycloak-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME_URL: http://localhost:8180
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8180
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_SPI_THEME_CACHE_THEMES: "false"
+      KC_SPI_THEME_CACHE_TEMPLATES: "false"
+      KC_SPI_THEME_STATIC_MAX_AGE: "-1"
+    volumes:
+      - ./infrastructure/keycloak/realm-nebulaops.json:/opt/keycloak/data/import/realm-nebulaops.json:ro
+      - ./infrastructure/keycloak/themes/nebulaops:/opt/keycloak/themes/nebulaops:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    ports:
+      - "8180:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.0\r\n\r\n' >&3 && grep -q '\"status\":\"UP\"' <&3 || exit 1"]
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 60s
+
+
   mongodb:
     image: mongo:7
     healthcheck:
@@ -44,7 +93,7 @@ services:
     ports:
       - 8089:8081
   auth-service:
-    image: nebulaops-v21-3-auth-service:latest
+    image: nebulaops-v21-4-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
@@ -56,7 +105,7 @@ services:
     ports:
       - 8081:8081
   task-service:
-    image: nebulaops-v21-3-task-service:latest
+    image: nebulaops-v21-4-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -74,7 +123,7 @@ services:
     ports:
       - 8082:8082
   notification-service:
-    image: nebulaops-v21-3-notification-service:latest
+    image: nebulaops-v21-4-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -92,7 +141,7 @@ services:
     ports:
       - 8083:8083
   file-service:
-    image: nebulaops-v21-3-file-service:latest
+    image: nebulaops-v21-4-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
@@ -104,14 +153,14 @@ services:
     ports:
       - 8084:8084
   ai-engine:
-    image: nebulaops-v21-3-ai-engine:latest
+    image: nebulaops-v21-4-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
     ports:
       - 8095:8095
   ai-ops-service:
-    image: nebulaops-v21-3-ai-ops-service:latest
+    image: nebulaops-v21-4-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
@@ -127,7 +176,7 @@ services:
     ports:
       - 8085:8085
   devsecops-service:
-    image: nebulaops-v21-3-devsecops-service:latest
+    image: nebulaops-v21-4-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
@@ -140,7 +189,7 @@ services:
     ports:
       - 8086:8086
   pipeline-engine-service:
-    image: nebulaops-v21-3-pipeline-engine-service:latest
+    image: nebulaops-v21-4-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
@@ -155,7 +204,7 @@ services:
       - 8087:8087
 
   observability-service:
-    image: nebulaops-v21-3-observability-service:latest
+    image: nebulaops-v21-4-observability-service:latest
     build:
       context: .
       dockerfile: backend/observability-service/Dockerfile
@@ -168,7 +217,7 @@ services:
       - 8092:8092
 
   gitops-control-service:
-    image: nebulaops-v21-3-gitops-control-service:latest
+    image: nebulaops-v21-4-gitops-control-service:latest
     build:
       context: .
       dockerfile: backend/gitops-control-service/Dockerfile
@@ -184,7 +233,7 @@ services:
       - 8093:8093
 
   environment-manager-service:
-    image: nebulaops-v21-3-environment-manager-service:latest
+    image: nebulaops-v21-4-environment-manager-service:latest
     build:
       context: .
       dockerfile: backend/environment-manager-service/Dockerfile
@@ -199,7 +248,7 @@ services:
       - 8094:8094
 
   terraform-studio-service:
-    image: nebulaops-v21-3-terraform-studio-service:latest
+    image: nebulaops-v21-4-terraform-studio-service:latest
     build:
       context: .
       dockerfile: backend/terraform-studio-service/Dockerfile
@@ -214,13 +263,13 @@ services:
       - 8096:8096
 
   gateway-service:
-    image: nebulaops-v21-3-gateway-service:latest
+    image: nebulaops-v21-4-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
     environment:
       AUTH_SERVICE_URL: http://auth-service:8081
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v21-3-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v21-4-dev-secret-key-min-32-chars!!}
       TASK_SERVICE_URL: http://task-service:8082
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
@@ -235,7 +284,10 @@ services:
       DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v21-2-1}
       TERRAFORM_WORKDIR: /app/infrastructure/terraform
       GRAFANA_URL: http://grafana:3000
-      GRAFANA_AUTH: admin:admin
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_CLIENT_ID: nebulaops-gateway
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-nebulaops-secret-dev-only}
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     volumes:
       - ./.kube/config:/kube/config:ro
@@ -265,10 +317,12 @@ services:
         condition: service_started
       terraform-studio-service:
         condition: service_started
+      keycloak:
+        condition: service_started
     ports:
       - 8080:8080
   frontend:
-    image: nebulaops-v21-3-frontend:latest
+    image: nebulaops-v21-4-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -374,7 +428,7 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v21-3-go-cache-service:latest
+    image: nebulaops-v21-4-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -393,7 +447,7 @@ services:
     ports:
       - 8091:8091
   go-event-worker:
-    image: nebulaops-v21-3-go-event-worker:latest
+    image: nebulaops-v21-4-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile
@@ -410,7 +464,9 @@ volumes:
   redis-data: null
   rabbitmq-data: null
   grafana-data: null
+  keycloak-db-data: null
 
 networks:
   default:
     name: nebulaops-network
+    external: true

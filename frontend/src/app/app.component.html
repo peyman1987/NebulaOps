@@ -3,23 +3,23 @@
     <div class="login-orb one"></div>
     <div class="login-orb two"></div>
     <form (ngSubmit)="login()" class="login-card">
-        <div class="brand"><span>N20.6</span>
+        <div class="brand"><span>N21.4</span>
             <div><p>Terraform enabled SaaS cockpit</p>
-                <h1>NebulaOps v21.3</h1></div>
+                <h1>NebulaOps v21.4</h1></div>
         </div>
         <p class="lead">DevOps portfolio platform with Docker, Kubernetes, Helm, Terraform, GitOps, observability,
             FinOps and backup operations.</p>
-        <label>Username<input [(ngModel)]="loginForm.username" name="u" placeholder="admin"></label>
-        <label>Password<input [(ngModel)]="loginForm.password" name="p" placeholder="admin" type="password"></label>
-        <button class="primary">Enter cockpit</button>
-        <small>Demo: <b>admin/admin</b> oppure <b>peyman/admin</b></small>
+        <button class="primary kc-login-btn" type="submit">
+            <span class="kc-icon">🔑</span> Accedi con Keycloak
+        </button>
+        <small class="kc-hint">Sarai reindirizzato al portale di autenticazione NebulaOps</small>
         <p *ngIf="loginError()" class="error">{{ loginError() }}</p>
     </form>
 </section>
 
 <main *ngIf="isAuthenticated()" class="app-shell">
     <aside [class.collapsed]="sideCollapsed()" class="sidebar">
-        <div class="side-brand"><span>N20.6</span><b>Full Platform</b><small>{{ runtimeState() }}</small></div>
+        <div class="side-brand"><span>N21.4</span><b>Full Platform</b><small>{{ runtimeState() }}</small></div>
         <button (click)="toggleSidebar()" class="sidebar-toggle">
             <span>{{ sideCollapsed() ? '☰' : '←' }}</span><b>{{ sideCollapsed() ? '' : 'Chiudi menu' }}</b></button>
         <div *ngFor="let group of sideTree" class="side-tree">
@@ -48,24 +48,26 @@
     <section class="content-shell">
         <header class="hero">
             <nav class="topbar">
-                <div class="brand"><span>N20.6</span>
+                <div class="brand"><span>N21.4</span>
                     <div><p>NEBULAOPS</p>
                         <h2>Terraform Control Plane</h2></div>
                 </div>
                 <div class="session">{{ currentUser() }}
-                    <button (click)="logout()">Logout</button>
+                    <button (click)="logout()" class="logout-btn">Logout</button>
+                    <button (click)="openKeycloakAdmin()" class="keycloak-btn" title="Keycloak Admin Console">🔑 Keycloak</button>
                 </div>
             </nav>
             <section class="hero-grid">
                 <div class="hero-copy">
-                    <p class="eyebrow">v21.3 · Infrastructure as Code · Local-first</p>
+                    <p class="eyebrow">v21.4 · Infrastructure as Code · Local-first</p>
                     <h1>DevOps Enterprise cockpit</h1>
                     <p class="lead">Controlla risorse Kubernetes, simula Terraform plan, monitora log, gestisci task,
                         pipeline, rischi, costi e backup da una UI dark 3D.</p>
                     <div class="quick-actions">
                         <button (click)="setTab('OVERVIEW')">Home launcher</button>
-                        <button (click)="openLauncher(homeLaunchers[0])">Grafana</button>
-                        <button (click)="openLauncher(homeLaunchers[1])">ArgoCD</button>
+                        <button (click)="openLauncher(homeLaunchers[1])">Grafana</button>
+                        <button (click)="openLauncher(homeLaunchers[2])">ArgoCD</button>
+                        <button (click)="openKeycloakAdmin()" class="keycloak-btn">🔑 Keycloak</button>
                         <button (click)="setTab('INFRA')">INFRA links</button>
                         <button (click)="setTab('CICD')">CI/CD Designer</button>
                         <button (click)="setTab('AI OPS')">AI OPS</button>
@@ -76,21 +78,13 @@
                     </div>
                 </div>
                 <div aria-label="Animated architecture" class="orbit">
-                    <div class="core">NebulaOps<br><b>v21.3</b></div>
-                    <button (click)="setTab('TERRAFORM')" class="node n1"><span
-                            class='brand-icon terraform-icon'>T</span><b>Terraform</b></button>
-                    <button (click)="setTab('KUBERNETES')" class="node n2"><span
-                            class='brand-icon kubernetes-icon'>☸</span><b>K8s</b>
-                    </button>
-                    <button (click)="setTab('HELM')" class="node n3"><span
-                            class='brand-icon helm-icon'>⎈</span><b>Helm</b>
-                    </button>
-                    <button (click)="setTab('OBSERVABILITY')" class="node n4"><span
-                            class='brand-icon grafana-icon'>◉</span><b>Logs</b>
-                    </button>
-                    <button (click)="setTab('SECURITY')" class="node n5"><span class='brand-icon security-icon'>⬢</span><b>Security</b>
-                    </button>
-                    <i class="ring r1"></i><i class="ring r2"></i><i class="beam b1"></i><i class="beam b2"></i>
+                    <div class="core">NebulaOps<br><b>v21.4</b></div>
+                    <button (click)="setTab('TERRAFORM')" class="node n1"><span class='brand-icon terraform-icon'>T</span><b>Terraform</b></button>
+                    <button (click)="setTab('KUBERNETES')" class="node n2"><span class='brand-icon kubernetes-icon'>☸</span><b>K8s</b></button>
+                    <button (click)="setTab('HELM')" class="node n3"><span class='brand-icon helm-icon'>⎈</span><b>Helm</b></button>
+                    <button (click)="setTab('OBSERVABILITY')" class="node n4"><span class='brand-icon grafana-icon'>◉</span><b>Logs</b></button>
+                    <button (click)="setTab('SECURITY')" class="node n5"><span class='brand-icon security-icon'>⬢</span><b>Security</b></button>
+                    <i class="ring r1"></i><i class="ring r2"></i><i class="ring r3"></i><i class="beam b1"></i><i class="beam b2"></i><i class="orbit-dot-3"></i>
                 </div>
             </section>
         </header>
@@ -115,7 +109,7 @@
                 </div>
             </article>
             <article class="panel wide full-platform-panel">
-                <div class="title"><p>v21.3 Full Platform</p>
+                <div class="title"><p>v21.4 Full Platform</p>
                     <h2>Enterprise tool matrix</h2></div>
                 <div class="tool-grid">
                     <button (click)="setTab(tool.tab)" *ngFor="let tool of platformTools" class="tool-card">
@@ -135,28 +129,28 @@
             </article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.3 AI Ops architecture</h2></div>
-                <img alt="NebulaOps v21.3 AI Ops architecture" class="diagram"
-                     src="assets/nebulaops-v21-3-ai-ops-architecture.svg"></article>
+                    <h2>v21.4 AI Ops architecture</h2></div>
+                <img alt="NebulaOps v21.4 AI Ops architecture" class="diagram"
+                     src="assets/nebulaops-v21-4-ai-ops-architecture.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.3 Kubernetes Visual Cluster</h2></div>
-                <img alt="NebulaOps v21.3 Kubernetes Visual Cluster" class="diagram"
-                     src="assets/nebulaops-v21-3-kubernetes-visual-cluster.svg"></article>
+                    <h2>v21.4 Kubernetes Visual Cluster</h2></div>
+                <img alt="NebulaOps v21.4 Kubernetes Visual Cluster" class="diagram"
+                     src="assets/nebulaops-v21-4-kubernetes-visual-cluster.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.3 DevSecOps Module</h2></div>
-                <img alt="NebulaOps v21.3 DevSecOps Module" class="diagram"
-                     src="assets/nebulaops-v21-3-devsecops-module.svg"></article>
+                    <h2>v21.4 DevSecOps Module</h2></div>
+                <img alt="NebulaOps v21.4 DevSecOps Module" class="diagram"
+                     src="assets/nebulaops-v21-4-devsecops-module.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.3 CI/CD Pipeline Designer</h2></div>
-                <img alt="NebulaOps v21.3 CI/CD Pipeline Designer" class="diagram"
-                     src="assets/nebulaops-v21-3-cicd-pipeline-designer.svg"></article>
+                    <h2>v21.4 CI/CD Pipeline Designer</h2></div>
+                <img alt="NebulaOps v21.4 CI/CD Pipeline Designer" class="diagram"
+                     src="assets/nebulaops-v21-4-cicd-pipeline-designer.svg"></article>
             <article class="panel">
                 <div class="title"><p>Architecture</p>
-                    <h2>v21.3 INFRA Hub</h2></div>
-                <img alt="NebulaOps v21.3 INFRA Hub" class="diagram"
+                    <h2>v21.4 INFRA Hub</h2></div>
+                <img alt="NebulaOps v21.4 INFRA Hub" class="diagram"
                      src="assets/nebulaops-v21-3-infra-hub.svg"></article>
         </section>
 

@@ -1,0 +1,102 @@
+{
+  "realm": "nebulaops",
+  "displayName": "NebulaOps Platform",
+  "enabled": true,
+  "loginTheme": "nebulaops",
+  "accountTheme": "keycloak",
+  "adminTheme": "keycloak",
+  "emailTheme": "keycloak",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 3600,
+  "refreshTokenMaxReuse": 0,
+  "clients": [
+    {
+      "clientId": "nebulaops-frontend",
+      "name": "NebulaOps Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://localhost:4201/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://localhost:4201"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "nebulaops-gateway",
+      "name": "NebulaOps Gateway",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "nebulaops-secret-dev-only",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "authorizationServicesEnabled": true
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "nebula-admin",
+        "description": "NebulaOps platform administrator with full access"
+      },
+      {
+        "name": "nebula-operator",
+        "description": "NebulaOps operator with read/write access to operations"
+      },
+      {
+        "name": "nebula-viewer",
+        "description": "NebulaOps read-only viewer"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@nebulaops.local",
+      "firstName": "Admin",
+      "lastName": "NebulaOps",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["nebula-admin", "default-roles-nebulaops"]
+    },
+    {
+      "username": "peyman",
+      "email": "peyman@nebulaops.local",
+      "firstName": "Peyman",
+      "lastName": "Operator",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["nebula-operator", "default-roles-nebulaops"]
+    }
+  ],
+  "defaultRoles": ["default-roles-nebulaops"],
+  "requiredCredentials": ["password"]
+}
