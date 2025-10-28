@@ -1,6 +1,13 @@
-server: { port: 8087 }
+server:
+  port: 8087
 spring:
-  application: { name: pipeline-engine-service }
+  application:
+    name: pipeline-engine-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 management:
   endpoints:
     web:
@@ -9,3 +16,6 @@ management:
   metrics:
     tags:
       application: pipeline-engine-service
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}

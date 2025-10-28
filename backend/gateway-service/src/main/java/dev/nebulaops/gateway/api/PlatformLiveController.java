@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * v21.2 — Platform endpoints returning shapes Angular expects.
+ * v22.1 — Platform endpoints returning shapes Angular expects.
  */
 @SuppressWarnings({"unchecked","rawtypes"})
 @RestController
@@ -54,7 +54,7 @@ public class PlatformLiveController {
         return observability.lokiQuery(query);
     }
 
-    /** v21.2.1 — Returns shape: { live, scans, cves, controls, threats } matching Angular interfaces. */
+    /** v22.1 — Returns shape: { live, scans, cves, controls, threats } matching Angular interfaces. */
     @GetMapping("/devsecops")
     public Map<String, Object> devsecopsEnriched(@RequestParam(defaultValue = ".") String path) {
         Map trivyRaw = security.trivyFs(path);

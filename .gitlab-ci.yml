@@ -134,6 +134,66 @@ build:notification:
     IMAGE_NAME: notification-service
     DOCKERFILE: backend/notification-service/Dockerfile
 
+build:ai-ops:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: ai-ops-service
+    DOCKERFILE: backend/ai-ops-service/Dockerfile
+
+build:devsecops:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: devsecops-service
+    DOCKERFILE: backend/devsecops-service/Dockerfile
+
+build:pipeline-engine:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: pipeline-engine-service
+    DOCKERFILE: backend/pipeline-engine-service/Dockerfile
+
+build:terraform-studio:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: terraform-studio-service
+    DOCKERFILE: backend/terraform-studio-service/Dockerfile
+
+build:environment-manager:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: environment-manager-service
+    DOCKERFILE: backend/environment-manager-service/Dockerfile
+
+build:gitops-control:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: gitops-control-service
+    DOCKERFILE: backend/gitops-control-service/Dockerfile
+
+build:observability:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: observability-service
+    DOCKERFILE: backend/observability-service/Dockerfile
+
+build:cost-analytics:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: cost-analytics-service
+    DOCKERFILE: backend/cost-analytics-service/Dockerfile
+
+build:spring-mvc:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: spring-mvc-service
+    DOCKERFILE: backend/spring-mvc-service/Dockerfile
+
+build:ai-engine:
+  extends: .docker-build-template
+  variables:
+    IMAGE_NAME: ai-engine
+    DOCKERFILE: ai-engine/Dockerfile
+
 build:go-cache:
   extends: .docker-build-template
   variables:

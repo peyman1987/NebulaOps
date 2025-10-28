@@ -1,0 +1,44 @@
+server:
+  port: ${SERVER_PORT:8099}
+  shutdown: graceful
+  forward-headers-strategy: framework
+spring:
+  application:
+    name: spring-mvc-service
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  thymeleaf:
+    cache: ${THYMELEAF_CACHE:false}
+    mode: HTML
+    encoding: UTF-8
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
+nebulaops:
+  mvc:
+    display-name: ${APP_DISPLAY_NAME:NebulaOps Spring MVC Service}
+    environment: ${APP_ENVIRONMENT:local}
+    gateway-url: ${NEBULAOPS_GATEWAY_URL:http://localhost:8080}
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: spring-mvc-service
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha

@@ -3,7 +3,7 @@
 | Key             | Value                                       |
 | --------------- | ------------------------------------------- |
 | name            | NebulaOps                                   |
-| version         | v21.3.0                                     |
+| version         | v22.1.0                                     |
 | release_date    | 2026-05                                     |
 | repo_layout     | monorepo (frontend + backend + infra)       |
 | maintainer      | Peyman Eshghi Malayeri                      |
@@ -12,22 +12,22 @@
 ## Tech stack
 
 - **Frontend**: Angular 18, TypeScript, Angular CDK
-- **Backend**: Spring Boot 3.3, Java 21 (12 microservices)
+- **Backend**: Spring Boot 3.3, Java 21 (14 microservices)
 - **Auxiliary services**: Go 1.23, Python 3.12 (FastAPI)
 - **Data**: MongoDB 7, Redis 7, RabbitMQ 3.13
 - **Observability**: Prometheus, Loki, Tempo, Grafana, OpenTelemetry
 - **Infra-as-Code**: Terraform, Helm, ArgoCD
-- **Security**: Trivy
+- **Security**: Keycloak, Trivy
 - **Container orchestration**: Docker Compose (local), Kubernetes (production)
 
 ## Service count
 
 | Category           | Count | Services                                                                |
 | ------------------ | ----- | ----------------------------------------------------------------------- |
-| Spring Boot BE     | 12    | gateway, auth, task, notification, file, ai-ops, devsecops, pipeline, observability, gitops, environment, terraform, **cost** |
+| Spring Boot BE     | 14    | gateway, auth, task, notification, file, ai-ops, devsecops, pipeline, observability, gitops, environment, terraform, **cost**, spring-mvc |
 | Python AI          | 1     | ai-engine (FastAPI)                                                     |
 | Go                 | 2     | cache-service, event-worker                                             |
-| Infrastructure     | 3     | MongoDB, Redis, RabbitMQ                                                |
+| Infrastructure     | 5     | MongoDB, Redis, RabbitMQ, Keycloak, GitLab                              |
 | Observability      | 4     | Prometheus, Loki, Tempo, Grafana                                        |
 
 ## Single source of truth files
@@ -40,7 +40,7 @@
 | `backend/gateway-service/.../application.yml` | Proxy targets                        |
 | `docker-compose.yml`                          | Stack composition                    |
 
-## API surface (v21.3)
+## API surface (v22.1)
 
 | Route group             | Endpoints                                      |
 | ----------------------- | ---------------------------------------------- |
@@ -50,12 +50,12 @@
 | `/api/runtime/**`       | docker containers/images/volumes, helm         |
 | `/api/platform/**`      | observability, gitops, devsecops, environments |
 | `/api/ai-ops/**`        | analyze, autofix                               |
-| `/api/pipeline/**`      | runs list, trigger (v21.3)                     |
-| `/api/cost/**`          | summary, breakdown, entries (v21.3)            |
-| `/api/notifications/**` | live, mark-read (v21.3)                        |
-| `/api/audit/**`         | events (v21.3)                                 |
-| `/api/secrets/**`       | list (v21.3)                                   |
-| `/api/registry/**`      | images (v21.3)                                 |
+| `/api/pipeline/**`      | runs list, trigger (v22.1)                     |
+| `/api/cost/**`          | summary, breakdown, entries (v22.1)            |
+| `/api/notifications/**` | live, mark-read (v22.1)                        |
+| `/api/audit/**`         | events (v22.1)                                 |
+| `/api/secrets/**`       | list (v22.1)                                   |
+| `/api/registry/**`      | images (v22.1)                                 |
 
 ## Entry points
 

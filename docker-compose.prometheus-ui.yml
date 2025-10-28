@@ -1,0 +1,5 @@
+name: nebulaops-v22-1
+services:
+  prometheus:
+    ports:
+      - 9090:9090

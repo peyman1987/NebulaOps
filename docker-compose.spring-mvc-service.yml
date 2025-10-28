@@ -1,0 +1,28 @@
+# Copiare questo file nella root di nebulaops-v22.1 oppure usarlo con:
+# docker compose -f docker-compose.yml -f docker-compose.spring-mvc-service.yml up -d --build spring-mvc-service
+services:
+  spring-mvc-service:
+    image: ${SPRING_MVC_IMAGE:-nebulaops-v22-1-spring-mvc-service:latest}
+    build:
+      context: ${NEBULAOPS_ROOT:-.}
+      dockerfile: backend/spring-mvc-service/Dockerfile
+    environment:
+      SERVER_PORT: 8099
+      SPRING_PROFILES_ACTIVE: docker
+      APP_DISPLAY_NAME: NebulaOps Spring MVC Service
+      APP_ENVIRONMENT: docker
+      NEBULAOPS_GATEWAY_URL: http://gateway-service:8080
+    ports:
+      - "${SPRING_MVC_HOST_PORT:-8099}:8099"
+    restart: unless-stopped
+    labels:
+      com.nebulaops.service: spring-mvc-service
+      com.nebulaops.version: v22.1
+      prometheus.io/scrape: "true"
+      prometheus.io/path: /actuator/prometheus
+      prometheus.io/port: "8099"
+
+networks:
+  default:
+    name: nebulaops-network
+    external: true

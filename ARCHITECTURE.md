@@ -1,4 +1,4 @@
-# NebulaOps v21.3 — Architecture
+# NebulaOps v22.1 — Architecture
 
 ## Component overview
 
@@ -33,13 +33,13 @@
              │ /opt/nebula-tools/{kubectl,...}  │
              ▼                                  ▼
    ┌─────────────────────┐         ┌──────────────────────────────────┐
-   │ Host runtime tools  │         │  11 microservices                │
+   │ Host runtime tools  │         │  14 microservices                │
    │ kubectl, docker,    │         │  auth, task, file,               │
    │ helm, terraform,    │         │  notification, ai-ops,           │
    │ trivy, argocd       │         │  devsecops, pipeline,            │
    └─────────────────────┘         │  observability, gitops,          │
                                    │  env-manager, terraform,         │
-                                   │  cost-analytics (v21.3 NEW)      │
+                                   │  cost-analytics, spring-mvc      │
                                    └──────────┬───────────────────────┘
                                               │
                   ┌───────────────────────────┼──────────────────────────┐
@@ -51,14 +51,17 @@
          + Observability sidecar stack:
            Prometheus :9090 | Loki :3100 | Tempo :3200 | Grafana :3000
            OpenTelemetry Collector :4318
+
+         + Identity and source control:
+           Keycloak :8180 | GitLab :8929
 ```
 
 ## Service catalog
 
 | Service                       | Tech            | Port | Purpose                                      |
 | ----------------------------- | --------------- | ---- | -------------------------------------------- |
-| gateway-service               | Spring MVC      | 8080 | API gateway, proxy, live infra endpoints     |
-| auth-service                  | Spring Boot     | 8081 | User registration, dev-mode login            |
+| gateway-service               | Spring Boot MVC | 8080 | API gateway, proxy, live infra endpoints     |
+| auth-service                  | Spring Boot     | 8081 | User registration, legacy bootstrap endpoints |
 | task-service                  | Spring Boot     | 8082 | Task CRUD, publishes RabbitMQ events         |
 | notification-service          | Spring Boot     | 8083 | Consumes events, persists notifications      |
 | file-service                  | Spring Boot     | 8084 | File metadata + storage abstraction          |
@@ -69,20 +72,24 @@
 | gitops-control-service        | Spring Boot     | 8093 | ArgoCD wrapper                               |
 | environment-manager-service   | Spring Boot     | 8094 | Namespace/env lifecycle                      |
 | terraform-studio-service      | Spring Boot     | 8096 | Terraform plan/apply orchestrator            |
-| **cost-analytics-service**    | **Spring Boot** | **8097** | **v21.3 NEW — FinOps cost aggregation**  |
+| **cost-analytics-service**    | **Spring Boot** | **8097** | **FinOps cost aggregation**                  |
+| spring-mvc-service             | Spring Boot MVC | 8099 | Demo Spring MVC application behind Keycloak  |
+| keycloak                       | Identity        | 8180 | OIDC provider for frontend, GitLab and APIs  |
+| gitlab                         | SCM / CI        | 8929 | Source control service using Keycloak OIDC   |
 | ai-engine                     | Python FastAPI  | 8095 | Anomaly detection, log clustering            |
 | go-cache-service              | Go              | 8091 | High-performance cache layer                 |
 | go-event-worker               | Go              | —    | Background queue consumer                    |
 
-## v21.3 Changes
+## v22.1 Changes
 
-### New: cost-analytics-service (:8097)
-REST API for the FinOps tab. Aggregates cost data from MongoDB `cost_entries`
-collection. Falls back to static defaults when offline.
-Routes proxied through gateway: `GET /api/cost/summary`, `GET /api/cost/breakdown`, `POST /api/cost/entries`.
+### Platform identity and GitLab runtime
+Keycloak now acts as the shared OIDC provider for the Angular frontend, GitLab and every Spring Boot service. GitLab CE is part of the local stack and uses the `gitlab` Keycloak client for OpenID Connect login.
 
-### Enhanced: gateway ProxyController
-Added proxy routes for:
+### cost-analytics-service (:8097)
+REST API for the FinOps tab. Aggregates cost data from MongoDB `cost_entries` collection. Falls back to static defaults when offline. Routes proxied through gateway: `GET /api/cost/summary`, `GET /api/cost/breakdown`, `POST /api/cost/entries`.
+
+### Enhanced: gateway ProxyController and token relay
+The gateway validates Keycloak JWTs when `KEYCLOAK_AUTH_ENABLED=true`, relays Bearer tokens downstream through RestTemplate, and includes proxy routes for:
 - `GET/PATCH /api/notifications/**` → notification-service
 - `GET /api/pipeline/runs` → pipeline-engine-service
 - `GET /api/audit/events` → observability-service
@@ -106,7 +113,7 @@ Added proxy routes for:
 
 ## Data flow examples
 
-### Frontend loads cost summary (v21.3 new)
+### Frontend loads cost summary (v22.1 new)
 
 ```
 Angular  ──GET /api/cost/summary──▶  nginx
@@ -146,4 +153,4 @@ Angular  ──GET /api/cost/summary──▶  nginx
 
 ## Version
 
-This document describes **v21.3.0** topology. See `RELEASE_NOTES_v21.3.md`.
+This document describes **v22.1.0** topology. See `RELEASE_NOTES_v22.1.md`.

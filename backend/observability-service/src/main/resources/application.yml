@@ -1,8 +1,18 @@
-server: { port: 8092 }
+server:
+  port: 8092
 spring:
-  application: { name: observability-service }
+  application:
+    name: observability-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}

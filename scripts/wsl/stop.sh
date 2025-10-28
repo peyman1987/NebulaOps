@@ -1,19 +1,67 @@
 #!/usr/bin/env bash
-# v21.4 — Stop NebulaOps stack.
+# v22.1 — Stop NebulaOps stack quickly.
+# GitLab CE is intentionally treated as optional/heavy and is killed first by default.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
-log_step "Stopping NebulaOps v21.4"
-dc down "$@"
+KEEP_GITLAB=false
+STOP_TIMEOUT="${STOP_TIMEOUT:-20}"
+for arg in "$@"; do
+  case "$arg" in
+    --keep-gitlab) KEEP_GITLAB=true ;;
+    -h|--help)
+      cat <<USAGE
+Usage: $0 [--keep-gitlab]
+  --keep-gitlab   Do not force-remove the optional GitLab CE container first.
+
+Environment:
+  STOP_TIMEOUT=20  Compose/Docker graceful shutdown timeout in seconds.
+USAGE
+      exit 0
+      ;;
+  esac
+done
+
+cd "$ROOT_DIR"
+
+force_remove_service() {
+  local svc="$1"
+  local ids
+  ids="$(docker ps -aq \
+    --filter "label=com.docker.compose.project=$PROJECT_NAME" \
+    --filter "label=com.docker.compose.service=$svc" 2>/dev/null || true)"
+  if [ -n "$ids" ]; then
+    log_warn "Force-removing optional heavy service: $svc"
+    docker rm -f $ids >/dev/null 2>&1 || true
+  fi
+}
+
+log_step "Stopping NebulaOps v22.1"
+
+if [ "$KEEP_GITLAB" != "true" ]; then
+  force_remove_service gitlab
+fi
+
+# Prefer a bounded graceful shutdown. If it still hangs/fails, fall back to force removal by compose label.
+if command -v timeout >/dev/null 2>&1; then
+  timeout "$((STOP_TIMEOUT + 35))s" docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" down --remove-orphans --timeout "$STOP_TIMEOUT" || {
+    log_warn "Compose down did not finish cleanly; forcing remaining NebulaOps containers"
+    docker rm -f $(docker ps -aq --filter "label=com.docker.compose.project=$PROJECT_NAME") >/dev/null 2>&1 || true
+  }
+else
+  dc down --remove-orphans --timeout "$STOP_TIMEOUT" || {
+    log_warn "Compose down failed; forcing remaining NebulaOps containers"
+    docker rm -f $(docker ps -aq --filter "label=com.docker.compose.project=$PROJECT_NAME") >/dev/null 2>&1 || true
+  }
+fi
 
 # Also stop legacy project names if still running
-for LEGACY in nebulaops-v21-2-1 nebulaops-v21-3 nebulaops-v21-2; do
+for LEGACY in nebulaops-v21-4 nebulaops-v21-3 nebulaops-v21-2-1 nebulaops-v21-2 nebulaops-v20-2; do
   if docker compose -p "$LEGACY" ps -q 2>/dev/null | grep -q .; then
     log_warn "Found running containers under legacy project '$LEGACY' — stopping them too"
-    docker compose -p "$LEGACY" -f "$COMPOSE_FILE" down 2>/dev/null || \
+    docker compose -p "$LEGACY" -f "$COMPOSE_FILE" down --remove-orphans --timeout "$STOP_TIMEOUT" 2>/dev/null || \
       docker rm -f $(docker ps -aq --filter "label=com.docker.compose.project=$LEGACY") 2>/dev/null || true
   fi
 done
 
 log_ok "All services stopped"
-

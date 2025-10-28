@@ -1,6 +1,13 @@
-server: { port: 8086 }
+server:
+  port: 8086
 spring:
-  application: { name: devsecops-service }
+  application:
+    name: devsecops-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 management:
   endpoints:
     web:
@@ -9,3 +16,6 @@ management:
   metrics:
     tags:
       application: devsecops-service
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}

@@ -1,17 +1,18 @@
 server:
   port: 8081
-
 spring:
   application:
     name: auth-service
   data:
     mongodb:
       uri: ${MONGO_URI:mongodb://nebula:nebula@localhost:27017/nebula_auth?authSource=admin}
-
-# JWT config — override JWT_SECRET in production with a 32+ char random string
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v21-3-dev-secret-key-min-32-chars!!}
-
+  secret: ${JWT_SECRET:nebulaops-v22-1-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:
@@ -20,3 +21,6 @@ management:
   metrics:
     tags:
       application: auth-service
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}

@@ -1,5 +1,4 @@
-name: nebulaops-v21-4
-
+name: nebulaops-v22-1
 services:
   keycloak-db:
     image: postgres:16-alpine
@@ -8,13 +7,14 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: keycloak
     volumes:
-      - keycloak-db-data:/var/lib/postgresql/data
+    - keycloak-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      test:
+      - CMD-SHELL
+      - pg_isready -U keycloak
       interval: 10s
       timeout: 5s
       retries: 10
-
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.4
     command: start-dev --import-realm
@@ -25,39 +25,40 @@ services:
       KC_DB_PASSWORD: keycloak
       KC_HOSTNAME_URL: http://localhost:8180
       KC_HOSTNAME_ADMIN_URL: http://localhost:8180
-      KC_HOSTNAME_STRICT: "false"
-      KC_HOSTNAME_STRICT_HTTPS: "false"
-      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      KC_HTTP_ENABLED: 'true'
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HEALTH_ENABLED: "true"
-      KC_SPI_THEME_CACHE_THEMES: "false"
-      KC_SPI_THEME_CACHE_TEMPLATES: "false"
-      KC_SPI_THEME_STATIC_MAX_AGE: "-1"
+      KC_HEALTH_ENABLED: 'true'
+      KC_SPI_THEME_CACHE_THEMES: 'false'
+      KC_SPI_THEME_CACHE_TEMPLATES: 'false'
+      KC_SPI_THEME_STATIC_MAX_AGE: '-1'
     volumes:
-      - ./infrastructure/keycloak/realm-nebulaops.json:/opt/keycloak/data/import/realm-nebulaops.json:ro
-      - ./infrastructure/keycloak/themes/nebulaops:/opt/keycloak/themes/nebulaops:ro
+    - ./infrastructure/keycloak/realm-nebulaops.json:/opt/keycloak/data/import/realm-nebulaops.json:ro
+    - ./infrastructure/keycloak/themes/nebulaops:/opt/keycloak/themes/nebulaops:ro
     depends_on:
       keycloak-db:
         condition: service_healthy
     ports:
-      - "8180:8080"
+    - 8180:8080
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.0\r\n\r\n' >&3 && grep -q '\"status\":\"UP\"' <&3 || exit 1"]
+      test:
+      - CMD-SHELL
+      - "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.0\r\n\
+        \r\n' >&3 && grep -q '\"status\":\"UP\"' <&3 || exit 1"
       interval: 20s
       timeout: 15s
       retries: 15
       start_period: 60s
-
-
   mongodb:
     image: mongo:7
     healthcheck:
       test:
-        - CMD
-        - mongosh
-        - --eval
-        - db.adminCommand('ping')
+      - CMD
+      - mongosh
+      - --eval
+      - db.adminCommand('ping')
       interval: 10s
       timeout: 5s
       retries: 10
@@ -65,9 +66,9 @@ services:
       MONGO_INITDB_ROOT_USERNAME: nebula
       MONGO_INITDB_ROOT_PASSWORD: nebula
     ports:
-      - 27017:27017
+    - 27017:27017
     volumes:
-      - mongo-data:/data/db
+    - mongo-data:/data/db
   mongo-express:
     image: mongo-express:1.0.2-20
     environment:
@@ -79,8 +80,15 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-    ports:
-      - 8088:8081
+    healthcheck:
+      test: &id001
+      - CMD-SHELL
+      - 'node -e "require(''http'').get(''http://127.0.0.1:8081'', r => process.exit(r.statusCode
+        < 500 ? 0 : 1)).on(''error'', () => process.exit(1))"'
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
   redis-commander:
     image: rediscommander/redis-commander:latest
     environment:
@@ -90,22 +98,32 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    ports:
-      - 8089:8081
+    healthcheck:
+      test: *id001
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
   auth-service:
-    image: nebulaops-v21-4-auth-service:latest
+    image: nebulaops-v22-1-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_auth?authSource=admin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     depends_on:
       mongodb:
         condition: service_healthy
+      keycloak:
+        condition: service_started
     ports:
-      - 8081:8081
+    - 8081:8081
   task-service:
-    image: nebulaops-v21-4-task-service:latest
+    image: nebulaops-v22-1-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -115,15 +133,21 @@ services:
       RABBITMQ_PORT: '5672'
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     depends_on:
       mongodb:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      keycloak:
+        condition: service_started
     ports:
-      - 8082:8082
+    - 8082:8082
   notification-service:
-    image: nebulaops-v21-4-notification-service:latest
+    image: nebulaops-v22-1-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -133,78 +157,116 @@ services:
       RABBITMQ_PORT: '5672'
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     depends_on:
       mongodb:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      keycloak:
+        condition: service_started
     ports:
-      - 8083:8083
+    - 8083:8083
   file-service:
-    image: nebulaops-v21-4-file-service:latest
+    image: nebulaops-v22-1-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_file?authSource=admin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     depends_on:
       mongodb:
         condition: service_healthy
+      keycloak:
+        condition: service_started
     ports:
-      - 8084:8084
+    - 8084:8084
   ai-engine:
-    image: nebulaops-v21-4-ai-engine:latest
+    image: nebulaops-v22-1-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
     ports:
-      - 8095:8095
+    - 8095:8095
+    environment:
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+    depends_on:
+      keycloak:
+        condition: service_started
   ai-ops-service:
-    image: nebulaops-v21-4-ai-ops-service:latest
+    image: nebulaops-v22-1-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
     environment:
       AI_ENGINE_URL: http://ai-engine:8095
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     volumes:
-      - ./.kube/config:/root/.kube/config:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./.runtime-tools:/opt/nebula-tools:ro
+    - ./.kube/config:/root/.kube/config:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./.runtime-tools:/opt/nebula-tools:ro
     depends_on:
-      - ai-engine
+      ai-engine:
+        condition: service_started
+      keycloak:
+        condition: service_started
     ports:
-      - 8085:8085
+    - 8085:8085
   devsecops-service:
-    image: nebulaops-v21-4-devsecops-service:latest
+    image: nebulaops-v22-1-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
     environment:
       REPO_PATH: /workspace
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     volumes:
-      - ./:/workspace:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./.runtime-tools:/opt/nebula-tools:ro
+    - ./:/workspace:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./.runtime-tools:/opt/nebula-tools:ro
     ports:
-      - 8086:8086
+    - 8086:8086
+    depends_on:
+      keycloak:
+        condition: service_started
   pipeline-engine-service:
-    image: nebulaops-v21-4-pipeline-engine-service:latest
+    image: nebulaops-v22-1-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
     environment:
       REPO_PATH: /workspace
       ARGOCD_APP: nebulaops
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     volumes:
-      - ./:/workspace
-      - ./.kube/config:/root/.kube/config:ro
-      - ./.runtime-tools:/opt/nebula-tools:ro
+    - ./:/workspace
+    - ./.kube/config:/root/.kube/config:ro
+    - ./.runtime-tools:/opt/nebula-tools:ro
     ports:
-      - 8087:8087
-
+    - 8087:8087
+    depends_on:
+      keycloak:
+        condition: service_started
   observability-service:
-    image: nebulaops-v21-4-observability-service:latest
+    image: nebulaops-v22-1-observability-service:latest
     build:
       context: .
       dockerfile: backend/observability-service/Dockerfile
@@ -213,42 +275,60 @@ services:
       LOKI_URL: http://loki:3100
       TEMPO_URL: http://tempo:3200
       GRAFANA_URL: http://grafana:3000
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     ports:
-      - 8092:8092
-
+    - 8092:8092
+    depends_on:
+      keycloak:
+        condition: service_started
   gitops-control-service:
-    image: nebulaops-v21-4-gitops-control-service:latest
+    image: nebulaops-v22-1-gitops-control-service:latest
     build:
       context: .
       dockerfile: backend/gitops-control-service/Dockerfile
     environment:
       ARGOCD_APP: nebulaops
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     volumes:
-      - ./:/workspace
-      - ./.kube/config:/root/.kube/config:ro
-      - ./.runtime-tools:/opt/nebula-tools:ro
+    - ./:/workspace
+    - ./.kube/config:/root/.kube/config:ro
+    - ./.runtime-tools:/opt/nebula-tools:ro
     working_dir: /workspace
     ports:
-      - 8093:8093
-
+    - 8093:8093
+    depends_on:
+      keycloak:
+        condition: service_started
   environment-manager-service:
-    image: nebulaops-v21-4-environment-manager-service:latest
+    image: nebulaops-v22-1-environment-manager-service:latest
     build:
       context: .
       dockerfile: backend/environment-manager-service/Dockerfile
     environment:
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     volumes:
-      - ./.kube/config:/root/.kube/config:ro
-      - ./infrastructure:/workspace/infrastructure
-      - ./.runtime-tools:/opt/nebula-tools:ro
+    - ./.kube/config:/root/.kube/config:ro
+    - ./infrastructure:/workspace/infrastructure
+    - ./.runtime-tools:/opt/nebula-tools:ro
     working_dir: /workspace/infrastructure/terraform
     ports:
-      - 8094:8094
-
+    - 8094:8094
+    depends_on:
+      keycloak:
+        condition: service_started
   terraform-studio-service:
-    image: nebulaops-v21-4-terraform-studio-service:latest
+    image: nebulaops-v22-1-terraform-studio-service:latest
     build:
       context: .
       dockerfile: backend/terraform-studio-service/Dockerfile
@@ -256,20 +336,26 @@ services:
       TERRAFORM_WORKDIR: /workspace/infrastructure/terraform
       COST_CURRENCY: EUR
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
     volumes:
-      - ./infrastructure:/workspace/infrastructure
-      - ./.runtime-tools:/opt/nebula-tools:ro
+    - ./infrastructure:/workspace/infrastructure
+    - ./.runtime-tools:/opt/nebula-tools:ro
     ports:
-      - 8096:8096
-
+    - 8096:8096
+    depends_on:
+      keycloak:
+        condition: service_started
   gateway-service:
-    image: nebulaops-v21-4-gateway-service:latest
+    image: nebulaops-v22-1-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
     environment:
       AUTH_SERVICE_URL: http://auth-service:8081
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v21-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-1-dev-secret-key-min-32-chars!!}
       TASK_SERVICE_URL: http://task-service:8082
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
@@ -281,7 +367,7 @@ services:
       ENVIRONMENT_MANAGER_SERVICE_URL: http://environment-manager-service:8094
       TERRAFORM_STUDIO_SERVICE_URL: http://terraform-studio-service:8096
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v21-2-1}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v22-1}
       TERRAFORM_WORKDIR: /app/infrastructure/terraform
       GRAFANA_URL: http://grafana:3000
       KEYCLOAK_URL: http://keycloak:8080
@@ -289,11 +375,16 @@ services:
       KEYCLOAK_CLIENT_ID: nebulaops-gateway
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-nebulaops-secret-dev-only}
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      COST_ANALYTICS_SERVICE_URL: http://cost-analytics-service:8097
+      GITLAB_URL: ${GITLAB_URL:-}
+      GITLAB_ENABLED: ${GITLAB_ENABLED:-false}
     volumes:
-      - ./.kube/config:/kube/config:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./infrastructure:/app/infrastructure
-      - ./.runtime-tools:/opt/nebula-tools:ro
+    - ./.kube/config:/kube/config:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./infrastructure:/app/infrastructure
+    - ./.runtime-tools:/opt/nebula-tools:ro
     depends_on:
       auth-service:
         condition: service_started
@@ -319,54 +410,56 @@ services:
         condition: service_started
       keycloak:
         condition: service_started
+      cost-analytics-service:
+        condition: service_started
     ports:
-      - 8080:8080
+    - 8080:8080
   frontend:
-    image: nebulaops-v21-4-frontend:latest
+    image: nebulaops-v22-1-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
     depends_on:
-      - gateway-service
+    - gateway-service
     ports:
-      - 4200:80
+    - 4200:80
   prometheus:
     image: prom/prometheus:v2.53.0
     volumes:
-      - ./infrastructure/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    ports:
-      - 9090:9090
+    - ./infrastructure/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
-      - gateway-service
-      - auth-service
-      - task-service
-      - notification-service
-      - file-service
-      - ai-ops-service
-      - devsecops-service
+    - gateway-service
+    - auth-service
+    - task-service
+    - notification-service
+    - file-service
+    - ai-ops-service
+    - devsecops-service
   loki:
     image: grafana/loki:2.9.10
     command: -config.file=/etc/loki/local-config.yaml
     ports:
-      - 3100:3100
+    - 3100:3100
   tempo:
     image: grafana/tempo:2.5.0
-    command: [ "-config.file=/etc/tempo.yaml" ]
+    command:
+    - -config.file=/etc/tempo.yaml
     volumes:
-      - ./infrastructure/observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+    - ./infrastructure/observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
     ports:
-      - 3200:3200
-      - 4317:4317
+    - 3200:3200
+    - 4317:4317
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.104.0
-    command: [ "--config=/etc/otelcol/config.yaml" ]
+    command:
+    - --config=/etc/otelcol/config.yaml
     volumes:
-      - ./infrastructure/observability/otel-collector/config.yaml:/etc/otelcol/config.yaml:ro
+    - ./infrastructure/observability/otel-collector/config.yaml:/etc/otelcol/config.yaml:ro
     ports:
-      - 4318:4318
+    - 4318:4318
     depends_on:
-      - tempo
-      - loki
+    - tempo
+    - loki
   grafana:
     image: grafana/grafana:11.1.0
     restart: unless-stopped
@@ -376,46 +469,62 @@ services:
       GF_USERS_ALLOW_SIGN_UP: 'false'
       GF_AUTH_ANONYMOUS_ENABLED: 'false'
       GF_SERVER_ROOT_URL: http://localhost:3000
+      GF_AUTH_GENERIC_OAUTH_ENABLED: 'true'
+      GF_AUTH_GENERIC_OAUTH_NAME: Keycloak
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: 'true'
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: grafana
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: ${GRAFANA_OAUTH_CLIENT_SECRET:-grafana-secret-dev-only}
+      GF_AUTH_GENERIC_OAUTH_SCOPES: openid email profile
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/token
+      GF_AUTH_GENERIC_OAUTH_API_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: contains(realm_access.roles[*], 'nebula-admin')
+        && 'Admin' || contains(realm_access.roles[*], 'nebula-operator') && 'Editor'
+        || 'Viewer'
+      GF_AUTH_DISABLE_LOGIN_FORM: 'false'
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infrastructure/observability/grafana/dashboards:/etc/grafana/dashboards:ro
+    - grafana-data:/var/lib/grafana
+    - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    - ./infrastructure/observability/grafana/dashboards:/etc/grafana/dashboards:ro
     ports:
-      - 3000:3000
+    - 3000:3000
     depends_on:
-      - prometheus
-      - loki
-      - tempo
+    - prometheus
+    - loki
+    - tempo
+    - keycloak
     healthcheck:
-      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1" ]
+      test:
+      - CMD-SHELL
+      - wget -q --spider http://localhost:3000/api/health || exit 1
       interval: 10s
       timeout: 5s
       retries: 20
   redis:
     image: redis:7-alpine
     command:
-      - redis-server
-      - --appendonly
-      - 'yes'
+    - redis-server
+    - --appendonly
+    - 'yes'
     healthcheck:
       test:
-        - CMD
-        - redis-cli
-        - ping
+      - CMD
+      - redis-cli
+      - ping
       interval: 10s
       timeout: 5s
       retries: 10
     ports:
-      - 6379:6379
+    - 6379:6379
     volumes:
-      - redis-data:/data
+    - redis-data:/data
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     healthcheck:
       test:
-        - CMD
-        - rabbitmq-diagnostics
-        - ping
+      - CMD
+      - rabbitmq-diagnostics
+      - ping
       interval: 10s
       timeout: 5s
       retries: 10
@@ -423,12 +532,11 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - 5672:5672
-      - 15672:15672
+    - 5672:5672
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+    - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v21-4-go-cache-service:latest
+    image: nebulaops-v22-1-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -439,15 +547,19 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       RABBITMQ_CACHE_QUEUE: nebula.cache.events
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
     depends_on:
       redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      keycloak:
+        condition: service_started
     ports:
-      - 8091:8091
+    - 8091:8091
   go-event-worker:
-    image: nebulaops-v21-4-go-event-worker:latest
+    image: nebulaops-v22-1-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile
@@ -459,13 +571,313 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+  gitlab:
+    image: gitlab/gitlab-ce:17.11.3-ce.0
+    hostname: gitlab.local
+    restart: 'no'
+    shm_size: 256m
+    environment:
+      GITLAB_ROOT_PASSWORD: NebulaOpsRoot22!
+      GITLAB_OMNIBUS_CONFIG: "external_url 'http://localhost:8929'\ngitlab_rails['gitlab_shell_ssh_port']\
+        \ = 2222\ngitlab_rails['omniauth_enabled'] = true\ngitlab_rails['omniauth_allow_single_sign_on']\
+        \ = ['openid_connect']\ngitlab_rails['omniauth_block_auto_created_users']\
+        \ = false\ngitlab_rails['omniauth_providers'] = [\n  {\n    name: 'openid_connect',\n\
+        \    label: 'Keycloak',\n    args: {\n      name: 'openid_connect',\n    \
+        \  scope: ['openid','profile','email'],\n      response_type: 'code',\n  \
+        \    issuer: 'http://keycloak:8080/realms/nebulaops',\n      discovery: true,\n\
+        \      client_auth_method: 'query',\n      uid_field: 'preferred_username',\n\
+        \      client_options: {\n        identifier: 'gitlab',\n        secret: 'gitlab-secret-dev-only',\n\
+        \        redirect_uri: 'http://localhost:8929/users/auth/openid_connect/callback'\n\
+        \      }\n    }\n  }\n]\n"
+    ports:
+    - 8929:8929
+    - '2222:22'
+    volumes:
+    - gitlab-config:/etc/gitlab
+    - gitlab-logs:/var/log/gitlab
+    - gitlab-data:/var/opt/gitlab
+    depends_on:
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - curl -fsS http://localhost:8929/-/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 180s
+    profiles:
+    - gitlab
+  cost-analytics-service:
+    image: nebulaops-v22-1-cost-analytics-service:latest
+    build:
+      context: .
+      dockerfile: backend/cost-analytics-service/Dockerfile
+    environment:
+      MONGODB_URI: mongodb://nebula:nebula@mongodb:27017/nebula_cost?authSource=admin
+      KEYCLOAK_AUTH_ENABLED: 'true'
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      KEYCLOAK_REALM: nebulaops
+      KEYCLOAK_URL: http://keycloak:8080
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    ports:
+    - 8097:8097
+  rabbitmq-basic-proxy:
+    image: ${NEBULAOPS_SSO_NGINX_IMAGE:-nginx:1.27-alpine}
+    restart: unless-stopped
+    volumes:
+    - ./infrastructure/sso-proxy/rabbitmq-basic-proxy.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    profiles:
+    - sso-proxy
+    healthcheck:
+      test: &id002
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:8080/__nebulaops_proxy_health 2>/dev/null | grep -q ok || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+  mongo-express-basic-proxy:
+    image: ${NEBULAOPS_SSO_NGINX_IMAGE:-nginx:1.27-alpine}
+    restart: unless-stopped
+    volumes:
+    - ./infrastructure/sso-proxy/mongo-express-basic-proxy.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      mongo-express:
+        condition: service_healthy
+    profiles:
+    - sso-proxy
+    healthcheck:
+      test: *id002
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+  redis-commander-basic-proxy:
+    image: ${NEBULAOPS_SSO_NGINX_IMAGE:-nginx:1.27-alpine}
+    restart: unless-stopped
+    volumes:
+    - ./infrastructure/sso-proxy/redis-commander-basic-proxy.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      redis-commander:
+        condition: service_healthy
+    profiles:
+    - sso-proxy
+    healthcheck:
+      test: *id002
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+  rabbitmq-management-sso:
+    image: ${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}
+    restart: unless-stopped
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_CLIENT_ID: nebulaops-oauth2-proxy
+      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET:-oauth2-proxy-secret-dev-only}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET:-0123456789abcdef0123456789abcdef}
+      OAUTH2_PROXY_COOKIE_SECURE: 'false'
+      OAUTH2_PROXY_COOKIE_SAMESITE: lax
+      OAUTH2_PROXY_EMAIL_DOMAINS: '*'
+      OAUTH2_PROXY_SCOPE: openid email profile
+      OAUTH2_PROXY_REDIRECT_URL: http://localhost:15672/oauth2/callback
+      OAUTH2_PROXY_UPSTREAMS: http://rabbitmq-basic-proxy:8080/
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: 'true'
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: 'true'
+      OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: 'true'
+      OAUTH2_PROXY_SET_XAUTHREQUEST: 'true'
+      OAUTH2_PROXY_REVERSE_PROXY: 'true'
+      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:8180/realms/nebulaops
+      OAUTH2_PROXY_LOGIN_URL: http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth
+      OAUTH2_PROXY_REDEEM_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/token
+      OAUTH2_PROXY_PROFILE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_VALIDATE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      OAUTH2_PROXY_INSECURE_OIDC_SKIP_ISSUER_VERIFICATION: 'true'
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Keycloak
+      OAUTH2_PROXY_AUTH_LOGGING: 'true'
+      OAUTH2_PROXY_REQUEST_LOGGING: 'false'
+      OAUTH2_PROXY_STANDARD_LOGGING: 'true'
+      OAUTH2_PROXY_WHITELIST_DOMAINS: localhost:*
+      OAUTH2_PROXY_COOKIE_NAME: _nebulaops_sso
+      OAUTH2_PROXY_COOKIE_REFRESH: 30m
+      OAUTH2_PROXY_COOKIE_EXPIRE: 8h
+      OAUTH2_PROXY_PROXY_PREFIX: /oauth2
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: 'true'
+      OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL: 'true'
+      OAUTH2_PROXY_SHOW_DEBUG_ON_ERROR: 'true'
+    ports:
+    - 15672:4180
+    depends_on:
+      keycloak:
+        condition: service_started
+      rabbitmq-basic-proxy:
+        condition: service_healthy
+    profiles:
+    - sso-proxy
+  prometheus-sso:
+    image: ${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}
+    restart: unless-stopped
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_CLIENT_ID: nebulaops-oauth2-proxy
+      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET:-oauth2-proxy-secret-dev-only}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET:-0123456789abcdef0123456789abcdef}
+      OAUTH2_PROXY_COOKIE_SECURE: 'false'
+      OAUTH2_PROXY_COOKIE_SAMESITE: lax
+      OAUTH2_PROXY_EMAIL_DOMAINS: '*'
+      OAUTH2_PROXY_SCOPE: openid email profile
+      OAUTH2_PROXY_REDIRECT_URL: http://localhost:9090/oauth2/callback
+      OAUTH2_PROXY_UPSTREAMS: http://prometheus:9090/
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: 'true'
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: 'true'
+      OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: 'true'
+      OAUTH2_PROXY_SET_XAUTHREQUEST: 'true'
+      OAUTH2_PROXY_REVERSE_PROXY: 'true'
+      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:8180/realms/nebulaops
+      OAUTH2_PROXY_LOGIN_URL: http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth
+      OAUTH2_PROXY_REDEEM_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/token
+      OAUTH2_PROXY_PROFILE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_VALIDATE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      OAUTH2_PROXY_INSECURE_OIDC_SKIP_ISSUER_VERIFICATION: 'true'
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Keycloak
+      OAUTH2_PROXY_AUTH_LOGGING: 'true'
+      OAUTH2_PROXY_REQUEST_LOGGING: 'false'
+      OAUTH2_PROXY_STANDARD_LOGGING: 'true'
+      OAUTH2_PROXY_WHITELIST_DOMAINS: localhost:*
+      OAUTH2_PROXY_COOKIE_NAME: _nebulaops_sso
+      OAUTH2_PROXY_COOKIE_REFRESH: 30m
+      OAUTH2_PROXY_COOKIE_EXPIRE: 8h
+      OAUTH2_PROXY_PROXY_PREFIX: /oauth2
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: 'true'
+      OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL: 'true'
+      OAUTH2_PROXY_SHOW_DEBUG_ON_ERROR: 'true'
+    ports:
+    - 9090:4180
+    depends_on:
+      keycloak:
+        condition: service_started
+      prometheus:
+        condition: service_started
+    profiles:
+    - sso-prometheus
+  mongo-express-sso:
+    image: ${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}
+    restart: unless-stopped
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_CLIENT_ID: nebulaops-oauth2-proxy
+      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET:-oauth2-proxy-secret-dev-only}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET:-0123456789abcdef0123456789abcdef}
+      OAUTH2_PROXY_COOKIE_SECURE: 'false'
+      OAUTH2_PROXY_COOKIE_SAMESITE: lax
+      OAUTH2_PROXY_EMAIL_DOMAINS: '*'
+      OAUTH2_PROXY_SCOPE: openid email profile
+      OAUTH2_PROXY_REDIRECT_URL: http://localhost:8088/oauth2/callback
+      OAUTH2_PROXY_UPSTREAMS: http://mongo-express-basic-proxy:8080/
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: 'true'
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: 'true'
+      OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: 'true'
+      OAUTH2_PROXY_SET_XAUTHREQUEST: 'true'
+      OAUTH2_PROXY_REVERSE_PROXY: 'true'
+      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:8180/realms/nebulaops
+      OAUTH2_PROXY_LOGIN_URL: http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth
+      OAUTH2_PROXY_REDEEM_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/token
+      OAUTH2_PROXY_PROFILE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_VALIDATE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      OAUTH2_PROXY_INSECURE_OIDC_SKIP_ISSUER_VERIFICATION: 'true'
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Keycloak
+      OAUTH2_PROXY_AUTH_LOGGING: 'true'
+      OAUTH2_PROXY_REQUEST_LOGGING: 'false'
+      OAUTH2_PROXY_STANDARD_LOGGING: 'true'
+      OAUTH2_PROXY_WHITELIST_DOMAINS: localhost:*
+      OAUTH2_PROXY_COOKIE_NAME: _nebulaops_sso
+      OAUTH2_PROXY_COOKIE_REFRESH: 30m
+      OAUTH2_PROXY_COOKIE_EXPIRE: 8h
+      OAUTH2_PROXY_PROXY_PREFIX: /oauth2
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: 'true'
+      OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL: 'true'
+      OAUTH2_PROXY_SHOW_DEBUG_ON_ERROR: 'true'
+    ports:
+    - 8088:4180
+    depends_on:
+      keycloak:
+        condition: service_started
+      mongo-express-basic-proxy:
+        condition: service_healthy
+    profiles:
+    - sso-proxy
+  redis-commander-sso:
+    image: ${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}
+    restart: unless-stopped
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_CLIENT_ID: nebulaops-oauth2-proxy
+      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET:-oauth2-proxy-secret-dev-only}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET:-0123456789abcdef0123456789abcdef}
+      OAUTH2_PROXY_COOKIE_SECURE: 'false'
+      OAUTH2_PROXY_COOKIE_SAMESITE: lax
+      OAUTH2_PROXY_EMAIL_DOMAINS: '*'
+      OAUTH2_PROXY_SCOPE: openid email profile
+      OAUTH2_PROXY_REDIRECT_URL: http://localhost:8089/oauth2/callback
+      OAUTH2_PROXY_UPSTREAMS: http://redis-commander-basic-proxy:8080/
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: 'true'
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: 'true'
+      OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: 'true'
+      OAUTH2_PROXY_SET_XAUTHREQUEST: 'true'
+      OAUTH2_PROXY_REVERSE_PROXY: 'true'
+      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:8180/realms/nebulaops
+      OAUTH2_PROXY_LOGIN_URL: http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth
+      OAUTH2_PROXY_REDEEM_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/token
+      OAUTH2_PROXY_PROFILE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_VALIDATE_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
+      OAUTH2_PROXY_INSECURE_OIDC_SKIP_ISSUER_VERIFICATION: 'true'
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Keycloak
+      OAUTH2_PROXY_AUTH_LOGGING: 'true'
+      OAUTH2_PROXY_REQUEST_LOGGING: 'false'
+      OAUTH2_PROXY_STANDARD_LOGGING: 'true'
+      OAUTH2_PROXY_WHITELIST_DOMAINS: localhost:*
+      OAUTH2_PROXY_COOKIE_NAME: _nebulaops_sso
+      OAUTH2_PROXY_COOKIE_REFRESH: 30m
+      OAUTH2_PROXY_COOKIE_EXPIRE: 8h
+      OAUTH2_PROXY_PROXY_PREFIX: /oauth2
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: 'true'
+      OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL: 'true'
+      OAUTH2_PROXY_SHOW_DEBUG_ON_ERROR: 'true'
+    ports:
+    - 8089:4180
+    depends_on:
+      keycloak:
+        condition: service_started
+      redis-commander-basic-proxy:
+        condition: service_healthy
+    profiles:
+    - sso-proxy
 volumes:
   mongo-data: null
   redis-data: null
   rabbitmq-data: null
   grafana-data: null
   keycloak-db-data: null
-
+  gitlab-config: null
+  gitlab-logs: null
+  gitlab-data: null
 networks:
   default:
     name: nebulaops-network

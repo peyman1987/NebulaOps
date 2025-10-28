@@ -1,5 +1,5 @@
 /**
- * v21.4 — Centralized frontend API configuration.
+ * v22.1 — Centralized frontend API configuration.
  * All HTTP calls read URLs from here. Synced from config/platform.yml.
  */
 export const API_BASE = '/api';
@@ -83,10 +83,10 @@ export const API = {
   },
 } as const;
 
-export const APP_VERSION = '21.4';
-export const APP_RELEASE = 'v21.4';
-export const JWT_KEY     = 'nebulaops.v21_4.jwt';
-export const USER_KEY    = 'nebulaops.v21_4.user';
+export const APP_VERSION = '22.1';
+export const APP_RELEASE = 'v22.1';
+export const JWT_KEY     = 'nebulaops.v22_1.jwt';
+export const USER_KEY    = 'nebulaops.v22_1.user';
 
 // ── Keycloak OIDC (Authorization Code + PKCE) ──────────────────
 export const KC_BASE         = 'http://localhost:8180';

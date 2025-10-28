@@ -1,8 +1,18 @@
-server: { port: 8096 }
+server:
+  port: 8096
 spring:
-  application: { name: terraform-studio-service }
+  application:
+    name: terraform-studio-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}

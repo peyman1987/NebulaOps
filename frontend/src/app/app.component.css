@@ -81,13 +81,13 @@
 .sidebar.collapsed{padding:12px;width:72px;overflow:visible}.sidebar.collapsed .side-brand b,.sidebar.collapsed .side-brand small,.sidebar.collapsed .side-root b,.sidebar.collapsed .side-root em{display:none}.sidebar.collapsed .side-brand{padding:8px}.sidebar.collapsed .side-brand span{width:48px;height:48px;border-radius:18px}.sidebar-toggle,.side-root,.side-leaf,.side-subtitle{cursor:pointer}.sidebar-toggle{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(125,211,252,.25);background:linear-gradient(135deg,rgba(14,165,233,.18),rgba(124,58,237,.18));color:#e0f2fe;font-weight:1000}.side-tree{margin:12px 0}.side-root{display:flex;align-items:center;gap:10px;width:100%;padding:12px;border-radius:18px;border:1px solid rgba(148,211,255,.16);background:rgba(15,23,42,.72);color:#e0f2fe;font-weight:1000}.side-root span{display:grid;place-items:center;width:28px;height:28px;border-radius:10px;background:rgba(34,211,238,.16)}.side-root em,.side-subtitle em{margin-left:auto;font-style:normal;color:#67e8f9}.side-children{margin:8px 0 0 12px;padding-left:10px;border-left:1px solid rgba(125,211,252,.18)}.side-leaf{display:block;width:100%;margin:5px 0;padding:9px 12px;border:1px solid rgba(125,211,252,.1);border-radius:14px;background:rgba(2,6,23,.42);color:#bfdbfe;text-align:left;font-weight:850}.side-leaf.nested{padding-left:18px;font-size:12px}.side-leaf.active{background:linear-gradient(135deg,rgba(34,211,238,.85),rgba(124,58,237,.85));color:#fff;box-shadow:0 0 26px rgba(34,211,238,.24)}.side-subtitle{display:flex;width:100%;align-items:center;margin:8px 0 4px;padding:8px 10px;border:0;border-radius:12px;background:rgba(59,130,246,.08);color:#93c5fd;font-weight:1000;text-transform:uppercase;font-size:11px;letter-spacing:.08em}.workspace-console{grid-column:1/-1}.section-pills{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}.section-pills button{border-radius:999px;padding:8px 12px;border:1px solid rgba(125,211,252,.18);background:rgba(15,23,42,.7);color:#dbeafe;font-weight:900}.section-pills button.active{background:linear-gradient(135deg,#22d3ee,#7c3aed);color:white}.smart-table{display:grid;gap:8px}.smart-table div{display:grid;grid-template-columns:1.2fr 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;border:1px solid rgba(125,211,252,.14);background:rgba(2,6,23,.48)}.smart-table b{color:#f8fafc}.smart-table span{color:#bfdbfe}.smart-table em{font-style:normal;color:#86efac;font-weight:1000}@media (max-width:900px){.app-shell,.app-shell:has(.sidebar.collapsed){grid-template-columns:1fr}.sidebar.collapsed{width:auto}.smart-table div{grid-template-columns:1fr}}
 
 /* ─────────────────────────────────────────────────────────────────────────
-   v21.2 — Visual polish layer
+   v22.1 — Visual polish layer
    Refines spacing, contrast, motion and micro-interactions across the app
    without changing the structure. Uses centralized design tokens.
    ───────────────────────────────────────────────────────────────────────── */
 
 /* Update version pill */
-.shell:before { content: 'v21.2 LIVE' !important; }
+.shell:before { content: 'v22.1 LIVE' !important; }
 
 /* Refined hero copy with better typographic hierarchy */
 .hero-copy h1 {
@@ -300,7 +300,7 @@ td .status-pill,
 .empty-state p { margin: 0; font-size: 14px; }
 
 /* ═══════════════════════════════════════════════════════════════
-   v21.3 — Action buttons, enhanced 3D, animations
+   v22.1 — Action buttons, enhanced 3D, animations
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Action buttons ─────────────────────────────────────────── */
@@ -600,4 +600,89 @@ td .status-pill,
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .04em;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   v22.1 — Modern service header with one-click access to platform services
+   ───────────────────────────────────────────────────────────────────────── */
+.modern-topbar {
+  display: grid;
+  grid-template-columns: auto minmax(260px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(148, 211, 255, 0.18);
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.86), rgba(30, 41, 59, 0.68)),
+    radial-gradient(circle at 12% 18%, rgba(34, 211, 238, 0.18), transparent 34%),
+    radial-gradient(circle at 92% 8%, rgba(249, 115, 22, 0.13), transparent 32%);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(24px);
+}
+.service-dock {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  padding: 4px 2px 6px;
+  scrollbar-width: thin;
+}
+.service-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+  border: 1px solid rgba(148, 211, 255, 0.14);
+  border-radius: 999px;
+  padding: 8px 11px;
+  color: #eaf6ff;
+  background: rgba(2, 6, 23, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+.service-pill:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 252, 0.48);
+  background: rgba(15, 23, 42, 0.82);
+  box-shadow: 0 12px 32px rgba(34, 211, 238, 0.16);
+}
+.service-pill span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 13px;
+}
+.service-pill b { font-size: 12px; font-weight: 900; }
+.service-pill small { color: #93c5fd; font-size: 10px; font-weight: 800; }
+.service-pill.gitlab span { background: linear-gradient(135deg, rgba(252, 109, 38, 0.28), rgba(226, 67, 41, 0.24)); }
+.service-pill.keycloak span { background: linear-gradient(135deg, rgba(34, 211, 238, 0.28), rgba(59, 130, 246, 0.24)); }
+.service-pill.grafana span { background: linear-gradient(135deg, rgba(249, 115, 22, 0.28), rgba(251, 191, 36, 0.2)); }
+.service-pill.kubernetes span { background: linear-gradient(135deg, rgba(59, 130, 246, 0.32), rgba(34, 211, 238, 0.18)); }
+.service-pill.cicd span { background: linear-gradient(135deg, rgba(167, 139, 250, 0.34), rgba(34, 211, 238, 0.16)); }
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.64);
+  border: 1px solid rgba(148, 211, 255, 0.14);
+  color: #dbeafe;
+  font-weight: 850;
+}
+.launcher-card.gitlab { border-color: rgba(252, 109, 38, 0.34); }
+.launcher-card.gitlab span { background: linear-gradient(135deg, rgba(252, 109, 38, 0.28), rgba(226, 67, 41, 0.2)); }
+.infra-card:has(span:first-child) { transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; }
+.quick-actions-modern button { min-height: 42px; }
+@media (max-width: 1180px) {
+  .modern-topbar { grid-template-columns: 1fr; }
+  .service-dock { width: 100%; }
+  .modern-topbar .session { justify-content: space-between; }
 }

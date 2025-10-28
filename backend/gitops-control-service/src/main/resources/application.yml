@@ -1,8 +1,18 @@
-server: { port: 8093 }
+server:
+  port: 8093
 spring:
-  application: { name: gitops-control-service }
+  application:
+    name: gitops-control-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}

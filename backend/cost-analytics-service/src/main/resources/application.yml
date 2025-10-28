@@ -1,13 +1,16 @@
 server:
   port: 8097
-
 spring:
   application:
     name: cost-analytics-service
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://mongodb:27017/nebulaops}
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 management:
   endpoints:
     web:
@@ -16,3 +19,6 @@ management:
   metrics:
     tags:
       application: cost-analytics-service
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}

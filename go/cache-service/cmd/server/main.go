@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/peyman/nebulaops/cache-service/internal/auth"
 	"github.com/peyman/nebulaops/cache-service/internal/cache"
 )
 
@@ -72,5 +73,7 @@ func main() {
 	})
 	addr := ":" + env("PORT", "8091")
 	log.Printf("go-cache-service listening on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	verifier := auth.NewFromEnv()
+	log.Printf("keycloak auth enabled=%t jwks=%s", verifier.Enabled, verifier.JWKSURI)
+	log.Fatal(http.ListenAndServe(addr, verifier.Middleware(mux)))
 }
