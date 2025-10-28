@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v21.3 — Kubernetes controller: snapshot/fallback + all OpenLens actions.
+ * v22.1 — Kubernetes controller: snapshot/fallback + all OpenLens actions.
  *
  * READ endpoints (no conflict with actions):
  *   GET /api/kubernetes/snapshot

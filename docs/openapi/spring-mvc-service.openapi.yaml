@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps Spring MVC Service API
+  version: 22.1.0
+servers:
+  - url: http://localhost:8099
+    description: Docker Compose direct access
+  - url: http://spring-mvc-service:8099
+    description: Internal Docker/Kubernetes service DNS
+paths:
+  /api/spring-mvc/info:
+    get:
+      summary: Service metadata
+      responses:
+        '200': { description: OK }
+  /api/spring-mvc/items:
+    get:
+      summary: List work items
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Create work item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemRequest'
+      responses:
+        '201': { description: Created }
+  /api/spring-mvc/items/{id}:
+    get:
+      summary: Read work item
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { description: OK }
+        '404': { description: Not found }
+    put:
+      summary: Update work item
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemRequest'
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Delete work item
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204': { description: Deleted }
+  /api/spring-mvc/items/{id}/status/{status}:
+    patch:
+      summary: Change work item status
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [TODO, IN_PROGRESS, DONE, BLOCKED]
+      responses:
+        '200': { description: OK }
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    WorkItemRequest:
+      type: object
+      required: [title, owner]
+      properties:
+        title: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 1000 }
+        owner: { type: string, maxLength: 80 }

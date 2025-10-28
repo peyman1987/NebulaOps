@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
+# v22.1 — WSL status helper. Use health.sh for endpoint checks.
 set -euo pipefail
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"
-COMPOSE_FILE="$ROOT_DIR/infrastructure/docker-compose.yml"
-PROJECT_NAME="nebulaops"
-docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" ps
+
+dc ps --format "table {{.Service}}\t{{.Status}}\t{{.Ports}}"
 echo
-for url in http://localhost:8080/actuator/health http://localhost:8081/api/auth/healthz http://localhost:8082/actuator/health http://localhost:8083/actuator/health http://localhost:8084/actuator/health; do
-  printf "%-48s" "$url"; curl -fsS "$url" >/dev/null 2>&1 && echo OK || echo not-ready
-done
+echo "For Keycloak-aware endpoint checks run: ./scripts/wsl/health.sh"

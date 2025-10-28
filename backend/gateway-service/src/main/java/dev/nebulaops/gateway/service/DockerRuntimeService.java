@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 /**
- * v21.3 — Docker runtime data via DockerSocketClient (Unix socket HTTP).
+ * v22.1 — Docker runtime data via DockerSocketClient (Unix socket HTTP).
  * Bypasses docker CLI entirely — works regardless of snap/wrapper binary issues.
  * Returns {live, tool, items} map shape consumed by RuntimeOpsController.
  */

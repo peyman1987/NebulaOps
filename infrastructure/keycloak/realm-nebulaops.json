@@ -45,6 +45,79 @@
       "serviceAccountsEnabled": true,
       "directAccessGrantsEnabled": true,
       "authorizationServicesEnabled": true
+    },
+    {
+      "clientId": "gitlab",
+      "name": "NebulaOps GitLab",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "gitlab-secret-dev-only",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8929/users/auth/openid_connect/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:8929"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "grafana",
+      "name": "NebulaOps Grafana",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "grafana-secret-dev-only",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/login/generic_oauth"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      }
+    },
+    {
+      "clientId": "nebulaops-oauth2-proxy",
+      "name": "NebulaOps Tool UI OAuth2 Proxy",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "oauth2-proxy-secret-dev-only",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:15672/oauth2/callback",
+        "http://localhost:8088/oauth2/callback",
+        "http://localhost:8089/oauth2/callback",
+        "http://localhost:9090/oauth2/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:15672",
+        "http://localhost:8088",
+        "http://localhost:8089",
+        "http://localhost:9090"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      }
+    },
+    {
+      "clientId": "nebulaops-api",
+      "name": "NebulaOps API Smoke Client",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "nebulaops-api-secret-dev-only",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true
     }
   ],
   "roles": {
@@ -78,7 +151,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["nebula-admin", "default-roles-nebulaops"]
+      "realmRoles": [
+        "nebula-admin",
+        "default-roles-nebulaops"
+      ]
     },
     {
       "username": "peyman",
@@ -94,9 +170,16 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["nebula-operator", "default-roles-nebulaops"]
+      "realmRoles": [
+        "nebula-operator",
+        "default-roles-nebulaops"
+      ]
     }
   ],
-  "defaultRoles": ["default-roles-nebulaops"],
-  "requiredCredentials": ["password"]
+  "defaultRoles": [
+    "default-roles-nebulaops"
+  ],
+  "requiredCredentials": [
+    "password"
+  ]
 }

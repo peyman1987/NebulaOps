@@ -347,12 +347,12 @@ interface HomeLauncher {
 }
 
 const TASKS_KEY = 'nebulaops.v20_2.tasks'; // legacy key, no longer used for live task data
-const K8S_KEY = 'nebulaops.v21_3_0.k8s';
-const SESSION_KEY = 'nebulaops.v21_4.jwt';
-const USER_KEY    = 'nebulaops.v21_4.user';
+const K8S_KEY = 'nebulaops.v22_1.k8s';
+const SESSION_KEY = 'nebulaops.v22_1.jwt';
+const USER_KEY    = 'nebulaops.v22_1.user';
 
 function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v21-4\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
+    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v22-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
     if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
     if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
     if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
@@ -612,6 +612,107 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly clusterEdges = signal<ClusterEdge[]>([]);
     readonly clusterEvents = signal<ClusterEvent[]>(this.syntheticClusterEvents());
     readonly liveMetrics = signal<LiveMetric[]>([]);
+    readonly serviceQuickLinks: HomeLauncher[] = [
+        {
+            title: 'Keycloak',
+            subtitle: 'SSO realm, users and roles',
+            kind: 'external',
+            url: 'http://localhost:8180/admin/master/console',
+            icon: '🔑',
+            accent: 'keycloak',
+            status: '8180'
+        },
+        {
+            title: 'GitLab',
+            subtitle: 'Repository, issues and CI/CD service',
+            kind: 'external',
+            url: 'http://localhost:8929',
+            icon: '🦊',
+            accent: 'gitlab',
+            status: '8929'
+        },
+        {
+            title: 'Grafana',
+            subtitle: 'Dashboards, metrics, logs and traces',
+            kind: 'external',
+            url: 'http://localhost:3000',
+            icon: '◉',
+            accent: 'grafana',
+            status: '3000'
+        },
+        {
+            title: 'Prometheus',
+            subtitle: 'Metrics and service discovery',
+            kind: 'external',
+            url: 'http://localhost:9090',
+            icon: '▲',
+            accent: 'prometheus',
+            status: '9090'
+        },
+        {
+            title: 'RabbitMQ',
+            subtitle: 'Queues, exchanges and consumers',
+            kind: 'external',
+            url: 'http://localhost:15672',
+            icon: '✉',
+            accent: 'rabbitmq',
+            status: '15672'
+        },
+        {
+            title: 'Mongo',
+            subtitle: 'Mongo Express database console',
+            kind: 'external',
+            url: 'http://localhost:8088',
+            icon: '▰',
+            accent: 'mongo',
+            status: '8088'
+        },
+        {
+            title: 'Redis',
+            subtitle: 'Redis Commander cache console',
+            kind: 'external',
+            url: 'http://localhost:8089',
+            icon: '◆',
+            accent: 'redis',
+            status: '8089'
+        },
+        {
+            title: 'Gateway',
+            subtitle: 'NebulaOps API gateway health',
+            kind: 'external',
+            url: 'http://localhost:8080/actuator/health',
+            icon: '⇄',
+            accent: 'gateway',
+            status: '8080'
+        },
+        {
+            title: 'CI/CD',
+            subtitle: 'Pipeline designer inside NebulaOps',
+            kind: 'internal',
+            tab: 'CICD',
+            icon: '⚡',
+            accent: 'cicd',
+            status: 'app'
+        },
+        {
+            title: 'K8s',
+            subtitle: 'Kubernetes visual cluster',
+            kind: 'internal',
+            tab: 'KUBERNETES',
+            icon: '☸',
+            accent: 'kubernetes',
+            status: 'app'
+        },
+        {
+            title: 'AI Ops',
+            subtitle: 'RCA, anomaly and autofix cockpit',
+            kind: 'internal',
+            tab: 'AI OPS',
+            icon: '✦',
+            accent: 'aiops',
+            status: 'app'
+        }
+    ];
     readonly homeLaunchers: HomeLauncher[] = [
         {
             title: 'Keycloak',
@@ -621,6 +722,15 @@ export class AppComponent implements OnInit, OnDestroy {
             icon: '🔑',
             accent: 'keycloak',
             status: 'localhost:8180'
+        },
+        {
+            title: 'GitLab',
+            subtitle: 'Git repository, issues and CI/CD pipelines',
+            kind: 'external',
+            url: 'http://localhost:8929',
+            icon: '🦊',
+            accent: 'gitlab',
+            status: 'localhost:8929'
         },
         {
             title: 'Grafana',
@@ -647,7 +757,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'CICD',
             icon: '⚡',
             accent: 'cicd',
-            status: 'v21.4'
+            status: 'v22.1'
         },
         {
             title: 'INFRA',
@@ -701,7 +811,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'SECURITY',
             icon: '⬢',
             accent: 'security',
-            status: 'v21.4'
+            status: 'v22.1'
         },
         {
             title: 'Helm',
@@ -728,7 +838,7 @@ export class AppComponent implements OnInit, OnDestroy {
             tab: 'GITOPS',
             icon: '∞',
             accent: 'argocd',
-            status: 'v21.4'
+            status: 'v22.1'
         },
         {
             title: 'Multi-Env Manager',
@@ -903,6 +1013,14 @@ export class AppComponent implements OnInit, OnDestroy {
             url: 'http://localhost:8180/admin/master/console',
             icon: '🔑',
             status: 'localhost:8180'
+        },
+        {
+            title: 'GitLab',
+            description: 'Self-hosted Git service with Keycloak OIDC login and CI/CD pipelines',
+            kind: 'external',
+            url: 'http://localhost:8929',
+            icon: '🦊',
+            status: 'localhost:8929'
         },
         {
             title: 'Grafana',
@@ -1128,7 +1246,7 @@ export class AppComponent implements OnInit, OnDestroy {
         {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
         {
             title: 'Architecture SVG',
-            path: 'docs/nebulaops-v21-4-ai-ops-architecture.svg',
+            path: 'docs/nebulaops-v22-1-ai-ops-architecture.svg',
             why: 'AI Ops cockpit animated SVG'
         },
         {
@@ -1169,7 +1287,7 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
             title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v21-4-devsecops-module.svg',
+            path: 'docs/nebulaops-v22-1-devsecops-module.svg',
             why: 'Radar, threat map and CVE dashboard architecture'
         }
     ];
@@ -1295,7 +1413,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 displayName = payload.preferred_username || payload.email || payload.sub || 'user';
             } catch (_) {}
             localStorage.setItem(SESSION_KEY, token);
-            localStorage.setItem('nebulaops.v21_4.id_token', idToken);
+            localStorage.setItem('nebulaops.v22_1.id_token', idToken);
             localStorage.setItem(USER_KEY, displayName);
             this.currentUser.set(displayName);
             this.isAuthenticated.set(true);
@@ -1304,10 +1422,10 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     logout(): void {
-        const idToken = localStorage.getItem('nebulaops.v21_4.id_token') || '';
+        const idToken = localStorage.getItem('nebulaops.v22_1.id_token') || '';
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(USER_KEY);
-        localStorage.removeItem('nebulaops.v21_4.id_token');
+        localStorage.removeItem('nebulaops.v22_1.id_token');
         this.isAuthenticated.set(false);
         // Redirect to Keycloak logout then back to app
         const logoutUrl = new URL(`${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/logout`);
@@ -1583,7 +1701,8 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     namespaceOptions(): string[] {
-        return ['all', ...Array.from(new Set(this.resources().map(r => r.namespace)))];
+        const namespaces = this.resources().map((r: K8sResource) => r.namespace).filter(Boolean);
+        return ['all', ...Array.from(new Set<string>(namespaces))];
     }
 
     visibleResources(): K8sResource[] {
@@ -1963,7 +2082,7 @@ ${selectedLogs}`;
     loadDevSecOps(): void {
         this.http.get<any>(API.platform.devsecops).pipe(catchError(() => of(null))).subscribe(data => {
             if (!data) {
-                // v21.3.1: surface a clear offline state so the section never looks empty/broken
+                // v22.1: surface a clear offline state so the section never looks empty/broken
                 this.securityScans.set([{
                     id: 'trivy-offline',
                     tool: 'Trivy',
@@ -2020,7 +2139,8 @@ ${selectedLogs}`;
     }
 
     logServiceOptions(): string[] {
-        return ['all', ...Array.from(new Set(this.logs().map(l => l.service)))];
+        const services = this.logs().map((l: ServiceLog) => l.service).filter(Boolean);
+        return ['all', ...Array.from(new Set<string>(services))];
     }
 
     visibleLogs(): ServiceLog[] {
@@ -2375,7 +2495,7 @@ Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
             time: now,
             service,
             level: i === 2 ? 'PLAN' : 'INFO',
-            message: `${service} OK · v21.4 AI Ops telemetry`
+            message: `${service} OK · v22.1 AI Ops telemetry`
         }));
     }
 

@@ -1,0 +1,4 @@
+nebulaops:
+  mvc:
+    environment: docker
+    gateway-url: ${NEBULAOPS_GATEWAY_URL:http://gateway-service:8080}

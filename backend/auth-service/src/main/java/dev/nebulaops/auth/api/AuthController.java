@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v21.3 — Auth REST API with real JWT tokens (JJWT 0.12).
+ * v22.1 — Auth REST API with real JWT tokens (JJWT 0.12).
  *
  * POST /api/auth/login    → { accessToken, refreshToken, tokenType, expiresIn, user }
  * POST /api/auth/register → { user }
@@ -139,7 +139,7 @@ public class AuthController {
     }
 
     @GetMapping("/healthz")
-    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","21.3"); }
+    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","22.1"); }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 

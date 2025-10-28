@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
-# v21.4 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
-# Usage: ./scripts/wsl/start.sh [--rebuild-gateway]
+# v22.1 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
+# Usage: ./scripts/wsl/start.sh [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy]
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
 REBUILD_GATEWAY=false
+WITH_GITLAB=false
+WITH_SSO_PROXY=false
 for arg in "$@"; do
   case "$arg" in
     --rebuild-gateway) REBUILD_GATEWAY=true ;;
+    --with-gitlab) WITH_GITLAB=true ;;
+    --with-sso-proxy|--with-sso-proxies) WITH_SSO_PROXY=true ;;
     -h|--help)
       cat <<USAGE
-Usage: $0 [--rebuild-gateway]
+Usage: $0 [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy]
   --rebuild-gateway    Force no-cache rebuild of the gateway-service image
                        (use when gateway routes/config changed)
+  --with-gitlab        Also start the optional heavy GitLab CE service
+                       (disabled by default; Keycloak still works)
+  --with-sso-proxy     Also start OAuth2 Proxy wrappers for RabbitMQ, Mongo Express
+                       and Redis Commander. Prometheus SSO remains optional
+                       via COMPOSE_PROFILES=sso-prometheus.
 USAGE
       exit 0
       ;;
@@ -43,7 +52,7 @@ locales=en,it
 THEME
 
   cat > "$theme_dir/login.ftl" <<'FTL'
-<#-- NebulaOps v21.4 standalone Keycloak login page. No template.ftl import. -->
+<#-- NebulaOps v22.1 standalone Keycloak login page. No template.ftl import. -->
 <#assign nbLoginAction="">
 <#assign nbUsername="">
 <#assign nbRemember=false>
@@ -67,7 +76,7 @@ THEME
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>NebulaOps v21.4 Login</title>
+  <title>NebulaOps v22.1 Login</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
@@ -144,10 +153,10 @@ THEME
 <body>
   <main class="nb-card">
     <div class="nb-brand">
-      <div class="nb-logo">N21.4</div>
+      <div class="nb-logo">N22.1</div>
       <div class="nb-brand-text">
         <p>Terraform enabled SaaS cockpit</p>
-        <h1>NebulaOps v21.4</h1>
+        <h1>NebulaOps v22.1</h1>
       </div>
     </div>
     <p class="nb-lead">DevOps portfolio platform - Docker · Kubernetes · Helm · Terraform · GitOps</p>
@@ -188,7 +197,7 @@ THEME
       <input type="hidden" id="id-hidden-input" name="credentialId" value="${nbSelectedCredential?html}">
       <button tabindex="4" class="nb-submit-btn" name="login" id="kc-login" type="submit">Login</button>
     </form>
-    <div class="nb-footer">DevOps Enterprise Cockpit · v21.4 · Local-first</div>
+    <div class="nb-footer">DevOps Enterprise Cockpit · v22.1 · Local-first</div>
   </main>
 </body>
 </html>
@@ -223,7 +232,7 @@ keycloak_oidc_probe() {
   KEYCLOAK_OIDC_CODE="000"
   KEYCLOAK_OIDC_BODY="/tmp/nebulaops-keycloak-auth-start.html"
   KEYCLOAK_OIDC_CODE=$(curl -sS --max-time 10 -o "$KEYCLOAK_OIDC_BODY" -w "%{http_code}" "$(keycloak_auth_url)" 2>/dev/null || true)
-  [ "$KEYCLOAK_OIDC_CODE" = "200" ] && grep -qiE 'kc-form-login|NebulaOps v21\.4|name="username"' "$KEYCLOAK_OIDC_BODY" 2>/dev/null
+  [ "$KEYCLOAK_OIDC_CODE" = "200" ] && grep -qiE 'kc-form-login|NebulaOps v22\.1|name="username"' "$KEYCLOAK_OIDC_BODY" 2>/dev/null
 }
 
 keycloak_admin_token() {
@@ -294,6 +303,55 @@ validate_keycloak_oidc_login() {
   log_warn "Keycloak OIDC login still not OK. Inspect: docker compose -p $PROJECT_NAME logs keycloak --tail=120"
 }
 
+
+sso_redirect_probe() {
+  local label="$1" url="$2" tmp code location
+  tmp="$(mktemp)"
+  code=$(curl -sS --max-time 10 -o /dev/null -D "$tmp" -w "%{http_code}" "$url" 2>/dev/null || true)
+  location=$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[Ll]ocation:[[:space:]]*/, ""); gsub(/\r/, ""); print; exit}' "$tmp" 2>/dev/null || true)
+  rm -f "$tmp"
+
+  case "$code" in
+    200|202)
+      log_ok "$label SSO endpoint reachable ($url, HTTP $code)"
+      return 0
+      ;;
+    301|302|303|307|308)
+      if printf '%s' "$location" | grep -qiE '(/oauth2/(start|sign_in)|localhost:8180|keycloak)'; then
+        log_ok "$label redirects to Keycloak/OAuth2 login ($url)"
+        return 0
+      fi
+      ;;
+  esac
+
+  log_warn "$label SSO endpoint unexpected response: HTTP ${code:-000} Location=${location:-none} ($url)"
+  return 1
+}
+
+validate_sso_proxy_redirects() {
+  log_step "Validating SSO proxy redirects"
+  sso_redirect_probe "RabbitMQ" "http://localhost:15672/" || return 1
+  sso_redirect_probe "Mongo Express" "http://localhost:8088/" || return 1
+  sso_redirect_probe "Redis Commander" "http://localhost:8089/" || return 1
+}
+
+
+append_compose_extra_file() {
+  local file="$1"
+  if [ ! -f "$file" ]; then
+    log_warn "Optional compose override missing: $file"
+    return 0
+  fi
+  if [ -z "${NEBULAOPS_COMPOSE_EXTRA_FILE:-}" ]; then
+    export NEBULAOPS_COMPOSE_EXTRA_FILE="$file"
+  else
+    case ":$NEBULAOPS_COMPOSE_EXTRA_FILE:" in
+      *":$file:"*) ;;
+      *) export NEBULAOPS_COMPOSE_EXTRA_FILE="$NEBULAOPS_COMPOSE_EXTRA_FILE:$file" ;;
+    esac
+  fi
+}
+
 log_step "Pre-flight checks"
 "$ROOT_DIR/scripts/wsl/check-wsl.sh"
 
@@ -318,7 +376,7 @@ if [ "$REBUILD_GATEWAY" = "true" ]; then
   dc build --no-cache gateway-service
 fi
 
-log_step "Starting NebulaOps v21.4"
+log_step "Starting NebulaOps v22.1"
 # Ensure shared Docker network exists (external: true in docker-compose.yml)
 if ! docker network inspect nebulaops-network &>/dev/null; then
   log_info "Creating shared network: nebulaops-network"
@@ -327,25 +385,62 @@ else
   log_info "Network nebulaops-network already exists"
 fi
 export COMPOSE_PARALLEL_LIMIT="${COMPOSE_PARALLEL_LIMIT:-2}"
-dc up --build -d
+compose_profiles=()
+if [ -n "${COMPOSE_PROFILES:-}" ]; then
+  IFS=',' read -r -a compose_profiles <<< "$COMPOSE_PROFILES"
+fi
+if [ "$WITH_GITLAB" = "true" ]; then
+  log_warn "Starting optional GitLab CE profile. This is heavy and may take several minutes."
+  compose_profiles+=("gitlab")
+else
+  log_info "GitLab CE is disabled by default. Use ./scripts/wsl/start.sh --with-gitlab only when needed."
+fi
+# Prometheus remains available on localhost:9090 in both native and SSO tool modes.
+append_compose_extra_file "$ROOT_DIR/docker-compose.prometheus-ui.yml"
+
+if [ "$WITH_SSO_PROXY" = "true" ]; then
+  log_warn "Starting optional SSO proxy profile for RabbitMQ, Mongo Express and Redis Commander."
+  log_info "Prometheus remains native on http://localhost:9090 to avoid mixing observability health with tool SSO wrappers."
+  log_step "Checking OAuth2 Proxy images"
+  "$ROOT_DIR/scripts/oauth2-proxy-preflight.sh"
+  log_step "Recreating SSO proxy bridge containers"
+  dc rm -sf rabbitmq-basic-proxy mongo-express-basic-proxy redis-commander-basic-proxy rabbitmq-management-sso mongo-express-sso redis-commander-sso >/dev/null 2>&1 || true
+  compose_profiles+=("sso-proxy")
+else
+  log_info "SSO proxy wrappers are disabled by default. Native tool UIs are exposed by docker-compose.native-ui.yml."
+  append_compose_extra_file "$ROOT_DIR/docker-compose.native-ui.yml"
+fi
+if [ "${#compose_profiles[@]}" -gt 0 ]; then
+  export COMPOSE_PROFILES="$(IFS=','; echo "${compose_profiles[*]}")"
+fi
+dc up --build -d --remove-orphans
+
+log_step "Ensuring Keycloak clients"
+"$ROOT_DIR/scripts/keycloak-ensure-sso-clients.sh" || log_warn "Keycloak client auto-check failed; use ./scripts/keycloak-ensure-sso-clients.sh after startup"
 
 validate_keycloak_oidc_login || log_warn "Keycloak custom login is not healthy yet; run ./scripts/wsl/health.sh and inspect keycloak logs"
+if [ "$WITH_SSO_PROXY" = "true" ]; then
+  validate_sso_proxy_redirects || log_warn "SSO proxy redirects are not all ready yet; run ./scripts/wsl/health.sh and inspect *-sso logs"
+fi
 
 log_step "Waiting for gateway-service"
-wait_http "http://localhost:8080/api/health" 120 "gateway-service" || \
+wait_http "http://localhost:8080/actuator/health" 120 "gateway-service" || \
   log_warn "Inspect logs: ./scripts/wsl/logs.sh gateway-service"
 
 cat <<INFO
 
-${C_BOLD}NebulaOps v21.4 is running.${C_RESET}
+${C_BOLD}NebulaOps v22.1 is running.${C_RESET}
 
   ${C_CYAN}Frontend${C_RESET}    http://localhost:4200
   ${C_CYAN}Gateway${C_RESET}     http://localhost:8080/actuator/health
   ${C_CYAN}Grafana${C_RESET}     http://localhost:3000        admin/admin
   ${C_CYAN}Keycloak${C_RESET}    http://localhost:8180        admin/admin
-  ${C_CYAN}Prometheus${C_RESET}  http://localhost:9090
-  ${C_CYAN}RabbitMQ${C_RESET}    http://localhost:15672       guest/guest
-  ${C_CYAN}Mongo${C_RESET}       http://localhost:8088        admin/admin
+  ${C_CYAN}GitLab${C_RESET}      optional: ./scripts/wsl/start.sh --with-gitlab
+  ${C_CYAN}SSO Proxies${C_RESET} optional: ./scripts/wsl/start.sh --with-sso-proxy
+  ${C_CYAN}Prometheus${C_RESET}  http://localhost:9090        native health/UI in every mode
+  ${C_CYAN}RabbitMQ${C_RESET}    http://localhost:15672       native guest/guest; Keycloak SSO with --with-sso-proxy
+  ${C_CYAN}Mongo${C_RESET}       http://localhost:8088        native admin/admin; Keycloak SSO with --with-sso-proxy
+  ${C_CYAN}Redis UI${C_RESET}    http://localhost:8089        native admin/admin; Keycloak SSO with --with-sso-proxy
 
 Useful:  ./scripts/wsl/health.sh        — overall status
          ./scripts/wsl/logs.sh <svc>    — tail service logs

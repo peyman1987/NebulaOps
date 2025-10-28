@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * v21.3 — Cost analytics REST API.
+ * v22.1 — Cost analytics REST API.
  * Exposes cost summaries and breakdown for the FinOps tab.
  */
 @RestController

@@ -1,8 +1,8 @@
-# NebulaOps v21.3
+# NebulaOps v22.1
 
 End-to-end DevOps and platform engineering portfolio: Angular frontend, Spring Boot
 microservices, Go services, Python AI engine, full observability stack
-(Prometheus, Loki, Tempo, Grafana), GitOps and DevSecOps tooling — all
+(Prometheus, Loki, Tempo, Grafana), GitLab, Argo CD, GitOps and DevSecOps tooling — all
 orchestrated locally with Docker Compose.
 
 ## Quickstart (WSL2 or Linux)
@@ -22,15 +22,15 @@ To force-rebuild the gateway after editing controllers or proxy config:
 
 ```
 ┌──────────┐     ┌──────────────┐     ┌────────────────────────┐
-│ Browser  │ →   │  Frontend    │ →   │  Gateway (Spring MVC)  │
+│ Browser  │ →   │  Frontend    │ →   │  Gateway (Spring Boot)  │
 │ :4200    │     │  (nginx)     │     │  :8080                 │
 └──────────┘     └──────────────┘     └────────────────────────┘
                                                 │
                 ┌───────────────┬───────────────┼───────────────┬───────────────┐
                 ▼               ▼               ▼               ▼               ▼
-            auth-svc        task-svc       ai-ops-svc     pipeline-svc     ... 9 more
+            auth-svc        task-svc       ai-ops-svc     pipeline-svc     ... 10 more
             (Spring         (Spring        (Spring        (Spring          backend
-             Boot 21)       Boot 21)       Boot 21)       Boot 21)         services
+             Boot 3.3)       Boot 3.3)       Boot 3.3)       Boot 3.3)         services
                 │                              │
                 ▼                              ▼
             MongoDB                       Python ai-engine
@@ -43,8 +43,20 @@ The **gateway** owns:
   via `kubectl`/`docker`/`helm`/`terraform` on the host)
 - Frontend-shaped responses (`/api/kubernetes/snapshot`, `/api/platform/*`,
   `/api/runtime/*`) so Angular doesn't have to reshape JSON
+- Keycloak JWT validation and Bearer-token relay to downstream services
 - HTTP proxying to downstream microservices (`/api/tasks`, `/api/auth/*`,
   `/api/ai-ops/*`)
+
+## Diagrams
+
+The architecture package includes these SVG diagrams:
+
+- `docs/diagrams/runtime-architecture.svg`
+- `docs/diagrams/gitlab-argocd-flow.svg`
+- `docs/diagrams/messaging-cache-flow.svg`
+- `docs/diagrams/kubernetes-helm-view.svg`
+- `docs/diagrams/request-flow-sequence.svg`
+- `docs/diagrams/service-port-map.svg`
 
 ## Centralized configuration
 
@@ -80,6 +92,8 @@ consumers above, restart.
 | -------------- | -------------------------------- | ------------- |
 | Frontend       | http://localhost:4200            | —             |
 | Gateway        | http://localhost:8080            | —             |
+| Keycloak       | http://localhost:8180            | admin/admin   |
+| GitLab         | http://localhost:8929            | root/NebulaOpsRoot22! |
 | Grafana        | http://localhost:3000            | admin/admin   |
 | Prometheus     | http://localhost:9090            | —             |
 | Loki           | http://localhost:3100            | —             |
@@ -128,7 +142,7 @@ Run `./scripts/wsl/health.sh` to see which downstream service is down.
 │   ├── auth-service/
 │   ├── task-service/
 │   ├── ai-ops-service/
-│   └── ... 8 more services
+│   └── ... 10 more services
 ├── go/                              ← Go cache + event worker
 ├── ai-engine/                       ← Python FastAPI inference
 ├── infrastructure/                  ← Helm charts, Grafana, OTel configs
@@ -139,4 +153,11 @@ Run `./scripts/wsl/health.sh` to see which downstream service is down.
 
 ## Version
 
-**v21.3.1** — see `RELEASE_NOTES_v21.3.md` for details.
+**v22.1** — see `RELEASE_NOTES_v22.1.md` for details.
+
+## v22.1 Keycloak SSO proxy patch
+
+- RabbitMQ Management, Prometheus, Mongo Express and Redis Commander are now behind Keycloak via OAuth2 Proxy.
+- The RabbitMQ/Mongo/Redis legacy login forms are bypassed through an internal dev-only NGINX bridge after Keycloak authentication.
+- The Keycloak login theme has been fixed to avoid blank login pages with Keycloak 24.
+- Run `./scripts/keycloak-sso-reset.sh` after upgrading so the realm is reimported.

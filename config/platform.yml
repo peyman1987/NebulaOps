@@ -1,10 +1,10 @@
-# NebulaOps v21.3 — Centralized service URL registry
+# NebulaOps v22.1 — Centralized service URL registry
 # Single source of truth for all inter-service communication URLs.
 # Used by: gateway-service application.yml, docker-compose.yml,
 # frontend api.config.ts (via build-time injection in scripts/sync-config.sh).
 
-version: 21.3.0
-release: v21.3
+version: 22.1.0
+release: v22.1
 
 # Internal service URLs (used by gateway-service ProxyController)
 # Hostnames match docker-compose service names
@@ -23,7 +23,7 @@ services:
   ai-engine:     { host: ai-engine,                   port: 8095 }
   go-cache:      { host: go-cache-service,            port: 8091 }
   gateway:       { host: gateway-service,             port: 8080 }
-  # v21.3 NEW services
+  # v22.1 NEW services
   cost:          { host: cost-analytics-service,      port: 8097 }
   notify-ws:     { host: notification-ws-service,     port: 8098 }
 
@@ -36,6 +36,8 @@ infra:
   loki:       { host: loki,       port: 3100 }
   tempo:      { host: tempo,      port: 3200 }
   grafana:    { host: grafana,    port: 3000 }
+  keycloak:   { host: keycloak,   port: 8080 }
+  gitlab:     { host: gitlab,     port: 8929 }
 
 # Frontend → gateway API routes (consumed by api.config.ts)
 api:
@@ -56,7 +58,7 @@ api:
     platform-environments:  /platform/environments
     ai-ops-analyze:         /ai-ops/analyze
     ai-ops-autofix:         /ai-ops/autofix
-    # v21.3 NEW
+    # v22.1 NEW
     cost-summary:           /cost/summary
     notifications-live:     /notifications/live
     pipeline-runs:          /pipeline/runs

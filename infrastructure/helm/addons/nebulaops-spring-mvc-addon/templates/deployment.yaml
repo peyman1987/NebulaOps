@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "springMvcAddon.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "springMvcAddon.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: spring-mvc-service
+  template:
+    metadata:
+      labels:
+        {{- include "springMvcAddon.labels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "{{ .Values.service.port }}"
+    spec:
+      containers:
+        - name: spring-mvc-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          env:
+            - name: SERVER_PORT
+              value: "{{ .Values.service.port }}"
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: APP_DISPLAY_NAME
+              value: {{ .Values.app.displayName | quote }}
+            - name: APP_ENVIRONMENT
+              value: {{ .Values.app.environment | quote }}
+            - name: NEBULAOPS_GATEWAY_URL
+              value: {{ .Values.app.gatewayUrl | quote }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources | nindent 16 }}

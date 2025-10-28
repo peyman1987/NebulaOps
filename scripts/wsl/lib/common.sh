@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# v21.4 — Shared helpers sourced by all WSL scripts.
+# v22.1 — Shared helpers sourced by all WSL scripts.
 # Provides logging, status indicators, project naming, compose helpers.
 
 # Project naming — derived once, consumed by all scripts
-export PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v21-4}"
+export PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v22-1}"
 export ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 export COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
 export CONFIG_FILE="$ROOT_DIR/config/platform.yml"
@@ -23,7 +23,18 @@ log_warn()  { printf "${C_YELLOW}⚠${C_RESET}  %s\n" "$*"; }
 log_err()   { printf "${C_RED}✗${C_RESET}  %s\n" "$*" >&2; }
 log_step()  { printf "\n${C_BOLD}${C_CYAN}▶ %s${C_RESET}\n" "$*"; }
 
-dc()  { docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" "$@"; }
+dc()  {
+  local args=(-p "$PROJECT_NAME" -f "$COMPOSE_FILE")
+  if [ -n "${NEBULAOPS_COMPOSE_EXTRA_FILE:-}" ]; then
+    local extra_files=()
+    IFS=':' read -r -a extra_files <<< "$NEBULAOPS_COMPOSE_EXTRA_FILE"
+    local f
+    for f in "${extra_files[@]}"; do
+      [ -n "$f" ] && args+=(-f "$f")
+    done
+  fi
+  docker compose "${args[@]}" "$@"
+}
 
 check_command() {
   command -v "$1" >/dev/null 2>&1 \
