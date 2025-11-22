@@ -1,4 +1,4 @@
-# NebulaOps v21.2 Task REST Fix
+# NebulaOps v22.2 Task REST Fix
 
 This release fixes the Tasks UI regression.
 

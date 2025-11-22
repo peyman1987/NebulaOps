@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# NebulaOps v22.1 — Deploy fixed Keycloak theme
-# Run from the nebulaops-v22.1 project root:
+# NebulaOps v22.2 — Deploy fixed Keycloak theme
+# Run from the nebulaops-v22.2 project root:
 #   bash path/to/deploy-theme.sh
 set -euo pipefail
 
@@ -22,7 +22,7 @@ cp "$SCRIPT_DIR/infrastructure/keycloak/themes/nebulaops/login/resources/css/neb
 echo "✓ Theme files copied"
 echo ""
 echo "▶ Restarting Keycloak container ..."
-docker compose -p nebulaops-v22-1 restart keycloak
+docker compose -p nebulaops-v22-2 restart keycloak
 
 echo ""
 echo "▶ Waiting for Keycloak to be ready (up to 60s) ..."
@@ -38,7 +38,7 @@ done
 
 echo ""
 echo "▶ Checking for FreeMarker errors ..."
-ERRORS=$(docker compose -p nebulaops-v22-1 logs keycloak --tail=80 2>/dev/null | grep -iE 'freemarker|ParseException' || true)
+ERRORS=$(docker compose -p nebulaops-v22-2 logs keycloak --tail=80 2>/dev/null | grep -iE 'freemarker|ParseException' || true)
 if [ -z "$ERRORS" ]; then
   echo "✓ No FreeMarker errors — theme loaded successfully"
   echo ""

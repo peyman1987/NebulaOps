@@ -13,13 +13,13 @@ public class HealthController {
         return Map.of(
             "status",    "UP",
             "service",   "gateway-service",
-            "version",   "22.1",
+            "version",   "22.2",
             "timestamp", Instant.now().toString()
         );
     }
 
     @GetMapping("/api/ping")
     public Map<String, Object> ping() {
-        return Map.of("ok", true, "version", "22.1", "ts", Instant.now().toString());
+        return Map.of("ok", true, "version", "22.2", "ts", Instant.now().toString());
     }
 }

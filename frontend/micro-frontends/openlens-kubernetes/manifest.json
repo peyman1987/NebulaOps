@@ -1,0 +1,9 @@
+{
+  "id": "openlens-kubernetes",
+  "service": "mfe-openlens-kubernetes",
+  "tag": "nebulaops-mfe-openlens-kubernetes",
+  "port": 4212,
+  "title": "OpenLens Kubernetes",
+  "group": "Runtime",
+  "navigation": "owned by shell side menu"
+}

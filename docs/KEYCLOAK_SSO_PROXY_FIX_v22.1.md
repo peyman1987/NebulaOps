@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — Keycloak SSO Proxy Fix
+# NebulaOps v22.2 — Keycloak SSO Proxy Fix
 
 This patch makes the local admin UIs behave consistently with the Keycloak-first authentication model.
 
@@ -28,7 +28,7 @@ Alternatively:
 
 ```bash
 docker compose down --remove-orphans
-docker volume rm nebulaops-v22-1_keycloak-db-data 2>/dev/null || true
+docker volume rm nebulaops-v22-2_keycloak-db-data 2>/dev/null || true
 ./scripts/docker-network-fix.sh
 docker compose up -d --build
 ```

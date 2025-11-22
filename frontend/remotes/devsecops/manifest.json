@@ -1,0 +1,10 @@
+{
+  "id": "devsecops",
+  "title": "DevSecOps",
+  "version": "22.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-devsecops",
+  "port": 4217,
+  "scope": "Security \u00b7 Secrets/Vulns",
+  "shellOwnedNavigation": true
+}

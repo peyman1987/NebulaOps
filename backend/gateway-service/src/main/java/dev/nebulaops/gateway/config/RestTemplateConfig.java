@@ -10,7 +10,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * v22.1 — RestTemplate config.
+ * v22.2 — RestTemplate config.
  *
  * Uses JdkClientHttpRequestFactory and relays the incoming Keycloak Bearer token
  * from the gateway to downstream Spring services so every microservice can act

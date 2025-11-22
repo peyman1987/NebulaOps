@@ -1,4 +1,4 @@
-# Start here — NebulaOps v22.1
+# Start here — NebulaOps v22.2
 
 ## Run it
 
@@ -39,10 +39,10 @@ else (tasks, auth, observability) keeps working.
 
 - `README.md` — full overview, project layout, all URLs
 - `ARCHITECTURE.md` — component diagram and data flow
-- `RELEASE_NOTES_v22.1.md` — what changed in this release
+- `RELEASE_NOTES_v22.2.md` — what changed in this release
 - `config/platform.yml` — every service URL in one place
 
-## v22.1 Keycloak SSO proxy patch
+## v22.2 Keycloak SSO proxy patch
 
 - RabbitMQ Management, Prometheus, Mongo Express and Redis Commander are now behind Keycloak via OAuth2 Proxy.
 - The RabbitMQ/Mongo/Redis legacy login forms are bypassed through an internal dev-only NGINX bridge after Keycloak authentication.

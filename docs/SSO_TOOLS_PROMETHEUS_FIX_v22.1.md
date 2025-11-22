@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — SSO tools Prometheus health fix
+# NebulaOps v22.2 — SSO tools Prometheus health fix
 
 This patch keeps Prometheus exposed on `http://localhost:9090` in both normal startup and `--with-sso-proxy` startup.
 

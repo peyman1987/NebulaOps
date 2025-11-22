@@ -1,6 +1,6 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-name: nebulaops-v17
+name: nebulaops-v22-2
 nodes:
   - role: control-plane
     extraPortMappings:

@@ -1,0 +1,9 @@
+{
+  "id": "devsecops",
+  "service": "mfe-devsecops",
+  "tag": "nebulaops-mfe-devsecops",
+  "port": 4217,
+  "title": "DevSecOps",
+  "group": "Security",
+  "navigation": "owned by shell side menu"
+}

@@ -1,4 +1,4 @@
-# NebulaOps v22.1
+# NebulaOps v22.2
 
 End-to-end DevOps and platform engineering portfolio: Angular frontend, Spring Boot
 microservices, Go services, Python AI engine, full observability stack
@@ -153,11 +153,44 @@ Run `./scripts/wsl/health.sh` to see which downstream service is down.
 
 ## Version
 
-**v22.1** — see `RELEASE_NOTES_v22.1.md` for details.
+**v22.2** — see `RELEASE_NOTES_v22.2.md` for details.
 
-## v22.1 Keycloak SSO proxy patch
+## v22.2 Keycloak SSO proxy patch
 
 - RabbitMQ Management, Prometheus, Mongo Express and Redis Commander are now behind Keycloak via OAuth2 Proxy.
 - The RabbitMQ/Mongo/Redis legacy login forms are bypassed through an internal dev-only NGINX bridge after Keycloak authentication.
 - The Keycloak login theme has been fixed to avoid blank login pages with Keycloak 24.
 - Run `./scripts/keycloak-sso-reset.sh` after upgrading so the realm is reimported.
+
+
+## v22.2 Micro frontend shell
+
+La v22.2 separa la console in tre micro frontend logici: Docker Desktop + OpenLens, Task Management e Platform Core. La App Bar del top header ora si apre in modal moderno e la UI include favicon SVG e badge versione 3D.
+
+### NebulaOps v22.2 expanded micro frontends
+
+La shell host Angular su `http://localhost:4200` mantiene il menu laterale persistente e carica remote indipendenti su porte dedicate: Docker Desktop `4211`, OpenLens Kubernetes `4212`, Task Management `4213`, Observability `4214`, CI/CD + GitOps `4215`, Terraform Studio `4216`, DevSecOps `4217`, AI Ops `4218` e FinOps Cost `4219`. I remote non duplicano la navigazione globale: ereditano token Keycloak e contesto dalla shell.
+
+
+## v22.2 verification flow
+
+Before runtime startup, run:
+
+```bash
+./scripts/wsl/preflight-v22.2.sh
+./scripts/wsl/start.sh
+./scripts/wsl/health.sh
+```
+
+For OAuth2 Proxy on RabbitMQ, Mongo Express and Redis Commander:
+
+```bash
+./scripts/wsl/stop.sh
+./scripts/wsl/start.sh --with-sso-proxy
+./scripts/wsl/health.sh
+```
+
+
+## INFRA Hub MFE
+
+NebulaOps v22.2 includes a dedicated `infra-hub` micro frontend on port `4220`. It restores the previous INFRA console experience as an independently deployable remote and links observability, data, runtime, gateway and GitOps endpoints.

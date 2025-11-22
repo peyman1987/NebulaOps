@@ -1,0 +1,10 @@
+{
+  "id": "cicd-gitops",
+  "title": "CI/CD + GitOps",
+  "version": "22.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-cicd-gitops",
+  "port": 4215,
+  "scope": "DevOps \u00b7 Pipelines/GitOps",
+  "shellOwnedNavigation": true
+}

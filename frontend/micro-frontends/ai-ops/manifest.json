@@ -1,0 +1,9 @@
+{
+  "id": "ai-ops",
+  "service": "mfe-ai-ops",
+  "tag": "nebulaops-mfe-ai-ops",
+  "port": 4218,
+  "title": "AI Ops",
+  "group": "AI",
+  "navigation": "owned by shell side menu"
+}

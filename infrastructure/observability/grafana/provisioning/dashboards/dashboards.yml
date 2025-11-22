@@ -1,8 +1,8 @@
 apiVersion: 1
 providers:
-  - name: NebulaOps v17
+  - name: NebulaOps v22.2
     orgId: 1
-    folder: NebulaOps v17
+    folder: NebulaOps v22.2
     type: file
     disableDeletion: false
     editable: true

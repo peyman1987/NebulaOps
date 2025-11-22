@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.1 — Fast gateway restart (no-cache rebuild + restart only the gateway).
+# v22.2 — Fast gateway restart (no-cache rebuild + restart only the gateway).
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 

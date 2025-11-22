@@ -1,0 +1,39 @@
+<div class="shell">
+  <div class="header">
+    <div>
+      <p class="kicker">REMOTE MFE · TASK MANAGEMENT</p>
+      <h1>✅ Task Management</h1>
+      <p class="subtitle">Backlog, sprint planning, priorities and ownership. Powered by RabbitMQ for real-time notifications.</p>
+    </div>
+    <div class="cube">✅</div>
+  </div>
+  <div class="toolbar">
+    @for (f of ['all','todo','in-progress','done','blocked']; track f) {
+      <button class="btn" [class.primary]="filter()===f" (click)="filter.set($any(f))">{{ f }}</button>
+    }
+  </div>
+  <div class="list">
+    @for (t of filtered(); track t.id) {
+      <div class="row">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="meta">{{ t.id }}</span>
+            <b>{{ t.title }}</b>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">
+            <span class="pill" [ngClass]="prioClass(t.priority)">{{ t.priority }}</span>
+            <span class="pill" [ngClass]="statusClass(t.status)">{{ t.status }}</span>
+            <span class="meta">👤 {{ t.assignee }}</span>
+            @for (l of t.labels; track l) { <span class="pill">{{ l }}</span> }
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          @if (t.status !== 'in-progress') { <button class="btn primary" (click)="moveStatus(t,'in-progress')">▶ Start</button> }
+          @if (t.status !== 'done')        { <button class="btn green"   (click)="moveStatus(t,'done')">✔ Done</button> }
+          @if (t.status !== 'blocked')     { <button class="btn danger"  (click)="moveStatus(t,'blocked')">🚫 Block</button> }
+        </div>
+      </div>
+    }
+  </div>
+</div>
+@if (toast()) { <div class="toast">{{ toast() }}</div> }

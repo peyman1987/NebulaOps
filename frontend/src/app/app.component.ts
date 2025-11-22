@@ -1,2582 +1,504 @@
-import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
+import {Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, computed, inject, signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {CdkDragDrop, DragDropModule} from '@angular/cdk/drag-drop';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {catchError, forkJoin, of, throwError} from 'rxjs';
 import {
-    API, APP_VERSION, APP_RELEASE,
-    JWT_KEY as _JWT_KEY, USER_KEY as _USER_KEY,
-    KC_AUTH_URL, KC_TOKEN_URL, KC_LOGOUT_URL, KC_CLIENT_ID, KC_REDIRECT_URI, KC_REALM, KC_BASE
+  APP_RELEASE,
+  APP_VERSION,
+  JWT_KEY,
+  USER_KEY,
+  KC_AUTH_URL,
+  KC_TOKEN_URL,
+  KC_LOGOUT_URL,
+  KC_CLIENT_ID,
+  KC_REDIRECT_URI
 } from './api.config';
-// Note: SESSION_KEY below must stay in sync with JWT_KEY above
+import { REMOTES, SERVICE_LINKS, SIDEBAR_GROUPS, RemoteDefinition, RemoteId, ServiceLink, remoteSearchText } from './platform/catalog';
 
-type MainTab =
-    'OVERVIEW'
-    | 'TASKS'
-    | 'KUBERNETES'
-    | 'CONTAINERS'
-    | 'TERRAFORM'
-    | 'HELM'
-    | 'OBSERVABILITY'
-    | 'AI OPS'
-    | 'CICD'
-    | 'GITOPS'
-    | 'ENVIRONMENTS'
-    | 'TERRAFORM STUDIO'
-    | 'INFRA'
-    | 'SECURITY'
-    | 'COMPLIANCE'
-    | 'VULNERABILITIES'
-    | 'FINOPS'
-    | 'BACKUPS'
-    | 'DOCS'
-    | 'REGISTRY'
-    | 'SERVICE MESH'
-    | 'SECRETS'
-    | 'DATABASES'
-    | 'QUEUES'
-    | 'SLO'
-    | 'INCIDENTS'
-    | 'AUDIT';
-type Status = 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
-type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-type K8sKind =
-    'Namespace'
-    | 'Deployment'
-    | 'StatefulSet'
-    | 'DaemonSet'
-    | 'Service'
-    | 'Ingress'
-    | 'ConfigMap'
-    | 'Secret'
-    | 'CronJob'
-    | 'ReplicaSet'
-    | 'Job'
-    | 'Endpoint'
-    | 'NetworkPolicy'
-    | 'PersistentVolume'
-    | 'PersistentVolumeClaim'
-    | 'StorageClass';
 
-interface Task {
-    id: string;
-    title: string;
-    owner: string;
-    priority: Priority;
-    status: Status;
+
+interface RemoteSummaryCard {
+  label: string;
+  value: string;
+  detail: string;
 }
 
-interface ServiceLog {
-    time: string;
-    service: string;
-    level: string;
-    message: string;
+interface DiagramNode {
+  label: string;
+  detail: string;
+  icon: string;
+  x: number;
+  y: number;
+  width: number;
+  tone: 'primary' | 'normal' | 'warn' | 'success';
 }
 
-interface K8sResource {
-    id: string;
-    kind: K8sKind;
-    namespace: string;
-    name: string;
-    replicas: number;
-    status: string;
-    yaml: string;
-    updatedAt: string;
+interface DiagramEdge {
+  d: string;
+  label: string;
 }
 
-interface K8sSnapshot {
-    cluster: { name: string; provider: string; version: string; status: string };
-    resources: K8sResource[];
-    logs: ServiceLog[];
+interface DiagramStat {
+  label: string;
+  value: string;
 }
 
-interface DockerContainer {
-    id: string;
-    name: string;
-    image: string;
-    status: 'running' | 'stopped' | 'restarting' | 'paused';
-    cpu: number;
-    memory: number;
-    ports: string;
-    network: string;
-    logs: string[];
+interface RemoteDiagram {
+  kicker: string;
+  title: string;
+  description: string;
+  edges: DiagramEdge[];
+  nodes: DiagramNode[];
+  stats: DiagramStat[];
 }
 
-interface DockerImage {
-    repository: string;
-    tag: string;
-    size: string;
-    vulnerabilities: number;
-    created: string;
-}
-
-interface DockerVolume {
-    name: string;
-    driver: string;
-    mount: string;
-    size: string;
-}
-
-interface K8sController {
-    kind: string;
-    name: string;
-    namespace: string;
-    desired: number;
-    available: number;
-    strategy: string;
-    age: string;
-}
-
-interface LensAction {
-    title: string;
-    target: string;
-    command: string;
-    severity: Priority;
-}
-
-interface TfModule {
-    name: string;
-    type: string;
-    status: string;
-    drift: number;
-    resources: number;
-    command: string;
-}
-
-interface PipelineStage {
-    name: string;
-    status: 'passed' | 'running' | 'queued' | 'blocked';
-    duration: string;
-    detail: string;
-}
-
-interface PipelineDesignerNode {
-    id: string;
-    name: string;
-    status: PipelineDesignerStatus;
-    icon: string;
-    tool: string;
-    x: number;
-    y: number;
-    yaml: string;
-}
-
-interface InfraLink {
-    title: string;
-    description: string;
-    url?: string;
-    tab?: MainTab;
-    kind: 'external' | 'internal';
-    icon: string;
-    status: string;
-}
-
-interface SecurityFinding {
-    id: string;
-    area: string;
-    severity: Priority;
-    title: string;
-    remediation: string;
-    done: boolean;
-}
-
-type SecurityTab = 'SECURITY' | 'COMPLIANCE' | 'VULNERABILITIES';
-type ScanStatus = 'PASSED' | 'RUNNING' | 'FAILED' | 'QUEUED' | 'failed';
-
-interface ObservabilityStackItem {
-    name: string;
-    role: string;
-    endpoint: string;
-    health: number;
-    signal: string;
-}
-
-interface TraceHop {
-    from: string;
-    to: string;
-    latency: number;
-    status: string;
-}
-
-interface GitOpsState {
-    sync: string;
-    drift: number;
-    revision: string;
-    health: string;
-}
-
-interface DeploymentWave {
-    wave: string;
-    target: string;
-    status: string;
-}
-
-interface NebulaEnvironment {
-    name: string;
-    namespace: string;
-    cluster: string;
-    health: number;
-    cost: number;
-    drift: number;
-    workspace: string;
-}
-
-type PipelineDesignerStatus = 'success' | 'running' | 'queued' | 'blocked';
-
-interface SecurityScan {
-    id: string;
-    tool: 'Trivy' | 'Docker' | 'SAST' | 'Secrets' | 'Dependency';
-    target: string;
-    status: ScanStatus;
-    critical: number;
-    high: number;
-    medium: number;
-    duration: string;
-}
-
-interface CveItem {
-    cve: string;
-    packageName: string;
-    severity: Priority;
-    image: string;
-    fixVersion: string;
-    exploit: string;
-}
-
-interface ComplianceControl {
-    id: string;
-    framework: string;
-    title: string;
-    score: number;
-    status: 'pass' | 'warn' | 'fail';
-}
-
-interface ThreatPoint {
-    name: string;
-    x: number;
-    y: number;
-    severity: Priority;
-    vector: string;
-}
-
-interface AiOpsEvent {
-    time: string;
-    service: string;
-    severity: Priority;
-    title: string;
-    status: string;
-    recommendation: string;
-}
-
-interface PlatformTool {
-    title: string;
-    tab: MainTab;
-    icon: string;
-    description: string;
-    status: string;
-    category: string;
-}
-
-interface AiOpsNode {
-    id: string;
-    label: string;
-    type: string;
-    health: number;
-    x: number;
-    y: number;
-    z: number;
-    status: 'ok' | 'warn' | 'critical';
-}
-
-interface AiOpsAnalysis {
-    incidentId: string;
-    summary: string;
-    rootCause: string;
-    confidence: number;
-    blastRadius: string[];
-    fix: string;
-    yaml: string;
-    events: AiOpsEvent[];
-    nodes: AiOpsNode[];
-}
-
-interface ClusterNode3D {
-    id: string;
-    label: string;
-    role: string;
-    cpu: number;
-    ram: number;
-    x: number;
-    y: number;
-    z: number;
-    status: 'healthy' | 'warning' | 'critical';
-}
-
-interface ClusterEdge {
-    from: string;
-    to: string;
-    traffic: number;
-    status: 'ok' | 'hot' | 'critical';
-}
-
-interface ClusterEvent {
-    time: string;
-    type: string;
-    target: string;
-    message: string;
-    severity: Priority;
-}
-
-interface LiveMetric {
-    label: string;
-    value: number;
-    unit: string;
-    trend: string;
-}
-
-interface HomeLauncher {
-    title: string;
-    subtitle: string;
-    kind: 'internal' | 'external';
-    tab?: MainTab;
-    url?: string;
-    icon: string;
-    accent: string;
-    status: string;
-}
-
-const TASKS_KEY = 'nebulaops.v20_2.tasks'; // legacy key, no longer used for live task data
-const K8S_KEY = 'nebulaops.v22_1.k8s';
-const SESSION_KEY = 'nebulaops.v22_1.jwt';
-const USER_KEY    = 'nebulaops.v22_1.user';
-
-function yamlOf(kind: K8sKind, ns: string, name: string, replicas = 1): string {
-    if (['Deployment', 'StatefulSet', 'DaemonSet'].includes(kind)) return `apiVersion: apps/v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v22-1\nspec:\n  replicas: ${kind === 'DaemonSet' ? 0 : replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: nginx:1.27-alpine\n          ports:\n            - containerPort: 80\n`;
-    if (kind === 'Service') return `apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  selector:\n    app: ${name}\n  ports:\n    - port: 80\n      targetPort: 80\n`;
-    if (kind === 'Ingress') return `apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  rules:\n    - host: nebulaops.local\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80\n`;
-    if (kind === 'CronJob') return `apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: ${name}\n  namespace: ${ns}\nspec:\n  schedule: \"*/15 * * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: ${name}\n              image: busybox:1.36\n              command: [\"sh\", \"-c\", \"date && echo nebulaops backup\"]\n`;
-    return `apiVersion: v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${ns}\n`;
-}
-
-function res(kind: K8sKind, namespace: string, name: string, replicas = 0): K8sResource {
-    return {
-        id: `${kind}:${namespace}:${name}`,
-        kind,
-        namespace,
-        name,
-        replicas,
-        status: kind === 'Deployment' ? 'Available' : 'Ready',
-        yaml: yamlOf(kind, namespace, name, replicas),
-        updatedAt: new Date().toISOString()
-    };
-}
+const DIAGRAMS: Record<RemoteId, RemoteDiagram> = {
+  'docker-desktop': {
+    kicker: 'DOCKER RUNTIME TOPOLOGY',
+    title: 'Container lifecycle and image operations',
+    description: 'This view follows the Docker path: shell navigation loads the remote entry, the Docker MFE calls the gateway, and runtime actions are executed against the Docker socket exposed to backend services.',
+    edges: [
+      { d: 'M70 110 C135 60 190 60 250 110', label: 'remote entry' },
+      { d: 'M290 110 C350 55 430 60 500 110', label: 'gateway API' },
+      { d: 'M290 140 C345 190 420 190 490 145', label: 'runtime socket' },
+    ],
+    nodes: [
+      { icon: '🧭', label: 'Shell', detail: 'session + navigation', x: 34, y: 82, width: 96, tone: 'normal' },
+      { icon: '🐳', label: 'Docker MFE', detail: 'containers/images', x: 210, y: 76, width: 132, tone: 'primary' },
+      { icon: '🚪', label: 'Gateway', detail: '/api/docker', x: 426, y: 82, width: 104, tone: 'success' },
+      { icon: '⚙️', label: 'Docker Engine', detail: 'socket actions', x: 392, y: 154, width: 138, tone: 'warn' },
+    ],
+    stats: [
+      { label: 'Scope', value: 'containers · images · volumes' },
+      { label: 'Backend path', value: 'gateway → runtime service' },
+    ],
+  },
+  'infra-hub': {
+    kicker: 'INFRA CONSOLE HUB',
+    title: 'Central entry point for local platform consoles',
+    description: 'INFRA Hub maps the operational endpoints that were available in the previous version and exposes them as a dedicated MFE: observability tools, data consoles, gateway checks and GitOps access points.',
+    edges: [
+      { d: 'M70 112 C150 52 230 62 285 108', label: 'console catalog' },
+      { d: 'M285 108 C350 52 440 54 506 110', label: 'open console' },
+      { d: 'M285 138 C350 185 425 184 500 148', label: 'health endpoints' },
+    ],
+    nodes: [
+      { icon: '🏗️', label: 'INFRA Hub', detail: 'service catalog', x: 28, y: 82, width: 130, tone: 'primary' },
+      { icon: '📊', label: 'Observe', detail: 'Grafana/Prometheus', x: 218, y: 74, width: 132, tone: 'success' },
+      { icon: '🗄️', label: 'Data', detail: 'Mongo/Redis/RabbitMQ', x: 398, y: 74, width: 142, tone: 'normal' },
+      { icon: '∞', label: 'GitOps', detail: 'ArgoCD/Gateway', x: 398, y: 150, width: 142, tone: 'warn' },
+    ],
+    stats: [
+      { label: 'Console set', value: 'observability · data · GitOps' },
+      { label: 'Access model', value: 'external links + health checks' },
+    ],
+  },
+  'openlens-kubernetes': {
+    kicker: 'KUBERNETES WORKLOAD MAP',
+    title: 'Namespace, workload and Helm release navigation',
+    description: 'The Kubernetes remote is centered on cluster state: workloads, services, config, events, nodes and Helm releases are grouped so operational issues can be inspected without leaving the shell.',
+    edges: [
+      { d: 'M76 112 C135 64 205 64 270 112', label: 'cluster query' },
+      { d: 'M270 112 C340 55 420 60 505 112', label: 'workload state' },
+      { d: 'M270 142 C335 190 420 190 500 148', label: 'events + helm' },
+    ],
+    nodes: [
+      { icon: '☸️', label: 'Cluster', detail: 'namespaces', x: 34, y: 82, width: 104, tone: 'primary' },
+      { icon: '⬡', label: 'Pods', detail: 'readiness/logs', x: 220, y: 76, width: 108, tone: 'success' },
+      { icon: '🚀', label: 'Deployments', detail: 'scale/restart', x: 398, y: 76, width: 132, tone: 'normal' },
+      { icon: '⛵', label: 'Helm', detail: 'release status', x: 410, y: 152, width: 104, tone: 'warn' },
+    ],
+    stats: [
+      { label: 'K8s sections', value: 'pods · deployments · services' },
+      { label: 'Ops actions', value: 'scale · restart · inspect' },
+    ],
+  },
+  'task-management': {
+    kicker: 'DELIVERY EVENT FLOW',
+    title: 'Backlog ownership and notification loop',
+    description: 'Task Management focuses on portfolio work items. Tasks move through ownership and priority states, while RabbitMQ-backed events keep notifications and downstream consumers aligned.',
+    edges: [
+      { d: 'M70 110 C145 52 215 60 282 110', label: 'task event' },
+      { d: 'M282 110 C340 60 425 60 505 110', label: 'notification fanout' },
+      { d: 'M282 140 C340 190 420 188 500 148', label: 'audit trail' },
+    ],
+    nodes: [
+      { icon: '✅', label: 'Backlog', detail: 'task CRUD', x: 32, y: 82, width: 110, tone: 'primary' },
+      { icon: '👤', label: 'Owner', detail: 'assignment', x: 222, y: 76, width: 104, tone: 'normal' },
+      { icon: '✉️', label: 'RabbitMQ', detail: 'events', x: 410, y: 78, width: 110, tone: 'warn' },
+      { icon: '🔔', label: 'Notify', detail: 'subscribers', x: 410, y: 152, width: 110, tone: 'success' },
+    ],
+    stats: [
+      { label: 'Domain', value: 'tasks · priorities · owners' },
+      { label: 'Async path', value: 'RabbitMQ events' },
+    ],
+  },
+  'observability': {
+    kicker: 'OBSERVABILITY SIGNAL GRAPH',
+    title: 'Metrics, logs and traces correlation',
+    description: 'The observability remote separates each telemetry signal while keeping the investigation path clear: metrics from Prometheus, logs from Loki, traces from Tempo and dashboards in Grafana.',
+    edges: [
+      { d: 'M74 112 C135 54 210 54 276 112', label: 'metrics' },
+      { d: 'M276 112 C342 54 430 56 505 112', label: 'dashboards' },
+      { d: 'M276 142 C342 188 420 188 502 148', label: 'traces/logs' },
+    ],
+    nodes: [
+      { icon: '📈', label: 'Prometheus', detail: 'metrics', x: 24, y: 82, width: 126, tone: 'primary' },
+      { icon: '≋', label: 'Loki', detail: 'logs', x: 230, y: 76, width: 92, tone: 'normal' },
+      { icon: '⌁', label: 'Tempo', detail: 'traces', x: 404, y: 76, width: 108, tone: 'warn' },
+      { icon: '🌀', label: 'Grafana', detail: 'dashboards', x: 396, y: 152, width: 124, tone: 'success' },
+    ],
+    stats: [
+      { label: 'Signals', value: 'metrics · logs · traces' },
+      { label: 'Dashboard', value: 'Grafana overview' },
+    ],
+  },
+  'cicd-gitops': {
+    kicker: 'DELIVERY PIPELINE GRAPH',
+    title: 'Build, scan, package and GitOps promotion',
+    description: 'The CI/CD remote visualizes deployment promotion. It links pipeline status, container packaging, Helm delivery and ArgoCD synchronization into one operational flow.',
+    edges: [
+      { d: 'M70 112 C140 62 210 62 280 112', label: 'pipeline' },
+      { d: 'M280 112 C350 60 425 60 505 112', label: 'sync' },
+      { d: 'M280 142 C345 190 420 190 500 148', label: 'promotion gate' },
+    ],
+    nodes: [
+      { icon: '🧪', label: 'Build/Test', detail: 'CI stages', x: 28, y: 82, width: 124, tone: 'primary' },
+      { icon: '📦', label: 'Image', detail: 'package', x: 230, y: 76, width: 104, tone: 'normal' },
+      { icon: '⛵', label: 'Helm', detail: 'release', x: 410, y: 76, width: 100, tone: 'warn' },
+      { icon: '∞', label: 'ArgoCD', detail: 'sync/rollback', x: 398, y: 152, width: 124, tone: 'success' },
+    ],
+    stats: [
+      { label: 'Delivery model', value: 'CI pipeline + GitOps sync' },
+      { label: 'Promotion', value: 'Helm release gates' },
+    ],
+  },
+  'terraform-studio': {
+    kicker: 'IAC PLAN TO APPLY GRAPH',
+    title: 'Terraform module, workspace and drift path',
+    description: 'Terraform Studio is modeled around infrastructure state: reusable modules, environment workspaces, plan output, apply history and drift checks.',
+    edges: [
+      { d: 'M70 112 C138 54 214 58 280 112', label: 'plan' },
+      { d: 'M280 112 C350 58 430 60 505 112', label: 'apply' },
+      { d: 'M280 142 C340 188 420 188 500 148', label: 'drift' },
+    ],
+    nodes: [
+      { icon: '🧱', label: 'Module', detail: 'source/version', x: 34, y: 82, width: 108, tone: 'primary' },
+      { icon: '🌐', label: 'Workspace', detail: 'env state', x: 220, y: 76, width: 126, tone: 'normal' },
+      { icon: '📋', label: 'Plan', detail: 'diff preview', x: 410, y: 76, width: 104, tone: 'warn' },
+      { icon: '✅', label: 'Apply', detail: 'run history', x: 410, y: 152, width: 104, tone: 'success' },
+    ],
+    stats: [
+      { label: 'IaC scope', value: 'modules · workspaces · state' },
+      { label: 'Controls', value: 'plan · validate · apply' },
+    ],
+  },
+  'devsecops': {
+    kicker: 'SECURITY SCAN GRAPH',
+    title: 'Vulnerability, secret and policy workflow',
+    description: 'The DevSecOps remote is specific to security evidence. Findings are grouped by package vulnerability, leaked secret posture, remediation action and policy status.',
+    edges: [
+      { d: 'M72 112 C140 55 210 56 280 112', label: 'scan' },
+      { d: 'M280 112 C350 54 430 58 505 112', label: 'triage' },
+      { d: 'M280 142 C344 188 420 188 500 148', label: 'remediate' },
+    ],
+    nodes: [
+      { icon: '🛡️', label: 'Scanner', detail: 'Trivy/SAST', x: 28, y: 82, width: 118, tone: 'primary' },
+      { icon: '🔑', label: 'Secrets', detail: 'leak posture', x: 228, y: 76, width: 112, tone: 'warn' },
+      { icon: '🐞', label: 'CVEs', detail: 'packages', x: 412, y: 76, width: 100, tone: 'normal' },
+      { icon: '🔧', label: 'Fix', detail: 'remediation', x: 410, y: 152, width: 104, tone: 'success' },
+    ],
+    stats: [
+      { label: 'Coverage', value: 'vulnerabilities · secrets' },
+      { label: 'Output', value: 'policy and fix actions' },
+    ],
+  },
+  'ai-ops': {
+    kicker: 'AI OPERATIONS LOOP',
+    title: 'Incident, RCA and assisted remediation',
+    description: 'AI Ops turns telemetry and incidents into an RCA loop. The remote asks the AI engine for analysis and returns suggested remediation steps for platform operators.',
+    edges: [
+      { d: 'M70 112 C140 60 210 60 280 112', label: 'signals' },
+      { d: 'M280 112 C350 56 430 58 505 112', label: 'RCA' },
+      { d: 'M280 142 C345 190 420 190 500 148', label: 'autofix hint' },
+    ],
+    nodes: [
+      { icon: '🚨', label: 'Incident', detail: 'active event', x: 34, y: 82, width: 112, tone: 'warn' },
+      { icon: '🤖', label: 'AI Engine', detail: 'analysis', x: 222, y: 76, width: 120, tone: 'primary' },
+      { icon: '🔎', label: 'RCA', detail: 'root cause', x: 414, y: 76, width: 94, tone: 'normal' },
+      { icon: '🛠️', label: 'Action', detail: 'fix proposal', x: 402, y: 152, width: 118, tone: 'success' },
+    ],
+    stats: [
+      { label: 'AI path', value: 'incident → RCA → action' },
+      { label: 'Engine', value: 'ai-engine service' },
+    ],
+  },
+  'finops-cost': {
+    kicker: 'FINOPS COST MODEL',
+    title: 'Cost allocation and rightsizing workflow',
+    description: 'FinOps Cost visualizes spend by namespace and service. Forecast, waste, rightsizing and monthly trend data are kept in one service-specific remote.',
+    edges: [
+      { d: 'M70 112 C140 55 210 58 280 112', label: 'usage input' },
+      { d: 'M280 112 C350 58 430 58 505 112', label: 'cost model' },
+      { d: 'M280 142 C345 190 420 190 500 148', label: 'savings' },
+    ],
+    nodes: [
+      { icon: '💸', label: 'Spend', detail: 'namespace cost', x: 34, y: 82, width: 108, tone: 'primary' },
+      { icon: '📊', label: 'Forecast', detail: 'month end', x: 220, y: 76, width: 118, tone: 'normal' },
+      { icon: '📦', label: 'Resources', detail: 'CPU/memory', x: 398, y: 76, width: 126, tone: 'warn' },
+      { icon: '✅', label: 'Rightsize', detail: 'potential saving', x: 398, y: 152, width: 126, tone: 'success' },
+    ],
+    stats: [
+      { label: 'Cost view', value: 'namespace · service · resource' },
+      { label: 'Optimization', value: 'forecast + rightsizing' },
+    ],
+  },
+};
 
 @Component({
-    selector: 'app-root',
-    standalone: true,
-    imports: [CommonModule, FormsModule, DragDropModule],
-    templateUrl: './app.component.html',
-    styleUrl: './app.component.css'
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
 })
-export class AppComponent implements OnInit, OnDestroy {
-    readonly tabs: MainTab[] = ['OVERVIEW', 'INFRA', 'TASKS', 'CONTAINERS', 'KUBERNETES', 'REGISTRY', 'TERRAFORM', 'TERRAFORM STUDIO', 'HELM', 'GITOPS', 'CICD', 'OBSERVABILITY', 'SLO', 'INCIDENTS', 'AI OPS', 'SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'SECRETS', 'SERVICE MESH', 'DATABASES', 'QUEUES', 'ENVIRONMENTS', 'FINOPS', 'BACKUPS', 'AUDIT', 'DOCS'];
-    readonly sidebarGroups = [
-        {name: 'Command', tabs: ['OVERVIEW', 'INFRA', 'TASKS', 'DOCS'] as MainTab[]},
-        {name: 'Runtime', tabs: ['CONTAINERS', 'KUBERNETES', 'REGISTRY', 'HELM', 'SERVICE MESH'] as MainTab[]},
-        {name: 'Delivery', tabs: ['CICD', 'GITOPS', 'TERRAFORM', 'TERRAFORM STUDIO', 'ENVIRONMENTS'] as MainTab[]},
-        {name: 'Reliability', tabs: ['OBSERVABILITY', 'SLO', 'INCIDENTS', 'AI OPS'] as MainTab[]},
-        {name: 'Security', tabs: ['SECURITY', 'COMPLIANCE', 'VULNERABILITIES', 'SECRETS', 'AUDIT'] as MainTab[]},
-        {name: 'Data & Cost', tabs: ['DATABASES', 'QUEUES', 'FINOPS', 'BACKUPS'] as MainTab[]}
+export class AppComponent implements OnInit {
+  private readonly http = inject(HttpClient);
+
+  readonly version = APP_VERSION;
+  readonly release = APP_RELEASE;
+  readonly loginError = signal('');
+  readonly authenticated = signal(Boolean(localStorage.getItem(JWT_KEY)));
+  readonly currentUser = signal(localStorage.getItem(USER_KEY) || 'peyman@nebulaops.local');
+  readonly activeRemote = signal<RemoteId>('docker-desktop');
+  readonly loadingRemote = signal(false);
+  readonly remoteError = signal('');
+  readonly appLauncherOpen = signal(false);
+  readonly sessionPanelOpen = signal(false);
+  readonly search = signal('');
+  readonly remoteSearch = signal('');
+  readonly loadedRemotes = new Set<RemoteId>();
+
+  readonly remotes: RemoteDefinition[] = REMOTES;
+
+  readonly serviceLinks: ServiceLink[] = SERVICE_LINKS;
+
+  readonly activeRemoteConfig = computed(() => this.remotes.find(r => r.id === this.activeRemote()) ?? this.remotes[0]);
+
+  readonly activeRemoteControlCards = computed<RemoteSummaryCard[]>(() => {
+    const remote = this.activeRemoteConfig();
+    return [
+      {
+        label: 'Remote entry',
+        value: `:${remote.port}/remoteEntry.js`,
+        detail: 'Angular Element bundle loaded by the shell'
+      },
+      {
+        label: 'Web component',
+        value: `<${remote.tag}>`,
+        detail: 'isolated UI contract with independent release lifecycle'
+      },
+      {
+        label: 'Gateway API',
+        value: `/api/${remote.id}`,
+        detail: 'REST proxy secured with the Keycloak Bearer token'
+      },
+      {
+        label: 'Container',
+        value: remote.service,
+        detail: remote.status
+      }
     ];
-    readonly sideCollapsed = signal(false);
-    readonly openSideGroups = signal<Record<string, boolean>>({
-        OpenLens: true,
-        Workloads: true,
-        Network: true,
-        Storage: true,
-        'Docker Desktop': true,
-        Platform: true
+  });
+
+  readonly activeRemoteRunbook = computed(() => {
+    const remote = this.activeRemoteConfig();
+    return [
+      `Start the ${remote.service} container and verify port ${remote.port}.`,
+      `Check that ${remote.path} returns a valid JavaScript bundle.`,
+      'Validate the Keycloak token and Authorization header through the gateway.',
+      'Use “Open standalone” to separate shell loading issues from remote application issues.'
+    ];
+  });
+
+  readonly activeRemoteDiagram = computed(() => DIAGRAMS[this.activeRemote()]);
+
+  /** Sidebar nav groups — catalog driven, with the INFRA section restored. */
+  readonly sidebarGroups = SIDEBAR_GROUPS;
+
+  remotesByGroup(groups: readonly string[]): RemoteDefinition[] {
+    const term = this.remoteSearch().trim().toLowerCase();
+    return this.remotes.filter(r => groups.includes(r.group) && (!term || remoteSearchText(r).includes(term)));
+  }
+
+  readonly filteredRemoteCount = computed(() =>
+    this.remotes.filter(r => !this.remoteSearch().trim() || remoteSearchText(r).includes(this.remoteSearch().trim().toLowerCase())).length
+  );
+  readonly filteredLinks = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    if (!term) return this.serviceLinks;
+    return this.serviceLinks.filter(item =>
+      [item.title, item.subtitle, item.group, item.port].join(' ').toLowerCase().includes(term)
+    );
+  });
+
+  ngOnInit(): void {
+    this.handleKeycloakCallback();
+    if (this.authenticated()) {
+      void this.activateRemote(this.activeRemote());
+    }
+  }
+
+  async login(): Promise<void> {
+    this.loginError.set('');
+    try {
+      const verifier = this.randomString(96);
+      const challenge = await this.sha256Base64Url(verifier);
+      sessionStorage.setItem('nebulaops.v22_2.pkce', verifier);
+      const state = this.randomString(24);
+      sessionStorage.setItem('nebulaops.v22_2.state', state);
+      const params = new URLSearchParams({
+        client_id: KC_CLIENT_ID,
+        redirect_uri: KC_REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid profile email',
+        state,
+        code_challenge: challenge,
+        code_challenge_method: 'S256'
+      });
+      window.location.href = `${KC_AUTH_URL}?${params.toString()}`;
+    } catch (error) {
+      this.loginError.set('Unable to start Keycloak login. Verify that Keycloak is running on localhost:8180.');
+      console.error(error);
+    }
+  }
+
+  logout(): void {
+    localStorage.removeItem(JWT_KEY);
+    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem('nebulaops.v22_2.pkce');
+    sessionStorage.removeItem('nebulaops.v22_2.state');
+    this.authenticated.set(false);
+    const params = new URLSearchParams({
+      client_id: KC_CLIENT_ID,
+      post_logout_redirect_uri: KC_REDIRECT_URI
     });
-    readonly activeLensSection = signal('Cluster');
-    readonly activeDockerSection = signal('Containers');
-    readonly sideTree: any[] = [
-        {
-            name: 'OpenLens', icon: '☸', children: [
-                {label: 'Cluster', tab: 'KUBERNETES', lens: 'Cluster'},
-                {label: 'Nodes', tab: 'KUBERNETES', lens: 'Nodes'},
-                {
-                    label: 'Workloads', group: 'Workloads', children: [
-                        {label: 'Overview', tab: 'KUBERNETES', lens: 'Workloads Overview'},
-                        {label: 'Pods', tab: 'KUBERNETES', lens: 'Pods'},
-                        {label: 'Deployments', tab: 'KUBERNETES', lens: 'Deployments'},
-                        {label: 'DaemonSets', tab: 'KUBERNETES', lens: 'DaemonSets'},
-                        {label: 'StatefulSets', tab: 'KUBERNETES', lens: 'StatefulSets'},
-                        {label: 'ReplicaSets', tab: 'KUBERNETES', lens: 'ReplicaSets'},
-                        {label: 'Jobs', tab: 'KUBERNETES', lens: 'Jobs'},
-                        {label: 'CronJobs', tab: 'KUBERNETES', lens: 'CronJobs'}
-                    ]
-                },
-                {label: 'Config', tab: 'KUBERNETES', lens: 'Config'},
-                {
-                    label: 'Network', group: 'Network', children: [
-                        {label: 'Services', tab: 'KUBERNETES', lens: 'Services'},
-                        {label: 'Endpoints', tab: 'KUBERNETES', lens: 'Endpoints'},
-                        {label: 'Ingresses', tab: 'KUBERNETES', lens: 'Ingresses'},
-                        {label: 'Network Policies', tab: 'KUBERNETES', lens: 'Network Policies'},
-                        {label: 'Port Forwarding', tab: 'KUBERNETES', lens: 'Port Forwarding'}
-                    ]
-                },
-                {
-                    label: 'Storage', group: 'Storage', children: [
-                        {label: 'Persistent Volume Claims', tab: 'KUBERNETES', lens: 'Persistent Volume Claims'},
-                        {label: 'Persistent Volumes', tab: 'KUBERNETES', lens: 'Persistent Volumes'},
-                        {label: 'Storage Classes', tab: 'KUBERNETES', lens: 'Storage Classes'}
-                    ]
-                },
-                {label: 'Namespaces', tab: 'KUBERNETES', lens: 'Namespaces'},
-                {label: 'Events', tab: 'KUBERNETES', lens: 'Events'},
-                {label: 'Helm', tab: 'HELM', lens: 'Helm'}
-            ]
-        },
-        {
-            name: 'Docker Desktop', icon: '🐳', children: [
-                {label: 'Containers', tab: 'CONTAINERS', docker: 'Containers'},
-                {label: 'Images', tab: 'CONTAINERS', docker: 'Images'},
-                {label: 'Volumes', tab: 'CONTAINERS', docker: 'Volumes'},
-                {label: 'Builds', tab: 'CONTAINERS', docker: 'Builds'},
-                {label: 'Dev Environments', tab: 'CONTAINERS', docker: 'Dev Environments'},
-                {label: 'Docker Scout', tab: 'CONTAINERS', docker: 'Docker Scout'}
-            ]
-        },
-        {
-            name: 'Platform', icon: '✦', children: [
-                {label: 'Dashboard', tab: 'OVERVIEW'}, {label: 'INFRA', tab: 'INFRA'}, {
-                    label: 'Tasks',
-                    tab: 'TASKS'
-                }, {label: 'CI/CD', tab: 'CICD'},
-                {label: 'GitOps', tab: 'GITOPS'}, {label: 'Observability', tab: 'OBSERVABILITY'}, {
-                    label: 'Security',
-                    tab: 'SECURITY'
-                },
-                {label: 'Terraform', tab: 'TERRAFORM'}, {label: 'Docs', tab: 'DOCS'}
-            ]
-        }
-    ];
-    readonly platformTools: PlatformTool[] = [
-        {
-            title: 'Container Registry',
-            tab: 'REGISTRY',
-            icon: '📦',
-            description: 'image inventory, tags, SBOM, scan status, promotions',
-            status: 'dynamic UI ready',
-            category: 'Runtime'
-        },
-        {
-            title: 'Service Mesh',
-            tab: 'SERVICE MESH',
-            icon: '🕸️',
-            description: 'Istio/Linkerd traffic split, mTLS, retries and routes',
-            status: 'mesh cockpit',
-            category: 'Runtime'
-        },
-        {
-            title: 'Secrets Vault',
-            tab: 'SECRETS',
-            icon: '🔐',
-            description: 'Vault/K8s secrets rotation, expiry and policy view',
-            status: 'rotation center',
-            category: 'Security'
-        },
-        {
-            title: 'Database Ops',
-            tab: 'DATABASES',
-            icon: '🛢️',
-            description: 'MongoDB/Postgres health, connections, backups and slow queries',
-            status: 'live cards',
-            category: 'Data'
-        },
-        {
-            title: 'Queues & Streams',
-            tab: 'QUEUES',
-            icon: '📨',
-            description: 'RabbitMQ/Kafka lag, consumers, DLQ and throughput',
-            status: 'event cockpit',
-            category: 'Data'
-        },
-        {
-            title: 'SLO Center',
-            tab: 'SLO',
-            icon: '🎯',
-            description: 'availability, latency, error budget and burn-rate monitor',
-            status: 'reliability',
-            category: 'Reliability'
-        },
-        {
-            title: 'Incident Room',
-            tab: 'INCIDENTS',
-            icon: '🚨',
-            description: 'timeline, ownership, mitigation steps and postmortem notes',
-            status: 'war room',
-            category: 'Reliability'
-        },
-        {
-            title: 'Audit Trail',
-            tab: 'AUDIT',
-            icon: '🧾',
-            description: 'operator actions, deploy events and compliance evidence',
-            status: 'governance',
-            category: 'Security'
-        }
-    ];
-    readonly columns: Status[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
-    readonly kinds: K8sKind[] = ['Namespace', 'Deployment', 'StatefulSet', 'DaemonSet', 'Service', 'Ingress', 'ConfigMap', 'Secret', 'CronJob'];
-    readonly priorities: Priority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-    readonly activeTab = signal<MainTab>('OVERVIEW');
-    readonly isAuthenticated = signal(!!localStorage.getItem(SESSION_KEY));
-    readonly currentUser = signal(localStorage.getItem(USER_KEY) || 'admin');
-    readonly loginError = signal('');
-    readonly apiError = signal('');
-    readonly runtimeState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
-    readonly k8sState = signal<'local' | 'syncing' | 'connected' | 'error'>('local');
-    readonly tasks = signal<Task[]>([]);
-    readonly tasksState = signal<'syncing' | 'connected' | 'error' | 'empty'>('syncing');
-    readonly resources = signal<K8sResource[]>([]);
-    readonly selected = signal<K8sResource | null>(this.resources()[0] ?? null);
-    readonly logs = signal<ServiceLog[]>([]);
-    readonly activeNamespace = signal('all');
-    readonly activeKind = signal('all');
-    readonly activeLogService = signal('all');
-    readonly logsAutoRefresh = signal(false);
-    readonly logsRefreshSeconds = signal(5);
-    readonly lastLogsRefresh = signal('never');
-    readonly dockerContainers = signal<DockerContainer[]>([]);
-    readonly dockerImages = signal<DockerImage[]>([]);
-    readonly dockerVolumes = signal<DockerVolume[]>([]);
-    readonly selectedDockerContainer = signal<DockerContainer | null>(null);
-    readonly containerTerminal = signal('docker compose ps && kubectl get pods -A');
-    readonly k8sControllers = signal<K8sController[]>([]);
-    readonly lensActions = signal<LensAction[]>([
-        {
-            title: 'Restart selected pod',
-            target: 'Pod',
-            command: 'kubectl rollout restart deployment/gateway-service -n nebulaops',
-            severity: 'HIGH'
-        },
-        {
-            title: 'Scale workload +1',
-            target: 'Deployment',
-            command: 'kubectl scale deploy/frontend --replicas=3 -n nebulaops',
-            severity: 'MEDIUM'
-        },
-        {
-            title: 'Edit service YAML',
-            target: 'Service',
-            command: 'kubectl edit service gateway-service -n nebulaops',
-            severity: 'LOW'
-        },
-        {
-            title: 'Describe ingress',
-            target: 'Ingress',
-            command: 'kubectl describe ingress nebulaops-ingress -n nebulaops',
-            severity: 'LOW'
-        },
-        {
-            title: 'Drain selected node',
-            target: 'Node',
-            command: 'kubectl drain kind-worker --ignore-daemonsets',
-            severity: 'CRITICAL'
-        }
-    ]);
-    readonly helmReleases = signal<any[]>([]);
-    readonly grafanaHealth = signal<any>({});
-    readonly terraformPlan = signal('terraform plan not executed yet');
-    readonly selectedTf = signal('local-kind');
-    readonly aiOpsPrompt = signal('pod gateway-service-78fdd CrashLoopBackOff after deploy, readiness probe failed, image pull warning');
-    readonly aiOpsRunning = signal(false);
-    readonly aiOpsAutoFix = signal(false);
-    readonly aiOpsAnalysis = signal<AiOpsAnalysis>(this.fallbackAiOps());
-    readonly aiOpsChat = signal<{ role: 'ai' | 'user' | 'system'; text: string; time: string }[]>([
-        {
-            role: 'ai',
-            text: 'AI Ops Center online. Monitoring Kubernetes events, logs and dependency blast radius.',
-            time: new Date().toLocaleTimeString()
-        }
-    ]);
-    loginForm = {username: 'admin', password: 'admin'};
-    taskForm: Task = {id: '', title: '', owner: 'Platform', priority: 'MEDIUM', status: 'TODO'};
-    k8sForm = {kind: 'Deployment' as K8sKind, namespace: 'nebulaops', name: '', replicas: 1};
-    readonly selectedClusterMode = signal<'topology' | 'logs' | 'terminal' | 'metrics' | 'events' | 'yaml'>('topology');
-    readonly terminalCommand = signal('kubectl describe pod gateway-service-78fdd -n nebulaops');
-    readonly liveClusterNodes = signal<ClusterNode3D[]>(this.buildClusterNodes());
-    readonly clusterEdges = signal<ClusterEdge[]>([]);
-    readonly clusterEvents = signal<ClusterEvent[]>(this.syntheticClusterEvents());
-    readonly liveMetrics = signal<LiveMetric[]>([]);
-    readonly serviceQuickLinks: HomeLauncher[] = [
-        {
-            title: 'Keycloak',
-            subtitle: 'SSO realm, users and roles',
-            kind: 'external',
-            url: 'http://localhost:8180/admin/master/console',
-            icon: '🔑',
-            accent: 'keycloak',
-            status: '8180'
-        },
-        {
-            title: 'GitLab',
-            subtitle: 'Repository, issues and CI/CD service',
-            kind: 'external',
-            url: 'http://localhost:8929',
-            icon: '🦊',
-            accent: 'gitlab',
-            status: '8929'
-        },
-        {
-            title: 'Grafana',
-            subtitle: 'Dashboards, metrics, logs and traces',
-            kind: 'external',
-            url: 'http://localhost:3000',
-            icon: '◉',
-            accent: 'grafana',
-            status: '3000'
-        },
-        {
-            title: 'Prometheus',
-            subtitle: 'Metrics and service discovery',
-            kind: 'external',
-            url: 'http://localhost:9090',
-            icon: '▲',
-            accent: 'prometheus',
-            status: '9090'
-        },
-        {
-            title: 'RabbitMQ',
-            subtitle: 'Queues, exchanges and consumers',
-            kind: 'external',
-            url: 'http://localhost:15672',
-            icon: '✉',
-            accent: 'rabbitmq',
-            status: '15672'
-        },
-        {
-            title: 'Mongo',
-            subtitle: 'Mongo Express database console',
-            kind: 'external',
-            url: 'http://localhost:8088',
-            icon: '▰',
-            accent: 'mongo',
-            status: '8088'
-        },
-        {
-            title: 'Redis',
-            subtitle: 'Redis Commander cache console',
-            kind: 'external',
-            url: 'http://localhost:8089',
-            icon: '◆',
-            accent: 'redis',
-            status: '8089'
-        },
-        {
-            title: 'Gateway',
-            subtitle: 'NebulaOps API gateway health',
-            kind: 'external',
-            url: 'http://localhost:8080/actuator/health',
-            icon: '⇄',
-            accent: 'gateway',
-            status: '8080'
-        },
-        {
-            title: 'CI/CD',
-            subtitle: 'Pipeline designer inside NebulaOps',
-            kind: 'internal',
-            tab: 'CICD',
-            icon: '⚡',
-            accent: 'cicd',
-            status: 'app'
-        },
-        {
-            title: 'K8s',
-            subtitle: 'Kubernetes visual cluster',
-            kind: 'internal',
-            tab: 'KUBERNETES',
-            icon: '☸',
-            accent: 'kubernetes',
-            status: 'app'
-        },
-        {
-            title: 'AI Ops',
-            subtitle: 'RCA, anomaly and autofix cockpit',
-            kind: 'internal',
-            tab: 'AI OPS',
-            icon: '✦',
-            accent: 'aiops',
-            status: 'app'
-        }
-    ];
-    readonly homeLaunchers: HomeLauncher[] = [
-        {
-            title: 'Keycloak',
-            subtitle: 'Identity & Access Management',
-            kind: 'external',
-            url: 'http://localhost:8180/admin/master/console',
-            icon: '🔑',
-            accent: 'keycloak',
-            status: 'localhost:8180'
-        },
-        {
-            title: 'GitLab',
-            subtitle: 'Git repository, issues and CI/CD pipelines',
-            kind: 'external',
-            url: 'http://localhost:8929',
-            icon: '🦊',
-            accent: 'gitlab',
-            status: 'localhost:8929'
-        },
-        {
-            title: 'Grafana',
-            subtitle: 'Dashboards, logs, metrics',
-            kind: 'external',
-            url: 'http://localhost:3000',
-            icon: '◉',
-            accent: 'grafana',
-            status: 'localhost:3000'
-        },
-        {
-            title: 'ArgoCD',
-            subtitle: 'GitOps sync center',
-            kind: 'external',
-            url: 'http://localhost:8087/actuator/health',
-            icon: '∞',
-            accent: 'argocd',
-            status: 'pipeline:8087'
-        },
-        {
-            title: 'CI/CD Designer',
-            subtitle: 'Drag & drop pipeline canvas',
-            kind: 'internal',
-            tab: 'CICD',
-            icon: '⚡',
-            accent: 'cicd',
-            status: 'v22.1'
-        },
-        {
-            title: 'INFRA',
-            subtitle: 'External links hub',
-            kind: 'internal',
-            tab: 'INFRA',
-            icon: '▣',
-            accent: 'infra',
-            status: 'links'
-        },
-        {
-            title: 'Prometheus',
-            subtitle: 'Metrics query engine',
-            kind: 'external',
-            url: 'http://localhost:9090',
-            icon: '▲',
-            accent: 'prometheus',
-            status: 'localhost:9090'
-        },
-        {
-            title: 'AI OPS',
-            subtitle: 'RCA, anomaly, auto-fix',
-            kind: 'internal',
-            tab: 'AI OPS',
-            icon: '✦',
-            accent: 'aiops',
-            status: 'cockpit'
-        },
-        {
-            title: 'Containers',
-            subtitle: 'Docker Desktop + OpenLens console',
-            kind: 'internal',
-            tab: 'CONTAINERS',
-            icon: '🐳',
-            accent: 'docker',
-            status: 'runtime ops'
-        },
-        {
-            title: 'K8S Cluster',
-            subtitle: '3D topology + pod drilldown',
-            kind: 'internal',
-            tab: 'KUBERNETES',
-            icon: '☸',
-            accent: 'kubernetes',
-            status: 'live'
-        },
-        {
-            title: 'Security',
-            subtitle: 'DevSecOps scans + CVE',
-            kind: 'internal',
-            tab: 'SECURITY',
-            icon: '⬢',
-            accent: 'security',
-            status: 'v22.1'
-        },
-        {
-            title: 'Helm',
-            subtitle: 'Release lifecycle',
-            kind: 'internal',
-            tab: 'HELM',
-            icon: '⎈',
-            accent: 'helm',
-            status: 'releases'
-        },
-        {
-            title: 'Observability',
-            subtitle: 'Prometheus · Loki · Tempo · OTel',
-            kind: 'internal',
-            tab: 'OBSERVABILITY',
-            icon: '≋',
-            accent: 'observability',
-            status: 'enterprise'
-        },
-        {
-            title: 'GitOps Control Plane',
-            subtitle: 'Drift, rollback, ArgoCD live sync',
-            kind: 'internal',
-            tab: 'GITOPS',
-            icon: '∞',
-            accent: 'argocd',
-            status: 'v22.1'
-        },
-        {
-            title: 'Multi-Env Manager',
-            subtitle: 'LOCAL · DEV · STAGING · PROD',
-            kind: 'internal',
-            tab: 'ENVIRONMENTS',
-            icon: '◈',
-            accent: 'infra',
-            status: 'namespaces'
-        },
-        {
-            title: 'Terraform Studio',
-            subtitle: 'Digital twin graph + plan + cost',
-            kind: 'internal',
-            tab: 'TERRAFORM STUDIO',
-            icon: 'T',
-            accent: 'terraform',
-            status: '3D graph'
-        }
-    ];
+    window.location.href = `${KC_LOGOUT_URL}?${params.toString()}`;
+  }
 
-    readonly terraformModules: TfModule[] = [
-        {
-            name: 'local-kind',
-            type: 'cluster',
-            status: 'ready',
-            drift: 0,
-            resources: 4,
-            command: 'cd infrastructure/terraform && terraform apply -var="target=kind"'
-        },
-        {
-            name: 'observability',
-            type: 'stack',
-            status: 'planned',
-            drift: 1,
-            resources: 6,
-            command: 'terraform apply -target=module.observability'
-        },
-        {
-            name: 'gitops-bootstrap',
-            type: 'argocd',
-            status: 'planned',
-            drift: 0,
-            resources: 5,
-            command: 'terraform apply -target=module.gitops'
-        },
-        {
-            name: 'security-baseline',
-            type: 'policy',
-            status: 'ready',
-            drift: 0,
-            resources: 7,
-            command: 'terraform apply -target=module.security'
-        }
-    ];
-    readonly findings = signal<SecurityFinding[]>([
-        {
-            id: 'SEC-001',
-            area: 'Container',
-            severity: 'HIGH',
-            title: 'Use non-root runtime images',
-            remediation: 'Keep final images slim and run processes as non-root where practical.',
-            done: false
-        },
-        {
-            id: 'SEC-002',
-            area: 'Secrets',
-            severity: 'CRITICAL',
-            title: 'Never commit real secrets',
-            remediation: 'Use secrets.example.yaml and environment-only overrides.',
-            done: true
-        },
-        {
-            id: 'SEC-003',
-            area: 'Terraform',
-            severity: 'HIGH',
-            title: 'Protect state and outputs',
-            remediation: 'Keep local state private; redact sensitive outputs before sharing.',
-            done: false
-        }
-    ]);
-    readonly securitySubTab = signal<SecurityTab>('SECURITY');
-    readonly riskScore = signal(87);
-    readonly securityScans = signal<SecurityScan[]>([]);
-    readonly cveDashboard = signal<CveItem[]>([]);
-    readonly complianceControls = signal<ComplianceControl[]>([]);
+  openLauncher(): void { this.appLauncherOpen.set(true); }
+  closeLauncher(): void { this.appLauncherOpen.set(false); }
+  toggleSessionPanel(): void { this.sessionPanelOpen.update(v => !v); }
 
+  openService(link: ServiceLink): void {
+    window.open(link.url, '_blank', 'noopener,noreferrer');
+  }
 
-    readonly observabilityStack = signal<ObservabilityStackItem[]>([]);
-    readonly traceFlow = signal<TraceHop[]>([]);
-    readonly latencyHeatmap = signal<number[]>([]);
-    readonly kafkaEvents = signal<string[]>([]);
-    readonly gitOpsState = signal({
-        sync: 'Unavailable',
-        drift: 0,
-        revision: 'unknown',
-        health: 'Waiting for ArgoCD live data'
+  async activateRemote(id: RemoteId): Promise<void> {
+    const def = this.remotes.find(r => r.id === id);
+    if (!def) return;
+    this.remoteError.set('');
+    this.loadingRemote.set(true);
+    try {
+      await this.loadRemote(def);
+      this.activeRemote.set(id);
+    } catch (error) {
+      this.remoteError.set(`Remote ${def.title} is not available on localhost:${def.port}. Start docker compose and verify the dedicated container ${def.service}.`);
+      console.error(error);
+    } finally {
+      this.loadingRemote.set(false);
+    }
+  }
+
+  trackByRemote(_: number, item: RemoteDefinition): string { return item.id; }
+  trackByLink(_: number, item: ServiceLink): string { return item.title; }
+
+  private async handleKeycloakCallback(): Promise<void> {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+    if (!code) return;
+    const expectedState = sessionStorage.getItem('nebulaops.v22_2.state');
+    if (expectedState && state !== expectedState) {
+      this.loginError.set('Invalid Keycloak response: state mismatch.');
+      return;
+    }
+    const verifier = sessionStorage.getItem('nebulaops.v22_2.pkce') || '';
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: KC_CLIENT_ID,
+      redirect_uri: KC_REDIRECT_URI,
+      code,
+      code_verifier: verifier
     });
-    readonly deploymentWaves = signal<DeploymentWave[]>([]);
-    readonly commitStream = signal<string[]>([]);
-    readonly environments = signal<any[]>([]);
-    readonly activeEnvironment = signal('LOCAL');
-    readonly terraformStudioNodes = [
-        {name: 'VPC', type: 'network', x: 12, y: 42, z: 8, cost: 18, drift: 0},
-        {name: 'Subnets', type: 'network', x: 29, y: 25, z: 14, cost: 12, drift: 0},
-        {name: 'Load Balancer', type: 'edge', x: 46, y: 38, z: 22, cost: 44, drift: 1},
-        {name: 'K8s Cluster', type: 'compute', x: 62, y: 54, z: 30, cost: 210, drift: 0},
-        {name: 'MongoDB', type: 'database', x: 78, y: 30, z: 16, cost: 65, drift: 1},
-        {name: 'Redis', type: 'cache', x: 84, y: 68, z: 12, cost: 25, drift: 0}
-    ];
-    readonly terraformPlanPreview = `Terraform will perform the following actions:\n  + module.vpc.aws_vpc.main\n  + module.eks.aws_eks_cluster.nebulaops\n  ~ module.mongodb.storage_size 20Gi -> 40Gi\n  + module.observability.helm_release.tempo\nPlan: 12 to add, 3 to change, 0 to destroy.`;
-    readonly terraformCostEstimate = signal({monthly: 374, delta: 42, currency: 'EUR'});
-
-    readonly threatPoints = signal<ThreatPoint[]>([]);
-
-
-    readonly pipelineDesignerNodes = signal<PipelineDesignerNode[]>([
-        {
-            id: 'build', name: 'Build', status: 'success', icon: '⚙', tool: 'npm + maven', x: 7, y: 42, yaml: `build:
-  stage: build
-  script:
-    - npm ci
-    - mvn -q package`
-        },
-        {
-            id: 'test', name: 'Test', status: 'success', icon: '✓', tool: 'unit/integration', x: 23, y: 42, yaml: `test:
-  stage: test
-  script:
-    - npm test
-    - mvn test`
-        },
-        {
-            id: 'security',
-            name: 'Security Scan',
-            status: 'running',
-            icon: '⬢',
-            tool: 'Trivy + SAST',
-            x: 39,
-            y: 42,
-            yaml: `security_scan:
-  stage: security
-  script:
-    - trivy fs .
-    - gitleaks detect`
-        },
-        {
-            id: 'docker', name: 'Docker Build', status: 'queued', icon: '◆', tool: 'buildx', x: 55, y: 42, yaml: `docker_build:
-  stage: package
-  script:
-    - docker build -t nebulaops/frontend:$CI_COMMIT_SHA frontend`
-        },
-        {
-            id: 'helm', name: 'Helm Deploy', status: 'queued', icon: '⎈', tool: 'helm upgrade', x: 71, y: 42, yaml: `helm_deploy:
-  stage: deploy
-  script:
-    - helm upgrade --install nebulaops infrastructure/helm`
-        },
-        {
-            id: 'smoke', name: 'Smoke Test', status: 'blocked', icon: '☁', tool: 'curl + ArgoCD', x: 87, y: 42, yaml: `smoke_test:
-  stage: verify
-  script:
-    - curl -f http://gateway-service:8080/actuator/health`
-        }
-    ]);
-    readonly selectedPipelineNode = signal<PipelineDesignerNode | null>(null);
-    readonly pipelineYaml = computed(() => this.pipelineDesignerNodes().map(n => n.yaml).join('\n\n'));
-    readonly infraLinks: InfraLink[] = [
-        {
-            title: 'Keycloak Admin',
-            description: 'Identity & Access Management — realm nebulaops, users and roles',
-            kind: 'external',
-            url: 'http://localhost:8180/admin/master/console',
-            icon: '🔑',
-            status: 'localhost:8180'
-        },
-        {
-            title: 'GitLab',
-            description: 'Self-hosted Git service with Keycloak OIDC login and CI/CD pipelines',
-            kind: 'external',
-            url: 'http://localhost:8929',
-            icon: '🦊',
-            status: 'localhost:8929'
-        },
-        {
-            title: 'Grafana',
-            description: 'Dashboards, Loki logs and runtime metrics',
-            kind: 'external',
-            url: 'http://localhost:3000',
-            icon: '◉',
-            status: 'localhost:3000'
-        },
-        {
-            title: 'Redis Commander',
-            description: 'Redis browser, keys, cache inspection and commands',
-            kind: 'external',
-            url: 'http://localhost:8089',
-            icon: '◆',
-            status: 'localhost:8089'
-        },
-        {
-            title: 'Mongo Express',
-            description: 'MongoDB collections, documents and indexes console',
-            kind: 'external',
-            url: 'http://localhost:8088',
-            icon: '▰',
-            status: 'localhost:8088'
-        },
-        {
-            title: 'RabbitMQ',
-            description: 'Queue dashboard, exchanges, bindings and consumers',
-            kind: 'external',
-            url: 'http://localhost:15672',
-            icon: '✉',
-            status: 'localhost:15672'
-        },
-        {
-            title: 'Prometheus',
-            description: 'Metrics query engine, targets and service discovery',
-            kind: 'external',
-            url: 'http://localhost:9090',
-            icon: '▲',
-            status: 'localhost:9090'
-        },
-        {
-            title: 'Loki',
-            description: 'Centralized logs backend for Grafana Explore',
-            kind: 'external',
-            url: 'http://localhost:3100/ready',
-            icon: '≋',
-            status: 'localhost:3100'
-        },
-        {
-            title: 'Tempo',
-            description: 'Distributed tracing backend and span storage',
-            kind: 'external',
-            url: 'http://localhost:3200/ready',
-            icon: '⌁',
-            status: 'localhost:3200'
-        },
-        {
-            title: 'OpenTelemetry Collector',
-            description: 'OTLP traces, metrics and logs ingestion endpoint',
-            kind: 'external',
-            url: 'http://localhost:4318',
-            icon: '◎',
-            status: 'localhost:4318'
-        },
-        {
-            title: 'ArgoCD Console',
-            description: 'GitOps application console, sync and rollback',
-            kind: 'external',
-            url: 'http://localhost:8081',
-            icon: '∞',
-            status: 'localhost:8081'
-        },
-        {
-            title: 'Gateway API',
-            description: 'Public API entrypoint and actuator health',
-            kind: 'external',
-            url: 'http://localhost:8080/actuator/health',
-            icon: '⇄',
-            status: 'localhost:8080'
-        },
-        {
-            title: 'Pipeline Engine API',
-            description: 'CI/CD Pipeline Designer backend service health',
-            kind: 'external',
-            url: 'http://localhost:8087/actuator/health',
-            icon: '⚙',
-            status: 'localhost:8087'
-        },
-        {
-            title: 'ArgoCD Integration',
-            description: 'Open the CI/CD designer GitOps sync and rollback gates',
-            kind: 'internal',
-            tab: 'CICD',
-            icon: '∞',
-            status: 'internal'
-        },
-        {
-            title: 'Docker Desktop Console',
-            description: 'Containers, images, volumes, networks, logs and exec terminal',
-            kind: 'internal',
-            tab: 'CONTAINERS',
-            icon: '🐳',
-            status: 'internal'
-        },
-        {
-            title: 'OpenLens Console',
-            description: 'Pods, deployments, services, controllers, ingress, scale, restart and YAML editor',
-            kind: 'internal',
-            tab: 'CONTAINERS',
-            icon: '☸',
-            status: 'internal'
-        },
-        {
-            title: 'Kubernetes Console',
-            description: '3D cluster topology, logs, events, metrics and YAML',
-            kind: 'internal',
-            tab: 'KUBERNETES',
-            icon: '☸',
-            status: 'internal'
-        },
-        {
-            title: 'CI/CD Designer',
-            description: 'Build/test/security/docker/helm/smoke pipeline canvas',
-            kind: 'internal',
-            tab: 'CICD',
-            icon: '⚡',
-            status: 'internal'
-        },
-        {
-            title: 'DevSecOps',
-            description: 'Trivy, Docker scan, SAST, secrets, CVE and compliance',
-            kind: 'internal',
-            tab: 'SECURITY',
-            icon: '⬢',
-            status: 'internal'
-        },
-        {
-            title: 'Observability',
-            description: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry',
-            kind: 'internal',
-            tab: 'OBSERVABILITY',
-            icon: '◌',
-            status: 'internal'
-        },
-        {
-            title: 'GitOps Control Plane',
-            description: 'Sync state, drift detection, live sync and visual rollback',
-            kind: 'internal',
-            tab: 'GITOPS',
-            icon: '∞',
-            status: 'internal'
-        },
-        {
-            title: 'Multi-Environment Manager',
-            description: 'LOCAL, DEV, STAGING and PROD cluster switching',
-            kind: 'internal',
-            tab: 'ENVIRONMENTS',
-            icon: '◈',
-            status: 'internal'
-        },
-        {
-            title: 'Smart Terraform Studio',
-            description: '3D infra graph, plan preview, cost and drift',
-            kind: 'internal',
-            tab: 'TERRAFORM STUDIO',
-            icon: 'T',
-            status: 'internal'
-        },
-        {
-            title: 'AI OPS',
-            description: 'RCA, anomaly detection and auto-fix from live telemetry',
-            kind: 'internal',
-            tab: 'AI OPS',
-            icon: '✦',
-            status: 'internal'
-        },
-        {
-            title: 'FinOps',
-            description: 'Cloud cost scorecards and waste reduction',
-            kind: 'internal',
-            tab: 'FINOPS',
-            icon: '€',
-            status: 'internal'
-        },
-        {
-            title: 'Backups',
-            description: 'Restore points, snapshots and DR checks',
-            kind: 'internal',
-            tab: 'BACKUPS',
-            icon: '↺',
-            status: 'internal'
-        }
-    ];
-
-    readonly pipeline: PipelineStage[] = [
-        {name: 'lint', status: 'passed', duration: '18s', detail: 'YAML, Markdown and Angular checks'},
-        {
-            name: 'terraform validate',
-            status: 'passed',
-            duration: '21s',
-            detail: 'Infrastructure module syntax validated'
-        },
-        {
-            name: 'container build',
-            status: 'running',
-            duration: '2m 10s',
-            detail: 'Docker compose multi-service image build'
-        },
-        {name: 'helm template', status: 'queued', duration: '-', detail: 'Render Kubernetes manifests'},
-        {name: 'argocd sync', status: 'blocked', duration: '-', detail: 'Manual gate for local laptop'}
-    ];
-    readonly costItems = [
-        {name: 'Local Docker/WSL', monthly: 0, note: 'Personal machine runtime'},
-        {name: 'Optional VPS showcase', monthly: 12, note: 'Small cloud instance for portfolio showcase'},
-        {name: 'Object storage backups', monthly: 3, note: 'Optional remote backup bucket'},
-        {name: 'Monitoring retention', monthly: 5, note: 'Optional long retention'}
-    ];
-    readonly docs = [
-        {title: 'README', path: 'README.md', why: 'start here and feature map'},
-        {title: 'V19.1 AI Ops', path: 'docs/V19_1_AI_OPS_CENTER.md', why: 'new AI Ops Center feature'},
-        {title: 'V19.1 release notes', path: 'docs/V19_1_RELEASE_NOTES.md', why: 'AI Ops upgrade notes'},
-        {title: 'Terraform guide', path: 'docs/TERRAFORM_V18_GUIDE.md', why: 'v18 baseline still valid for Terraform'},
-        {
-            title: 'Architecture SVG',
-            path: 'docs/nebulaops-v22-1-ai-ops-architecture.svg',
-            why: 'AI Ops cockpit animated SVG'
-        },
-        {
-            title: 'V20.4 DevSecOps',
-            path: 'docs/V19_3_DEVSECOPS_MODULE.md',
-            why: 'Security, compliance and vulnerability cockpit'
-        },
-        {title: 'V19.3 release notes', path: 'docs/V19_3_RELEASE_NOTES.md', why: 'DevSecOps module upgrade notes'},
-        {
-            title: 'V20.4 release notes',
-            path: 'docs/V20_1_RELEASE_NOTES.md',
-            why: 'Observability, GitOps, environments and Terraform Studio'
-        },
-        {
-            title: 'V20.4 Observability',
-            path: 'docs/V20_1_ADVANCED_OBSERVABILITY.md',
-            why: 'Prometheus, Loki, Tempo, Grafana and OpenTelemetry'
-        },
-        {
-            title: 'V20.4 GitOps Control Plane',
-            path: 'docs/V20_1_GITOPS_CONTROL_PLANE.md',
-            why: 'drift detection, ArgoCD live sync and rollback'
-        },
-        {
-            title: 'V20.4 Multi-Environment Manager',
-            path: 'docs/V20_1_MULTI_ENVIRONMENT_MANAGER.md',
-            why: 'LOCAL, DEV, STAGING and PROD provisioning'
-        },
-        {
-            title: 'V20.4 Smart Terraform Studio',
-            path: 'docs/V20_1_SMART_TERRAFORM_STUDIO.md',
-            why: 'digital twin graph, plan preview and cost estimation'
-        },
-        {
-            title: 'V20.4 CI/CD Designer',
-            path: 'docs/V20_1_CICD_PIPELINE_DESIGNER.md',
-            why: 'drag-drop pipeline canvas and pipeline-engine-service'
-        },
-        {
-            title: 'DevSecOps SVG',
-            path: 'docs/nebulaops-v22-1-devsecops-module.svg',
-            why: 'Radar, threat map and CVE dashboard architecture'
-        }
-    ];
-    readonly workloads = computed(() => this.resources().filter(r => ['Deployment', 'StatefulSet', 'DaemonSet'].includes(r.kind)));
-    readonly selectedNode = computed<ClusterNode3D>(() => {
-        const fallback: ClusterNode3D = {
-            id: 'none',
-            label: 'Select pod',
-            role: 'none',
-            cpu: 0,
-            ram: 0,
-            x: 50,
-            y: 50,
-            z: 0,
-            status: 'warning'
-        };
-        const selected = this.selected();
-        const nodes = this.liveClusterNodes();
-        if (!selected) return nodes[0] ?? fallback;
-        return nodes.find(n => n.id === selected.name || n.label.toLowerCase().includes(selected.name.toLowerCase())) ?? nodes[0] ?? fallback;
+    this.http.post<any>(KC_TOKEN_URL, body.toString(), {
+      headers: new HttpHeaders({'Content-Type': 'application/x-www-form-urlencoded'})
+    }).subscribe({
+      next: token => {
+        localStorage.setItem(JWT_KEY, token.access_token || '');
+        const decoded = this.decodeJwt(token.access_token || '');
+        const user = decoded?.preferred_username || decoded?.email || decoded?.name || 'nebulaops-user';
+        localStorage.setItem(USER_KEY, user);
+        this.currentUser.set(user);
+        this.authenticated.set(true);
+        history.replaceState({}, document.title, KC_REDIRECT_URI);
+        void this.activateRemote(this.activeRemote());
+      },
+      error: err => {
+        this.loginError.set('Keycloak login was received, but the token exchange failed. Reimport the realm and verify the nebulaops-frontend client.');
+        console.error(err);
+      }
     });
-    readonly monthlyCost = computed(() => this.costItems.reduce((sum, item) => sum + item.monthly, 0));
-    readonly openRisks = computed(() => this.findings().filter(f => !f.done).length);
-    private http = inject(HttpClient);
-    private logsTimer: any = null;
-
-
-
-    ngOnInit(): void {
-        // Handle Keycloak OIDC callback (?code=...&state=...)
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        const state = params.get('state');
-        if (code && state) {
-            this.handleOidcCallback(code, state);
-            return;
-        }
-        if (this.isAuthenticated()) {
-            this.refreshAll();
-        }
-    }
-
-    ngOnDestroy(): void {
-        this.stopLogsAutoRefresh();
-    }
-
-    // ── Keycloak OIDC helpers ──────────────────────────────────────
-    private async generatePKCE(): Promise<{ verifier: string; challenge: string }> {
-        const array = new Uint8Array(32);
-        crypto.getRandomValues(array);
-        const verifier = btoa(String.fromCharCode(...array))
-            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-        const encoder = new TextEncoder();
-        const data = encoder.encode(verifier);
-        const digest = await crypto.subtle.digest('SHA-256', data);
-        const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-        return { verifier, challenge };
-    }
-
-    login(): void {
-        // Check if this is a Keycloak OIDC callback (has ?code= in URL)
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        const state = params.get('state');
-        if (code && state) {
-            this.handleOidcCallback(code, state);
-            return;
-        }
-        // Otherwise initiate Keycloak redirect
-        this.initiateKeycloakLogin();
-    }
-
-    private async initiateKeycloakLogin(): Promise<void> {
-        const { verifier, challenge } = await this.generatePKCE();
-        const state = btoa(crypto.getRandomValues(new Uint8Array(16)).join(''));
-        sessionStorage.setItem('pkce_verifier', verifier);
-        sessionStorage.setItem('oauth_state', state);
-
-        const url = new URL(KC_AUTH_URL);
-        url.searchParams.set('client_id', KC_CLIENT_ID);
-        url.searchParams.set('redirect_uri', KC_REDIRECT_URI);
-        url.searchParams.set('response_type', 'code');
-        url.searchParams.set('scope', 'openid profile email');
-        url.searchParams.set('state', state);
-        url.searchParams.set('code_challenge', challenge);
-        url.searchParams.set('code_challenge_method', 'S256');
-        window.location.href = url.toString();
-    }
-
-    private handleOidcCallback(code: string, state: string): void {
-        const savedState = sessionStorage.getItem('oauth_state');
-        const verifier   = sessionStorage.getItem('pkce_verifier');
-        sessionStorage.removeItem('oauth_state');
-        sessionStorage.removeItem('pkce_verifier');
-        // Clean URL
-        window.history.replaceState({}, '', window.location.pathname);
-
-        if (state !== savedState || !verifier) {
-            this.loginError.set('Errore di sicurezza OAuth — riprova');
-            return;
-        }
-
-        const body = new URLSearchParams({
-            grant_type:    'authorization_code',
-            client_id:     KC_CLIENT_ID,
-            redirect_uri:  KC_REDIRECT_URI,
-            code,
-            code_verifier: verifier,
-        });
-
-        this.http.post<any>(KC_TOKEN_URL, body.toString(), {
-            headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' })
-        }).pipe(catchError(err => {
-            this.loginError.set('Token exchange fallito — verifica che Keycloak sia in esecuzione su :8180');
-            return throwError(() => err);
-        })).subscribe(tokens => {
-            const token       = tokens.access_token || '';
-            const idToken     = tokens.id_token || '';
-            let   displayName = 'user';
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                displayName = payload.preferred_username || payload.email || payload.sub || 'user';
-            } catch (_) {}
-            localStorage.setItem(SESSION_KEY, token);
-            localStorage.setItem('nebulaops.v22_1.id_token', idToken);
-            localStorage.setItem(USER_KEY, displayName);
-            this.currentUser.set(displayName);
-            this.isAuthenticated.set(true);
-            this.refreshAll();
-        });
-    }
-
-    logout(): void {
-        const idToken = localStorage.getItem('nebulaops.v22_1.id_token') || '';
-        localStorage.removeItem(SESSION_KEY);
-        localStorage.removeItem(USER_KEY);
-        localStorage.removeItem('nebulaops.v22_1.id_token');
-        this.isAuthenticated.set(false);
-        // Redirect to Keycloak logout then back to app
-        const logoutUrl = new URL(`${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/logout`);
-        logoutUrl.searchParams.set('client_id', KC_CLIENT_ID);
-        if (idToken) logoutUrl.searchParams.set('id_token_hint', idToken);
-        logoutUrl.searchParams.set('post_logout_redirect_uri', KC_REDIRECT_URI);
-        window.location.href = logoutUrl.toString();
-    }
-
-    private authHeaders(): { [h: string]: string } {
-        const token = localStorage.getItem(SESSION_KEY) || '';
-        return token ? { Authorization: 'Bearer ' + token } : {};
-    }
-
-
-    openInfraLink(item: InfraLink): void {
-        if (item.kind === 'internal' && item.tab) {
-            this.setTab(item.tab);
-            return;
-        }
-        if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer');
-    }
-
-    selectPipelineNode(node: PipelineDesignerNode): void {
-        this.selectedPipelineNode.set(node);
-    }
-
-    pipelineNodeClass(node: PipelineDesignerNode): string {
-        return 'designer-node ' + node.status;
-    }
-
-    pipelineDesignerDrop(event: CdkDragDrop<PipelineDesignerNode[]>): void {
-        const nodes = [...this.pipelineDesignerNodes()];
-        const [moved] = nodes.splice(event.previousIndex, 1);
-        if (!moved) return;
-        nodes.splice(event.currentIndex, 0, moved);
-        this.pipelineDesignerNodes.set(nodes.map((n, i) => ({...n, x: 7 + i * 16, y: 42})));
-    }
-
-    runPipelineLive(): void {
-        this.refreshAll();
-    }
-
-
-    openLauncher(item: HomeLauncher): void {
-        if (item.kind === 'internal' && item.tab) {
-            this.setTab(item.tab);
-            return;
-        }
-        if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer');
-    }
-
-    openKeycloakAdmin(): void {
-        window.open('http://localhost:8180/admin/master/console', '_blank', 'noopener,noreferrer');
-    }
-
-    setEnvironment(name: string): void {
-        this.activeEnvironment.set(name);
-    }
-
-    syncGitOpsLive(): void {
-        this.loadGitOps();
-    }
-
-    toggleSidebar(): void {
-        this.sideCollapsed.update(v => !v);
-    }
-
-    toggleSideGroup(name: string): void {
-        const current = this.openSideGroups();
-        this.openSideGroups.set({...current, [name]: !current[name]});
-    }
-
-    isSideGroupOpen(name: string): boolean {
-        return this.openSideGroups()[name] !== false;
-    }
-
-    navigateSide(item: any): void {
-        if (item.lens) this.activeLensSection.set(item.lens);
-        if (item.docker) this.activeDockerSection.set(item.docker);
-        if (item.tab) this.setTab(item.tab as MainTab);
-    }
-
-    isSideItemActive(item: any): boolean {
-        return this.activeTab() === item.tab && (!item.lens || this.activeLensSection() === item.lens) && (!item.docker || this.activeDockerSection() === item.docker);
-    }
-
-    dockerSectionRows(): any[] {
-        const section = this.activeDockerSection();
-        if (section === 'Images') return this.dockerImages();
-        if (section === 'Volumes') return this.dockerVolumes();
-        if (section === 'Builds') return this.dockerBuilds();
-        if (section === 'Dev Environments') return this.devEnvironments();
-        if (section === 'Docker Scout') return this.dockerImages().map(i => ({
-            name: i.repository,
-            status: i.vulnerabilities ? 'attention' : 'clean',
-            image: i.tag,
-            time: 'CVE ' + i.vulnerabilities
-        }));
-        return this.dockerContainers();
-    }
-
-
-    dockerBuilds(): any[] {
-        return this.dockerImages().map(i => ({
-            name: i.repository,
-            status: 'image present',
-            image: i.tag,
-            time: i.created
-        }));
-    }
-
-    devEnvironments(): any[] {
-        return this.environments().map(e => ({
-            name: e.name,
-            status: e.health >= 90 ? 'ready' : 'attention',
-            image: e.cluster,
-            time: e.namespace
-        }));
-    }
-
-    portForwardRows(): any[] {
-        return this.homeLaunchers.filter(l => l.kind === 'external').map(l => ({
-            name: l.title,
-            namespace: 'local',
-            status: l.status || l.url,
-            url: l.url
-        }));
-    }
-
-    lensRows(): any[] {
-        const section = this.activeLensSection();
-        const resources = this.resources();
-        if (section === 'Cluster') return this.liveMetrics();
-        if (section === 'Nodes') return this.liveClusterNodes();
-        if (section === 'Pods') return resources.filter(r => r.kind === 'Deployment').map(r => ({
-            ...r,
-            kind: 'Pod',
-            name: r.name + '-pod'
-        }));
-        if (section === 'Deployments') return resources.filter(r => r.kind === 'Deployment');
-        if (section === 'DaemonSets') return this.k8sControllers().filter(c => c.kind === 'DaemonSet');
-        if (section === 'StatefulSets') return resources.filter(r => r.kind === 'StatefulSet');
-        if (section === 'ReplicaSets') return this.k8sControllers().filter(c => c.kind === 'ReplicaSet');
-        if (section === 'Jobs') return this.k8sControllers().filter(c => c.kind === 'Job');
-        if (section === 'CronJobs') return resources.filter(r => r.kind === 'CronJob');
-        if (section === 'Services') return resources.filter(r => r.kind === 'Service');
-        if (section === 'Ingresses') return resources.filter(r => r.kind === 'Ingress');
-        if (section === 'Namespaces') return Array.from(new Set(resources.map(r => r.namespace))).map(name => ({
-            name,
-            status: 'Active',
-            kind: 'Namespace'
-        }));
-        if (section === 'Events') return this.clusterEvents();
-        if (section === 'Config') return resources.filter(r => r.kind === 'ConfigMap' || r.kind === 'Secret');
-        if (section === 'Endpoints') return resources.filter(r => r.kind === 'Endpoint');
-        if (section === 'Network Policies') return resources.filter(r => r.kind === 'NetworkPolicy');
-        if (section === 'Port Forwarding') return this.portForwardRows();
-        if (section.includes('Persistent')) return resources.filter(r => r.kind === 'PersistentVolume' || r.kind === 'PersistentVolumeClaim');
-        if (section === 'Storage Classes') return resources.filter(r => r.kind === 'StorageClass');
-        return [...resources, ...this.k8sControllers()];
-    }
-
-    setTab(tab: MainTab): void {
-        this.activeTab.set(tab);
-        if (tab === 'COMPLIANCE') this.securitySubTab.set('COMPLIANCE');
-        if (tab === 'VULNERABILITIES') this.securitySubTab.set('VULNERABILITIES');
-        if (tab === 'SECURITY') this.securitySubTab.set('SECURITY');
-        if (tab === 'KUBERNETES' || tab === 'OVERVIEW') this.loadK8sFromApi();
-        if (tab === 'TASKS') this.loadTasks();
-        if (tab === 'HELM') this.loadHelm();
-        if (tab === 'OBSERVABILITY') this.refreshLogs(); else this.stopLogsAutoRefresh();
-        if (tab === 'AI OPS') this.runAiOpsAnalysis();
-        if (tab === 'SECURITY' || tab === 'COMPLIANCE' || tab === 'VULNERABILITIES') this.loadDevSecOps();
-    }
-
-    refreshAll(): void {
-        this.loadK8sFromApi();
-        this.loadTasks();
-        this.loadHelm();
-        this.loadDocker();
-        this.loadObservability();
-        this.loadGitOps();
-        this.loadDevSecOps();
-        this.loadEnvironments();
-        this.refreshLogs();
-        this.runAiOpsAnalysis(false);
-    }
-
-    columnTasks(status: Status): Task[] {
-        return this.tasks().filter(t => t.status === status);
-    }
-
-    drop(event: CdkDragDrop<Task[]>, status: Status): void {
-        const item = event.previousContainer.data[event.previousIndex];
-        if (!item) return;
-        this.updateTaskStatus(item, status);
-    }
-
-    loadTasks(): void {
-        this.tasksState.set('syncing');
-        this.http.get<any[]>(API.tasks.list('default-org')).pipe(catchError(err => {
-            this.tasksState.set('error');
-            this.apiError.set('Tasks REST error: ' + this.errorMessage(err));
-            return of([]);
-        })).subscribe(rows => {
-            const tasks = (rows || []).map(t => this.normalizeTask(t));
-            this.tasks.set(tasks);
-            this.tasksState.set(tasks.length ? 'connected' : 'empty');
-        });
-    }
-
-    createTask(): void {
-        if (!this.taskForm.title.trim()) return;
-        const payload = {
-            organizationId: 'default-org',
-            projectId: 'portfolio',
-            title: this.taskForm.title,
-            description: '',
-            priority: this.taskForm.priority,
-            assigneeId: this.taskForm.owner,
-            labels: []
-        };
-        this.http.post<any>(API.tasks.create, payload).pipe(catchError(err => {
-            this.tasksState.set('error');
-            this.apiError.set('Create task REST error: ' + this.errorMessage(err));
-            return of(null);
-        })).subscribe(saved => {
-            if (!saved) return;
-            this.tasks.set([this.normalizeTask(saved), ...this.tasks()]);
-            this.tasksState.set('connected');
-            this.taskForm = {id: '', title: '', owner: 'Platform', priority: 'MEDIUM', status: 'TODO'};
-        });
-    }
-
-    updateTaskStatus(item: Task, status: Status): void {
-        this.http.patch<any>(API.tasks.status(item.id, status), {}).pipe(catchError(err => {
-            this.tasksState.set('error');
-            this.apiError.set('Update task REST error: ' + this.errorMessage(err));
-            return of(null);
-        })).subscribe(saved => {
-            if (!saved) return;
-            const normalized = this.normalizeTask(saved);
-            this.tasks.set(this.tasks().map(t => t.id === item.id ? normalized : t));
-            this.tasksState.set('connected');
-        });
-    }
-
-    deleteTask(id: string): void {
-        this.http.delete<any>(API.tasks.delete(id)).pipe(catchError(err => {
-            this.tasksState.set('error');
-            this.apiError.set('Delete task REST error: ' + this.errorMessage(err));
-            return of(null);
-        })).subscribe(res => {
-            if (!res) return;
-            this.tasks.set(this.tasks().filter(t => t.id !== id));
-            this.tasksState.set(this.tasks().length ? 'connected' : 'empty');
-        });
-    }
-
-    normalizeTask(t: any): Task {
-        return {
-            id: String(t.id || t._id || ''),
-            title: String(t.title || '(untitled task)'),
-            owner: String(t.assigneeId || t.owner || t.projectId || 'Platform'),
-            priority: (['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(String(t.priority)) ? t.priority : 'MEDIUM') as Priority,
-            status: (['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'].includes(String(t.status)) ? t.status : 'TODO') as Status
-        };
-    }
-
-    priorityClass(p: Priority): string {
-        return p.toLowerCase();
-    }
-
-    namespaceOptions(): string[] {
-        const namespaces = this.resources().map((r: K8sResource) => r.namespace).filter(Boolean);
-        return ['all', ...Array.from(new Set<string>(namespaces))];
-    }
-
-    visibleResources(): K8sResource[] {
-        return this.resources().filter(r => (this.activeNamespace() === 'all' || r.namespace === this.activeNamespace()) && (this.activeKind() === 'all' || r.kind === this.activeKind()));
-    }
-
-    setNamespace(e: Event): void {
-        this.activeNamespace.set((e.target as HTMLSelectElement).value);
-    }
-
-    setKind(e: Event): void {
-        this.activeKind.set((e.target as HTMLSelectElement).value);
-    }
-
-    selectResource(r: K8sResource): void {
-        this.selected.set(r);
-    }
-
-    updateSelectedYaml(value: string): void {
-        const r = this.selected();
-        if (r) this.selected.set({...r, yaml: value});
-    }
-
-    createResource(): void {
-        if (!this.k8sForm.name.trim()) return;
-        const r = res(this.k8sForm.kind, this.k8sForm.namespace, this.k8sForm.name, this.k8sForm.replicas);
-        this.resources.set([r, ...this.resources().filter(x => x.id !== r.id)]);
-        this.selected.set(r);
-        this.saveK8s();
-        this.k8sForm = {kind: 'Deployment', namespace: 'nebulaops', name: '', replicas: 1};
-    }
-
-    deleteResource(r: K8sResource): void {
-        this.resources.set(this.resources().filter(x => x.id !== r.id));
-        this.selected.set(this.resources()[0] ?? null);
-        this.saveK8s();
-    }
-
-    scale(r: K8sResource, delta: number): void {
-        const next = {...r, replicas: Math.max(0, r.replicas + delta), status: 'Scaled'};
-        this.resources.set(this.resources().map(x => x.id === r.id ? next : x));
-        this.selected.set(next);
-        this.saveK8s();
-    }
-
-    loadK8sFromApi(): void {
-        this.k8sState.set('syncing');
-        this.http.get<K8sSnapshot>(API.kubernetes.snapshot).pipe(catchError(err => {
-            this.apiError.set(this.errorMessage(err));
-            return of(null);
-        })).subscribe(s => {
-            if (s?.resources?.length) {
-                this.resources.set(s.resources);
-                this.logs.set(s.logs || []);
-                this.selected.set(this.resources()[0] ?? null);
-                this.k8sState.set(s.cluster.status === 'Connected' ? 'connected' : 'error');
-            } else {
-                this.k8sState.set('error');
-                this.logs.set([]);
-            }
-        });
-    }
-
-    selectDockerContainer(c: DockerContainer): void {
-        this.selectedDockerContainer.set(c);
-    }
-
-    dockerAction(action: 'start' | 'stop' | 'restart' | 'pause' | 'unpause' | 'remove',
-                 container?: DockerContainer | null): void {
-        const current = container || this.selectedDockerContainer() || this.dockerContainers()[0];
-        if (!current) return;
-        const id = current.id;
-
-        // Optimistic UI update
-        const nextStatus: DockerContainer['status'] =
-            action === 'stop'    ? 'stopped'    :
-            action === 'pause'   ? 'paused'     :
-            action === 'restart' ? 'restarting' : 'running';
-
-        if (action !== 'remove') {
-            const updated = { ...current, status: nextStatus,
-                logs: [`${new Date().toLocaleTimeString()} ${action} ${current.name}`, ...current.logs].slice(0, 8) };
-            this.dockerContainers.set(this.dockerContainers().map(c => c.id === id ? updated : c));
-            this.selectedDockerContainer.set(updated);
-        }
-
-        // Real API call
-        const urlMap: Record<string, string> = {
-            start:   API.runtime.containerStart(id),
-            stop:    API.runtime.containerStop(id),
-            restart: API.runtime.containerRestart(id),
-            pause:   API.runtime.containerPause(id),
-            unpause: API.runtime.containerUnpause(id),
-            remove:  API.runtime.containerRemove(id),
-        };
-        const url = urlMap[action];
-        if (!url) return;
-
-        const req$ = action === 'remove'
-            ? this.http.delete<any>(url, { headers: this.authHeaders() })
-            : this.http.post<any>(url, {}, { headers: this.authHeaders() });
-
-        req$.pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            if (action === 'remove') {
-                this.dockerContainers.set(this.dockerContainers().filter(c => c.id !== id));
-                if (this.selectedDockerContainer()?.id === id) this.selectedDockerContainer.set(null);
-            } else if (action === 'restart') {
-                setTimeout(() => {
-                    this.dockerContainers.set(this.dockerContainers().map(c =>
-                        c.id === id ? { ...c, status: 'running' } : c));
-                }, 2000);
-                // Refresh from API after restart
-                setTimeout(() => this.loadDocker(), 3500);
-            }
-        });
-    }
-
-    removeDockerImage(image: DockerImage): void {
-        const tag = image.repository + ':' + image.tag;
-        this.http.delete<any>(API.runtime.imageRemove(encodeURIComponent(tag)),
-            { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(() => {
-            this.dockerImages.set(this.dockerImages().filter(i =>
-                !(i.repository === image.repository && i.tag === image.tag)));
-        });
-    }
-
-    removeDockerVolume(volume: DockerVolume): void {
-        this.http.delete<any>(API.runtime.volumeRemove(encodeURIComponent(volume.name)),
-            { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(() => {
-            this.dockerVolumes.set(this.dockerVolumes().filter(v => v.name !== volume.name));
-        });
-    }
-
-    loadContainerLogs(container: DockerContainer): void {
-        this.http.get<any>(API.runtime.containerLogs(container.id) + '?tail=100',
-            { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false, logs: [] }))).subscribe(res => {
-            if (res.ok && res.logs) {
-                const updated = { ...container, logs: res.logs };
-                this.dockerContainers.set(this.dockerContainers().map(c =>
-                    c.id === container.id ? updated : c));
-                this.selectedDockerContainer.set(updated);
-            }
-        });
-    }
-
-    pruneDocker(): void {
-        this.http.post<any>(API.runtime.imagesPrune, {}, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(() => this.loadDocker());
-    }
-
-    pruneVolumes(): void {
-        this.http.post<any>(API.runtime.volumesPrune, {}, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(() => this.loadDocker());
-    }
-
-    scaleController(ctrl: K8sController, delta: number): void {
-        const desired = Math.max(0, ctrl.desired + delta);
-        const updated = { ...ctrl, desired, available: Math.min(desired, Math.max(0, ctrl.available + delta)) };
-        this.k8sControllers.set(this.k8sControllers().map(c =>
-            c.name === ctrl.name && c.kind === ctrl.kind ? updated : c));
-
-        const ns   = ctrl.namespace || 'nebulaops';
-        const name = ctrl.name;
-        const url  = ctrl.kind === 'StatefulSet'
-            ? API.kubernetes.scaleStatefulSet(ns, name)
-            : API.kubernetes.scaleDeployment(ns, name);
-
-        this.http.post<any>(url, { replicas: desired }, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            if (!res.ok) {
-                // Rollback optimistic update
-                this.k8sControllers.set(this.k8sControllers().map(c =>
-                    c.name === ctrl.name && c.kind === ctrl.kind ? ctrl : c));
-            }
-        });
-    }
-
-    restartController(ctrl: K8sController): void {
-        this.k8sControllers.set(this.k8sControllers().map(c =>
-            c.name === ctrl.name && c.kind === ctrl.kind ? { ...c, available: Math.max(0, c.available - 1) } : c));
-
-        const ns   = ctrl.namespace || 'nebulaops';
-        const name = ctrl.name;
-        const url  = ctrl.kind === 'StatefulSet'
-            ? API.kubernetes.restartStatefulSet(ns, name)
-            : API.kubernetes.restartDeployment(ns, name);
-
-        this.http.post<any>(url, {}, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            const event: ClusterEvent = {
-                time:     new Date().toLocaleTimeString(),
-                type:     'ROLLOUT',
-                target:   ctrl.name,
-                message:  res.ok
-                    ? `Rolling restart issued for ${ctrl.kind}/${ctrl.name}`
-                    : `Restart failed for ${ctrl.kind}/${ctrl.name} — kubectl unavailable`,
-                severity: 'HIGH',
-            };
-            this.clusterEvents.set([event, ...this.clusterEvents()].slice(0, 8));
-            // Re-fetch after 4s
-            setTimeout(() => this.loadK8sFromApi(), 4000);
-        });
-    }
-
-    deletePod(pod: K8sResource, force = false): void {
-        const ns   = pod.namespace || 'nebulaops';
-        const name = pod.name;
-        this.http.delete<any>(
-            API.kubernetes.deletePod(ns, name) + (force ? '?force=true' : ''),
-            { headers: this.authHeaders() }
-        ).pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            const ev: ClusterEvent = {
-                time: new Date().toLocaleTimeString(), type: 'DELETE',
-                target: name, severity: 'HIGH',
-                message: res.ok ? `Pod ${name} deleted` : `Delete failed — kubectl unavailable`,
-            };
-            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
-            setTimeout(() => this.loadK8sFromApi(), 2000);
-        });
-    }
-
-    restartPod(pod: K8sResource): void {
-        const ns   = pod.namespace || 'nebulaops';
-        const name = pod.name;
-        this.http.post<any>(API.kubernetes.restartPod(ns, name), {}, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            const ev: ClusterEvent = {
-                time: new Date().toLocaleTimeString(), type: 'ROLLOUT',
-                target: name, severity: 'MEDIUM',
-                message: res.ok ? `Restart issued for pod ${name}` : `Restart failed — kubectl unavailable`,
-            };
-            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
-            setTimeout(() => this.loadK8sFromApi(), 4000);
-        });
-    }
-
-    loadPodLogs(pod: K8sResource): void {
-        const ns   = pod.namespace || 'nebulaops';
-        const name = pod.name;
-        this.http.get<any>(API.kubernetes.podLogs(ns, name) + '?tail=200',
-            { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false, stdout: '' }))).subscribe(res => {
-            const lines = (res.stdout || '').split('\\n').filter((l: string) => l.trim());
-            const logEntries = lines.map((l: string) => ({
-                time: new Date().toISOString(), service: name, level: 'INFO', message: l
-            }));
-            this.logs.set(logEntries.slice(-100));
-        });
-    }
-
-    getResourceYaml(kind: string, ns: string, name: string): void {
-        const urlFn: Record<string, Function> = {
-            Deployment:  API.kubernetes.deploymentYaml,
-            Service:     API.kubernetes.serviceYaml,
-            Ingress:     API.kubernetes.ingressYaml,
-        };
-        const fn = urlFn[kind];
-        if (!fn) return;
-        this.http.get<any>(fn(ns, name), { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false, stdout: '' }))).subscribe(res => {
-            if (res.ok && res.stdout) {
-                const sel = this.resources().find(r => r.name === name && r.kind === kind);
-                if (sel) this.selected.set({ ...sel, yaml: res.stdout });
-            }
-        });
-    }
-
-    applyLensAction(action: LensAction): void {
-        this.containerTerminal.set(action.command);
-        if (action.target === 'Pod') this.restartSelectedPodLive();
-    }
-
-    containerTerminalOutput(): string {
-        const selected = this.selectedDockerContainer() || this.dockerContainers()[0];
-        const dockerSummary = this.dockerContainers()
-            .map(c => `${c.name.padEnd(22)} ${c.status.padEnd(10)} ${c.ports}`)
-            .join('\n');
-        const k8sSummary = this.k8sControllers()
-            .map(c => `${c.kind}/${c.name} desired=${c.desired} available=${c.available} ns=${c.namespace}`)
-            .join('\n');
-        const selectedLogs = (selected?.logs || []).join('\n');
-
-        return `$ ${this.containerTerminal()}
-
-Docker Desktop live data:
-${dockerSummary}
-
-OpenLens live data:
-${k8sSummary}
-
-Selected logs: ${selected?.name || 'none'}
-${selectedLogs}`;
-    }
-
-    loadDocker(): void {
-        forkJoin({
-            containers: this.http.get<any[]>(API.runtime.dockerContainers).pipe(catchError(() => of([]))),
-            images: this.http.get<any[]>(API.runtime.dockerImages).pipe(catchError(() => of([]))),
-            volumes: this.http.get<any[]>(API.runtime.dockerVolumes).pipe(catchError(() => of([])))
-        }).subscribe(r => {
-            const containers = r.containers.map((x, i) => this.normalizeDockerContainer(x, i));
-            this.dockerContainers.set(containers);
-            if (r.images.length) this.dockerImages.set(r.images.map(x => ({
-                repository: x.Repository || x.repository || '<none>',
-                tag: x.Tag || x.tag || 'latest',
-                size: x.Size || x.size || '-',
-                vulnerabilities: Number(x.vulnerabilities || 0),
-                created: x.CreatedSince || x.created || x.CreatedAt || '-'
-            })));
-            if (r.volumes.length) this.dockerVolumes.set(r.volumes.map(x => ({
-                name: x.Name || x.name,
-                driver: x.Driver || x.driver || 'local',
-                mount: x.Mountpoint || x.mount || '-',
-                size: x.Scope || x.size || '-'
-            })));
-        });
-    }
-
-    normalizeDockerContainer(x: any, i: number): DockerContainer {
-        const rawStatus = String(x.status || x.Status || x.State || '').toLowerCase();
-        const status: DockerContainer['status'] = rawStatus.includes('pause') ? 'paused' : rawStatus.includes('restart') ? 'restarting' : rawStatus.includes('up') || rawStatus.includes('running') ? 'running' : 'stopped';
-        return {
-            id: x.id || x.ID || `docker-${i}`,
-            name: x.name || x.Names || x.Name || `container-${i}`,
-            image: x.image || x.Image || '-',
-            status,
-            cpu: Number(String(x.CPUPerc || x.cpu || '0').replace('%', '')) || 0,
-            memory: Number(String(x.MemUsage || x.memory || '0').split(/[A-Z]/)[0]) || 0,
-            ports: x.ports || x.Ports || '-',
-            network: x.network || x.Networks || '-',
-            logs: x.logs || [`${x.Names || x.Name || 'container'} ${x.Status || 'detected from Docker Engine'}`]
-        };
-    }
-
-    loadObservability(): void {
-        this.http.get<any>(API.platform.observability).pipe(catchError(() => of(null))).subscribe(data => {
-            if (!data) return;
-            this.observabilityStack.set(data.stack || []);
-            const hops = data.traceFlow || [];
-            this.traceFlow.set(hops);
-            this.clusterEdges.set(hops.map((h: any) => ({
-                from: h.from,
-                to: h.to,
-                traffic: Number(h.latency || 0),
-                status: h.status === 'hot' ? 'critical' : h.status === 'warm' ? 'hot' : 'ok'
-            })));
-            this.latencyHeatmap.set(data.latencyHeatmap || []);
-            this.kafkaEvents.set(data.eventStream || []);
-            const stack = data.stack || [];
-            const heat = data.latencyHeatmap || [];
-            this.liveMetrics.set([
-                {
-                    label: 'Live services',
-                    value: stack.filter((x: any) => x.live).length,
-                    unit: '/' + stack.length,
-                    trend: data.mode || 'LIVE'
-                },
-                {label: 'Docker CPU max', value: Math.max(0, ...heat), unit: '%', trend: 'docker stats'},
-                {label: 'Docker events', value: (data.eventStream || []).length, unit: '10m', trend: 'docker events'},
-                {label: 'Trace hops', value: hops.length, unit: 'links', trend: 'runtime'}
-            ]);
-        });
-    }
-
-    loadGitOps(): void {
-        this.http.get<any>(API.platform.gitops).pipe(catchError(() => of(null))).subscribe(data => {
-            if (!data) return;
-            this.gitOpsState.set(data.state || this.gitOpsState());
-            this.deploymentWaves.set(data.deploymentWaves || this.deploymentWaves());
-            this.commitStream.set(data.commitStream || this.commitStream());
-        });
-    }
-
-    loadDevSecOps(): void {
-        this.http.get<any>(API.platform.devsecops).pipe(catchError(() => of(null))).subscribe(data => {
-            if (!data) {
-                // v22.1: surface a clear offline state so the section never looks empty/broken
-                this.securityScans.set([{
-                    id: 'trivy-offline',
-                    tool: 'Trivy',
-                    target: 'gateway unreachable',
-                    status: 'failed' as ScanStatus,
-                    critical: 0,
-                    high: 0,
-                    medium: 0,
-                    duration: 'n/a'
-                }]);
-                this.complianceControls.set([{
-                    id: 'GW-1',
-                    framework: 'NebulaOps',
-                    title: 'Gateway reachability',
-                    score: 0,
-                    status: 'fail' as ComplianceControl['status']
-                }]);
-                this.cveDashboard.set([]);
-                this.threatPoints.set([]);
-                return;
-            }
-            this.securityScans.set(data.scans ?? []);
-            this.cveDashboard.set(data.cves ?? []);
-            this.complianceControls.set(data.controls ?? []);
-            this.threatPoints.set(data.threats ?? []);
-            // Recompute risk score from real findings
-            const cvesCount = (data.cves ?? []).length;
-            const critical = (data.scans ?? []).reduce((s: number, x: any) => s + (x.critical || 0), 0);
-            const high     = (data.scans ?? []).reduce((s: number, x: any) => s + (x.high     || 0), 0);
-            const score = Math.max(0, 100 - critical * 25 - high * 10 - cvesCount * 2);
-            this.riskScore.set(score);
-        });
-    }
-
-    loadEnvironments(): void {
-        this.http.get<any[]>(API.platform.environments).pipe(catchError(() => of([]))).subscribe(rows => {
-            if (rows.length) this.environments.set(rows);
-        });
-    }
-
-    loadHelm(): void {
-        this.http.get<any[]>(API.runtime.helmReleases).pipe(catchError(() => of([]))).subscribe(r => this.helmReleases.set(r));
-    }
-
-    refreshLogs(): void {
-        this.http.get<ServiceLog[]>(API.kubernetes.logs).pipe(catchError(() => of([]))).subscribe(rows => {
-            this.logs.set(rows);
-            this.lastLogsRefresh.set(new Date().toLocaleTimeString());
-        });
-    }
-
-    setLogService(e: Event): void {
-        this.activeLogService.set((e.target as HTMLSelectElement).value);
-    }
-
-    logServiceOptions(): string[] {
-        const services = this.logs().map((l: ServiceLog) => l.service).filter(Boolean);
-        return ['all', ...Array.from(new Set<string>(services))];
-    }
-
-    visibleLogs(): ServiceLog[] {
-        return this.logs().filter(l => this.activeLogService() === 'all' || l.service === this.activeLogService()).slice(0, 80);
-    }
-
-    setLogsRefreshSeconds(e: Event): void {
-        this.logsRefreshSeconds.set(Number((e.target as HTMLSelectElement).value));
-        if (this.logsAutoRefresh()) this.startLogsAutoRefresh();
-    }
-
-    toggleLogsAutoRefresh(): void {
-        this.logsAutoRefresh() ? this.stopLogsAutoRefresh() : this.startLogsAutoRefresh();
-    }
-
-
-    setClusterMode(mode: 'topology' | 'logs' | 'terminal' | 'metrics' | 'events' | 'yaml'): void {
-        this.selectedClusterMode.set(mode);
-    }
-
-    selectClusterNode(node: ClusterNode3D): void {
-        const match = this.resources().find(r => r.name === node.id || node.label.toLowerCase().includes(r.name.toLowerCase())) || this.resources().find(r => r.kind === 'Deployment') || null;
-        if (match) this.selected.set(match);
-        const severity: Priority = node.status === 'critical' ? 'CRITICAL' : node.status === 'warning' ? 'HIGH' : 'LOW';
-        const event: ClusterEvent = {
-            time: new Date().toLocaleTimeString(),
-            type: 'SELECT',
-            target: node.label,
-            message: `Opened ${node.label} drilldown with logs, terminal, metrics, events and YAML.`,
-            severity
-        };
-        this.clusterEvents.set([event, ...this.clusterEvents()].slice(0, 8));
-    }
-
-    nodeCss(node: ClusterNode3D): Record<string, string> {
-        return {
-            'left.%': String(node.x),
-            'top.%': String(node.y),
-            '--z': String(node.z),
-            '--cpu': String(node.cpu),
-            '--ram': String(node.ram)
-        };
-    }
-
-    resourceCpu(r: K8sResource | null): number {
-        if (!r) return 0;
-        return Math.min(96, 28 + (r.name.length * 9 + r.replicas * 11) % 68);
-    }
-
-    resourceRam(r: K8sResource | null): number {
-        if (!r) return 0;
-        return Math.min(98, 34 + (r.name.length * 7 + r.kind.length * 5) % 62);
-    }
-
-    resourceRestarts(r: K8sResource | null): number {
-        if (!r) return 0;
-        return r.name.includes('gateway') ? 3 : r.kind === 'Deployment' ? 1 : 0;
-    }
-
-    restartSelectedPodLive(): void {
-        this.refreshAll();
-    }
-
-    terminalOutput(): string {
-        const r = this.selected();
-        const name = r?.name || 'gateway-service';
-        return `$ ${this.terminalCommand()}
-
-Name: ${name}
-Namespace: ${r?.namespace || 'nebulaops'}
-Status: ${r?.status || 'Running'}
-Restarts: ${this.resourceRestarts(r)}
-Events:
-  Warning  BackOff     restarting failed container ${name}
-  Normal   Pulled      container image ready
-  Normal   Started     started container ${name}
-
-Tip: use the AI OPS tab for RCA and AUTO FIX suggestions.`;
-    }
-
-    runAiOpsAnalysis(pushChat = true): void {
-        this.aiOpsRunning.set(true);
-        const prompt = this.aiOpsPrompt();
-        if (pushChat) this.aiOpsChat.set([...this.aiOpsChat(), {
-            role: 'user',
-            text: prompt,
-            time: new Date().toLocaleTimeString()
-        }]);
-        this.http.post<AiOpsAnalysis>(API.aiOps.analyze, {
-            prompt,
-            logs: this.visibleLogs(),
-            resources: this.resources()
-        }).pipe(catchError(() => of(this.fallbackAiOps(prompt)))).subscribe(result => {
-            this.aiOpsAnalysis.set(result);
-            this.aiOpsRunning.set(false);
-            if (pushChat) this.aiOpsChat.set([...this.aiOpsChat(), {
-                role: 'ai',
-                text: `${result.summary} Root cause: ${result.rootCause}. Suggested fix: ${result.fix}`,
-                time: new Date().toLocaleTimeString()
-            }]);
-        });
-    }
-
-    autoFix(): void {
-        const analysis = this.aiOpsAnalysis();
-        this.aiOpsAutoFix.set(true);
-        this.http.post(API.aiOps.autofix, {
-            incidentId: analysis.incidentId,
-            yaml: analysis.yaml,
-            fix: analysis.fix
-        }).pipe(catchError(() => of({status: 'unavailable'}))).subscribe(() => {
-            this.aiOpsAutoFix.set(false);
-            this.aiOpsChat.set([...this.aiOpsChat(), {
-                role: 'system',
-                text: `AUTO FIX staged: ${analysis.fix}`,
-                time: new Date().toLocaleTimeString()
-            }]);
-        });
-    }
-
-    aiSeverityClass(severity: Priority): string {
-        return `ai-sev-${severity.toLowerCase()}`;
-    }
-
-    runTerraformPlan(moduleName = this.selectedTf()): void {
-        const module = this.terraformModules.find(m => m.name === moduleName) || this.terraformModules[0];
-        this.selectedTf.set(module.name);
-        this.terraformPlan.set(`$ terraform init\n$ terraform validate\n$ terraform plan -var=\"module=${module.name}\"\n\nPlan: ${module.resources} to add, 0 to change, ${module.drift} to replace.\n\nNext command:\n${module.command}`);
-    }
-
-    copyCommand(text: string): void {
-        navigator.clipboard?.writeText(text);
-    }
-
-    toggleFinding(id: string): void {
-        this.findings.set(this.findings().map(f => f.id === id ? {...f, done: !f.done} : f));
-    }
-
-    setSecuritySubTab(tab: SecurityTab): void {
-        this.securitySubTab.set(tab);
-    }
-
-    scanWidth(scan: SecurityScan): number {
-        return Math.min(100, 8 + scan.critical * 24 + scan.high * 9 + scan.medium * 2);
-    }
-
-    scanStatusClass(status: ScanStatus): string {
-        return status.toLowerCase();
-    }
-
-    controlClass(status: ComplianceControl['status']): string {
-        return `control-${status}`;
-    }
-
-    threatCss(t: ThreatPoint): Record<string, string> {
-        return {'left.%': String(t.x), 'top.%': String(t.y)};
-    }
-
-    runSecurityScanLive(): void {
-        this.loadDevSecOps();
-    }
-
-    stageWidth(s: PipelineStage): number {
-        return s.status === 'passed' ? 100 : s.status === 'running' ? 65 : s.status === 'queued' ? 25 : 8;
-    }
-
-    private buildClusterNodes(): ClusterNode3D[] {
-        return [
-            {id: 'ingress', label: 'Ingress', role: 'edge', cpu: 35, ram: 28, x: 10, y: 45, z: 1, status: 'healthy'},
-            {
-                id: 'frontend',
-                label: 'Frontend',
-                role: 'pod x2',
-                cpu: 58,
-                ram: 51,
-                x: 28,
-                y: 24,
-                z: 3,
-                status: 'warning'
-            },
-            {
-                id: 'gateway-service',
-                label: 'Gateway',
-                role: 'svc/pod x2',
-                cpu: 91,
-                ram: 83,
-                x: 47,
-                y: 43,
-                z: 5,
-                status: 'critical'
-            },
-            {
-                id: 'task-service',
-                label: 'Tasks',
-                role: 'deployment',
-                cpu: 62,
-                ram: 55,
-                x: 68,
-                y: 24,
-                z: 2,
-                status: 'warning'
-            },
-            {
-                id: 'notification-service',
-                label: 'Notify',
-                role: 'deployment',
-                cpu: 43,
-                ram: 39,
-                x: 66,
-                y: 67,
-                z: 2,
-                status: 'healthy'
-            },
-            {
-                id: 'mongodb',
-                label: 'MongoDB',
-                role: 'statefulset',
-                cpu: 49,
-                ram: 71,
-                x: 86,
-                y: 45,
-                z: 1,
-                status: 'healthy'
-            },
-            {id: 'rabbitmq', label: 'RabbitMQ', role: 'queue', cpu: 33, ram: 45, x: 47, y: 75, z: 2, status: 'healthy'},
-            {
-                id: 'persistent-volume',
-                label: 'PV',
-                role: 'volume',
-                cpu: 18,
-                ram: 31,
-                x: 88,
-                y: 78,
-                z: 0,
-                status: 'healthy'
-            }
-        ];
-    }
-
-    private syntheticClusterEvents(): ClusterEvent[] {
-        const now = new Date().toLocaleTimeString();
-        return [
-            {
-                time: now,
-                type: 'Warning',
-                target: 'gateway-service',
-                message: 'CrashLoopBackOff pulse propagated to frontend and task-service.',
-                severity: 'CRITICAL'
-            },
-            {
-                time: now,
-                type: 'Normal',
-                target: 'frontend',
-                message: 'Ingress traffic steady at 1.2k req/s.',
-                severity: 'LOW'
-            },
-            {
-                time: now,
-                type: 'Scaling',
-                target: 'task-service',
-                message: 'CPU above threshold; HPA recommendation generated.',
-                severity: 'MEDIUM'
-            },
-            {
-                time: now,
-                type: 'Storage',
-                target: 'persistent-volume',
-                message: 'Volume latency normal; no PVC pressure.',
-                severity: 'LOW'
-            }
-        ];
-    }
-
-    private fallbackAiOps(prompt = this.aiOpsPrompt()): AiOpsAnalysis {
-        const now = new Date().toLocaleTimeString();
-        return {
-            incidentId: 'AIOPS-19-3-CRASH-042',
-            summary: 'CrashLoopBackOff detected on gateway-service with readiness degradation propagated to frontend and notification-service.',
-            rootCause: prompt.toLowerCase().includes('image') ? 'Image pull / tag mismatch combined with readiness probe timeout.' : 'Readiness probe timeout after deployment; downstream gateway route saturation detected.',
-            confidence: 0.91,
-            blastRadius: ['frontend', 'gateway-service', 'task-service', 'notification-service'],
-            fix: 'Increase initialDelaySeconds, verify image tag, restart rollout and add temporary HPA guardrail.',
-            yaml: `apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: gateway-service\n  namespace: nebulaops\nspec:\n  template:\n    spec:\n      containers:\n        - name: gateway-service\n          readinessProbe:\n            httpGet:\n              path: /actuator/health\n              port: 8080\n            initialDelaySeconds: 25\n            periodSeconds: 10\n`,
-            events: [
-                {
-                    time: now,
-                    service: 'gateway-service',
-                    severity: 'CRITICAL',
-                    title: 'Pod CrashLoopBackOff',
-                    status: 'active',
-                    recommendation: 'Patch readiness probe and restart rollout'
-                },
-                {
-                    time: now,
-                    service: 'frontend',
-                    severity: 'HIGH',
-                    title: '5xx propagation',
-                    status: 'degraded',
-                    recommendation: 'Route traffic to healthy gateway replicas'
-                },
-                {
-                    time: now,
-                    service: 'task-service',
-                    severity: 'MEDIUM',
-                    title: 'Queue latency spike',
-                    status: 'watch',
-                    recommendation: 'Scale worker replicas if queue depth grows'
-                },
-                {
-                    time: now,
-                    service: 'mongodb',
-                    severity: 'LOW',
-                    title: 'No storage anomaly',
-                    status: 'stable',
-                    recommendation: 'No action'
-                }
-            ],
-            nodes: [
-                {id: 'frontend', label: 'Frontend', type: 'edge', health: 72, x: 14, y: 24, z: 1, status: 'warn'},
-                {id: 'gateway', label: 'Gateway', type: 'api', health: 18, x: 42, y: 38, z: 4, status: 'critical'},
-                {id: 'tasks', label: 'Tasks', type: 'svc', health: 66, x: 69, y: 22, z: 2, status: 'warn'},
-                {id: 'mongo', label: 'MongoDB', type: 'db', health: 96, x: 78, y: 66, z: 1, status: 'ok'},
-                {id: 'notify', label: 'Notify', type: 'svc', health: 61, x: 30, y: 72, z: 3, status: 'warn'}
-            ]
-        };
-    }
-
-    private saveTasks(): void {
-        localStorage.setItem(TASKS_KEY, JSON.stringify(this.tasks()));
-    }
-
-    private saveK8s(): void {
-        localStorage.setItem(K8S_KEY, JSON.stringify(this.resources()));
-    }
-
-    private startLogsAutoRefresh(): void {
-        this.stopLogsAutoRefresh(false);
-        this.logsAutoRefresh.set(true);
-        this.refreshLogs();
-        this.logsTimer = setInterval(() => this.refreshLogs(), this.logsRefreshSeconds() * 1000);
-    }
-
-    private stopLogsAutoRefresh(update = true): void {
-        if (this.logsTimer) clearInterval(this.logsTimer);
-        this.logsTimer = null;
-        if (update) this.logsAutoRefresh.set(false);
-    }
-
-    private syntheticLogs(): ServiceLog[] {
-        const now = new Date().toISOString();
-        return ['gateway-service', 'task-service', 'terraform-runner', 'go-cache-service', 'notification-service'].map((service, i) => ({
-            time: now,
-            service,
-            level: i === 2 ? 'PLAN' : 'INFO',
-            message: `${service} OK · v22.1 AI Ops telemetry`
-        }));
-    }
-
-    // ── Node actions ─────────────────────────────────────────────────────────
-    cordonNode(nodeName: string): void {
-        this.http.post<any>(API.kubernetes.cordonNode(nodeName), {}, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            const ev: ClusterEvent = {
-                time: new Date().toLocaleTimeString(), type: 'CORDON',
-                target: nodeName, severity: 'HIGH',
-                message: res.ok ? `Node ${nodeName} cordoned` : `Cordon failed — kubectl unavailable`,
-            };
-            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
-            setTimeout(() => this.loadK8sFromApi(), 2000);
-        });
-    }
-
-    uncordonNode(nodeName: string): void {
-        this.http.post<any>(API.kubernetes.uncordonNode(nodeName), {}, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            const ev: ClusterEvent = {
-                time: new Date().toLocaleTimeString(), type: 'UNCORDON',
-                target: nodeName, severity: 'MEDIUM',
-                message: res.ok ? `Node ${nodeName} uncordoned` : `Uncordon failed — kubectl unavailable`,
-            };
-            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
-            setTimeout(() => this.loadK8sFromApi(), 2000);
-        });
-    }
-
-    drainNode(nodeName: string): void {
-        const ev: ClusterEvent = {
-            time: new Date().toLocaleTimeString(), type: 'DRAIN',
-            target: nodeName, severity: 'CRITICAL',
-            message: `Draining node ${nodeName}...`,
-        };
-        this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
-        this.http.post<any>(API.kubernetes.drainNode(nodeName), {}, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            const done: ClusterEvent = {
-                time: new Date().toLocaleTimeString(), type: 'DRAIN',
-                target: nodeName, severity: res.ok ? 'MEDIUM' : 'HIGH',
-                message: res.ok ? `Node ${nodeName} drained` : `Drain failed — ${res.stderr || 'kubectl unavailable'}`,
-            };
-            this.clusterEvents.set([done, ...this.clusterEvents()].slice(0, 8));
-            setTimeout(() => this.loadK8sFromApi(), 2000);
-        });
-    }
-
-    createNamespace(name: string): void {
-        if (!name?.trim()) return;
-        this.http.post<any>(API.kubernetes.createNamespace, { name: name.trim() }, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false }))).subscribe(res => {
-            if (res.ok) setTimeout(() => this.loadK8sFromApi(), 1000);
-        });
-    }
-
-    applyYaml(yaml: string): void {
-        if (!yaml?.trim()) return;
-        this.http.post<any>(API.kubernetes.apply, { yaml }, { headers: this.authHeaders() })
-        .pipe(catchError(() => of({ ok: false, stderr: 'kubectl unavailable' }))).subscribe(res => {
-            const ev: ClusterEvent = {
-                time: new Date().toLocaleTimeString(), type: 'APPLY',
-                target: 'manifest', severity: res.ok ? 'LOW' : 'HIGH',
-                message: res.ok ? `kubectl apply OK: ${res.stdout?.split('\n')[0] || ''}` : `Apply failed: ${res.stderr || ''}`,
-            };
-            this.clusterEvents.set([ev, ...this.clusterEvents()].slice(0, 8));
-            setTimeout(() => this.loadK8sFromApi(), 2000);
-        });
-    }
-
-    // ── errorMessage ──────────────────────────────────────────────────────────
-    private errorMessage(err: any): string {
-        return err?.error?.message || err?.message || 'API non disponibile: nessun dato live disponibile';
-    }
-
-    private loadLocal<T>(key: string, fallback: T): T {
-        try {
-            return JSON.parse(localStorage.getItem(key) || 'null') || fallback;
-        } catch {
-            return fallback;
-        }
-    }
+  }
+
+  private loadRemote(def: RemoteDefinition): Promise<void> {
+    if (customElements.get(def.tag) || this.loadedRemotes.has(def.id)) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector<HTMLScriptElement>(`script[data-remote-id="${def.id}"]`);
+      if (existing) {
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => reject(new Error(`Cannot load ${def.path}`)));
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = def.path;
+      script.defer = true;
+      script.dataset['remoteId'] = def.id;
+      script.onload = () => {
+        this.loadedRemotes.add(def.id);
+        resolve();
+      };
+      script.onerror = () => reject(new Error(`Cannot load ${def.path}`));
+      document.body.appendChild(script);
+    });
+  }
+
+  private randomString(length: number): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const values = new Uint8Array(length);
+    crypto.getRandomValues(values);
+    return Array.from(values, value => chars[value % chars.length]).join('');
+  }
+
+  private async sha256Base64Url(value: string): Promise<string> {
+    const data = new TextEncoder().encode(value);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(hash)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/g, '');
+  }
+
+  private decodeJwt(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) return null;
+      return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    } catch {
+      return null;
+    }
+  }
 }

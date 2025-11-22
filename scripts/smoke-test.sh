@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.1 — Authenticated smoke test through gateway using Keycloak token.
+# v22.2 — Authenticated smoke test through gateway using Keycloak token.
 set -euo pipefail
 BASE=${BASE:-http://localhost:8080}
 KEYCLOAK_URL=${KEYCLOAK_URL:-http://localhost:8180}

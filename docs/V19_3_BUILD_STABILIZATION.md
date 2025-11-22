@@ -5,7 +5,7 @@ This corrected v19.3 package includes the DevSecOps module plus hardening fixes 
 ## Fixed
 
 - Docker Compose project name set to `nebulaops-v19-3`.
-- Explicit image names added for all local services, replacing accidental `nebulaops-v17-*` output names.
+- Explicit image names added for all local services, replacing accidental `nebulaops-v22-2-*` output names.
 - All Spring Boot Dockerfiles now use BuildKit Maven cache mounts.
 - Maven build commands now use batch mode, retry settings, longer HTTP TTL, and `-Dmaven.test.skip=true`.
 - Backend Maven artifact versions aligned to `19.3.0`.

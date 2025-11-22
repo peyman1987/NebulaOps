@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — Docker build fix
+# NebulaOps v22.2 — Docker build fix
 
 ## Fix applicata
 

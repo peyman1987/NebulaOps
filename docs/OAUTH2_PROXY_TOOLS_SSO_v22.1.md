@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — OAuth2 Proxy SSO for Tool UIs
+# NebulaOps v22.2 — OAuth2 Proxy SSO for Tool UIs
 
 This package protects the local tool UIs with Keycloak when the `sso-proxy` Docker Compose profile is enabled.
 

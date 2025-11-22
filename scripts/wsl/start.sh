@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.1 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
+# v22.2 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
 # Usage: ./scripts/wsl/start.sh [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy]
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
@@ -52,7 +52,7 @@ locales=en,it
 THEME
 
   cat > "$theme_dir/login.ftl" <<'FTL'
-<#-- NebulaOps v22.1 standalone Keycloak login page. No template.ftl import. -->
+<#-- NebulaOps v22.2 standalone Keycloak login page. No template.ftl import. -->
 <#assign nbLoginAction="">
 <#assign nbUsername="">
 <#assign nbRemember=false>
@@ -76,7 +76,7 @@ THEME
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>NebulaOps v22.1 Login</title>
+  <title>NebulaOps v22.2 Login</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
@@ -153,10 +153,10 @@ THEME
 <body>
   <main class="nb-card">
     <div class="nb-brand">
-      <div class="nb-logo">N22.1</div>
+      <div class="nb-logo">N22.2</div>
       <div class="nb-brand-text">
         <p>Terraform enabled SaaS cockpit</p>
-        <h1>NebulaOps v22.1</h1>
+        <h1>NebulaOps v22.2</h1>
       </div>
     </div>
     <p class="nb-lead">DevOps portfolio platform - Docker · Kubernetes · Helm · Terraform · GitOps</p>
@@ -197,7 +197,7 @@ THEME
       <input type="hidden" id="id-hidden-input" name="credentialId" value="${nbSelectedCredential?html}">
       <button tabindex="4" class="nb-submit-btn" name="login" id="kc-login" type="submit">Login</button>
     </form>
-    <div class="nb-footer">DevOps Enterprise Cockpit · v22.1 · Local-first</div>
+    <div class="nb-footer">DevOps Enterprise Cockpit · v22.2 · Local-first</div>
   </main>
 </body>
 </html>
@@ -232,7 +232,7 @@ keycloak_oidc_probe() {
   KEYCLOAK_OIDC_CODE="000"
   KEYCLOAK_OIDC_BODY="/tmp/nebulaops-keycloak-auth-start.html"
   KEYCLOAK_OIDC_CODE=$(curl -sS --max-time 10 -o "$KEYCLOAK_OIDC_BODY" -w "%{http_code}" "$(keycloak_auth_url)" 2>/dev/null || true)
-  [ "$KEYCLOAK_OIDC_CODE" = "200" ] && grep -qiE 'kc-form-login|NebulaOps v22\.1|name="username"' "$KEYCLOAK_OIDC_BODY" 2>/dev/null
+  [ "$KEYCLOAK_OIDC_CODE" = "200" ] && grep -qiE 'kc-form-login|NebulaOps v22\.2|name="username"' "$KEYCLOAK_OIDC_BODY" 2>/dev/null
 }
 
 keycloak_admin_token() {
@@ -352,6 +352,55 @@ append_compose_extra_file() {
   fi
 }
 
+
+port_owner_rows() {
+  local port="$1"
+  docker ps --filter "publish=$port" \
+    --format '{{.ID}}|{{.Names}}|{{.Label "com.docker.compose.project"}}|{{.Label "com.docker.compose.service"}}' 2>/dev/null || true
+}
+
+release_nebulaops_port() {
+  local port="$1" purpose="$2" rows row id name project service blocked=false
+  rows="$(port_owner_rows "$port")"
+  [ -z "$rows" ] && return 0
+
+  while IFS='|' read -r id name project service; do
+    [ -z "$id" ] && continue
+    case "$project" in
+      nebulaops|nebulaops-*|nebulaops_v*|nebulaops-v*)
+        log_warn "Port $port is already used by previous NebulaOps container $name ($project/$service); removing it for $purpose"
+        docker rm -f "$id" >/dev/null 2>&1 || true
+        ;;
+      "$PROJECT_NAME")
+        log_warn "Port $port is already used by current NebulaOps container $name ($service); removing stale container for $purpose"
+        docker rm -f "$id" >/dev/null 2>&1 || true
+        ;;
+      *)
+        log_err "Port $port is already used by non-NebulaOps container '$name'. Stop it before starting $purpose."
+        log_err "Inspect with: docker ps --filter publish=$port --format 'table {{.ID}}\t{{.Names}}\t{{.Ports}}'"
+        blocked=true
+        ;;
+    esac
+  done <<< "$rows"
+
+  [ "$blocked" = "false" ] || exit 1
+}
+
+release_tool_ui_ports_for_mode() {
+  local mode="$1"
+  log_step "Checking tool UI ports for $mode mode"
+  release_nebulaops_port 15672 "RabbitMQ $mode UI"
+  release_nebulaops_port 8088  "Mongo Express $mode UI"
+  release_nebulaops_port 8089  "Redis Commander $mode UI"
+}
+
+release_frontend_mfe_ports() {
+  log_step "Checking shell and micro frontend ports"
+  for port in 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219; do
+    release_nebulaops_port "$port" "NebulaOps v22.2 frontend/micro frontend"
+  done
+}
+
 log_step "Pre-flight checks"
 "$ROOT_DIR/scripts/wsl/check-wsl.sh"
 
@@ -361,6 +410,8 @@ log_step "Preparing kubeconfig and runtime tools"
 
 log_step "Preparing Keycloak login theme"
 prepare_keycloak_theme_before_start
+
+release_frontend_mfe_ports
 
 log_step "Validating Grafana provisioning"
 defaults=$(grep -R "isDefault: true" -n \
@@ -376,7 +427,7 @@ if [ "$REBUILD_GATEWAY" = "true" ]; then
   dc build --no-cache gateway-service
 fi
 
-log_step "Starting NebulaOps v22.1"
+log_step "Starting NebulaOps v22.2"
 # Ensure shared Docker network exists (external: true in docker-compose.yml)
 if ! docker network inspect nebulaops-network &>/dev/null; then
   log_info "Creating shared network: nebulaops-network"
@@ -405,9 +456,11 @@ if [ "$WITH_SSO_PROXY" = "true" ]; then
   "$ROOT_DIR/scripts/oauth2-proxy-preflight.sh"
   log_step "Recreating SSO proxy bridge containers"
   dc rm -sf rabbitmq-basic-proxy mongo-express-basic-proxy redis-commander-basic-proxy rabbitmq-management-sso mongo-express-sso redis-commander-sso >/dev/null 2>&1 || true
+  release_tool_ui_ports_for_mode "SSO"
   compose_profiles+=("sso-proxy")
 else
   log_info "SSO proxy wrappers are disabled by default. Native tool UIs are exposed by docker-compose.native-ui.yml."
+  release_tool_ui_ports_for_mode "native"
   append_compose_extra_file "$ROOT_DIR/docker-compose.native-ui.yml"
 fi
 if [ "${#compose_profiles[@]}" -gt 0 ]; then
@@ -429,7 +482,7 @@ wait_http "http://localhost:8080/actuator/health" 120 "gateway-service" || \
 
 cat <<INFO
 
-${C_BOLD}NebulaOps v22.1 is running.${C_RESET}
+${C_BOLD}NebulaOps v22.2 is running.${C_RESET}
 
   ${C_CYAN}Frontend${C_RESET}    http://localhost:4200
   ${C_CYAN}Gateway${C_RESET}     http://localhost:8080/actuator/health

@@ -1,0 +1,10 @@
+{
+  "id": "finops-cost",
+  "title": "FinOps Cost",
+  "version": "22.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-finops-cost",
+  "port": 4219,
+  "scope": "Cost \u00b7 Analytics",
+  "shellOwnedNavigation": true
+}

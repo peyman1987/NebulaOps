@@ -1,4 +1,4 @@
-name: nebulaops-v22-1
+name: nebulaops-v22-2
 services:
   mongodb:
     image: mongo:7
@@ -39,7 +39,7 @@ services:
       redis:
         condition: service_healthy
   auth-service:
-    image: nebulaops-v22-1-auth-service:latest
+    image: nebulaops-v22-2-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
@@ -57,7 +57,7 @@ services:
     ports:
     - 8081:8081
   task-service:
-    image: nebulaops-v22-1-task-service:latest
+    image: nebulaops-v22-2-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -81,7 +81,7 @@ services:
     ports:
     - 8082:8082
   notification-service:
-    image: nebulaops-v22-1-notification-service:latest
+    image: nebulaops-v22-2-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -105,7 +105,7 @@ services:
     ports:
     - 8083:8083
   file-service:
-    image: nebulaops-v22-1-file-service:latest
+    image: nebulaops-v22-2-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
@@ -123,7 +123,7 @@ services:
     ports:
     - 8084:8084
   ai-engine:
-    image: nebulaops-v22-1-ai-engine:latest
+    image: nebulaops-v22-2-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
@@ -136,7 +136,7 @@ services:
       keycloak:
         condition: service_started
   ai-ops-service:
-    image: nebulaops-v22-1-ai-ops-service:latest
+    image: nebulaops-v22-2-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
@@ -157,7 +157,7 @@ services:
     ports:
     - 8085:8085
   devsecops-service:
-    image: nebulaops-v22-1-devsecops-service:latest
+    image: nebulaops-v22-2-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
@@ -175,7 +175,7 @@ services:
       keycloak:
         condition: service_started
   pipeline-engine-service:
-    image: nebulaops-v22-1-pipeline-engine-service:latest
+    image: nebulaops-v22-2-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
@@ -193,7 +193,7 @@ services:
       keycloak:
         condition: service_started
   gateway-service:
-    image: nebulaops-v22-1-gateway-service:latest
+    image: nebulaops-v22-2-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
@@ -206,7 +206,7 @@ services:
       DEVSECOPS_SERVICE_URL: http://devsecops-service:8086
       PIPELINE_ENGINE_SERVICE_URL: http://pipeline-engine-service:8087
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v22-1}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v22-2}
       GRAFANA_URL: http://grafana:3000
       GRAFANA_AUTH: admin:admin
       PATH: /opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -218,7 +218,7 @@ services:
       GITLAB_URL: ${GITLAB_URL:-}
       KEYCLOAK_CLIENT_ID: nebulaops-gateway
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-nebulaops-secret-dev-only}
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-1-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-2-dev-secret-key-min-32-chars!!}
       GITLAB_ENABLED: ${GITLAB_ENABLED:-false}
     volumes:
     - ./.kube/config:/kube/config:ro
@@ -246,19 +246,6 @@ services:
         condition: service_started
     ports:
     - 8080:8080
-  frontend:
-    image: nebulaops-v22-1-frontend:latest
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    depends_on:
-    - gateway-service
-    - rabbitmq-management-sso
-    - prometheus-sso
-    - mongo-express-sso
-    - redis-commander-sso
-    ports:
-    - 4200:80
   prometheus:
     image: prom/prometheus:v2.53.0
     volumes:
@@ -314,8 +301,9 @@ services:
       GF_AUTH_GENERIC_OAUTH_AUTH_URL: http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth
       GF_AUTH_GENERIC_OAUTH_TOKEN_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/token
       GF_AUTH_GENERIC_OAUTH_API_URL: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/userinfo
-      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: contains(realm_access.roles[*], 'nebula-admin') && 'Admin' || contains(realm_access.roles[*],
-        'nebula-operator') && 'Editor' || 'Viewer'
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: contains(realm_access.roles[*], 'nebula-admin')
+        && 'Admin' || contains(realm_access.roles[*], 'nebula-operator') && 'Editor'
+        || 'Viewer'
       GF_AUTH_DISABLE_LOGIN_FORM: 'false'
     volumes:
     - grafana-data:/var/lib/grafana
@@ -371,7 +359,7 @@ services:
     volumes:
     - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v22-1-go-cache-service:latest
+    image: nebulaops-v22-2-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -394,7 +382,7 @@ services:
     ports:
     - 8091:8091
   go-event-worker:
-    image: nebulaops-v22-1-go-event-worker:latest
+    image: nebulaops-v22-2-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile
@@ -451,8 +439,8 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.0\r\n\r\n' >&3 && grep -q '"status":"UP"' <&3
-        || exit 1
+      - exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.0\r\n\r\n'
+        >&3 && grep -q '"status":"UP"' <&3 || exit 1
       interval: 20s
       timeout: 15s
       retries: 15
@@ -464,13 +452,17 @@ services:
     shm_size: 256m
     environment:
       GITLAB_ROOT_PASSWORD: NebulaOpsRoot22!
-      GITLAB_OMNIBUS_CONFIG: "external_url 'http://localhost:8929'\ngitlab_rails['gitlab_shell_ssh_port'] = 2222\ngitlab_rails['omniauth_enabled']\
-        \ = true\ngitlab_rails['omniauth_allow_single_sign_on'] = ['openid_connect']\ngitlab_rails['omniauth_block_auto_created_users']\
-        \ = false\ngitlab_rails['omniauth_providers'] = [\n  {\n    name: 'openid_connect',\n    label: 'Keycloak',\n    args:\
-        \ {\n      name: 'openid_connect',\n      scope: ['openid','profile','email'],\n      response_type: 'code',\n   \
-        \   issuer: 'http://keycloak:8080/realms/nebulaops',\n      discovery: true,\n      client_auth_method: 'query',\n\
-        \      uid_field: 'preferred_username',\n      client_options: {\n        identifier: 'gitlab',\n        secret: 'gitlab-secret-dev-only',\n\
-        \        redirect_uri: 'http://localhost:8929/users/auth/openid_connect/callback'\n      }\n    }\n  }\n]\n"
+      GITLAB_OMNIBUS_CONFIG: "external_url 'http://localhost:8929'\ngitlab_rails['gitlab_shell_ssh_port']\
+        \ = 2222\ngitlab_rails['omniauth_enabled'] = true\ngitlab_rails['omniauth_allow_single_sign_on']\
+        \ = ['openid_connect']\ngitlab_rails['omniauth_block_auto_created_users']\
+        \ = false\ngitlab_rails['omniauth_providers'] = [\n  {\n    name: 'openid_connect',\n\
+        \    label: 'Keycloak',\n    args: {\n      name: 'openid_connect',\n    \
+        \  scope: ['openid','profile','email'],\n      response_type: 'code',\n  \
+        \    issuer: 'http://keycloak:8080/realms/nebulaops',\n      discovery: true,\n\
+        \      client_auth_method: 'query',\n      uid_field: 'preferred_username',\n\
+        \      client_options: {\n        identifier: 'gitlab',\n        secret: 'gitlab-secret-dev-only',\n\
+        \        redirect_uri: 'http://localhost:8929/users/auth/openid_connect/callback'\n\
+        \      }\n    }\n  }\n]\n"
     ports:
     - 8929:8929
     - '2222:22'
@@ -492,7 +484,7 @@ services:
     profiles:
     - gitlab
   cost-analytics-service:
-    image: nebulaops-v22-1-cost-analytics-service:latest
+    image: nebulaops-v22-2-cost-analytics-service:latest
     build:
       context: .
       dockerfile: backend/cost-analytics-service/Dockerfile
@@ -685,6 +677,115 @@ services:
         condition: service_started
       redis-commander-basic-proxy:
         condition: service_started
+  mfe-docker-desktop:
+    image: nebulaops-v22-2-mfe-docker-desktop:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/docker-desktop/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4211:80
+  mfe-infra-hub:
+    image: nebulaops-v22-2-mfe-infra-hub:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/infra-hub/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4220:80
+  mfe-openlens-kubernetes:
+    image: nebulaops-v22-2-mfe-openlens-kubernetes:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/openlens-kubernetes/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4212:80
+  mfe-task-management:
+    image: nebulaops-v22-2-mfe-task-management:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/task-management/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4213:80
+  mfe-observability:
+    image: nebulaops-v22-2-mfe-observability:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/observability/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4214:80
+  mfe-cicd-gitops:
+    image: nebulaops-v22-2-mfe-cicd-gitops:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/cicd-gitops/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4215:80
+  mfe-terraform-studio:
+    image: nebulaops-v22-2-mfe-terraform-studio:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/terraform-studio/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4216:80
+  mfe-devsecops:
+    image: nebulaops-v22-2-mfe-devsecops:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/devsecops/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4217:80
+  mfe-ai-ops:
+    image: nebulaops-v22-2-mfe-ai-ops:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/ai-ops/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4218:80
+  mfe-finops-cost:
+    image: nebulaops-v22-2-mfe-finops-cost:latest
+    build:
+      context: ../frontend
+      dockerfile: remotes/finops-cost/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4219:80
+  frontend:
+    image: nebulaops-v22-2-frontend-shell:latest
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    depends_on:
+    - gateway-service
+    - mfe-docker-desktop
+    - mfe-infra-hub
+    - mfe-openlens-kubernetes
+    - mfe-task-management
+    - mfe-observability
+    - mfe-cicd-gitops
+    - mfe-terraform-studio
+    - mfe-devsecops
+    - mfe-ai-ops
+    - mfe-finops-cost
+    ports:
+    - 4200:80
 volumes:
   mongo-data: null
   redis-data: null
