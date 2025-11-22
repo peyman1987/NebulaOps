@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — Validation Report
+# NebulaOps v22.2 — Validation Report
 
 ## Completed checks
 
@@ -30,7 +30,7 @@ docker compose up -d --build
 ./scripts/wsl/health.sh
 ```
 
-## Patch v22.1 — cost-analytics-service Docker build
+## Patch v22.2 — cost-analytics-service Docker build
 
 - Corretto `backend/cost-analytics-service/Dockerfile`: ora è multi-stage e compila il JAR Maven internamente.
 - Risolve l'errore Docker `COPY target/*.jar app.jar` / `lstat /target: no such file or directory` durante `docker compose up --build`.

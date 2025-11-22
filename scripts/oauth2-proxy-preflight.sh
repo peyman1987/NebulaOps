@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.1 — Check/pull the images required by OAuth2 Proxy protected tool UIs.
+# v22.2 — Check/pull the images required by OAuth2 Proxy protected tool UIs.
 set -euo pipefail
 
 OAUTH2_IMAGE="${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}"

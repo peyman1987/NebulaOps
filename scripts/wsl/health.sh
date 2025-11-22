@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.1 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
+# v22.2 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
@@ -132,7 +132,7 @@ check_keycloak_login() {
   local url="http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth?client_id=nebulaops-frontend&redirect_uri=http%3A%2F%2Flocalhost%3A4200&response_type=code&scope=openid%20profile%20email&state=healthcheck&code_challenge=${challenge}&code_challenge_method=S256"
   local code
   code=$(curl -sS --max-time 8 -o "$tmp" -w "%{http_code}" "$url" 2>/dev/null || true)
-  if [ "$code" = "200" ] && grep -qiE "kc-form-login|NebulaOps v22\.1|name=\"username\"" "$tmp" 2>/dev/null; then
+  if [ "$code" = "200" ] && grep -qiE "kc-form-login|NebulaOps v22\.2|name=\"username\"" "$tmp" 2>/dev/null; then
     print_ok "$label" "HTTP 200 login page"
   else
     print_bad "$label" "HTTP ${code:-000}; run ./scripts/keycloak-ensure-sso-clients.sh"
@@ -151,7 +151,16 @@ else
   print_warn "Keycloak token" "not available yet; API checks may show warnings"
 fi
 
-check_endpoint "Frontend"      "http://localhost:4200"
+check_endpoint "Frontend shell" "http://localhost:4200"
+check_endpoint "MFE Docker" "http://localhost:4211/remoteEntry.js"
+check_endpoint "MFE OpenLens" "http://localhost:4212/remoteEntry.js"
+check_endpoint "MFE Tasks" "http://localhost:4213/remoteEntry.js"
+check_endpoint "MFE Observe" "http://localhost:4214/remoteEntry.js"
+check_endpoint "MFE CI/CD" "http://localhost:4215/remoteEntry.js"
+check_endpoint "MFE Terraform" "http://localhost:4216/remoteEntry.js"
+check_endpoint "MFE Security" "http://localhost:4217/remoteEntry.js"
+check_endpoint "MFE AI Ops" "http://localhost:4218/remoteEntry.js"
+check_endpoint "MFE FinOps" "http://localhost:4219/remoteEntry.js"
 check_endpoint "Gateway"       "http://localhost:8080/actuator/health"
 check_authed_endpoint "Gateway /api"  "http://localhost:8080/api/health"
 check_endpoint "Auth"          "http://localhost:8081/actuator/health"

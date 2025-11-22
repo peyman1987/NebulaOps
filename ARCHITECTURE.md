@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — Architecture
+# NebulaOps v22.2 — Architecture
 
 ## Component overview
 
@@ -80,7 +80,7 @@
 | go-cache-service              | Go              | 8091 | High-performance cache layer                 |
 | go-event-worker               | Go              | —    | Background queue consumer                    |
 
-## v22.1 Changes
+## v22.2 Changes
 
 ### Platform identity and GitLab runtime
 Keycloak now acts as the shared OIDC provider for the Angular frontend, GitLab and every Spring Boot service. GitLab CE is part of the local stack and uses the `gitlab` Keycloak client for OpenID Connect login.
@@ -113,7 +113,7 @@ The gateway validates Keycloak JWTs when `KEYCLOAK_AUTH_ENABLED=true`, relays Be
 
 ## Data flow examples
 
-### Frontend loads cost summary (v22.1 new)
+### Frontend loads cost summary (v22.2 new)
 
 ```
 Angular  ──GET /api/cost/summary──▶  nginx
@@ -153,4 +153,21 @@ Angular  ──GET /api/cost/summary──▶  nginx
 
 ## Version
 
-This document describes **v22.1.0** topology. See `RELEASE_NOTES_v22.1.md`.
+This document describes **v22.2.0** topology. See `RELEASE_NOTES_v22.2.md`.
+
+## Shared library layer introduced in v22.2 patch
+
+The platform now includes an explicit shared-library layer to avoid duplicating bootstrap, session and contract code across deployable units.
+
+### Frontend MFE shared core
+
+`frontend/libs/nebulaops-mfe-core` provides the common Angular Element bootstrap, JWT interceptor, Keycloak storage keys and gateway URL helper used by all remote micro frontends. Each remote keeps its feature UI and API calls locally, while the infrastructure code for registering the custom element and propagating the shell token is centralized.
+
+### Backend shared kernel
+
+`backend/nebulaops-shared-kernel` is registered in the Maven reactor and contains stable cross-service contracts such as API envelopes, error envelopes, security constants, service identity records and REST path helpers. New micro backend work should add reusable DTOs/constants there instead of redefining them in each service.
+
+
+## INFRA Hub MFE
+
+NebulaOps v22.2 includes a dedicated `infra-hub` micro frontend on port `4220`. It restores the previous INFRA console experience as an independently deployable remote and links observability, data, runtime, gateway and GitOps endpoints.

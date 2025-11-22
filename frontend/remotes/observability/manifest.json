@@ -1,0 +1,10 @@
+{
+  "id": "observability",
+  "title": "Observability",
+  "version": "22.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-observability",
+  "port": 4214,
+  "scope": "SRE \u00b7 Metrics/Logs/Traces",
+  "shellOwnedNavigation": true
+}

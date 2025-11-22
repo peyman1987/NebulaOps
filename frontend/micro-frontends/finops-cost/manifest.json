@@ -1,0 +1,9 @@
+{
+  "id": "finops-cost",
+  "service": "mfe-finops-cost",
+  "tag": "nebulaops-mfe-finops-cost",
+  "port": 4219,
+  "title": "FinOps Cost",
+  "group": "FinOps",
+  "navigation": "owned by shell side menu"
+}

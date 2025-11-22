@@ -11,10 +11,11 @@
 
     <groupId>dev.nebulaops</groupId>
     <artifactId>nebulaops-backend</artifactId>
-    <version>22.1.0</version>
+    <version>22.2.0</version>
     <packaging>pom</packaging>
 
     <modules>
+        <module>nebulaops-shared-kernel</module>
         <module>auth-service</module>
         <module>task-service</module>
         <module>file-service</module>

@@ -1,0 +1,9 @@
+{
+  "id": "cicd-gitops",
+  "service": "mfe-cicd-gitops",
+  "tag": "nebulaops-mfe-cicd-gitops",
+  "port": 4215,
+  "title": "CI/CD + GitOps",
+  "group": "DevOps",
+  "navigation": "owned by shell side menu"
+}

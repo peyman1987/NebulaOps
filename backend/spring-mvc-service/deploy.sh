@@ -20,12 +20,12 @@ fail() { printf '\033[1;31m[errore]\033[0m %s\n' "$*" >&2; exit 1; }
 usage() {
   cat <<EOF
 Uso:
-  ./scripts/deploy.sh [path-nebulaops-v22.1] [opzioni]
+  ./scripts/deploy.sh [path-nebulaops-v22.2] [opzioni]
   ./deploy.sh [opzioni]
 
 Dalla cartella add-on:
   ./scripts/deploy.sh
-  ./scripts/deploy.sh ../nebulaops-v22.1
+  ./scripts/deploy.sh ../nebulaops-v22.2
   ./scripts/deploy.sh --logs
   ./scripts/deploy.sh --build-only
   ./scripts/deploy.sh --install-only
@@ -44,7 +44,7 @@ Opzioni:
   -h, --help      mostra questo aiuto
 
 Variabili:
-  NEBULA_ROOT=/path/to/nebulaops-v22.1
+  NEBULA_ROOT=/path/to/nebulaops-v22.2
   SERVICE_PORT=8099
   SERVICE_NAME=spring-mvc-service
   SPRING_MVC_IMAGE=registry.example.com/spring-mvc-service:tag
@@ -156,7 +156,7 @@ resolve_nebula_root() {
   fi
 
   if [[ -n "$addon_root" ]]; then
-    c="$(cd "$addon_root/../nebulaops-v22.1" 2>/dev/null && pwd || true)"
+    c="$(cd "$addon_root/../nebulaops-v22.2" 2>/dev/null && pwd || true)"
     if [[ -n "$c" ]] && is_nebula_root "$c"; then
       echo "$c"
       return 0
@@ -169,11 +169,11 @@ resolve_nebula_root() {
           echo "$c"
           return 0
         fi
-      done < <(find "$parent" -maxdepth 1 -type d \( -iname 'nebulaops-v22.1' -o -iname 'nebulaops-v*' \) 2>/dev/null | sort)
+      done < <(find "$parent" -maxdepth 1 -type d \( -iname 'nebulaops-v22.2' -o -iname 'nebulaops-v*' \) 2>/dev/null | sort)
     fi
   fi
 
-  fail "Non riesco a trovare nebulaops-v22.1. Usa: ./scripts/deploy.sh ../nebulaops-v22.1"
+  fail "Non riesco a trovare nebulaops-v22.2. Usa: ./scripts/deploy.sh ../nebulaops-v22.2"
 }
 
 docker_compose() {

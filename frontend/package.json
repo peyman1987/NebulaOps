@@ -1,13 +1,19 @@
 {
-  "name": "nebulaops-angular-frontend",
-  "version": "22.1.0",
+  "name": "nebulaops-v22-2-shell-host",
+  "version": "22.2.0",
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4200",
     "build": "ng build --configuration production",
     "test": "ng test --watch=false",
     "lint": "ng lint",
-    "typecheck": "ng build --configuration production --aot"
+    "typecheck": "ng build --configuration production --aot",
+    "build:mfe:runtime": "ng build --configuration production --base-href /",
+    "build:mfe:tasks": "ng build --configuration production --base-href /",
+    "build:mfe:platform": "ng build --configuration production --base-href /",
+    "build:microfrontends": "npm run build:shell && npm run build:remotes",
+    "build:shell": "ng build --configuration production",
+    "build:remotes": "node tools/verify-remotes.mjs"
   },
   "dependencies": {
     "@angular/animations": "^18.2.0",

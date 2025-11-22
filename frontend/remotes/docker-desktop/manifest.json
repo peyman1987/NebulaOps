@@ -1,0 +1,10 @@
+{
+  "id": "docker-desktop",
+  "title": "Docker Desktop",
+  "version": "22.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-docker-desktop",
+  "port": 4211,
+  "scope": "Runtime \u00b7 Docker",
+  "shellOwnedNavigation": true
+}

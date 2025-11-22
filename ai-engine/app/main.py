@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from jwt import PyJWKClient
 from pydantic import BaseModel
 
-app = FastAPI(title="NebulaOps AI Engine", version="22.1")
+app = FastAPI(title="NebulaOps AI Engine", version="22.2")
 
 KEYCLOAK_AUTH_ENABLED = os.getenv("KEYCLOAK_AUTH_ENABLED", "false").lower() == "true"
 KEYCLOAK_JWKS_URI = os.getenv(
@@ -43,7 +43,7 @@ def has(text: str, word: str) -> bool:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "engine": "nebulaops-ai-engine", "version": "22.1", "auth": KEYCLOAK_AUTH_ENABLED}
+    return {"status": "ok", "engine": "nebulaops-ai-engine", "version": "22.2", "auth": KEYCLOAK_AUTH_ENABLED}
 
 @app.post("/analyze")
 def analyze(req: AnalyzeRequest, user: dict[str, Any] = Depends(require_keycloak_user)):
@@ -64,7 +64,7 @@ def analyze(req: AnalyzeRequest, user: dict[str, Any] = Depends(require_keycloak
         health = 46
     now = datetime.utcnow().strftime("%H:%M:%S")
     return {
-        "incidentId": "AIOPS-22-1-" + datetime.utcnow().strftime("%H%M%S"),
+        "incidentId": "AIOPS-22-2-" + datetime.utcnow().strftime("%H%M%S"),
         "summary": "AI engine correlated logs, Kubernetes events and service dependencies into an incident summary.",
         "authenticatedUser": user.get("preferred_username") or user.get("email") or user.get("sub"),
         "rootCause": root,

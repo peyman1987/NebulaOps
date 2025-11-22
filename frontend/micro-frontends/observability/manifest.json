@@ -1,0 +1,9 @@
+{
+  "id": "observability",
+  "service": "mfe-observability",
+  "tag": "nebulaops-mfe-observability",
+  "port": 4214,
+  "title": "Observability",
+  "group": "SRE",
+  "navigation": "owned by shell side menu"
+}

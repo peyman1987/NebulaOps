@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * v22.1 — Docker container action endpoints.
+ * v22.2 — Docker container action endpoints.
  *
  * All calls go directly to /var/run/docker.sock via HTTP — no CLI required.
  *

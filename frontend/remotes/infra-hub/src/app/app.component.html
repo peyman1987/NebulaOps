@@ -1,0 +1,74 @@
+<div class="shell">
+  <div class="header">
+    <div>
+      <p class="kicker">REMOTE MFE · INFRA HUB</p>
+      <h1>🏗️ INFRA Hub</h1>
+      <p class="subtitle">Centralized infrastructure console catalog for observability, data, runtime, GitOps and micro frontend access points.</p>
+    </div>
+    <div class="cube">🏗️</div>
+  </div>
+
+  <div class="top-grid">
+    <div class="card stat-card">
+      <small>Console endpoints</small>
+      <div class="metric">{{ infraLinks.length }}</div>
+    </div>
+    <div class="card stat-card">
+      <small>Operational domains</small>
+      <div class="metric">5</div>
+    </div>
+    <div class="card stat-card">
+      <small>Access mode</small>
+      <div class="metric small">Localhost</div>
+    </div>
+  </div>
+
+  <div class="infra-layout">
+    <section class="card wide">
+      <div class="panel-title">
+        <div>
+          <p class="kicker">INFRA ACCESS MAP</p>
+          <h3>Local platform endpoints</h3>
+        </div>
+        <label class="search-box">
+          <span>⌕</span>
+          <input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Search endpoint, group or port…">
+        </label>
+      </div>
+
+      <div class="infra-grid">
+        @for (link of filteredLinks(); track link.title) {
+          <button class="infra-card" type="button" (click)="open(link)">
+            <span class="infra-icon">{{ link.icon }}</span>
+            <b>{{ link.title }}</b>
+            <small>{{ link.description }}</small>
+            <em>{{ link.status }}</em>
+            <i>{{ link.group }}</i>
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="card terminal-card">
+      <p class="kicker">RUNBOOK</p>
+      <h3>Infrastructure checks</h3>
+      <pre class="code">docker compose ps
+curl -f http://localhost:8080/actuator/health
+curl -f http://localhost:3000/api/health
+curl -f http://localhost:9090/-/ready
+curl -f http://localhost:15672</pre>
+    </section>
+
+    <section class="card terminal-card">
+      <p class="kicker">GROUPS</p>
+      <h3>Service domains</h3>
+      <div class="mini-list">
+        <span>Observability <b>Grafana · Prometheus · Loki · Tempo · OTEL</b></span>
+        <span>Data <b>Mongo Express · Redis Commander · RabbitMQ</b></span>
+        <span>Runtime <b>Gateway API · Docker MFE · Kubernetes MFE</b></span>
+        <span>DevOps <b>ArgoCD · Pipeline Engine</b></span>
+      </div>
+    </section>
+  </div>
+</div>
+@if (toast()) { <div class="toast">{{ toast() }}</div> }

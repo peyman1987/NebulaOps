@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * v22.1 — Keycloak resource-server integration.
+ * v22.2 — Keycloak resource-server integration.
  *
  * When nebulaops.security.enabled=true, the service validates Bearer JWTs
  * issued by the NebulaOps Keycloak realm. Public endpoints are limited to

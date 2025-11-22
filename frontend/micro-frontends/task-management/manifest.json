@@ -1,0 +1,9 @@
+{
+  "id": "task-management",
+  "service": "mfe-task-management",
+  "tag": "nebulaops-mfe-task-management",
+  "port": 4213,
+  "title": "Task Management",
+  "group": "Delivery",
+  "navigation": "owned by shell side menu"
+}

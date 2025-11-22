@@ -1,0 +1,520 @@
+<!-- NebulaOps · OpenLens Kubernetes MFE · Angular 18 -->
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="cube">K8s</div>
+      <div>
+        <div class="topbar-title">OpenLens Kubernetes</div>
+        <div class="topbar-sub">NEBULAOPS MFE · Runtime · ☸️</div>
+      </div>
+    </div>
+    <span class="cluster-badge">☸️ nebulaops-local · v1.30.2</span>
+    <select class="ns-select" [ngModel]="activeNs()" (ngModelChange)="activeNs.set($event); selectedItem.set(null)">
+      <option value="all">All Namespaces</option>
+      @for (ns of cluster.namespaces; track ns) {
+        <option [value]="ns">{{ ns }}</option>
+      }
+    </select>
+    <button class="topbar-btn" (click)="showToast('🔄 Cluster data refreshed')">⟳ Refresh</button>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+    <!-- SIDENAV -->
+    <nav class="sidenav">
+      <div class="tree-item" [class.active]="activeSection()==='overview'" (click)="navigate('overview')">
+        <span class="icon">🏠</span><span class="label">Overview</span>
+      </div>
+      <div class="tree-group-label">Workloads</div>
+      <div class="tree-item" [class.active]="activeSection()==='pods'" (click)="navigate('pods')">
+        <span class="icon">⬡</span><span class="label">Pods</span>
+        <span class="tree-badge" [class.badge-danger]="hasIssue('pods')" [class.badge-ok]="!hasIssue('pods')">{{ badgeCount('pods') }}</span>
+      </div>
+      <div class="tree-item" [class.active]="activeSection()==='deployments'" (click)="navigate('deployments')">
+        <span class="icon">🚀</span><span class="label">Deployments</span>
+        <span class="tree-badge" [class.badge-danger]="hasIssue('deployments')" [class.badge-ok]="!hasIssue('deployments')">{{ badgeCount('deployments') }}</span>
+      </div>
+      <div class="tree-item" [class.active]="activeSection()==='statefulsets'" (click)="navigate('statefulsets')">
+        <span class="icon">💾</span><span class="label">StatefulSets</span>
+        <span class="tree-badge badge-ok">{{ badgeCount('statefulsets') }}</span>
+      </div>
+      <div class="tree-item" [class.active]="activeSection()==='replicasets'" (click)="navigate('replicasets')">
+        <span class="icon">🔄</span><span class="label">ReplicaSets</span>
+        <span class="tree-badge badge-neutral">{{ badgeCount('replicasets') }}</span>
+      </div>
+      <div class="tree-group-label">Network</div>
+      <div class="tree-item" [class.active]="activeSection()==='services'" (click)="navigate('services')">
+        <span class="icon">🌐</span><span class="label">Services</span>
+        <span class="tree-badge badge-neutral">{{ badgeCount('services') }}</span>
+      </div>
+      <div class="tree-group-label">Config</div>
+      <div class="tree-item" [class.active]="activeSection()==='configmaps'" (click)="navigate('configmaps')">
+        <span class="icon">📋</span><span class="label">ConfigMaps</span>
+        <span class="tree-badge badge-neutral">{{ badgeCount('configmaps') }}</span>
+      </div>
+      <div class="tree-item" [class.active]="activeSection()==='secrets'" (click)="navigate('secrets')">
+        <span class="icon">🔐</span><span class="label">Secrets</span>
+        <span class="tree-badge badge-neutral">{{ badgeCount('secrets') }}</span>
+      </div>
+      <div class="tree-group-label">Infrastructure</div>
+      <div class="tree-item" [class.active]="activeSection()==='nodes'" (click)="navigate('nodes')">
+        <span class="icon">🖥️</span><span class="label">Nodes</span>
+        <span class="tree-badge badge-ok">{{ cluster.nodes.length }}</span>
+      </div>
+      <div class="tree-item" [class.active]="activeSection()==='events'" (click)="navigate('events')">
+        <span class="icon">⚡</span><span class="label">Events</span>
+        <span class="tree-badge badge-warn">{{ cluster.events.length }}</span>
+      </div>
+      <div class="tree-group-label">Helm</div>
+      <div class="tree-item" [class.active]="activeSection()==='helm'" (click)="navigate('helm')">
+        <span class="icon">⛵</span><span class="label">Releases</span>
+        <span class="tree-badge badge-ok">{{ cluster.helm.length }}</span>
+      </div>
+    </nav>
+
+    <!-- MAIN PANEL -->
+    <main class="panel">
+
+      <!-- DETAIL VIEW -->
+      @if (selectedItem(); as item) {
+        <div class="panel-hdr">
+          <button class="back-btn" (click)="goBack()">← {{ activeSection() }}</button>
+          <h3>{{ selectedKind() }}: {{ item['name'] }}</h3>
+        </div>
+        <div class="detail-view">
+          <div class="detail-hdr-card">
+            <div class="kind-badge">{{ selectedKind() }}</div>
+            <div class="detail-hdr-info">
+              <h3>{{ item['name'] }}</h3>
+              <div class="detail-meta">
+                <span>📁 {{ item['namespace'] }}</span>
+                @if (item['status']) {
+                  <span class="pill" [ngClass]="sc(item['status'] + '')">{{ item['status'] }}</span>
+                }
+                @if (item['ready'] && item['status'] === undefined) {
+                  <span class="pill" [ngClass]="sc(item['ready'] + '')">{{ item['ready'] }}</span>
+                }
+                @if (item['ip'])       { <span>🔌 {{ item['ip'] }}</span> }
+                @if (item['node'])     { <span>🖥️ {{ item['node'] }}</span> }
+                @if (item['replicas'] !== undefined) { <span>⚖️ {{ item['replicas'] }} replicas</span> }
+              </div>
+            </div>
+          </div>
+
+          <!-- Pod actions -->
+          @if (selectedKind() === 'Pod') {
+            <div class="actions-row">
+              <button class="act act-primary" (click)="restartPod(castPod(item))">↺ Restart</button>
+              <button class="act act-warn"    (click)="activeTab.set('logs')">📜 Logs</button>
+              <button class="act act-danger"  (click)="openDeletePodConfirm(castPod(item))">🗑️ Delete</button>
+            </div>
+          }
+          <!-- Deployment actions -->
+          @if (selectedKind() === 'Deployment') {
+            <div class="actions-row">
+              <button class="act act-green"  (click)="openScaleModal(castDep(item))">⚖️ Scale</button>
+              <button class="act act-primary" (click)="restartDeployment(castDep(item))">♻️ Rolling Restart</button>
+              <button class="act act-danger"  (click)="openDeleteDepConfirm(castDep(item))">🗑️ Delete</button>
+            </div>
+          }
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <div class="tab" [class.active]="activeTab()==='overview'" (click)="activeTab.set('overview')">Overview</div>
+            <div class="tab" [class.active]="activeTab()==='related'"  (click)="activeTab.set('related')">Risorse Correlate</div>
+            <div class="tab" [class.active]="activeTab()==='yaml'"     (click)="activeTab.set('yaml')">YAML</div>
+            @if (selectedKind() === 'Pod') {
+              <div class="tab" [class.active]="activeTab()==='logs'" (click)="activeTab.set('logs')">Logs</div>
+            }
+          </div>
+
+          <!-- Overview tab -->
+          @if (activeTab() === 'overview') {
+            <div class="info-grid">
+              @for (entry of objectEntries(item); track entry[0]) {
+                @if (!['labels','selector'].includes(entry[0]) && entry[1]) {
+                  <div class="info-card">
+                    <div class="ic-label">{{ entry[0] }}</div>
+                    <div class="ic-value">{{ entry[1] }}</div>
+                  </div>
+                }
+              }
+            </div>
+            @if (item['labels']) {
+              <div class="label-block">
+                <div class="ic-label" style="margin-bottom:6px">LABELS</div>
+                <div class="chips">
+                  @for (e of objectEntries(item['labels']); track e[0]) {
+                    <span class="chip">{{ e[0] }}={{ e[1] }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (item['selector']) {
+              <div class="label-block">
+                <div class="ic-label" style="margin-bottom:6px">SELECTOR</div>
+                <div class="chips">
+                  @for (e of objectEntries(item['selector']); track e[0]) {
+                    <span class="chip">{{ e[0] }}={{ e[1] }}</span>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Related tab -->
+          @if (activeTab() === 'related') {
+            @if (relatedDeployment(item); as dep) {
+              <div class="related-section-title">🚀 Deployment</div>
+              <div class="related-grid">
+                <div class="related-card" (click)="navToRelated('deployments', dep.name, dep.namespace)">
+                  <div class="rc-kind">Deployment</div>
+                  <div class="rc-name">{{ dep.name }}</div>
+                  <div class="rc-meta">Ready: {{ dep.ready }} · {{ dep.namespace }}</div>
+                </div>
+              </div>
+            }
+            @if (relatedServices(item).length) {
+              <div class="related-section-title">🌐 Services</div>
+              <div class="related-grid">
+                @for (s of relatedServices(item); track s.name) {
+                  <div class="related-card" (click)="navToRelated('services', s.name, s.namespace)">
+                    <div class="rc-kind">Service</div>
+                    <div class="rc-name">{{ s.name }}</div>
+                    <div class="rc-meta">{{ s.type }} · {{ s.clusterIP }}</div>
+                  </div>
+                }
+              </div>
+            }
+            @if (relatedReplicaSets(item).length) {
+              <div class="related-section-title">🔄 ReplicaSets</div>
+              <div class="related-grid">
+                @for (r of relatedReplicaSets(item); track r.name) {
+                  <div class="related-card" (click)="navToRelated('replicasets', r.name, r.namespace)">
+                    <div class="rc-kind">ReplicaSet</div>
+                    <div class="rc-name">{{ r.name }}</div>
+                    <div class="rc-meta">Desired: {{ r.desired }} · Ready: {{ r.ready }}</div>
+                  </div>
+                }
+              </div>
+            }
+            @if (relatedPods(item).length) {
+              <div class="related-section-title">⬡ Pods</div>
+              <div class="related-grid">
+                @for (p of relatedPods(item); track p.name) {
+                  <div class="related-card" (click)="navToRelated('pods', p.name, p.namespace)">
+                    <div class="rc-kind">Pod</div>
+                    <div class="rc-name">{{ p.name }}</div>
+                    <div class="rc-meta">
+                      <span class="pill" [ngClass]="sc(p.status)">{{ p.status }}</span>
+                      &nbsp;restarts: {{ p.restarts }}
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+            @if (!relatedDeployment(item) && !relatedServices(item).length && !relatedReplicaSets(item).length && !relatedPods(item).length) {
+              <div class="empty">No related resource found</div>
+            }
+          }
+
+          <!-- YAML tab -->
+          @if (activeTab() === 'yaml') {
+            <div class="yaml-hint">Modifica e salva. In produzione applica via kubectl apply.</div>
+            <textarea class="yaml-editor" [ngModel]="editorYaml()" (ngModelChange)="editorYaml.set($event)"></textarea>
+            <div class="yaml-actions">
+              <button class="act act-green"  (click)="saveYaml(yamlKey())">💾 Salva</button>
+              <button class="act act-primary" (click)="copyYaml()">📋 Copia</button>
+              @if (yamlSaved()[yamlKey()]) { <span class="yaml-saved">✅ Salvato</span> }
+            </div>
+          }
+
+          <!-- Logs tab -->
+          @if (activeTab() === 'logs' && selectedKind() === 'Pod') {
+            <div class="log-area">
+              @for (line of podLogs(castPod(item)).split('\n'); track $index) {
+                <div [ngClass]="logLineClass(line)">{{ line }}</div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- LIST VIEWS -->
+      @else {
+        <!-- OVERVIEW -->
+        @if (activeSection() === 'overview') {
+          <div class="panel-hdr"><h3>🏠 Cluster Overview</h3><small>Namespace: {{ activeNs() }}</small></div>
+          <div class="ov-grid">
+            <div class="ov-card">
+              <div class="ov-num">{{ filterNs(cluster.pods).length }}</div><div class="ov-lbl">Pods</div>
+              @if (criticalPods().length) { <div class="ov-err">⚠️ {{ criticalPods().length }} critical</div> }
+            </div>
+            <div class="ov-card"><div class="ov-num">{{ filterNs(cluster.deployments).length }}</div><div class="ov-lbl">Deployments</div></div>
+            <div class="ov-card"><div class="ov-num">{{ filterNs(cluster.services).length }}</div><div class="ov-lbl">Services</div></div>
+            <div class="ov-card"><div class="ov-num">{{ cluster.nodes.length }}</div><div class="ov-lbl">Nodes</div></div>
+            <div class="ov-card"><div class="ov-num">{{ cluster.helm.length }}</div><div class="ov-lbl">Helm Releases</div></div>
+            <div class="ov-card"><div class="ov-num">{{ cluster.events.length }}</div><div class="ov-lbl">Events</div></div>
+          </div>
+          @if (criticalPods().length) {
+            <div class="section-title">🔴 Critical Pods</div>
+            <table class="tbl">
+              <thead><tr><th>Name</th><th>Namespace</th><th>Status</th><th>Restarts</th><th>Azioni</th></tr></thead>
+              <tbody>
+                @for (p of criticalPods(); track p.name) {
+                  <tr>
+                    <td><span class="name-link" (click)="selectItem($any(p), 'Pod')">{{ p.name }}</span></td>
+                    <td><span class="pill neutral">{{ p.namespace }}</span></td>
+                    <td><span class="pill" [ngClass]="sc(p.status)">{{ p.status }}</span></td>
+                    <td>{{ p.restarts }}</td>
+                    <td><button class="act act-primary" (click)="restartPod(p)">↺ Restart</button></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          <div class="section-title">⚡ Recent Events</div>
+          @for (e of cluster.events; track e.reason) {
+            <div class="event-row">
+              <span class="evt-type" [ngClass]="e.type">{{ e.type }}</span>
+              <div><div class="evt-msg">{{ e.message }}</div><div class="evt-obj">{{ e.object }} · {{ e.namespace }} · count: {{ e.count }}</div></div>
+            </div>
+          }
+          <div class="section-title">⛵ Helm Releases</div>
+          @for (h of cluster.helm; track h.name) {
+            <div class="helm-row">
+              <div class="helm-icon">⛵</div>
+              <div class="helm-info"><b>{{ h.name }}</b><small>{{ h.chart }} · ns: {{ h.namespace }} · rev {{ h.revision }}</small></div>
+              <span class="pill ok">{{ h.status }}</span>
+            </div>
+          }
+        }
+
+        <!-- PODS -->
+        @if (activeSection() === 'pods') {
+          <div class="panel-hdr">
+            <h3>⬡ Pods</h3><small>{{ filterNs(cluster.pods).length }} risorse</small>
+            <input class="search" placeholder="Search pods…" [ngModel]="searchText()" (ngModelChange)="searchText.set($event)">
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Namespace</th><th>Ready</th><th>Status</th><th>Restarts</th><th>Node</th><th>IP</th><th>Azioni</th></tr></thead>
+            <tbody>
+              @for (p of filterNs(cluster.pods); track p.name) {
+                <tr [class.row-selected]="selectedItem()?.['name'] === p.name">
+                  <td><span class="name-link" (click)="selectItem($any(p), 'Pod')">{{ p.name }}</span></td>
+                  <td><span class="pill neutral">{{ p.namespace }}</span></td>
+                  <td>{{ p.ready }}</td>
+                  <td><span class="pill" [ngClass]="sc(p.status)">{{ p.status }}</span></td>
+                  <td [style.color]="p.restarts > 0 ? 'var(--amber)' : ''">{{ p.restarts }}</td>
+                  <td>{{ p.node || '—' }}</td>
+                  <td class="mono">{{ p.ip || '—' }}</td>
+                  <td class="actions-cell">
+                    <button class="act act-primary" (click)="restartPod(p)" title="Restart">↺</button>
+                    <button class="act act-danger"  (click)="openDeletePodConfirm(p)" title="Delete">🗑</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- DEPLOYMENTS -->
+        @if (activeSection() === 'deployments') {
+          <div class="panel-hdr">
+            <h3>🚀 Deployments</h3><small>{{ filterNs(cluster.deployments).length }} risorse</small>
+            <input class="search" placeholder="Search…" [ngModel]="searchText()" (ngModelChange)="searchText.set($event)">
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Namespace</th><th>Ready</th><th>Strategy</th><th>Image</th><th>Azioni</th></tr></thead>
+            <tbody>
+              @for (d of filterNs(cluster.deployments); track d.name) {
+                <tr [class.row-selected]="selectedItem()?.['name'] === d.name">
+                  <td><span class="name-link" (click)="selectItem($any(d), 'Deployment')">{{ d.name }}</span></td>
+                  <td><span class="pill neutral">{{ d.namespace }}</span></td>
+                  <td><span class="pill" [ngClass]="depReady(d) ? 'ok' : 'danger'">{{ d.ready }}</span></td>
+                  <td><span class="pill neutral">{{ d.strategy }}</span></td>
+                  <td class="mono trunc">{{ d.image }}</td>
+                  <td class="actions-cell">
+                    <button class="act act-green"  (click)="openScaleModal(d)"        title="Scale">⚖️</button>
+                    <button class="act act-primary" (click)="restartDeployment(d)"    title="Restart">↺</button>
+                    <button class="act act-danger"  (click)="openDeleteDepConfirm(d)" title="Delete">🗑</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- SERVICES -->
+        @if (activeSection() === 'services') {
+          <div class="panel-hdr"><h3>🌐 Services</h3><small>{{ filterNs(cluster.services).length }} risorse</small></div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Namespace</th><th>Type</th><th>Cluster IP</th><th>External IP</th><th>Ports</th></tr></thead>
+            <tbody>
+              @for (s of filterNs(cluster.services); track s.name) {
+                <tr>
+                  <td><span class="name-link" (click)="selectItem($any(s), 'Service')">{{ s.name }}</span></td>
+                  <td><span class="pill neutral">{{ s.namespace }}</span></td>
+                  <td><span class="pill" [ngClass]="s.type === 'LoadBalancer' ? 'ok' : s.type === 'NodePort' ? 'warn' : 'neutral'">{{ s.type }}</span></td>
+                  <td class="mono">{{ s.clusterIP }}</td>
+                  <td class="mono">{{ s.externalIP || '—' }}</td>
+                  <td class="mono">{{ s.ports }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- REPLICASETS -->
+        @if (activeSection() === 'replicasets') {
+          <div class="panel-hdr"><h3>🔄 ReplicaSets</h3></div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Namespace</th><th>Desired</th><th>Current</th><th>Ready</th><th>Deployment</th></tr></thead>
+            <tbody>
+              @for (rs of filterNs(cluster.replicasets); track rs.name) {
+                <tr>
+                  <td><b>{{ rs.name }}</b></td>
+                  <td><span class="pill neutral">{{ rs.namespace }}</span></td>
+                  <td>{{ rs.desired }}</td><td>{{ rs.current }}</td>
+                  <td><span class="pill" [ngClass]="rs.ready === rs.desired ? 'ok' : 'warn'">{{ rs.ready }}</span></td>
+                  <td><span class="name-link" (click)="navToRelated('deployments', rs.deployment, rs.namespace)">{{ rs.deployment || '—' }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- STATEFULSETS -->
+        @if (activeSection() === 'statefulsets') {
+          <div class="panel-hdr"><h3>💾 StatefulSets</h3></div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Namespace</th><th>Ready</th><th>Replicas</th><th>Service</th></tr></thead>
+            <tbody>
+              @for (ss of filterNs(cluster.statefulsets); track ss.name) {
+                <tr>
+                  <td><b>{{ ss.name }}</b></td>
+                  <td><span class="pill neutral">{{ ss.namespace }}</span></td>
+                  <td><span class="pill ok">{{ ss.ready }}</span></td>
+                  <td>{{ ss.replicas }}</td>
+                  <td>{{ ss.serviceName }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- CONFIGMAPS -->
+        @if (activeSection() === 'configmaps') {
+          <div class="panel-hdr"><h3>📋 ConfigMaps</h3></div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Namespace</th><th>Keys</th></tr></thead>
+            <tbody>
+              @for (cm of filterNs(cluster.configmaps); track cm.name) {
+                <tr><td><b>{{ cm.name }}</b></td><td><span class="pill neutral">{{ cm.namespace }}</span></td><td>{{ cm.keys }}</td></tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- SECRETS -->
+        @if (activeSection() === 'secrets') {
+          <div class="panel-hdr"><h3>🔐 Secrets</h3></div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Namespace</th><th>Type</th><th>Keys</th></tr></thead>
+            <tbody>
+              @for (sec of filterNs(cluster.secrets); track sec.name) {
+                <tr>
+                  <td><b>{{ sec.name }}</b></td>
+                  <td><span class="pill neutral">{{ sec.namespace }}</span></td>
+                  <td class="mono" style="font-size:11px">{{ sec.type }}</td>
+                  <td>{{ sec.keys }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- NODES -->
+        @if (activeSection() === 'nodes') {
+          <div class="panel-hdr"><h3>🖥️ Nodes</h3></div>
+          @for (n of cluster.nodes; track n.name) {
+            <div class="node-card">
+              <div class="node-hdr">
+                <b>🖥️ {{ n.name }}</b>
+                <span class="pill" [ngClass]="sc(n.status)">{{ n.status }}</span>
+                <span class="pill neutral">{{ n.roles }}</span>
+              </div>
+              <div class="node-stats">
+                <div class="ns-s"><div class="ns-l">K8s</div><div class="ns-v">{{ n.version }}</div></div>
+                <div class="ns-s"><div class="ns-l">OS</div><div class="ns-v">{{ n.os }}</div></div>
+                <div class="ns-s"><div class="ns-l">CPU</div><div class="ns-v">{{ n.cpu }} cores</div></div>
+                <div class="ns-s"><div class="ns-l">Memory</div><div class="ns-v">{{ n.memory }}</div></div>
+                <div class="ns-s"><div class="ns-l">Pods</div><div class="ns-v">{{ n.pods }}</div></div>
+              </div>
+            </div>
+          }
+        }
+
+        <!-- EVENTS -->
+        @if (activeSection() === 'events') {
+          <div class="panel-hdr"><h3>⚡ Events</h3></div>
+          @for (e of cluster.events; track e.reason) {
+            <div class="event-row">
+              <span class="evt-type" [ngClass]="e.type">{{ e.type }}</span>
+              <div><div class="evt-msg">{{ e.message }}</div><div class="evt-obj">{{ e.object }} · {{ e.namespace }} · count: {{ e.count }}</div></div>
+            </div>
+          }
+        }
+
+        <!-- HELM -->
+        @if (activeSection() === 'helm') {
+          <div class="panel-hdr"><h3>⛵ Helm Releases</h3></div>
+          @for (h of cluster.helm; track h.name) {
+            <div class="helm-row">
+              <div class="helm-icon">⛵</div>
+              <div class="helm-info"><b>{{ h.name }}</b><small>{{ h.chart }} · ns: {{ h.namespace }} · rev {{ h.revision }}</small></div>
+              <span class="pill ok">{{ h.status }}</span>
+            </div>
+          }
+        }
+      }
+    </main>
+  </div>
+</div>
+
+<!-- SCALE MODAL -->
+@if (scaleModal(); as m) {
+  <div class="modal-backdrop" (click)="closeScale()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>⚖️ Scale: {{ m.dep.name }}</h3>
+      <div class="modal-meta">Repliche attuali: <b>{{ m.dep.replicas }}</b></div>
+      <label>New replicas</label>
+      <input type="number" class="modal-input" [(ngModel)]="m.value" min="0" max="20">
+      <div class="modal-actions">
+        <button class="act act-primary" (click)="closeScale()">Annulla</button>
+        <button class="act act-green"   (click)="applyScale()">✅ Applica</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- CONFIRM MODAL -->
+@if (confirmModal(); as m) {
+  <div class="modal-backdrop" (click)="closeConfirm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>{{ m.title }}</h3>
+      <p class="modal-meta">{{ m.message }}</p>
+      <div class="modal-actions">
+        <button class="act act-primary" (click)="closeConfirm()">Annulla</button>
+        <button class="act act-danger"  (click)="confirmAction()">🗑️ Elimina</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- TOAST -->
+@if (toast(); as t) {
+  <div class="toast" [ngClass]="t.type === 'ok' ? 'toast-ok' : 'toast-err'">{{ t.msg }}</div>
+}

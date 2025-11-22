@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — Keycloak full authentication provider
+# NebulaOps v22.2 — Keycloak full authentication provider
 
 Questa patch configura Keycloak come authentication provider centrale della piattaforma.
 

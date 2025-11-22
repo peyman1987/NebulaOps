@@ -7,7 +7,7 @@ metadata:
     app: spring-mvc-service
     app.kubernetes.io/name: spring-mvc-service
     app.kubernetes.io/part-of: nebulaops
-    app.kubernetes.io/version: "22.1"
+    app.kubernetes.io/version: "22.2"
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: spring-mvc-service
-          image: nebulaops-v22-1-spring-mvc-service:latest
+          image: nebulaops-v22-2-spring-mvc-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

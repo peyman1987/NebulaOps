@@ -1,0 +1,9 @@
+{
+  "id": "terraform-studio",
+  "service": "mfe-terraform-studio",
+  "tag": "nebulaops-mfe-terraform-studio",
+  "port": 4216,
+  "title": "Terraform Studio",
+  "group": "IaC",
+  "navigation": "owned by shell side menu"
+}

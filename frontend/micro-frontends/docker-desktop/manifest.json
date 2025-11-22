@@ -1,0 +1,9 @@
+{
+  "id": "docker-desktop",
+  "service": "mfe-docker-desktop",
+  "tag": "nebulaops-mfe-docker-desktop",
+  "port": 4211,
+  "title": "Docker Desktop",
+  "group": "Runtime",
+  "navigation": "owned by shell side menu"
+}

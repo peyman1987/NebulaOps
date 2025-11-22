@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.1 — Tail service logs. Usage: ./logs.sh [service-name] [--lines N]
+# v22.2 — Tail service logs. Usage: ./logs.sh [service-name] [--lines N]
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 

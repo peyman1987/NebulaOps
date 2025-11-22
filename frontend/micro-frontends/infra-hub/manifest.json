@@ -1,0 +1,9 @@
+{
+  "id": "infra-hub",
+  "service": "mfe-infra-hub",
+  "tag": "nebulaops-mfe-infra-hub",
+  "port": 4220,
+  "title": "INFRA Hub",
+  "group": "Infra",
+  "navigation": "owned by shell side menu"
+}

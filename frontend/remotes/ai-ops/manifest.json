@@ -1,0 +1,10 @@
+{
+  "id": "ai-ops",
+  "title": "AI Ops",
+  "version": "22.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-ai-ops",
+  "port": 4218,
+  "scope": "AI \u00b7 RCA/Assist",
+  "shellOwnedNavigation": true
+}

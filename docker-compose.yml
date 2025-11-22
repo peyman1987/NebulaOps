@@ -1,4 +1,4 @@
-name: nebulaops-v22-1
+name: nebulaops-v22-2
 services:
   keycloak-db:
     image: postgres:16-alpine
@@ -105,7 +105,7 @@ services:
       retries: 20
       start_period: 20s
   auth-service:
-    image: nebulaops-v22-1-auth-service:latest
+    image: nebulaops-v22-2-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
@@ -123,7 +123,7 @@ services:
     ports:
     - 8081:8081
   task-service:
-    image: nebulaops-v22-1-task-service:latest
+    image: nebulaops-v22-2-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -147,7 +147,7 @@ services:
     ports:
     - 8082:8082
   notification-service:
-    image: nebulaops-v22-1-notification-service:latest
+    image: nebulaops-v22-2-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -171,7 +171,7 @@ services:
     ports:
     - 8083:8083
   file-service:
-    image: nebulaops-v22-1-file-service:latest
+    image: nebulaops-v22-2-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
@@ -189,7 +189,7 @@ services:
     ports:
     - 8084:8084
   ai-engine:
-    image: nebulaops-v22-1-ai-engine:latest
+    image: nebulaops-v22-2-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
@@ -202,7 +202,7 @@ services:
       keycloak:
         condition: service_started
   ai-ops-service:
-    image: nebulaops-v22-1-ai-ops-service:latest
+    image: nebulaops-v22-2-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
@@ -225,7 +225,7 @@ services:
     ports:
     - 8085:8085
   devsecops-service:
-    image: nebulaops-v22-1-devsecops-service:latest
+    image: nebulaops-v22-2-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
@@ -245,7 +245,7 @@ services:
       keycloak:
         condition: service_started
   pipeline-engine-service:
-    image: nebulaops-v22-1-pipeline-engine-service:latest
+    image: nebulaops-v22-2-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
@@ -266,7 +266,7 @@ services:
       keycloak:
         condition: service_started
   observability-service:
-    image: nebulaops-v22-1-observability-service:latest
+    image: nebulaops-v22-2-observability-service:latest
     build:
       context: .
       dockerfile: backend/observability-service/Dockerfile
@@ -285,7 +285,7 @@ services:
       keycloak:
         condition: service_started
   gitops-control-service:
-    image: nebulaops-v22-1-gitops-control-service:latest
+    image: nebulaops-v22-2-gitops-control-service:latest
     build:
       context: .
       dockerfile: backend/gitops-control-service/Dockerfile
@@ -307,7 +307,7 @@ services:
       keycloak:
         condition: service_started
   environment-manager-service:
-    image: nebulaops-v22-1-environment-manager-service:latest
+    image: nebulaops-v22-2-environment-manager-service:latest
     build:
       context: .
       dockerfile: backend/environment-manager-service/Dockerfile
@@ -328,7 +328,7 @@ services:
       keycloak:
         condition: service_started
   terraform-studio-service:
-    image: nebulaops-v22-1-terraform-studio-service:latest
+    image: nebulaops-v22-2-terraform-studio-service:latest
     build:
       context: .
       dockerfile: backend/terraform-studio-service/Dockerfile
@@ -349,13 +349,13 @@ services:
       keycloak:
         condition: service_started
   gateway-service:
-    image: nebulaops-v22-1-gateway-service:latest
+    image: nebulaops-v22-2-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
     environment:
       AUTH_SERVICE_URL: http://auth-service:8081
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-1-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-2-dev-secret-key-min-32-chars!!}
       TASK_SERVICE_URL: http://task-service:8082
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
@@ -367,7 +367,7 @@ services:
       ENVIRONMENT_MANAGER_SERVICE_URL: http://environment-manager-service:8094
       TERRAFORM_STUDIO_SERVICE_URL: http://terraform-studio-service:8096
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v22-1}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v22-2}
       TERRAFORM_WORKDIR: /app/infrastructure/terraform
       GRAFANA_URL: http://grafana:3000
       KEYCLOAK_URL: http://keycloak:8080
@@ -414,15 +414,203 @@ services:
         condition: service_started
     ports:
     - 8080:8080
+  mfe-docker-desktop:
+    image: nebulaops-v22-2-mfe-docker-desktop:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/docker-desktop/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4211:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-infra-hub:
+    image: nebulaops-v22-2-mfe-infra-hub:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/infra-hub/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4220:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-openlens-kubernetes:
+    image: nebulaops-v22-2-mfe-openlens-kubernetes:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/openlens-kubernetes/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4212:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-task-management:
+    image: nebulaops-v22-2-mfe-task-management:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/task-management/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4213:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-observability:
+    image: nebulaops-v22-2-mfe-observability:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/observability/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4214:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-cicd-gitops:
+    image: nebulaops-v22-2-mfe-cicd-gitops:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/cicd-gitops/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4215:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-terraform-studio:
+    image: nebulaops-v22-2-mfe-terraform-studio:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/terraform-studio/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4216:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-devsecops:
+    image: nebulaops-v22-2-mfe-devsecops:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/devsecops/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4217:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-ai-ops:
+    image: nebulaops-v22-2-mfe-ai-ops:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/ai-ops/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4218:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  mfe-finops-cost:
+    image: nebulaops-v22-2-mfe-finops-cost:latest
+    build:
+      context: ./frontend
+      dockerfile: remotes/finops-cost/Dockerfile
+    depends_on:
+    - gateway-service
+    ports:
+    - 4219:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/remoteEntry.js >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
   frontend:
-    image: nebulaops-v22-1-frontend:latest
+    image: nebulaops-v22-2-frontend-shell:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
     depends_on:
     - gateway-service
+    - mfe-docker-desktop
+    - mfe-infra-hub
+    - mfe-openlens-kubernetes
+    - mfe-task-management
+    - mfe-observability
+    - mfe-cicd-gitops
+    - mfe-terraform-studio
+    - mfe-devsecops
+    - mfe-ai-ops
+    - mfe-finops-cost
     ports:
     - 4200:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:80/ >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
   prometheus:
     image: prom/prometheus:v2.53.0
     volumes:
@@ -536,7 +724,7 @@ services:
     volumes:
     - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v22-1-go-cache-service:latest
+    image: nebulaops-v22-2-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -559,7 +747,7 @@ services:
     ports:
     - 8091:8091
   go-event-worker:
-    image: nebulaops-v22-1-go-event-worker:latest
+    image: nebulaops-v22-2-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile
@@ -610,7 +798,7 @@ services:
     profiles:
     - gitlab
   cost-analytics-service:
-    image: nebulaops-v22-1-cost-analytics-service:latest
+    image: nebulaops-v22-2-cost-analytics-service:latest
     build:
       context: .
       dockerfile: backend/cost-analytics-service/Dockerfile
@@ -640,7 +828,8 @@ services:
     healthcheck:
       test: &id002
       - CMD-SHELL
-      - wget -q -O - http://127.0.0.1:8080/__nebulaops_proxy_health 2>/dev/null | grep -q ok || exit 1
+      - wget -q -O - http://127.0.0.1:8080/__nebulaops_proxy_health 2>/dev/null |
+        grep -q ok || exit 1
       interval: 10s
       timeout: 5s
       retries: 20
@@ -725,6 +914,14 @@ services:
         condition: service_healthy
     profiles:
     - sso-proxy
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:4180/ping >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
   prometheus-sso:
     image: ${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}
     restart: unless-stopped
@@ -773,6 +970,14 @@ services:
         condition: service_started
     profiles:
     - sso-prometheus
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:4180/ping >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
   mongo-express-sso:
     image: ${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}
     restart: unless-stopped
@@ -821,6 +1026,14 @@ services:
         condition: service_healthy
     profiles:
     - sso-proxy
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:4180/ping >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
   redis-commander-sso:
     image: ${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}
     restart: unless-stopped
@@ -869,6 +1082,14 @@ services:
         condition: service_healthy
     profiles:
     - sso-proxy
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q -O - http://127.0.0.1:4180/ping >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
 volumes:
   mongo-data: null
   redis-data: null

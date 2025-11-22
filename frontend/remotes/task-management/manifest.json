@@ -1,0 +1,10 @@
+{
+  "id": "task-management",
+  "title": "Task Management",
+  "version": "22.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-task-management",
+  "port": 4213,
+  "scope": "Delivery \u00b7 Tasks",
+  "shellOwnedNavigation": true
+}

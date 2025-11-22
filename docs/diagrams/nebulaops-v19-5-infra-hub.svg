@@ -15,7 +15,7 @@
     <rect width="1400" height="760" fill="url(#bg)"/>
     <circle cx="210" cy="175" r="170" fill="#0ea5e9" opacity=".12"/>
     <circle cx="1130" cy="185" r="210" fill="#f97316" opacity=".10"/>
-    <text x="64" y="82" fill="#e0f2fe" font-family="Inter,Arial" font-size="44" font-weight="900">NebulaOps v21.2 ·
+    <text x="64" y="82" fill="#e0f2fe" font-family="Inter,Arial" font-size="44" font-weight="900">NebulaOps v22.2 ·
         INFRA Console Hub
     </text>
     <text x="64" y="124" fill="#7dd3fc" font-family="Inter,Arial" font-size="19">One tab to open Grafana, Redis,

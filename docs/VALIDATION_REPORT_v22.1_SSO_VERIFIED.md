@@ -1,4 +1,4 @@
-# NebulaOps v22.1 — SSO Verified Package Validation
+# NebulaOps v22.2 — SSO Verified Package Validation
 
 ## Scope
 

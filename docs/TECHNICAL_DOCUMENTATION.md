@@ -185,3 +185,8 @@ Additional diagram catalog:
 - `request-flow-sequence.svg`
 - `service-port-map.svg`
 - `nebulaops-v19-3-advanced-architecture.svg`
+
+
+## INFRA Hub MFE
+
+NebulaOps v22.2 includes a dedicated `infra-hub` micro frontend on port `4220`. It restores the previous INFRA console experience as an independently deployable remote and links observability, data, runtime, gateway and GitOps endpoints.
