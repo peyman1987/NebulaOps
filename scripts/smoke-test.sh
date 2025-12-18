@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# v22.2 — Authenticated smoke test through gateway using Keycloak token.
+# v22.3 — Authenticated smoke test through gateway using Keycloak token.
 set -euo pipefail
-BASE=${BASE:-http://localhost:8080}
-KEYCLOAK_URL=${KEYCLOAK_URL:-http://localhost:8180}
+BASE=${BASE:-http://nebulaops.localhost}
+KEYCLOAK_URL=${KEYCLOAK_URL:-http://nebulaops.localhost/keycloak}
 SMOKE_USER=${NEBULAOPS_SMOKE_USER:-admin}
 SMOKE_PASSWORD=${NEBULAOPS_SMOKE_PASSWORD:-admin}
 

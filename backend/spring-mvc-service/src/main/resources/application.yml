@@ -23,6 +23,8 @@ nebulaops:
     gateway-url: ${NEBULAOPS_GATEWAY_URL:http://localhost:8080}
   security:
     enabled: ${KEYCLOAK_AUTH_ENABLED:false}
+jwt:
+  secret: ${JWT_SECRET:nebulaops-v22-3-dev-secret-key-min-32-chars!!}
 management:
   endpoint:
     health:

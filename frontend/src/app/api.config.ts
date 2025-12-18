@@ -1,7 +1,15 @@
 /**
- * v22.2 — Centralized frontend API configuration.
- * All HTTP calls read URLs from here. Synced from config/platform.yml.
+ * v22.3 — Centralized frontend API configuration.
+ * Public browser access is served through the same reverse-proxy origin:
+ *   http://nebulaops.localhost
+ *
+ * API, Keycloak and remote MFE URLs intentionally avoid localhost:port
+ * hard-coding so the shell can run behind a single domain/origin.
  */
+export const PUBLIC_ORIGIN = typeof window !== 'undefined'
+  ? window.location.origin
+  : 'http://nebulaops.localhost';
+
 export const API_BASE = '/api';
 
 export const API = {
@@ -80,19 +88,75 @@ export const API = {
   aiOps: {
     analyze: `${API_BASE}/ai-ops/analyze`,
     autofix: `${API_BASE}/ai-ops/autofix`,
+    incidents: `${API_BASE}/ai-ops/incidents`,
+    incidentAnalyze: `${API_BASE}/ai-ops/incidents/analyze`,
+    incidentRunbook: (id: string) => `${API_BASE}/ai-ops/incidents/${id}/runbook`,
+  },
+
+  release: {
+    list: `${API_BASE}/releases`,
+    detail: (id: string) => `${API_BASE}/releases/${id}`,
+    create: `${API_BASE}/releases`,
+    promote: (id: string) => `${API_BASE}/releases/${id}/promote`,
+    rollback: (id: string) => `${API_BASE}/releases/${id}/rollback`,
+    timeline: (id: string) => `${API_BASE}/releases/${id}/timeline`,
+    healthImpact: (id: string) => `${API_BASE}/releases/${id}/health-impact`,
+  },
+
+  policy: {
+    list: `${API_BASE}/policies`,
+    create: `${API_BASE}/policies`,
+    update: (id: string) => `${API_BASE}/policies/${id}`,
+    delete: (id: string) => `${API_BASE}/policies/${id}`,
+    evaluate: `${API_BASE}/policies/evaluate`,
+    evaluations: `${API_BASE}/policies/evaluations`,
+  },
+
+  audit: {
+    events: `${API_BASE}/events`,
+    auditEvents: `${API_BASE}/audit/events`,
+    correlation: (id: string) => `${API_BASE}/audit/correlation/${id}`,
+  },
+
+  notifications: {
+    list: `${API_BASE}/notifications/live`,
+    stream: `${API_BASE}/notifications/stream`,
+    preferences: `${API_BASE}/notifications/preferences`,
+    markRead: (id: string) => `${API_BASE}/notifications/${id}/read`,
+  },
+
+  cost: {
+    summary: `${API_BASE}/cost/summary`,
+    services: `${API_BASE}/cost/services`,
+    forecast: `${API_BASE}/cost/forecast`,
+    budget: `${API_BASE}/cost/budget`,
+    anomalies: `${API_BASE}/cost/anomalies`,
+    recommendations: `${API_BASE}/cost/recommendations`,
+  },
+
+  devsecopsV23: {
+    imageScan: `${API_BASE}/devsecops/scan/image`,
+    repositoryScan: `${API_BASE}/devsecops/scan/repository`,
+    vulnerabilities: `${API_BASE}/devsecops/vulnerabilities`,
+    sbom: (image: string) => `${API_BASE}/devsecops/sbom/${encodeURIComponent(image)}`,
+  },
+
+  docs: {
+    index: `${API_BASE}/docs`,
+    service: (name: string) => `${API_BASE}/docs/${encodeURIComponent(name)}`,
   },
 } as const;
 
-export const APP_VERSION = '22.2';
-export const APP_RELEASE = 'v22.2';
-export const JWT_KEY     = 'nebulaops.v22_2.jwt';
-export const USER_KEY    = 'nebulaops.v22_2.user';
+export const APP_VERSION = '22.3';
+export const APP_RELEASE = 'v22.3';
+export const JWT_KEY     = 'nebulaops.v22_3.jwt';
+export const USER_KEY    = 'nebulaops.v22_3.user';
 
 // ── Keycloak OIDC (Authorization Code + PKCE) ──────────────────
-export const KC_BASE         = 'http://localhost:8180';
+export const KC_BASE         = '/keycloak';
 export const KC_REALM        = 'nebulaops';
 export const KC_CLIENT_ID    = 'nebulaops-frontend';
-export const KC_REDIRECT_URI = 'http://localhost:4200';
+export const KC_REDIRECT_URI = `${PUBLIC_ORIGIN}/`;
 export const KC_AUTH_URL     = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/auth`;
 export const KC_TOKEN_URL    = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/token`;
 export const KC_LOGOUT_URL   = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/logout`;

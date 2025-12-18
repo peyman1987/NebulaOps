@@ -1,6 +1,7 @@
 package dev.nebulaops.gateway.api;
 
 import dev.nebulaops.gateway.client.DockerSocketClient;
+import dev.nebulaops.gateway.service.PlatformEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * v22.2 — Docker container action endpoints.
+ * v22.3 — Docker container action endpoints.
  *
  * All calls go directly to /var/run/docker.sock via HTTP — no CLI required.
  *
@@ -35,9 +36,11 @@ public class DockerActionsController {
     private static final String SOCKET = "/var/run/docker.sock";
 
     private final DockerSocketClient socket;
+    private final PlatformEventPublisher events;
 
-    public DockerActionsController(DockerSocketClient socket) {
+    public DockerActionsController(DockerSocketClient socket, PlatformEventPublisher events) {
         this.socket = socket;
+        this.events = events;
     }
 
     // ── Container actions ─────────────────────────────────────────────────────
@@ -142,19 +145,23 @@ public class DockerActionsController {
         try {
             int status = rawRequest(method, path, body);
             boolean ok = status >= 200 && status < 300;
-            return ResponseEntity.ok(Map.of(
-                    "ok",     ok,
-                    "action", action,
-                    "target", target,
-                    "status", status
-            ));
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("ok", ok);
+            payload.put("action", action);
+            payload.put("target", target);
+            payload.put("status", status);
+            String correlationId = events.mutation("DOCKER_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, ok, payload);
+            payload.put("correlationId", correlationId);
+            return ResponseEntity.ok(payload);
         } catch (Exception e) {
-            return ResponseEntity.ok(Map.of(
-                    "ok",     false,
-                    "action", action,
-                    "target", target,
-                    "error",  e.getMessage()
-            ));
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("ok", false);
+            payload.put("action", action);
+            payload.put("target", target);
+            payload.put("error", e.getMessage());
+            String correlationId = events.mutation("DOCKER_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, false, payload);
+            payload.put("correlationId", correlationId);
+            return ResponseEntity.ok(payload);
         }
     }
 

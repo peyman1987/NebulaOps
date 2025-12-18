@@ -1,20 +1,10 @@
-# syntax=docker/dockerfile:1.7
-FROM maven:3.9.9-eclipse-temurin-21 AS build
-WORKDIR /workspace
-
-COPY backend/pom.xml backend/pom.xml
-COPY backend/gateway-service/pom.xml backend/gateway-service/pom.xml
-COPY backend/gateway-service/src backend/gateway-service/src
-
-# v22.2: NO Maven cache mount for gateway — ensures clean build without stale NormalizedApiController
-RUN mvn -B -f backend/gateway-service/pom.xml \
-    -Dmaven.wagon.http.retryHandler.count=5 \
-    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-    -DskipTests -Dmaven.test.skip=true clean package
-
+# NebulaOps v22.3 runtime image for gateway-service.
+# Java compilation is intentionally executed once before Docker image build by:
+#   ./scripts/wsl/build-backend-jars.sh
+# This avoids downloading Maven dependencies separately in every service image.
 FROM eclipse-temurin:21-jre
 ENV PATH="/opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 WORKDIR /app
-COPY --from=build /workspace/backend/gateway-service/target/*.jar app.jar
+COPY backend/gateway-service/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["/opt/java/openjdk/bin/java","-jar","/app/app.jar"]

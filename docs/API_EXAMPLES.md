@@ -1,49 +1,48 @@
-# API Examples
+# API examples
 
-These examples are designed for local Docker execution.
-
-## Health checks
-
-```bash
-curl -i http://localhost:8080/actuator/health
-curl -i http://localhost:8081/actuator/health
-curl -i http://localhost:8082/actuator/health
-curl -i http://localhost:8083/actuator/health
-curl -i http://localhost:8084/actuator/health
-curl -i http://localhost:8091/health
-```
-
-## Task service through gateway
-
-```bash
-curl -i http://localhost:8080/api/tasks
-```
-
-Create a task:
-
-```bash
-curl -i -X POST http://localhost:8080/api/tasks   -H 'Content-Type: application/json'   -d '{"title":"Prepare cloud portfolio demo","description":"Validate services, queues and dashboards","status":"OPEN"}'
-```
-
-## Go cache service
-
-```bash
-curl -i http://localhost:8091/health
-curl -i http://localhost:8091/cache/demo-key
-```
-
-## RabbitMQ verification
-
-Open the management UI:
+All browser-facing API examples use the same gateway origin:
 
 ```text
-http://localhost:15672
+http://nebulaops.localhost/api
 ```
 
-Default local credentials:
+## Health
 
-```text
-guest / guest
+```bash
+curl -i http://nebulaops.localhost/actuator/health
 ```
 
-Use RabbitMQ to inspect queues, consumers and message rates during the task workflow.
+## Tasks
+
+```bash
+curl -i "http://nebulaops.localhost/api/tasks?organizationId=default-org" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Docker runtime
+
+```bash
+curl -i http://nebulaops.localhost/api/runtime/docker/containers \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Kubernetes snapshot
+
+```bash
+curl -i http://nebulaops.localhost/api/kubernetes/snapshot \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Releases
+
+```bash
+curl -i http://nebulaops.localhost/api/releases \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Policies
+
+```bash
+curl -i http://nebulaops.localhost/api/policies \
+  -H "Authorization: Bearer $TOKEN"
+```

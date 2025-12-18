@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps Audit and Platform Events API
+  version: 22.3.0
+servers:
+- url: http://localhost:8101
+paths:
+  /api/audit/events:
+    get:
+      summary: List audit events
+      responses:
+        '200':
+          description: OK
+  /api/audit/events/{id}:
+    get:
+      summary: Read audit event
+      responses:
+        '200':
+          description: OK
+  /api/audit/correlation/{correlationId}:
+    get:
+      summary: Find events by correlation id
+      responses:
+        '200':
+          description: OK
+  /api/events:
+    get:
+      summary: List platform events
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Record platform event
+      responses:
+        '200':
+          description: OK

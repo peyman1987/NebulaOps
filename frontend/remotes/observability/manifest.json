@@ -1,7 +1,7 @@
 {
   "id": "observability",
   "title": "Observability",
-  "version": "22.2.0",
+  "version": "22.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-observability",
   "port": 4214,

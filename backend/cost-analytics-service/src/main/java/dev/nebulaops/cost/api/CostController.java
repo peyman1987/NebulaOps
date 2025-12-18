@@ -1,51 +1,76 @@
 package dev.nebulaops.cost.api;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import java.time.Instant;
 import java.util.*;
 
-/**
- * v22.2 — Cost analytics REST API.
- * Exposes cost summaries and breakdown for the FinOps tab.
- */
 @RestController
 @RequestMapping("/api/cost")
 public class CostController {
+    private final RestTemplate rest = new RestTemplate();
+    private final String auditUrl;
+    private final String notificationUrl;
 
-    /** GET /api/cost/summary?period=monthly */
-    @GetMapping("/summary")
-    public ResponseEntity<Map<String, Object>> summary(
-            @RequestParam(defaultValue = "monthly") String period) {
-        List<Map<String, Object>> breakdown = List.of(
-            Map.of("category","compute",      "resource","Local Docker/WSL",      "amount",0.0,  "note","Personal machine"),
-            Map.of("category","compute",      "resource","Optional VPS showcase",  "amount",12.0, "note","Cloud instance"),
-            Map.of("category","storage",      "resource","Object storage backups", "amount",3.0,  "note","Backup bucket"),
-            Map.of("category","observability","resource","Monitoring retention",   "amount",5.0,  "note","Long retention")
-        );
-        double total = breakdown.stream().mapToDouble(b -> ((Number) b.get("amount")).doubleValue()).sum();
-        return ResponseEntity.ok(Map.of(
-            "monthly",   total,
-            "delta",     2.0,
-            "currency",  "EUR",
-            "breakdown", breakdown,
-            "trend",     "stable",
-            "live",      true
-        ));
+    public CostController(@Value("${nebulaops.audit.url:http://audit-service:8101}") String auditUrl,
+                          @Value("${nebulaops.notification.url:http://notification-service:8083}") String notificationUrl) {
+        this.auditUrl = auditUrl;
+        this.notificationUrl = notificationUrl;
     }
 
-    /** GET /api/cost/breakdown */
+    @GetMapping("/summary")
+    public ResponseEntity<Map<String, Object>> summary(@RequestParam(defaultValue = "monthly") String period) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("period", period);
+        body.put("currency", System.getenv().getOrDefault("COST_CURRENCY", "EUR"));
+        body.put("monthly", 0.0);
+        body.put("delta", 0.0);
+        body.put("breakdown", List.of());
+        body.put("live", false);
+        body.put("source", "cost-analytics-service");
+        body.put("toolStatus", "No live billing adapter is configured. Configure COST_PROVIDER, cloud billing credentials, or a Kubernetes cost metrics source to populate this endpoint.");
+        body.put("executedAt", Instant.now().toString());
+        return ResponseEntity.ok(body);
+    }
+
     @GetMapping("/breakdown")
     public ResponseEntity<Object> breakdown(@RequestParam(defaultValue = "monthly") String period) {
-        return ResponseEntity.ok(List.of(
-            Map.of("category","compute","amount",12.0),
-            Map.of("category","storage","amount",3.0),
-            Map.of("category","observability","amount",5.0)
-        ));
+        return ResponseEntity.ok(Map.of("period", period, "items", List.of(), "live", false, "toolStatus", "No live cost breakdown source configured."));
     }
 
-    /** POST /api/cost/entries */
     @PostMapping("/entries")
     public ResponseEntity<Object> record(@RequestBody Map<String, Object> body) {
-        return ResponseEntity.ok(Map.of("saved", true, "id", UUID.randomUUID().toString()));
+        publish("COST_ENTRY_RECEIVED", "INFO", Map.of("entry", body));
+        return ResponseEntity.ok(Map.of("accepted", true, "persisted", false, "entry", body, "toolStatus", "Entry accepted by API; no persistent cost repository is configured.", "receivedAt", Instant.now().toString()));
+    }
+
+    @GetMapping("/services")
+    public ResponseEntity<Object> servicesCost() { return ResponseEntity.ok(Map.of("items", List.of(), "live", false, "toolStatus", "No live service-level cost source configured.")); }
+
+    @GetMapping("/forecast")
+    public ResponseEntity<Object> forecast(@RequestParam(defaultValue = "next-30-days") String period, @RequestParam(defaultValue = "75.0") double threshold) {
+        return ResponseEntity.ok(Map.of("period", period, "threshold", threshold, "forecast", 0.0, "thresholdStatus", "UNKNOWN", "drivers", List.of(), "live", false, "toolStatus", "No live cost history is available to compute a forecast."));
+    }
+
+    @PostMapping("/budget")
+    public ResponseEntity<Object> budget(@RequestBody Map<String, Object> body) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("accepted", true); result.put("persisted", false); result.put("budget", body); result.put("updatedAt", Instant.now().toString()); result.put("toolStatus", "Budget received by API; add a persistent budget repository to retain it across restarts.");
+        publish("COST_BUDGET_RECEIVED", "INFO", Map.of("budget", body)); return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/anomalies") public ResponseEntity<Object> anomalies() { return ResponseEntity.ok(Map.of("items", List.of(), "live", false, "toolStatus", "No live anomaly detector source configured.")); }
+    @GetMapping("/recommendations") public ResponseEntity<Object> recommendations() { return ResponseEntity.ok(Map.of("items", List.of(), "live", false, "toolStatus", "No live cost recommendation source configured.")); }
+
+    private void publish(String type, String severity, Map<String, Object> payload) {
+        String correlationId = "corr-" + UUID.randomUUID();
+        Map<String, Object> event = new LinkedHashMap<>();
+        event.put("type", type); event.put("source", "cost-analytics-service"); event.put("actor", "operator"); event.put("severity", severity); event.put("correlationId", correlationId); event.put("payload", payload);
+        try { rest.postForObject(auditUrl + "/api/events", event, Object.class); } catch (Exception ignored) {}
+        Map<String, Object> notification = new LinkedHashMap<>();
+        notification.put("type", type); notification.put("source", "cost-analytics-service"); notification.put("severity", severity); notification.put("message", type + " " + correlationId); notification.put("payload", payload);
+        try { rest.postForObject(notificationUrl + "/api/notifications", notification, Object.class); } catch (Exception ignored) {}
     }
 }

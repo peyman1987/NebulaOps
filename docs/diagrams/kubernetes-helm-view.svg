@@ -1,123 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="Kubernetes and Helm Operations">
-    <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#07111f"/>
-            <stop offset="1" stop-color="#110829"/>
-        </linearGradient>
-        <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
-            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
-        </linearGradient>
-        <filter id="glow">
-            <feGaussianBlur stdDeviation="4" result="b"/>
-            <feMerge>
-                <feMergeNode in="b"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
-        </marker>
-        <style><![CDATA[
-        .title{font:800 34px Inter,Segoe UI,Arial;fill:#f5fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#fff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#b8c8dd}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:url(#card);stroke:#294b73;stroke-width:1.4;rx:24}.core{fill:#0c2037;stroke:#58e7ff;stroke-width:2.2;filter:url(#glow)}.api{stroke:#58e7ff}.event{stroke:#b476ff;stroke-dasharray:10 8}.metric{stroke:#63ffb3;stroke-dasharray:4 7}.flow{fill:none;stroke-width:3;marker-end:url(#arrow);filter:url(#glow);opacity:.95}.pulse{animation:pulse 2.8s ease-in-out infinite}.dash{animation:dash 7s linear infinite}@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-160}}
-      ]]></style>
-    </defs>
-    <rect width="1400" height="820" fill="url(#bg)"/>
-    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <text x="70" y="72" class="title">Kubernetes and Helm Operations</text>
-    <text x="72" y="102" class="sub">Workload inventory, YAML editing and Helm release management from the local
-        console.
-    </text>
-    <g class="pulse">
-        <rect x="65.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="99.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="123.0" y="242" class="label">Angular Console</text>
-        <text x="93.0" y="274" class="small">Workload table</text>
-        <text x="93.0" y="294" class="small">Live YAML editor</text>
-        <text x="93.0" y="314" class="small">Log viewer</text>
-    </g>
-    <g class="pulse">
-        <rect x="320.0" y="190.0" width="300" height="140" class="core" rx="24"/>
-        <circle cx="354.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="378.0" y="242" class="label">Gateway API</text>
-        <text x="348.0" y="274" class="small">Kubernetes bridge</text>
-        <text x="348.0" y="294" class="small">Command validation</text>
-        <text x="348.0" y="314" class="small">Safe responses</text>
-    </g>
-    <g class="pulse">
-        <rect x="635.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="669.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="693.0" y="242" class="label">Kubernetes API</text>
-        <text x="663.0" y="274" class="small">Pods/services</text>
-        <text x="663.0" y="294" class="small">Namespaces</text>
-        <text x="663.0" y="314" class="small">Scale actions</text>
-    </g>
-    <g class="pulse">
-        <rect x="915.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="949.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="973.0" y="242" class="label">Helm CLI</text>
-        <text x="943.0" y="274" class="small">Release list</text>
-        <text x="943.0" y="294" class="small">Chart metadata</text>
-        <text x="943.0" y="314" class="small">Uninstall action</text>
-    </g>
-    <g class="pulse">
-        <rect x="635.0" y="504.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="669.0" cy="542" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="693.0" y="542" class="label">Cluster State</text>
-        <text x="663.0" y="574" class="small">Deployments</text>
-        <text x="663.0" y="594" class="small">Services</text>
-        <text x="663.0" y="614" class="small">Config maps</text>
-    </g>
-    <g class="pulse">
-        <rect x="915.0" y="504.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="949.0" cy="542" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="973.0" y="542" class="label">Operator</text>
-        <text x="943.0" y="574" class="small">Inspect</text>
-        <text x="943.0" y="594" class="small">Edit</text>
-        <text x="943.0" y="614" class="small">Validate</text>
-    </g>
-    <path class="flow dash api" d="M190 260 C 330.0 260, 330.0 260, 470 260"/>
-    <text x="280.0" y="252.0" class="small">REST</text>
-    <path class="flow dash api" d="M470 260 C 615.0 260, 615.0 260, 760 260"/>
-    <text x="565.0" y="252.0" class="small">kubectl</text>
-    <path class="flow dash api" d="M470 260 C 755.0 260, 755.0 260, 1040 260"/>
-    <text x="705.0" y="252.0" class="small">helm</text>
-    <path class="flow dash api" d="M760 260 C 760.0 260, 760.0 560, 760 560"/>
-    <text x="710.0" y="402.0" class="small">read/write</text>
-    <path class="flow dash api" d="M1040 260 C 900.0 260, 900.0 560, 760 560"/>
-    <text x="850.0" y="402.0" class="small">release</text>
-    <path class="flow dash api" d="M760 560 C 900.0 560, 900.0 560, 1040 560"/>
-    <text x="850.0" y="552.0" class="small">view</text>
-    <rect x="980" y="58" width="112" height="26" rx="13" fill="#58e7ff" opacity=".9"/>
-    <text x="994" y="76" class="chip">API/request</text>
-    <rect x="1110" y="58" width="112" height="26" rx="13" fill="#b476ff" opacity=".9"/>
-    <text x="1124" y="76" class="chip">Async event</text>
-    <rect x="1240" y="58" width="112" height="26" rx="13" fill="#63ffb3" opacity=".9"/>
-    <text x="1254" y="76" class="chip">Metrics/logs</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="Kubernetes and Helm View">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07111f"/><stop offset="1" stop-color="#110829"/></linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/></marker>
+    <marker id="arrow2" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#b476ff"/></marker>
+    <marker id="arrow3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#63ffb3"/></marker>
+    <style><![CDATA[
+.title{font:800 34px Inter,Segoe UI,Arial;fill:#f6fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#ffffff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#c5d3e8}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:#10243a;stroke:#345b87;stroke-width:1.4}.core{fill:#09233b;stroke:#58e7ff;stroke-width:2.2}.soft{fill:#151b35;stroke:#8065ff;stroke-width:1.4}.data{fill:#102d29;stroke:#63ffb3;stroke-width:1.4}.warn{fill:#332315;stroke:#ffba66;stroke-width:1.4}.flow{fill:none;stroke:#58e7ff;stroke-width:3;marker-end:url(#arrow)}.dash{fill:none;stroke:#b476ff;stroke-width:3;stroke-dasharray:10 8;marker-end:url(#arrow2)}.metric{fill:none;stroke:#63ffb3;stroke-width:3;stroke-dasharray:4 7;marker-end:url(#arrow3)}.pulse{animation:pulse 2.8s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+]]></style>
+  </defs>
+  <rect width="1400" height="820" fill="url(#bg)"/>
+  <text x="64" y="76" class="title">Kubernetes and Helm View</text>
+  <text x="64" y="106" class="sub">Deployment assets mirror the local reverse-proxy topology for cluster-oriented execution.</text>
+
+<rect x="74" y="134" width="60" height="28" rx="14" fill="#58e7ff"/><text x="88" y="153" class="chip">Helm</text>
+<rect x="160" y="134" width="108" height="28" rx="14" fill="#58e7ff"/><text x="174" y="153" class="chip">Kubernetes</text>
+<rect x="286" y="134" width="156" height="28" rx="14" fill="#58e7ff"/><text x="300" y="153" class="chip">same route model</text>
+<path d="M330 255 C 375 255, 375 255, 420 255" class="flow"/>
+<path d="M680 255 C 720 255, 720 255, 760 255" class="flow"/>
+<path d="M1020 255 C 1055 255, 1055 255, 1090 255" class="flow"/>
+<path d="M1110 340 C 830 340, 830 470, 550 470" class="dash"/>
+<path d="M1110 340 C 1000 340, 1000 470, 890 470" class="metric"/>
+<rect x="70" y="180" width="260" height="150" rx="20" class="warn"/>
+<text x="94" y="218" class="label">Helm chart</text>
+<text x="94" y="246" class="small">Chart.yaml</text>
+<text x="94" y="270" class="small">values.yaml</text>
+<text x="94" y="294" class="small">templates/**</text>
+<rect x="420" y="170" width="260" height="170" rx="20" class="soft"/>
+<text x="444" y="208" class="label">Kubernetes namespace</text>
+<text x="444" y="236" class="small">Deployments</text>
+<text x="444" y="260" class="small">Services</text>
+<text x="444" y="284" class="small">ConfigMaps / Secrets</text>
+<rect x="760" y="170" width="260" height="170" rx="20" class="core"/>
+<text x="784" y="208" class="label">Ingress / route</text>
+<text x="784" y="236" class="small">Public shell route</text>
+<text x="784" y="260" class="small">/api gateway route</text>
+<text x="784" y="284" class="small">/keycloak and tools</text>
+<rect x="1090" y="170" width="240" height="170" rx="20" class="panel"/>
+<text x="1114" y="208" class="label">Workloads</text>
+<text x="1114" y="236" class="small">Frontend</text>
+<text x="1114" y="260" class="small">Gateway</text>
+<text x="1114" y="284" class="small">Backend services</text>
+<rect x="420" y="470" width="260" height="150" rx="20" class="data"/>
+<text x="444" y="508" class="label">Stateful services</text>
+<text x="444" y="536" class="small">MongoDB</text>
+<text x="444" y="560" class="small">RabbitMQ</text>
+<text x="444" y="584" class="small">Redis</text>
+<rect x="760" y="470" width="260" height="150" rx="20" class="data"/>
+<text x="784" y="508" class="label">Observability</text>
+<text x="784" y="536" class="small">Prometheus</text>
+<text x="784" y="560" class="small">Grafana</text>
+<text x="784" y="584" class="small">Loki / Tempo</text>
 </svg>

@@ -1,7 +1,7 @@
 {
   "id": "terraform-studio",
   "title": "Terraform Studio",
-  "version": "22.2.0",
+  "version": "22.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-terraform-studio",
   "port": 4216,

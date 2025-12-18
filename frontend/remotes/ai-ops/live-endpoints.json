@@ -1,0 +1,19 @@
+{
+  "endpoints": [
+    {
+      "label": "AI incidents",
+      "url": "/api/ai-ops/incidents",
+      "kind": "incident"
+    },
+    {
+      "label": "Kubernetes logs",
+      "url": "/api/kubernetes/logs",
+      "kind": "log"
+    },
+    {
+      "label": "Platform events",
+      "url": "/api/events?limit=50",
+      "kind": "event"
+    }
+  ]
+}

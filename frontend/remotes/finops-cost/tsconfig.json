@@ -14,14 +14,7 @@
     "lib": [
       "ES2022",
       "dom"
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@nebulaops/mfe-core": [
-        "./libs/nebulaops-mfe-core/src/public-api.ts",
-        "../../libs/nebulaops-mfe-core/src/public-api.ts"
-      ]
-    }
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

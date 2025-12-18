@@ -11,7 +11,7 @@
 
     <groupId>dev.nebulaops</groupId>
     <artifactId>nebulaops-backend</artifactId>
-    <version>22.2.0</version>
+    <version>22.3.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -29,6 +29,9 @@
         <module>gitops-control-service</module>
         <module>observability-service</module>
         <module>cost-analytics-service</module>
+        <module>release-orchestrator-service</module>
+        <module>policy-governance-service</module>
+        <module>audit-service</module>
         <module>spring-mvc-service</module>
     </modules>
 

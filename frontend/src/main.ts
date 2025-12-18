@@ -5,7 +5,7 @@ import {AppComponent} from './app/app.component';
 import {JWT_KEY} from './app/api.config';
 
 /**
- * v22.2 — JWT Auth Interceptor.
+ * v22.3 — JWT Auth Interceptor.
  * Automatically adds Authorization: Bearer <token> to every HTTP request
  * when a JWT is present in localStorage. Skips /api/auth/login and /api/auth/register.
  */

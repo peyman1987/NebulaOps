@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v22.2 — Auth REST API with real JWT tokens (JJWT 0.12).
+ * v22.3 — Auth REST API with real JWT tokens (JJWT 0.12).
  *
  * POST /api/auth/login    → { accessToken, refreshToken, tokenType, expiresIn, user }
  * POST /api/auth/register → { user }
@@ -139,7 +139,7 @@ public class AuthController {
     }
 
     @GetMapping("/healthz")
-    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","22.2"); }
+    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","22.3"); }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
@@ -150,10 +150,15 @@ public class AuthController {
     }
 
     private Map<String, Object> devAdminTokenResponse(String email) {
-        String token = "dev-jwt-admin-" + UUID.randomUUID();
+        // Return a normal NebulaOps signed access token instead of an opaque placeholder.
+        // This lets standalone MFE modules bootstrap Authorization Bearer headers through
+        // /api/auth/login and then call the gateway/API consistently in local development.
+        String accessToken = jwt.generateAccessToken(
+                "dev-admin", email, "Admin", Set.of("ADMIN", "USER"), "default-org");
+        String refreshToken = jwt.generateRefreshToken("dev-admin");
         return Map.of(
-                "accessToken",  token,
-                "refreshToken", "dev-refresh-" + UUID.randomUUID(),
+                "accessToken",  accessToken,
+                "refreshToken", refreshToken,
                 "tokenType",    "Bearer",
                 "expiresIn",    86400,
                 "user", Map.of("id","dev-admin","email",email,

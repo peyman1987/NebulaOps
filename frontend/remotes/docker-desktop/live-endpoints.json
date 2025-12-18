@@ -1,0 +1,24 @@
+{
+  "endpoints": [
+    {
+      "label": "Docker containers",
+      "url": "/api/runtime/docker/containers",
+      "kind": "container"
+    },
+    {
+      "label": "Docker images",
+      "url": "/api/runtime/docker/images",
+      "kind": "image"
+    },
+    {
+      "label": "Docker volumes",
+      "url": "/api/runtime/docker/volumes",
+      "kind": "volume"
+    },
+    {
+      "label": "Docker networks",
+      "url": "/api/runtime/docker/networks",
+      "kind": "network"
+    }
+  ]
+}

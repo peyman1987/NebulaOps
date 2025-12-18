@@ -1,19 +1,10 @@
-# syntax=docker/dockerfile:1.7
-FROM maven:3.9.9-eclipse-temurin-21 AS build
-WORKDIR /workspace
-
-COPY backend/pom.xml backend/pom.xml
-COPY backend/cost-analytics-service/pom.xml backend/cost-analytics-service/pom.xml
-COPY backend/cost-analytics-service/src backend/cost-analytics-service/src
-
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn -B -f backend/cost-analytics-service/pom.xml \
-    -Dmaven.wagon.http.retryHandler.count=5 \
-    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-    -DskipTests -Dmaven.test.skip=true clean package
-
-FROM eclipse-temurin:21-jre-alpine
+# NebulaOps v22.3 runtime image for cost-analytics-service.
+# Java compilation is intentionally executed once before Docker image build by:
+#   ./scripts/wsl/build-backend-jars.sh
+# This avoids downloading Maven dependencies separately in every service image.
+FROM eclipse-temurin:21-jre
+ENV PATH="/opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 WORKDIR /app
-COPY --from=build /workspace/backend/cost-analytics-service/target/*.jar app.jar
+COPY backend/cost-analytics-service/target/*.jar app.jar
 EXPOSE 8097
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["/opt/java/openjdk/bin/java","-jar","/app/app.jar"]

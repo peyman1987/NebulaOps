@@ -1,3 +1,3 @@
-variable "cluster_name" { type = string, default = "nebulaops-v18" }
+variable "cluster_name" { type = string, default = "nebulaops-v22-3" }
 variable "namespace" { type = string, default = "nebulaops" }
 variable "target" { type = string, default = "kind", description = "Logical demo target used by docs and FE." }

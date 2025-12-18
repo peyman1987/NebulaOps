@@ -1,58 +1,52 @@
-# NebulaOps v19.3 Troubleshooting
+# Troubleshooting
 
-## Docker daemon is not reachable
+## Shell opens but standalone MFE button uses an old localhost port
 
-Start native Docker Engine inside WSL/Linux:
+The current shell must open routes such as:
 
-```bash
-sudo service docker start
-# or, when systemd is enabled
-sudo systemctl start docker
+```text
+/remotes/openlens-kubernetes/
+/remotes/task-management/
 ```
 
-If permission is denied:
+not public 42xx ports. Rebuild and recreate the frontend image:
 
 ```bash
-sudo usermod -aG docker "$USER"
-newgrp docker
+./scripts/wsl/build-frontend-local.sh
+docker compose build frontend
+docker compose up -d --force-recreate frontend
 ```
 
-## Compose cannot build services
+Then hard-refresh the browser tab or clear the site data for `nebulaops.localhost`.
+
+## Remote entry check
 
 ```bash
-docker compose build --no-cache
-docker compose up -d
+curl -I http://nebulaops.localhost/remotes/docker-desktop/remoteEntry.js
+curl -I http://nebulaops.localhost/remotes/openlens-kubernetes/remoteEntry.js
+curl -I http://nebulaops.localhost/remotes/task-management/remoteEntry.js
 ```
 
-## Kubernetes tab is disconnected
+Expected result is HTTP 200 from the frontend Nginx container.
 
-Create or select the kind cluster:
+## Gateway check
 
 ```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v19-3
-kubectl config current-context
-cp ~/.kube/config .kube/config
+curl -I http://nebulaops.localhost/actuator/health
 ```
 
-Restart the gateway:
+If the shell loads but API widgets fail, check gateway logs:
 
 ```bash
-docker compose restart gateway-service
+./scripts/wsl/logs.sh gateway-service
 ```
 
-## Helm tab is empty
+## Keycloak callback issues
 
-Install the chart first:
+The public Keycloak route is:
 
-```bash
-./scripts/linux/helm-install-nebulaops.sh nebulaops
+```text
+http://nebulaops.localhost/keycloak
 ```
 
-## Grafana tab is unavailable
-
-```bash
-docker compose ps grafana
-docker compose logs --tail=80 grafana
-```
-
-Default credentials are `admin/admin`.
+If login fails after upgrading from an older package, remove old containers/volumes or reimport the realm so the client redirect URI points to `http://nebulaops.localhost`.

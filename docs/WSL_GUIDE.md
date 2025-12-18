@@ -1,39 +1,31 @@
-# WSL Guide for NebulaOps v19.3
+# WSL guide
 
-NebulaOps v19.3 does not require Docker Desktop. It installs Docker Engine directly inside WSL Ubuntu.
-
-## Requirements
-
-- Windows 11 with WSL2
-- Ubuntu distribution
-- 8 GB RAM minimum, 16 GB recommended
-- Internet access during installation
-
-## Install
+## Start
 
 ```bash
-./scripts/wsl/install-native-toolchain.sh
+cd /mnt/d/workspace/personal/NebulaOps/nebulaops-v22.3
+chmod +x scripts/wsl/*.sh scripts/*.sh
+./scripts/wsl/start.sh --rebuild
 ```
 
-Then restart WSL from PowerShell:
+Open:
 
-```powershell
-wsl --shutdown
+```text
+http://nebulaops.localhost
 ```
 
-Reopen Ubuntu and verify:
+## Health
 
 ```bash
-docker version
-docker compose version
-kubectl version --client=true
-helm version
-kind version
+./scripts/wsl/health.sh
 ```
 
-## Start NebulaOps
+## Stop
 
 ```bash
-./scripts/linux/create-kind-cluster.sh nebulaops-v19-3
-./scripts/linux/start-native.sh
+./scripts/wsl/stop.sh
 ```
+
+## Notes
+
+Do not open old public MFE URLs. Standalone MFE pages are served by the frontend container under `/remotes/<mfe>/`.

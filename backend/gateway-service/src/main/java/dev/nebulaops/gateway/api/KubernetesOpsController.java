@@ -4,13 +4,14 @@ import dev.nebulaops.gateway.client.DockerSocketClient;
 import dev.nebulaops.gateway.client.ToolCommandClient;
 import dev.nebulaops.gateway.client.ToolResult;
 import dev.nebulaops.gateway.service.KubernetesPlatformService;
+import dev.nebulaops.gateway.service.PlatformEventPublisher;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.*;
 
 /**
- * v22.2 — Kubernetes controller: snapshot/fallback + all OpenLens actions.
+ * v22.3 — Kubernetes controller: live snapshot + all OpenLens actions.
  *
  * READ endpoints (no conflict with actions):
  *   GET /api/kubernetes/snapshot
@@ -59,13 +60,62 @@ public class KubernetesOpsController {
     private final KubernetesPlatformService service;
     private final DockerSocketClient        dockerSocket;
     private final ToolCommandClient         tools;
+    private final PlatformEventPublisher   events;
 
     public KubernetesOpsController(KubernetesPlatformService service,
                                    DockerSocketClient dockerSocket,
-                                   ToolCommandClient tools) {
+                                   ToolCommandClient tools,
+                                   PlatformEventPublisher events) {
         this.service      = service;
         this.dockerSocket = dockerSocket;
         this.tools        = tools;
+        this.events       = events;
+    }
+
+    @GetMapping("/events")
+    public Map<String, Object> eventsV23(@RequestParam(defaultValue = "all") String namespace) {
+        return service.events(namespace);
+    }
+
+    @GetMapping("/namespaces/{ns}/graph")
+    public Map<String, Object> namespaceGraphV23(@PathVariable String ns) {
+        Map<String, Object> pods = service.resource("pods", ns);
+        Map<String, Object> deployments = service.resource("deployments", ns);
+        Map<String, Object> services = service.resource("services", ns);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("namespace", ns);
+        out.put("live", Boolean.TRUE.equals(pods.get("live")) || Boolean.TRUE.equals(deployments.get("live")) || Boolean.TRUE.equals(services.get("live")));
+        out.put("pods", pods);
+        out.put("deployments", deployments);
+        out.put("services", services);
+        out.put("toolStatus", Map.of("source", "kubectl", "note", "Graph is assembled from live kubectl resources only."));
+        return out;
+    }
+
+    @PostMapping("/resources/diff")
+    public Map<String, Object> resourceDiffV23(@RequestBody(required = false) Map<String,Object> body) {
+        String yaml = body == null ? null : String.valueOf(body.getOrDefault("yaml", ""));
+        if (yaml == null || yaml.isBlank()) return Map.of("ok", false, "live", false, "error", "yaml required");
+        try {
+            java.nio.file.Path tmp = java.nio.file.Files.createTempFile("nebula-diff-", ".yaml");
+            java.nio.file.Files.writeString(tmp, yaml);
+            ToolResult r = tools.shell("kubectl diff -f " + tmp.toAbsolutePath(), 30);
+            java.nio.file.Files.deleteIfExists(tmp);
+            return Map.of("ok", r.ok(), "live", true, "stdout", r.stdout(), "stderr", r.stderr(), "exitCode", r.exitCode(), "toolStatus", r.asMap());
+        } catch (Exception e) {
+            return Map.of("ok", false, "live", false, "error", e.getMessage());
+        }
+    }
+
+    @PostMapping("/resources/apply")
+    public Map<String, Object> resourceApplyV23(@RequestBody(required = false) Map<String,Object> body) {
+        String yaml = body == null ? null : String.valueOf(body.getOrDefault("yaml", ""));
+        return applyYaml(yaml, "apply-resource", "manifest");
+    }
+
+    @GetMapping("/pods/{ns}/{name}/logs/stream")
+    public Map<String, Object> podLogsStreamHintV23(@PathVariable String ns, @PathVariable String name) {
+        return run("kubectl logs " + safe(name) + " -n " + safe(ns) + " --tail=100", "pod-logs", ns + "/" + name, 15);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -74,25 +124,24 @@ public class KubernetesOpsController {
 
     @GetMapping("/snapshot")
     public Map<String, Object> snapshot() {
-        Map nodesRaw  = service.nodes();
-        boolean connected = Boolean.TRUE.equals(nodesRaw.get("live"));
-        List<Map<String, Object>> resources = connected
-                ? buildResourcesFromKubectl(nodesRaw)
-                : buildResourcesFromDocker();
-
+        Map<String, Object> nodes = service.nodes();
+        Map<String, Object> pods = service.resource("pods", "all");
+        Map<String, Object> deployments = service.resource("deployments", "all");
+        Map<String, Object> services = service.resource("services", "all");
+        Map<String, Object> eventsRaw = service.events("all");
+        boolean live = Boolean.TRUE.equals(nodes.get("live")) || Boolean.TRUE.equals(pods.get("live"));
         Map<String, Object> cluster = new LinkedHashMap<>();
-        cluster.put("name",        connected ? "kind-nebulaops" : "docker-compose");
-        cluster.put("provider",    connected ? "kind" : "docker-compose");
-        cluster.put("version",     "v1.29");
-        cluster.put("status",      "Connected");
-        cluster.put("live",        true);
+        cluster.put("name", live ? "kubectl-current-context" : "unavailable");
+        cluster.put("provider", "kubectl");
+        cluster.put("status", live ? "Connected" : "Unavailable");
+        cluster.put("live", live);
         cluster.put("generatedAt", Instant.now().toString());
-
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("cluster",   cluster);
-        out.put("resources", resources);
-        out.put("logs",      buildLogsFromDocker());
-        out.put("live",      true);
+        out.put("cluster", cluster); out.put("nodes", nodes); out.put("pods", pods); out.put("deployments", deployments); out.put("services", services); out.put("events", eventsRaw);
+        out.put("resources", mergeKubernetesItems(pods, deployments, services, nodes));
+        out.put("logs", kubernetesLogsFromEvents(eventsRaw));
+        out.put("live", live);
+        out.put("toolStatus", live ? Map.of("source", "kubectl") : nodes.get("toolStatus"));
         return out;
     }
 
@@ -119,7 +168,6 @@ public class KubernetesOpsController {
                 }
             }
         }
-        result.addAll(buildLogsFromDocker());
         return result;
     }
 
@@ -367,102 +415,43 @@ public class KubernetesOpsController {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // DOCKER FALLBACK BUILDERS
+    // LIVE DATA HELPERS
     // ═══════════════════════════════════════════════════════════════════════
 
-    private List<Map<String, Object>> buildResourcesFromKubectl(Map nodesRaw) {
+    private List<Map<String, Object>> mergeKubernetesItems(Map<String, Object>... sources) {
         List<Map<String, Object>> result = new ArrayList<>();
-        Object data = nodesRaw.get("data");
-        if (!(data instanceof Map)) return buildResourcesFromDocker();
-        Object itemsObj = ((Map) data).get("items");
-        if (!(itemsObj instanceof List)) return buildResourcesFromDocker();
-        for (Object item : (List) itemsObj) {
-            if (!(item instanceof Map)) continue;
-            Map node   = (Map) item;
-            Map meta   = asMap(node.get("metadata"));
-            Map status = asMap(node.get("status"));
-            String ready = "Unknown";
-            Object conds = status.get("conditions");
-            if (conds instanceof List) {
-                for (Object c : (List) conds) {
-                    if (c instanceof Map && "Ready".equals(((Map) c).get("type")))
-                        ready = "True".equals(((Map) c).get("status")) ? "Running" : "NotReady";
+        for (Map<String, Object> source : sources) {
+            Object data = source.get("data");
+            if (data instanceof Map) {
+                Object items = ((Map) data).get("items");
+                if (items instanceof List) {
+                    for (Object item : (List) items) if (item instanceof Map) result.add((Map<String, Object>) item);
                 }
-            }
-            Map<String, Object> r = new LinkedHashMap<>();
-            r.put("id",        str(meta.getOrDefault("uid", UUID.randomUUID().toString())));
-            r.put("kind",      "Node");
-            r.put("namespace", "");
-            r.put("name",      str(meta.getOrDefault("name", "node")));
-            r.put("replicas",  1);
-            r.put("status",    ready);
-            r.put("yaml",      "# kubectl get node " + meta.getOrDefault("name","") + " -o yaml");
-            r.put("updatedAt", str(meta.getOrDefault("creationTimestamp", Instant.now().toString())));
-            result.add(r);
-        }
-        return result.isEmpty() ? buildResourcesFromDocker() : result;
-    }
-
-    private List<Map<String, Object>> buildResourcesFromDocker() {
-        List<Map<String, Object>> result = new ArrayList<>();
-        List<Map<String, Object>> containers = dockerSocket.containers();
-        for (Map<String, Object> c : containers) {
-            String name  = containerName(c);
-            String image = str(c.getOrDefault("Image", "-"));
-            String state = str(c.getOrDefault("State", "unknown"));
-            String ports = portsOf(c);
-            boolean running = "running".equals(state);
-            String ns = "nebulaops";
-
-            Map<String, Object> dep = new LinkedHashMap<>();
-            dep.put("id",        "Deployment:" + ns + ":" + name);
-            dep.put("kind",      "Deployment");
-            dep.put("namespace", ns);
-            dep.put("name",      name);
-            dep.put("replicas",  running ? 1 : 0);
-            dep.put("status",    running ? "Available" : "Unavailable");
-            dep.put("yaml",      deploymentYamlText(name, image, ns));
-            dep.put("updatedAt", Instant.now().toString());
-            result.add(dep);
-
-            Map<String, Object> pod = new LinkedHashMap<>();
-            pod.put("id",        "Pod:" + ns + ":" + name + "-pod");
-            pod.put("kind",      "Pod");
-            pod.put("namespace", ns);
-            pod.put("name",      name + "-pod");
-            pod.put("replicas",  1);
-            pod.put("status",    running ? "Running" : "Stopped");
-            pod.put("yaml",      "# pod derived from container: " + name);
-            pod.put("updatedAt", Instant.now().toString());
-            result.add(pod);
-
-            if (!ports.isEmpty() && !ports.equals("-")) {
-                Map<String, Object> svc = new LinkedHashMap<>();
-                svc.put("id",        "Service:" + ns + ":" + name);
-                svc.put("kind",      "Service");
-                svc.put("namespace", ns);
-                svc.put("name",      name);
-                svc.put("replicas",  0);
-                svc.put("status",    "Active");
-                svc.put("yaml",      serviceYamlText(name, ns, ports));
-                svc.put("updatedAt", Instant.now().toString());
-                result.add(svc);
             }
         }
         return result;
     }
 
-    private List<Map<String, Object>> buildLogsFromDocker() {
-        List<Map<String, Object>> logs = new ArrayList<>();
-        for (Map<String, Object> c : dockerSocket.containers()) {
-            Map<String, Object> log = new LinkedHashMap<>();
-            log.put("time",    Instant.now().toString());
-            log.put("service", containerName(c));
-            log.put("level",   "running".equals(str(c.getOrDefault("State","unknown"))) ? "INFO" : "WARN");
-            log.put("message", str(c.getOrDefault("Status", str(c.getOrDefault("State","unknown")))));
-            logs.add(log);
+    private List<Map<String, Object>> kubernetesLogsFromEvents(Map<String, Object> eventsRaw) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Object data = eventsRaw.get("data");
+        if (data instanceof Map) {
+            Object items = ((Map) data).get("items");
+            if (items instanceof List) {
+                for (Object ev : (List) items) {
+                    if (!(ev instanceof Map)) continue;
+                    Map event = (Map) ev;
+                    Map involv = asMap(event.get("involvedObject"));
+                    Map<String, Object> log = new LinkedHashMap<>();
+                    log.put("time", str(event.getOrDefault("lastTimestamp", event.getOrDefault("eventTime", Instant.now().toString()))));
+                    log.put("service", str(involv.getOrDefault("name", "kubernetes")));
+                    log.put("level", "Warning".equals(event.get("type")) ? "WARN" : "INFO");
+                    log.put("message", str(event.getOrDefault("message", "")));
+                    result.add(log);
+                }
+            }
         }
-        return logs;
+        return result;
     }
 
     private String containerName(Map c) {
@@ -509,24 +498,52 @@ public class KubernetesOpsController {
 
     private Map<String, Object> run(String cmd, String action, String target, int timeout) {
         ToolResult r = tools.shell(cmd, timeout);
-        return Map.of("ok", r.ok(), "action", action, "target", target,
-                      "stdout", r.stdout(), "stderr", r.stderr(),
-                      "exitCode", r.exitCode(), "durationMs", r.durationMs());
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("ok", r.ok());
+        payload.put("action", action);
+        payload.put("target", target);
+        payload.put("stdout", r.stdout());
+        payload.put("stderr", r.stderr());
+        payload.put("exitCode", r.exitCode());
+        payload.put("durationMs", r.durationMs());
+        String correlationId = events.mutation("KUBERNETES_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, r.ok(), payload);
+        payload.put("correlationId", correlationId);
+        return payload;
     }
 
     private Map<String, Object> applyYaml(String yaml, String action, String target) {
-        if (yaml == null || yaml.isBlank())
-            return Map.of("ok", false, "error", "yaml required", "action", action, "target", target);
+        if (yaml == null || yaml.isBlank()) {
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("ok", false);
+            payload.put("error", "yaml required");
+            payload.put("action", action);
+            payload.put("target", target);
+            payload.put("correlationId", events.mutation("KUBERNETES_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, false, payload));
+            return payload;
+        }
         try {
             java.nio.file.Path tmp = java.nio.file.Files.createTempFile("nebula-", ".yaml");
             java.nio.file.Files.writeString(tmp, yaml);
             String verb = action.contains("delete") ? "delete" : "apply";
             ToolResult r = tools.shell("kubectl " + verb + " -f " + tmp.toAbsolutePath(), 30);
             java.nio.file.Files.deleteIfExists(tmp);
-            return Map.of("ok", r.ok(), "action", action, "target", target,
-                          "stdout", r.stdout(), "stderr", r.stderr(), "exitCode", r.exitCode());
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("ok", r.ok());
+            payload.put("action", action);
+            payload.put("target", target);
+            payload.put("stdout", r.stdout());
+            payload.put("stderr", r.stderr());
+            payload.put("exitCode", r.exitCode());
+            payload.put("correlationId", events.mutation("KUBERNETES_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, r.ok(), payload));
+            return payload;
         } catch (Exception e) {
-            return Map.of("ok", false, "action", action, "target", target, "error", e.getMessage());
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("ok", false);
+            payload.put("action", action);
+            payload.put("target", target);
+            payload.put("error", e.getMessage());
+            payload.put("correlationId", events.mutation("KUBERNETES_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, false, payload));
+            return payload;
         }
     }
 

@@ -1,0 +1,26 @@
+{
+  "endpoints": [
+    {
+      "label": "Environments",
+      "url": "/api/platform/environments",
+      "kind": "environment"
+    },
+    {
+      "label": "Docker containers",
+      "url": "/api/runtime/docker/containers",
+      "kind": "container"
+    },
+    {
+      "label": "Kubernetes nodes",
+      "url": "/api/platform/k8s/nodes",
+      "kind": "node",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Terraform modules",
+      "url": "/api/platform/terraform/modules",
+      "kind": "module",
+      "itemsPath": "data"
+    }
+  ]
+}

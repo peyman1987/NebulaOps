@@ -1,0 +1,10 @@
+{
+  "id": "notification-center",
+  "title": "Notification Center",
+  "version": "22.3.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-notification-center",
+  "port": 4223,
+  "scope": "Platform \u00b7 Notifications/SSE",
+  "shellOwnedNavigation": true
+}

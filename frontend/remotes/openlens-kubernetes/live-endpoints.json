@@ -1,0 +1,50 @@
+{
+  "endpoints": [
+    {
+      "label": "Cluster",
+      "url": "/api/platform/k8s/cluster",
+      "kind": "cluster"
+    },
+    {
+      "label": "Nodes",
+      "url": "/api/platform/k8s/nodes",
+      "kind": "node",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Namespaces",
+      "url": "/api/kubernetes/namespaces",
+      "kind": "namespace",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Pods",
+      "url": "/api/kubernetes/resources?kind=pods&namespace=all",
+      "kind": "Pod",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Deployments",
+      "url": "/api/kubernetes/resources?kind=deployments&namespace=all",
+      "kind": "Deployment",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Services",
+      "url": "/api/kubernetes/resources?kind=services&namespace=all",
+      "kind": "Service",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Events",
+      "url": "/api/kubernetes/events?namespace=all",
+      "kind": "Event",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Helm releases",
+      "url": "/api/runtime/helm/releases?namespace=all",
+      "kind": "HelmRelease"
+    }
+  ]
+}

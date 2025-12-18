@@ -1,0 +1,10 @@
+{
+  "id": "policy-center",
+  "title": "Policy Center",
+  "version": "22.3.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-policy-center",
+  "port": 4222,
+  "scope": "Governance \u00b7 Policy Gates",
+  "shellOwnedNavigation": true
+}

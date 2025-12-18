@@ -22,6 +22,11 @@ proxy:
   terraform: ${TERRAFORM_STUDIO_SERVICE_URL:http://terraform-studio-service:8096}
   cost: ${COST_ANALYTICS_SERVICE_URL:http://cost-analytics-service:8097}
   notify-ws: ${NOTIFICATION_WS_SERVICE_URL:http://notification-ws-service:8098}
+  release: ${RELEASE_ORCHESTRATOR_SERVICE_URL:http://release-orchestrator-service:8098}
+  policy: ${POLICY_GOVERNANCE_SERVICE_URL:http://policy-governance-service:8100}
+  audit: ${AUDIT_SERVICE_URL:http://audit-service:8101}
+jwt:
+  secret: ${JWT_SECRET:nebulaops-v22-3-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:

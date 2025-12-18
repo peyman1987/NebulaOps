@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * v22.2 — JWT token generation and validation (JJWT 0.12.x).
+ * v22.3 — JWT token generation and validation (JJWT 0.12.x).
  * HS256-signed. Set JWT_SECRET env var in production (min 32 chars).
  * Access token: 24h. Refresh token: 7d.
  */
@@ -23,7 +23,7 @@ public class JwtService {
 
     private final SecretKey key;
 
-    public JwtService(@Value("${jwt.secret:nebulaops-v22-2-dev-secret-key-min-32-chars!!}") String secret) {
+    public JwtService(@Value("${jwt.secret:nebulaops-v22-3-dev-secret-key-min-32-chars!!}") String secret) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 

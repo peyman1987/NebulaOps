@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-KC_BASE="${KC_BASE:-http://localhost:8180}"
+KC_BASE="${KC_BASE:-http://nebulaops.localhost/keycloak}"
 REALM="${KEYCLOAK_REALM:-nebulaops}"
 USER="${KEYCLOAK_TEST_USER:-admin}"
 PASS="${KEYCLOAK_TEST_PASSWORD:-admin}"
 CLIENT_ID="${KEYCLOAK_TEST_CLIENT_ID:-nebulaops-frontend}"
-API="${NEBULAOPS_GATEWAY_URL:-http://localhost:8080}"
+API="${NEBULAOPS_GATEWAY_URL:-http://nebulaops.localhost}"
 
 echo "[keycloak] waiting for $KC_BASE/realms/$REALM"
 for i in {1..60}; do

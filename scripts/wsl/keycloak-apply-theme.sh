@@ -3,7 +3,7 @@
 # Run this after Keycloak is up: ./scripts/wsl/keycloak-apply-theme.sh
 
 set -euo pipefail
-KC_URL="${KC_URL:-http://localhost:8180}"
+KC_URL="${KC_URL:-http://nebulaops.localhost/keycloak}"
 KC_ADMIN="${KC_ADMIN:-admin}"
 KC_ADMIN_PASS="${KC_ADMIN_PASS:-admin}"
 REALM="${KC_REALM:-nebulaops}"
@@ -31,4 +31,4 @@ curl -sf -X PUT "${KC_URL}/admin/realms/${REALM}" \
   || echo "✗ Failed to apply theme"
 
 echo ""
-echo "  Open http://localhost:8180/realms/${REALM}/account to verify the login page."
+echo "  Open http://nebulaops.localhost/keycloak/realms/${REALM}/account to verify the login page."

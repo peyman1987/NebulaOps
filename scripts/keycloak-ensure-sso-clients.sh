@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# v22.2 — Ensure NebulaOps Keycloak realm and all OIDC clients exist even when an old Keycloak DB volume is reused.
+# v22.3 — Ensure NebulaOps Keycloak realm and all OIDC clients exist even when an old Keycloak DB volume is reused.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REALM_FILE="$ROOT_DIR/infrastructure/keycloak/realm-nebulaops.json"
-KEYCLOAK_PUBLIC_URL="${KEYCLOAK_PUBLIC_URL:-http://localhost:8180}"
+KEYCLOAK_PUBLIC_URL="${KEYCLOAK_PUBLIC_URL:-http://nebulaops.localhost/keycloak}"
+KEYCLOAK_ADMIN_URL="${KEYCLOAK_ADMIN_URL:-${KEYCLOAK_DIRECT_URL:-http://localhost:8180}}"
 REALM="${KEYCLOAK_REALM:-nebulaops}"
 ADMIN_USER="${KEYCLOAK_ADMIN:-admin}"
 ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
@@ -19,29 +20,37 @@ REQUIRED_CLIENTS=(
 
 wait_keycloak() {
   for _ in $(seq 1 180); do
-    if curl -fsS "$KEYCLOAK_PUBLIC_URL/health/ready" >/dev/null 2>&1; then
+    if curl -fsS "$KEYCLOAK_PUBLIC_URL/health/ready" >/dev/null 2>&1 || \
+       curl -fsS "$KEYCLOAK_ADMIN_URL/health/ready" >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
   done
-  echo "[keycloak] Keycloak non pronto: $KEYCLOAK_PUBLIC_URL/health/ready" >&2
+  echo "[keycloak] Keycloak not ready: $KEYCLOAK_PUBLIC_URL/health/ready or $KEYCLOAK_ADMIN_URL/health/ready" >&2
   return 1
 }
 
 admin_token() {
-  curl -fsS --retry 8 --retry-delay 2 --retry-all-errors \
-    -X POST "$KEYCLOAK_PUBLIC_URL/realms/master/protocol/openid-connect/token" \
+  local response token
+  response=$(curl -fsS --retry 12 --retry-delay 2 --retry-all-errors \
+    -X POST "$KEYCLOAK_ADMIN_URL/realms/master/protocol/openid-connect/token" \
     -H 'Content-Type: application/x-www-form-urlencoded' \
     --data-urlencode "username=$ADMIN_USER" \
     --data-urlencode "password=$ADMIN_PASSWORD" \
     --data-urlencode 'grant_type=password' \
-    --data-urlencode 'client_id=admin-cli' \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])'
+    --data-urlencode 'client_id=admin-cli' 2>/dev/null || true)
+  token=$(printf '%s' "$response" | python3 -c 'import json,sys; data=sys.stdin.read(); print(json.loads(data).get("access_token", "") if data.strip() else "")' 2>/dev/null || true)
+  if [ -n "$token" ]; then
+    printf '%s\n' "$token"
+    return 0
+  fi
+  echo "[keycloak] cannot obtain admin token from $KEYCLOAK_ADMIN_URL. Response was: ${response:-<empty>}" >&2
+  return 1
 }
 
 realm_exists() {
   local bearer="$1"
-  curl -fsS "$KEYCLOAK_PUBLIC_URL/admin/realms/$REALM" \
+  curl -fsS "$KEYCLOAK_ADMIN_URL/admin/realms/$REALM" \
     -H "Authorization: Bearer $bearer" >/dev/null 2>&1
 }
 
@@ -52,7 +61,7 @@ ensure_realm() {
     return 0
   fi
   echo "[keycloak] creating realm from $REALM_FILE"
-  curl -fsS -X POST "$KEYCLOAK_PUBLIC_URL/admin/realms" \
+  curl -fsS -X POST "$KEYCLOAK_ADMIN_URL/admin/realms" \
     -H "Authorization: Bearer $bearer" \
     -H 'Content-Type: application/json' \
     --data-binary "@$REALM_FILE" >/dev/null
@@ -60,7 +69,7 @@ ensure_realm() {
 
 client_uuid() {
   local bearer="$1" client_id="$2"
-  curl -fsS "$KEYCLOAK_PUBLIC_URL/admin/realms/$REALM/clients?clientId=$client_id" \
+  curl -fsS "$KEYCLOAK_ADMIN_URL/admin/realms/$REALM/clients?clientId=$client_id" \
     -H "Authorization: Bearer $bearer" \
   | python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0]["id"] if data else "")'
 }
@@ -89,13 +98,13 @@ ensure_client() {
   uuid="$(client_uuid "$bearer" "$client_id")"
   if [ -z "$uuid" ]; then
     echo "[keycloak] creating client: $client_id"
-    curl -fsS -X POST "$KEYCLOAK_PUBLIC_URL/admin/realms/$REALM/clients" \
+    curl -fsS -X POST "$KEYCLOAK_ADMIN_URL/admin/realms/$REALM/clients" \
       -H "Authorization: Bearer $bearer" \
       -H 'Content-Type: application/json' \
       -d "$body" >/dev/null
   else
     echo "[keycloak] updating client: $client_id"
-    curl -fsS -X PUT "$KEYCLOAK_PUBLIC_URL/admin/realms/$REALM/clients/$uuid" \
+    curl -fsS -X PUT "$KEYCLOAK_ADMIN_URL/admin/realms/$REALM/clients/$uuid" \
       -H "Authorization: Bearer $bearer" \
       -H 'Content-Type: application/json' \
       -d "$body" >/dev/null
@@ -104,7 +113,7 @@ ensure_client() {
 
 set_realm_theme() {
   local bearer="$1"
-  curl -fsS -X PUT "$KEYCLOAK_PUBLIC_URL/admin/realms/$REALM" \
+  curl -fsS -X PUT "$KEYCLOAK_ADMIN_URL/admin/realms/$REALM" \
     -H "Authorization: Bearer $bearer" \
     -H 'Content-Type: application/json' \
     -d '{"loginTheme":"nebulaops","accountTheme":"keycloak","adminTheme":"keycloak","emailTheme":"keycloak"}' >/dev/null

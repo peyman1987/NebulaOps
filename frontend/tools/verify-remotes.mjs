@@ -4,11 +4,9 @@ import {fileURLToPath} from 'node:url';
 
 const toolDir = dirname(fileURLToPath(import.meta.url));
 const frontendRoot = join(toolDir, '..');
-const sharedCore = join(frontendRoot, 'libs', 'nebulaops-mfe-core', 'src', 'public-api.ts');
 
 const remotes = [
   ['docker-desktop', 'nebulaops-mfe-docker-desktop'],
-  ['infra-hub', 'nebulaops-mfe-infra-hub'],
   ['openlens-kubernetes', 'nebulaops-mfe-openlens-kubernetes'],
   ['task-management', 'nebulaops-mfe-task-management'],
   ['observability', 'nebulaops-mfe-observability'],
@@ -17,63 +15,70 @@ const remotes = [
   ['devsecops', 'nebulaops-mfe-devsecops'],
   ['ai-ops', 'nebulaops-mfe-ai-ops'],
   ['finops-cost', 'nebulaops-mfe-finops-cost'],
+  ['infra-hub', 'nebulaops-mfe-infra-hub'],
+  ['release-center', 'nebulaops-mfe-release-center'],
+  ['policy-center', 'nebulaops-mfe-policy-center'],
+  ['notification-center', 'nebulaops-mfe-notification-center'],
 ];
 
 let failures = 0;
-
-if (!existsSync(sharedCore)) {
-  console.error(`Missing shared MFE core: ${sharedCore}`);
-  failures += 1;
-} else {
-  const core = readFileSync(sharedCore, 'utf8');
-  for (const required of ['bootstrapNebulaOpsMfe', 'nebulaOpsJwtInterceptor', 'nebulaops.v22_2.jwt']) {
-    if (!core.includes(required)) {
-      console.error(`Shared MFE core does not contain ${required}`);
-      failures += 1;
-    }
-  }
-}
-
 for (const [name, tag] of remotes) {
   const dir = join(frontendRoot, 'remotes', name);
-  const entry = join(dir, 'remoteEntry.js');
+  const sourceEntry = join(dir, 'remoteEntry.js');
+  const distEntry = join(dir, 'dist', 'browser', 'remoteEntry.js');
+  const distIndex = join(dir, 'dist', 'browser', 'index.html');
   const manifest = join(dir, 'manifest.json');
   const dockerfile = join(dir, 'Dockerfile');
   const nginx = join(dir, 'nginx.conf');
-  const main = join(dir, 'src', 'main.ts');
-  const tsconfig = join(dir, 'tsconfig.json');
 
-  for (const file of [entry, manifest, dockerfile, nginx, main, tsconfig]) {
+  for (const file of [sourceEntry, distEntry, distIndex, manifest, dockerfile, nginx]) {
     if (!existsSync(file)) {
       console.error(`Missing ${file}`);
       failures += 1;
     }
   }
 
-  if (existsSync(main)) {
-    const content = readFileSync(main, 'utf8');
-    if (!content.includes(`tagName: '${tag}'`)) {
-      console.error(`Remote ${name} bootstrap does not register expected tag ${tag}`);
+  if (existsSync(distEntry)) {
+    const content = readFileSync(distEntry, 'utf8');
+    const registersDirectly = content.includes('customElements.define(TAG,') ||
+        content.includes(`customElements.define('${tag}'`) ||
+        content.includes(`customElements.define("${tag}"`);
+    const registersFromConfig = content.includes(`"tag": "${tag}"`) &&
+        content.includes('customElements.define(CFG.tag,');
+    if (!registersDirectly && !registersFromConfig) {
+      console.error(`Remote ${name} does not register expected custom element ${tag}`);
       failures += 1;
     }
-    if (!content.includes('@nebulaops/mfe-core')) {
-      console.error(`Remote ${name} does not use the shared MFE core library`);
+    if (!content.includes('nebulaops.v22_3.jwt')) {
+      console.error(`Remote ${name} does not read the shared NebulaOps JWT key`);
+      failures += 1;
+    }
+    if (/\bexport\s+(default|\{|class|function|const|let|var)/.test(content)) {
+      console.error(`Remote ${name} contains ESM export syntax. remoteEntry.js must be classic JavaScript for shell injection.`);
       failures += 1;
     }
   }
 
-  if (existsSync(tsconfig)) {
-    const content = readFileSync(tsconfig, 'utf8');
-    if (!content.includes('@nebulaops/mfe-core')) {
-      console.error(`Remote ${name} tsconfig does not expose @nebulaops/mfe-core path alias`);
+  if (existsSync(distIndex)) {
+    const index = readFileSync(distIndex, 'utf8');
+    if (!index.includes(`<${tag}></${tag}>`)) {
+      console.error(`Remote ${name} standalone index does not render ${tag}`);
+      failures += 1;
+    }
+    if (/type=["']module["']/.test(index)) {
+      console.error(`Remote ${name} standalone index still loads module scripts; expected classic remoteEntry.js only.`);
+      failures += 1;
+    }
+    if (!index.includes('remoteEntry.js')) {
+      console.error(`Remote ${name} standalone index does not load remoteEntry.js`);
       failures += 1;
     }
   }
 
   if (existsSync(manifest)) {
     const manifestJson = JSON.parse(readFileSync(manifest, 'utf8'));
-    if (manifestJson.version !== '22.2.0') {
-      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 22.2.0`);
+    if (manifestJson.version !== '22.3.0') {
+      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 22.3.0`);
       failures += 1;
     }
   }
@@ -81,8 +86,8 @@ for (const [name, tag] of remotes) {
 }
 
 if (failures > 0) {
-  console.error(`NebulaOps v22.2 remote verification failed: ${failures} issue(s)`);
+  console.error(`NebulaOps v22.3 remote verification failed: ${failures} issue(s)`);
   process.exit(1);
 }
 
-console.log('NebulaOps v22.2 micro frontends verified. Shared MFE core owns bootstrap and JWT propagation.');
+console.log('NebulaOps v22.3 classic micro frontends verified. Shell owns side navigation; each remote renders standalone content.');
