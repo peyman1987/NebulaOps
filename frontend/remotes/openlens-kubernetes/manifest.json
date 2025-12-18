@@ -1,7 +1,7 @@
 {
   "id": "openlens-kubernetes",
   "title": "OpenLens Kubernetes",
-  "version": "22.2.0",
+  "version": "22.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-openlens-kubernetes",
   "port": 4212,

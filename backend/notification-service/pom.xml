@@ -4,7 +4,7 @@
     <parent>
         <groupId>dev.nebulaops</groupId>
         <artifactId>nebulaops-backend</artifactId>
-        <version>22.2.0</version>
+        <version>22.3.0</version>
     </parent>
     <artifactId>notification-service</artifactId>
     <dependencies>
@@ -41,11 +41,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>

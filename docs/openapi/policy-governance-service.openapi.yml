@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps Policy Governance API
+  version: 22.3.0
+servers:
+- url: http://localhost:8100
+paths:
+  /api/policies:
+    get:
+      summary: List policies
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Create policy
+      responses:
+        '200':
+          description: OK
+  /api/policies/{id}:
+    put:
+      summary: Update policy
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: Delete policy
+      responses:
+        '200':
+          description: OK
+  /api/policies/evaluate:
+    post:
+      summary: Evaluate policies
+      responses:
+        '200':
+          description: OK
+  /api/policies/evaluations:
+    get:
+      summary: List policy evaluations
+      responses:
+        '200':
+          description: OK

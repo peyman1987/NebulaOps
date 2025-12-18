@@ -1,10 +1,10 @@
 {
   "id": "infra-hub",
   "title": "INFRA Hub",
-  "version": "22.2.0",
+  "version": "22.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-infra-hub",
   "port": 4220,
-  "scope": "Infra \u00b7 Console Hub",
+  "scope": "Infrastructure \u00b7 Hub",
   "shellOwnedNavigation": true
 }

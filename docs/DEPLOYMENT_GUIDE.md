@@ -1,46 +1,51 @@
-# Deployment Guide
+# Deployment guide
 
-## Local deployment
-
-Use Docker Compose for local execution:
+## Local WSL/Docker start
 
 ```bash
-./scripts/local-up.sh
-./scripts/smoke-test.sh
+cd nebulaops-v22.3
+chmod +x scripts/wsl/*.sh scripts/*.sh
+./scripts/wsl/start.sh --rebuild
+./scripts/wsl/health.sh
 ```
 
-## WSL deployment
+Main URL:
 
-Use the WSL scripts when running on Windows 11 with Ubuntu:
+```text
+http://nebulaops.localhost
+```
+
+## Rebuild frontend only
+
+Use this after changing the shell template, MFE remote bundles, Nginx config or static assets.
 
 ```bash
-./scripts/wsl/check-wsl.sh
-./scripts/wsl/start.sh
-./scripts/wsl/smoke-test.sh
+./scripts/wsl/build-frontend-local.sh
+docker compose build frontend
+docker compose up -d --force-recreate frontend
 ```
 
-## Kubernetes deployment path
+## Optional profiles
 
-1. Build and push service images.
-2. Update Helm values with image tags.
-3. Render Helm templates.
-4. Apply with Helm or let Argo CD reconcile from Git.
+GitLab is optional:
 
 ```bash
-./scripts/helm-render.sh
-./scripts/helm-install-local.sh
+./scripts/wsl/start.sh --with-gitlab --rebuild
 ```
 
-## Environment strategy
+SSO proxies for RabbitMQ, Mongo Express and Redis Commander are optional and should be enabled after the core stack is healthy:
 
-| Environment | Purpose                                    |
-|-------------|--------------------------------------------|
-| local       | Developer execution through Docker Compose |
-| dev         | Shared Kubernetes test environment         |
-| staging     | Release candidate validation               |
-| production  | Hardened deployment with managed services  |
+```bash
+./scripts/wsl/start.sh --with-sso-proxy --rebuild
+```
 
-## Production notes
+## Browser routes
 
-For production, MongoDB, Redis and RabbitMQ should normally run as managed services or dedicated stateful platform
-components. Application pods should be stateless and horizontally scalable.
+| Route | Purpose |
+| --- | --- |
+| `/` | Angular shell |
+| `/remotes/<mfe>/` | standalone MFE page |
+| `/api/**` | gateway API |
+| `/keycloak/**` | Keycloak |
+| `/grafana/**` | Grafana |
+| `/prometheus/**` | Prometheus |

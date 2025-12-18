@@ -1,27 +1,10 @@
-# syntax=docker/dockerfile:1.7
-FROM maven:3.9.9-eclipse-temurin-21 AS build
-WORKDIR /workspace
-
-COPY backend/pom.xml backend/pom.xml
-COPY backend/devsecops-service/pom.xml backend/devsecops-service/pom.xml
-
-
-COPY backend/devsecops-service/src backend/devsecops-service/src
-
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn -B -f backend/devsecops-service/pom.xml \
-    -Dmaven.wagon.http.retryHandler.count=5 \
-    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-    -DskipTests -Dmaven.test.skip=true clean package
-
+# NebulaOps v22.3 runtime image for devsecops-service.
+# Java compilation is intentionally executed once before Docker image build by:
+#   ./scripts/wsl/build-backend-jars.sh
+# This avoids downloading Maven dependencies separately in every service image.
 FROM eclipse-temurin:21-jre
 ENV PATH="/opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 WORKDIR /app
-
-# v20.6 corrected: no enterprise CLI downloads during image build.
-# Runtime tools must be provided by Docker volume mounts or custom base image:
-# docker, kubectl, helm, argocd, terraform, trivy.
-COPY --from=build /workspace/backend/devsecops-service/target/*.jar app.jar
-
+COPY backend/devsecops-service/target/*.jar app.jar
 EXPOSE 8086
 ENTRYPOINT ["/opt/java/openjdk/bin/java","-jar","/app/app.jar"]

@@ -1,7 +1,7 @@
 namespace: nebulaops
 
 image:
-  repository: nebulaops-v22-2-spring-mvc-service
+  repository: nebulaops-v22-3-spring-mvc-service
   tag: latest
   pullPolicy: IfNotPresent
 

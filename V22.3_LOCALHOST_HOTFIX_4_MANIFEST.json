@@ -1,0 +1,37 @@
+{
+  "package": "nebulaops-v22.3-nebulaops-localhost-hotfix4",
+  "entrypoint": "http://nebulaops.localhost",
+  "standaloneMfePattern": "/remotes/<mfe>/",
+  "remoteEntryPattern": "/remotes/<mfe>/remoteEntry.js",
+  "remotes": [
+    "docker-desktop",
+    "openlens-kubernetes",
+    "task-management",
+    "observability",
+    "cicd-gitops",
+    "terraform-studio",
+    "devsecops",
+    "ai-ops",
+    "finops-cost",
+    "infra-hub",
+    "release-center",
+    "policy-center",
+    "notification-center"
+  ],
+  "docs": [
+    "README.md",
+    "START_HERE.md",
+    "ARCHITECTURE.md",
+    "docs/README.md",
+    "docs/TECHNICAL_DOCUMENTATION.md",
+    "docs/DEPLOYMENT_GUIDE.md",
+    "docs/TROUBLESHOOTING.md",
+    "docs/API_EXAMPLES.md",
+    "docs/diagrams/nebulaops-v22-3-reverse-proxy-runtime.svg"
+  ],
+  "notes": [
+    "Standalone buttons no longer open localhost 42xx ports.",
+    "Root .gitignore added.",
+    "Obsolete Markdown/SVG documentation removed or rewritten."
+  ]
+}

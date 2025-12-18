@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
-# v22.2 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
-# Usage: ./scripts/wsl/start.sh [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy]
+# v22.3 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
+# Usage: ./scripts/wsl/start.sh [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight]
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
+REBUILD_ALL=false
 REBUILD_GATEWAY=false
 WITH_GITLAB=false
 WITH_SSO_PROXY=false
+RUN_PREFLIGHT=true
 for arg in "$@"; do
   case "$arg" in
+    --rebuild|--build) REBUILD_ALL=true ;;
     --rebuild-gateway) REBUILD_GATEWAY=true ;;
     --with-gitlab) WITH_GITLAB=true ;;
     --with-sso-proxy|--with-sso-proxies) WITH_SSO_PROXY=true ;;
+    --skip-preflight) RUN_PREFLIGHT=false ;;
     -h|--help)
       cat <<USAGE
-Usage: $0 [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy]
+Usage: $0 [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight]
+  --rebuild            Build backend JARs and Docker images before startup
   --rebuild-gateway    Force no-cache rebuild of the gateway-service image
                        (use when gateway routes/config changed)
   --with-gitlab        Also start the optional heavy GitLab CE service
@@ -22,6 +27,8 @@ Usage: $0 [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy]
   --with-sso-proxy     Also start OAuth2 Proxy wrappers for RabbitMQ, Mongo Express
                        and Redis Commander. Prometheus SSO remains optional
                        via COMPOSE_PROFILES=sso-prometheus.
+  --skip-preflight      Skip the full static v22.3 preflight. Use only after a
+                       successful preflight in the same workspace.
 USAGE
       exit 0
       ;;
@@ -29,6 +36,18 @@ USAGE
 done
 
 cd "$ROOT_DIR"
+
+run_integrated_preflight() {
+  if [ "$RUN_PREFLIGHT" != "true" ]; then
+    log_warn "Full v22.3 preflight skipped by --skip-preflight"
+    return 0
+  fi
+
+  log_step "Running integrated v22.3 preflight"
+  "$ROOT_DIR/scripts/wsl/preflight-v22.3.sh"
+}
+
+run_integrated_preflight
 
 keycloak_theme_dir() {
   printf '%s\n' "$ROOT_DIR/infrastructure/keycloak/themes/nebulaops/login"
@@ -52,7 +71,7 @@ locales=en,it
 THEME
 
   cat > "$theme_dir/login.ftl" <<'FTL'
-<#-- NebulaOps v22.2 standalone Keycloak login page. No template.ftl import. -->
+<#-- NebulaOps v22.3 standalone Keycloak login page. No template.ftl import. -->
 <#assign nbLoginAction="">
 <#assign nbUsername="">
 <#assign nbRemember=false>
@@ -76,7 +95,7 @@ THEME
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>NebulaOps v22.2 Login</title>
+  <title>NebulaOps v22.3 Login</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
@@ -153,10 +172,10 @@ THEME
 <body>
   <main class="nb-card">
     <div class="nb-brand">
-      <div class="nb-logo">N22.2</div>
+      <div class="nb-logo">N22.3</div>
       <div class="nb-brand-text">
         <p>Terraform enabled SaaS cockpit</p>
-        <h1>NebulaOps v22.2</h1>
+        <h1>NebulaOps v22.3</h1>
       </div>
     </div>
     <p class="nb-lead">DevOps portfolio platform - Docker · Kubernetes · Helm · Terraform · GitOps</p>
@@ -197,7 +216,7 @@ THEME
       <input type="hidden" id="id-hidden-input" name="credentialId" value="${nbSelectedCredential?html}">
       <button tabindex="4" class="nb-submit-btn" name="login" id="kc-login" type="submit">Login</button>
     </form>
-    <div class="nb-footer">DevOps Enterprise Cockpit · v22.2 · Local-first</div>
+    <div class="nb-footer">DevOps Enterprise Cockpit · v22.3 · Local-first</div>
   </main>
 </body>
 </html>
@@ -225,19 +244,25 @@ prepare_keycloak_theme_before_start() {
 
 keycloak_auth_url() {
   local challenge="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  printf '%s\n' "http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth?client_id=nebulaops-frontend&redirect_uri=http%3A%2F%2Flocalhost%3A4200&response_type=code&scope=openid%20profile%20email&state=healthcheck&code_challenge=${challenge}&code_challenge_method=S256"
+  printf '%s\n' "${KEYCLOAK_PUBLIC_URL}/realms/nebulaops/protocol/openid-connect/auth?client_id=nebulaops-frontend&redirect_uri=http%3A%2F%2Fnebulaops.localhost%2F&response_type=code&scope=openid%20profile%20email&state=healthcheck&code_challenge=${challenge}&code_challenge_method=S256"
 }
 
 keycloak_oidc_probe() {
   KEYCLOAK_OIDC_CODE="000"
   KEYCLOAK_OIDC_BODY="/tmp/nebulaops-keycloak-auth-start.html"
-  KEYCLOAK_OIDC_CODE=$(curl -sS --max-time 10 -o "$KEYCLOAK_OIDC_BODY" -w "%{http_code}" "$(keycloak_auth_url)" 2>/dev/null || true)
-  [ "$KEYCLOAK_OIDC_CODE" = "200" ] && grep -qiE 'kc-form-login|NebulaOps v22\.2|name="username"' "$KEYCLOAK_OIDC_BODY" 2>/dev/null
+  KEYCLOAK_OIDC_HEADERS="/tmp/nebulaops-keycloak-auth-start.headers"
+  KEYCLOAK_OIDC_LOCATION=""
+  KEYCLOAK_OIDC_CODE=$(curl -sS --max-time 15 -D "$KEYCLOAK_OIDC_HEADERS" -o "$KEYCLOAK_OIDC_BODY" -w "%{http_code}" "$(keycloak_auth_url)" 2>/dev/null || true)
+  KEYCLOAK_OIDC_LOCATION=$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[Ll]ocation:[[:space:]]*/, ""); gsub(/\r/, ""); print; exit}' "$KEYCLOAK_OIDC_HEADERS" 2>/dev/null || true)
+  if [ "$KEYCLOAK_OIDC_CODE" = "200" ] && grep -qiE 'kc-form-login|NebulaOps v22\.3|name="username"' "$KEYCLOAK_OIDC_BODY" 2>/dev/null; then
+    return 0
+  fi
+  printf '%s' "$KEYCLOAK_OIDC_CODE:$KEYCLOAK_OIDC_LOCATION" | grep -qiE '^(301|302|303|307|308):.*(login-actions|/realms/nebulaops|/keycloak/)'
 }
 
 keycloak_admin_token() {
   curl -fsS --max-time 10 \
-    -X POST "http://localhost:8180/realms/master/protocol/openid-connect/token" \
+    -X POST "${KEYCLOAK_DIRECT_URL}/realms/master/protocol/openid-connect/token" \
     -H 'Content-Type: application/x-www-form-urlencoded' \
     --data-urlencode 'username=admin' \
     --data-urlencode 'password=admin' \
@@ -254,7 +279,7 @@ keycloak_set_login_theme() {
     return 1
   fi
   curl -fsS --max-time 10 \
-    -X PUT "http://localhost:8180/admin/realms/nebulaops" \
+    -X PUT "${KEYCLOAK_DIRECT_URL}/admin/realms/nebulaops" \
     -H "Authorization: Bearer $token" \
     -H 'Content-Type: application/json' \
     -d "{\"loginTheme\":\"$theme\",\"accountTheme\":\"keycloak\",\"adminTheme\":\"keycloak\",\"emailTheme\":\"keycloak\"}" >/dev/null
@@ -266,7 +291,7 @@ keycloak_logs_show_theme_error() {
 
 validate_keycloak_oidc_login() {
   log_step "Validating Keycloak OIDC login"
-  wait_http "http://localhost:8180/health/ready" 180 "keycloak" || {
+  wait_http "${KEYCLOAK_DIRECT_URL}/health/ready" 180 "keycloak" || {
     log_warn "Keycloak is not ready yet; run ./scripts/wsl/health.sh after startup"
     return 0
   }
@@ -279,13 +304,13 @@ validate_keycloak_oidc_login() {
     return 0
   fi
 
-  log_warn "Keycloak OIDC login returned HTTP ${KEYCLOAK_OIDC_CODE:-000}"
+  log_warn "Keycloak OIDC login returned HTTP ${KEYCLOAK_OIDC_CODE:-000}${KEYCLOAK_OIDC_LOCATION:+ Location=$KEYCLOAK_OIDC_LOCATION}"
 
   if [ "${KEYCLOAK_OIDC_CODE:-000}" = "500" ] || keycloak_logs_show_theme_error; then
     log_warn "Detected Keycloak FreeMarker/theme failure; applying built-in self-healing"
     write_custom_keycloak_login_theme
     dc restart keycloak >/dev/null
-    wait_http "http://localhost:8180/health/ready" 180 "keycloak after theme self-heal" || true
+    wait_http "${KEYCLOAK_DIRECT_URL}/health/ready" 180 "keycloak after theme self-heal" || true
     keycloak_set_login_theme "nebulaops" || true
 
     if keycloak_oidc_probe; then
@@ -396,9 +421,89 @@ release_tool_ui_ports_for_mode() {
 
 release_frontend_mfe_ports() {
   log_step "Checking shell and micro frontend ports"
-  for port in 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219; do
-    release_nebulaops_port "$port" "NebulaOps v22.2 frontend/micro frontend"
+  for port in ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223; do
+    release_nebulaops_port "$port" "NebulaOps v22.3 frontend/micro frontend"
   done
+}
+
+release_v223_extended_service_ports() {
+  log_step "Checking v22.3 extended service ports"
+  release_nebulaops_port 8097 "NebulaOps v22.3 cost analytics service"
+}
+
+running_service() {
+  dc ps --services --filter status=running 2>/dev/null | grep -qx "$1"
+}
+
+ensure_v223_extended_modules() {
+  local services=(
+    cost-analytics-service
+    mfe-infra-hub
+    mfe-release-center
+    mfe-policy-center
+    mfe-notification-center
+  )
+
+  log_step "Ensuring v22.3 extended modules"
+  # These modules are part of the standard v22.3 cockpit and must be started
+  # even when the shell is launched with optional SSO profiles. Running this
+  # targeted up after the main compose up also repairs workspaces that were
+  # started from an earlier v22.3 package where these endpoints were not active.
+  dc up -d "${services[@]}"
+
+  local service
+  for service in "${services[@]}"; do
+    if running_service "$service"; then
+      log_ok "$service is running"
+    else
+      log_warn "$service is not running yet; inspect with: ./scripts/wsl/logs.sh $service"
+    fi
+  done
+
+  wait_http "http://localhost:8097/actuator/health" 90 "cost-analytics-service" || \
+    log_warn "Cost service is still warming up. Inspect: ./scripts/wsl/logs.sh cost-analytics-service"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/infra-hub/remoteEntry.js" 60 "mfe-infra-hub" || \
+    log_warn "MFE INFRA is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-infra-hub"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/release-center/remoteEntry.js" 60 "mfe-release-center" || \
+    log_warn "MFE Release is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-release-center"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/policy-center/remoteEntry.js" 60 "mfe-policy-center" || \
+    log_warn "MFE Policy is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-policy-center"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/notification-center/remoteEntry.js" 60 "mfe-notification-center" || \
+    log_warn "MFE Notifications is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-notification-center"
+}
+
+served_mfe_remote_is_classic() {
+  local slug="$1" body
+  body="$(curl -fsS --max-time 5 "${NEBULAOPS_PUBLIC_URL}/remotes/${slug}/remoteEntry.js" 2>/dev/null || true)"
+  [ -n "$body" ] || return 1
+  if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
+    return 1
+  fi
+  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v22.3 auth bridge|nebulaopsAuthBridge'; then
+    return 1
+  fi
+  printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'
+}
+
+ensure_v223_live_mfe_remote_entries() {
+  local remotes=(docker-desktop openlens-kubernetes task-management observability cicd-gitops terraform-studio devsecops ai-ops finops-cost infra-hub release-center policy-center notification-center)
+  local slug invalid=0
+  log_step "Verifying live MFE runtime bundles as same-origin static bundles"
+  for slug in "${remotes[@]}"; do
+    if served_mfe_remote_is_classic "$slug"; then
+      log_ok "MFE ${slug} remoteEntry.js is shell-compatible"
+    else
+      log_warn "MFE ${slug} is missing, stale, or still serving ESM syntax"
+      invalid=1
+    fi
+  done
+
+  if [ "$invalid" -ne 0 ]; then
+    log_warn "Blank MFE body risk detected. Run ./scripts/wsl/repair-v22.3-frontend-remotes.sh if the browser still shows empty MFE pages."
+    if [ "${NEBULAOPS_AUTO_REPAIR_MFE:-false}" = "true" ]; then
+      "$ROOT_DIR/scripts/wsl/repair-v22.3-frontend-remotes.sh"
+    fi
+  fi
 }
 
 log_step "Pre-flight checks"
@@ -412,6 +517,10 @@ log_step "Preparing Keycloak login theme"
 prepare_keycloak_theme_before_start
 
 release_frontend_mfe_ports
+release_v223_extended_service_ports
+
+log_step "Validating frontend runtime artifacts"
+"$ROOT_DIR/scripts/wsl/ensure-frontend-dist.sh"
 
 log_step "Validating Grafana provisioning"
 defaults=$(grep -R "isDefault: true" -n \
@@ -422,12 +531,23 @@ if [ "$defaults" -ne 1 ]; then
 fi
 log_ok "Grafana datasource provisioning OK"
 
-if [ "$REBUILD_GATEWAY" = "true" ]; then
-  log_step "Force-rebuilding gateway-service (no cache)"
-  dc build --no-cache gateway-service
+log_step "Ensuring backend JARs"
+if [ "$REBUILD_ALL" = "true" ]; then
+  "$ROOT_DIR/scripts/wsl/build-backend-jars.sh" --force
+else
+  "$ROOT_DIR/scripts/wsl/build-backend-jars.sh"
 fi
 
-log_step "Starting NebulaOps v22.2"
+# Root docker-compose builds backend runtime images from context '.'.
+# The backend target/*.jar files must remain visible in Docker build context.
+"$ROOT_DIR/scripts/wsl/repair-v22.3-docker-context.sh"
+
+if [ "$REBUILD_GATEWAY" = "true" ]; then
+  log_step "Force-rebuilding gateway-service"
+  dc build gateway-service
+fi
+
+log_step "Starting NebulaOps v22.3"
 # Ensure shared Docker network exists (external: true in docker-compose.yml)
 if ! docker network inspect nebulaops-network &>/dev/null; then
   log_info "Creating shared network: nebulaops-network"
@@ -466,7 +586,13 @@ fi
 if [ "${#compose_profiles[@]}" -gt 0 ]; then
   export COMPOSE_PROFILES="$(IFS=','; echo "${compose_profiles[*]}")"
 fi
-dc up --build -d --remove-orphans
+if [ "$REBUILD_ALL" = "true" ]; then
+  log_step "Building Docker images"
+  dc build
+fi
+dc up -d --remove-orphans
+ensure_v223_extended_modules
+ensure_v223_live_mfe_remote_entries
 
 log_step "Ensuring Keycloak clients"
 "$ROOT_DIR/scripts/keycloak-ensure-sso-clients.sh" || log_warn "Keycloak client auto-check failed; use ./scripts/keycloak-ensure-sso-clients.sh after startup"
@@ -482,15 +608,15 @@ wait_http "http://localhost:8080/actuator/health" 120 "gateway-service" || \
 
 cat <<INFO
 
-${C_BOLD}NebulaOps v22.2 is running.${C_RESET}
+${C_BOLD}NebulaOps v22.3 is running.${C_RESET}
 
-  ${C_CYAN}Frontend${C_RESET}    http://localhost:4200
-  ${C_CYAN}Gateway${C_RESET}     http://localhost:8080/actuator/health
-  ${C_CYAN}Grafana${C_RESET}     http://localhost:3000        admin/admin
-  ${C_CYAN}Keycloak${C_RESET}    http://localhost:8180        admin/admin
+  ${C_CYAN}Frontend${C_RESET}    ${NEBULAOPS_PUBLIC_URL}
+  ${C_CYAN}Gateway${C_RESET}     ${NEBULAOPS_PUBLIC_URL}/actuator/health
+  ${C_CYAN}Grafana${C_RESET}     ${NEBULAOPS_PUBLIC_URL}/grafana/        admin/admin
+  ${C_CYAN}Keycloak${C_RESET}    ${KEYCLOAK_PUBLIC_URL}        admin/admin
   ${C_CYAN}GitLab${C_RESET}      optional: ./scripts/wsl/start.sh --with-gitlab
   ${C_CYAN}SSO Proxies${C_RESET} optional: ./scripts/wsl/start.sh --with-sso-proxy
-  ${C_CYAN}Prometheus${C_RESET}  http://localhost:9090        native health/UI in every mode
+  ${C_CYAN}Prometheus${C_RESET}  ${NEBULAOPS_PUBLIC_URL}/prometheus/        native health/UI in every mode
   ${C_CYAN}RabbitMQ${C_RESET}    http://localhost:15672       native guest/guest; Keycloak SSO with --with-sso-proxy
   ${C_CYAN}Mongo${C_RESET}       http://localhost:8088        native admin/admin; Keycloak SSO with --with-sso-proxy
   ${C_CYAN}Redis UI${C_RESET}    http://localhost:8089        native admin/admin; Keycloak SSO with --with-sso-proxy
@@ -503,4 +629,4 @@ Useful:  ./scripts/wsl/health.sh        — overall status
 INFO
 
 command -v explorer.exe >/dev/null 2>&1 && \
-  explorer.exe http://localhost:4200 >/dev/null 2>&1 || true
+  explorer.exe "$NEBULAOPS_PUBLIC_URL" >/dev/null 2>&1 || true

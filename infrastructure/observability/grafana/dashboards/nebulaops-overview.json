@@ -1,13 +1,13 @@
 {
-  "title": "NebulaOps v22.2 Runtime Overview",
-  "uid": "nebulaops-v22-2-runtime",
+  "title": "NebulaOps v22.3 Runtime Overview",
+  "uid": "nebulaops-v22-3-runtime",
   "schemaVersion": 39,
   "version": 2,
   "refresh": "10s",
   "timezone": "browser",
   "tags": [
     "nebulaops",
-    "v22.2",
+    "v22.3",
     "local"
   ],
   "panels": [

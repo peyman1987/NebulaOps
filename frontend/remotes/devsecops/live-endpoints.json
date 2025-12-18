@@ -1,0 +1,27 @@
+{
+  "endpoints": [
+    {
+      "label": "DevSecOps scan",
+      "url": "/api/platform/devsecops",
+      "kind": "scan",
+      "itemsPath": "scans"
+    },
+    {
+      "label": "CVEs",
+      "url": "/api/platform/devsecops",
+      "kind": "cve",
+      "itemsPath": "cves"
+    },
+    {
+      "label": "Secrets",
+      "url": "/api/platform/devsecops/secrets",
+      "kind": "secret",
+      "itemsPath": "data.Results"
+    },
+    {
+      "label": "Registry images",
+      "url": "/api/registry/images",
+      "kind": "image"
+    }
+  ]
+}

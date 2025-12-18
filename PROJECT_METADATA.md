@@ -3,7 +3,7 @@
 | Key             | Value                                       |
 | --------------- | ------------------------------------------- |
 | name            | NebulaOps                                   |
-| version         | v22.2.0                                     |
+| version         | v22.3.0                                     |
 | release_date    | 2026-05                                     |
 | repo_layout     | monorepo (frontend + backend + infra)       |
 | maintainer      | Peyman Eshghi Malayeri                      |
@@ -40,7 +40,7 @@
 | `backend/gateway-service/.../application.yml` | Proxy targets                        |
 | `docker-compose.yml`                          | Stack composition                    |
 
-## API surface (v22.2)
+## API surface (v22.3)
 
 | Route group             | Endpoints                                      |
 | ----------------------- | ---------------------------------------------- |
@@ -50,12 +50,12 @@
 | `/api/runtime/**`       | docker containers/images/volumes, helm         |
 | `/api/platform/**`      | observability, gitops, devsecops, environments |
 | `/api/ai-ops/**`        | analyze, autofix                               |
-| `/api/pipeline/**`      | runs list, trigger (v22.2)                     |
-| `/api/cost/**`          | summary, breakdown, entries (v22.2)            |
-| `/api/notifications/**` | live, mark-read (v22.2)                        |
-| `/api/audit/**`         | events (v22.2)                                 |
-| `/api/secrets/**`       | list (v22.2)                                   |
-| `/api/registry/**`      | images (v22.2)                                 |
+| `/api/pipeline/**`      | runs list, trigger (v22.3)                     |
+| `/api/cost/**`          | summary, breakdown, entries (v22.3)            |
+| `/api/notifications/**` | live, mark-read (v22.3)                        |
+| `/api/audit/**`         | events (v22.3)                                 |
+| `/api/secrets/**`       | list (v22.3)                                   |
+| `/api/registry/**`      | images (v22.3)                                 |
 
 ## Entry points
 

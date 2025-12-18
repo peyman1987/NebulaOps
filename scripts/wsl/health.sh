@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.2 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
+# v22.3 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
@@ -17,14 +17,23 @@ print_bad()  { printf "  ${C_RED}●${C_RESET} %-22s %s\n" "$1" "$2"; }
 print_skip() { printf "  ${C_DIM}○${C_RESET} %-22s %s\n" "$1" "$2"; }
 
 keycloak_user_token() {
-  curl -fsS --max-time 8 \
-    -X POST "http://localhost:8180/realms/nebulaops/protocol/openid-connect/token" \
-    -H 'Content-Type: application/x-www-form-urlencoded' \
-    --data-urlencode "username=$SMOKE_USER" \
-    --data-urlencode "password=$SMOKE_PASSWORD" \
-    --data-urlencode 'grant_type=password' \
-    --data-urlencode 'client_id=nebulaops-frontend' 2>/dev/null \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin).get("access_token", ""))' 2>/dev/null || true
+  local base token
+  for base in "${KEYCLOAK_PUBLIC_URL}" "${KEYCLOAK_DIRECT_URL}"; do
+    [ -n "${base:-}" ] || continue
+    token="$(curl -fsS --max-time 8 \
+      -X POST "${base}/realms/nebulaops/protocol/openid-connect/token" \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
+      --data-urlencode "username=$SMOKE_USER" \
+      --data-urlencode "password=$SMOKE_PASSWORD" \
+      --data-urlencode 'grant_type=password' \
+      --data-urlencode 'client_id=nebulaops-frontend' 2>/dev/null \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin).get("access_token", ""))' 2>/dev/null || true)"
+    if [ -n "$token" ]; then
+      printf '%s\n' "$token"
+      return 0
+    fi
+  done
+  return 0
 }
 
 check_endpoint() {
@@ -33,6 +42,39 @@ check_endpoint() {
     print_ok "$label" "$url"
   else
     print_bad "$label" "$url"
+  fi
+}
+
+check_required_service_endpoint() {
+  local label="$1" service="$2" url="$3"
+  if curl -fsS --max-time 5 "$url" >/dev/null 2>&1; then
+    print_ok "$label" "$url"
+  elif running_service "$service"; then
+    print_bad "$label" "service running but endpoint not reachable yet: $url"
+  else
+    print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.3-red-endpoints.sh"
+  fi
+}
+
+check_mfe_remote() {
+  local label="$1" service="$2" url="$3" body
+  body="$(curl -fsS --max-time 5 "$url" 2>/dev/null || true)"
+  if [ -z "$body" ]; then
+    if [ -n "$service" ] && ! running_service "$service"; then
+      print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.3-frontend-remotes.sh"
+    else
+      print_bad "$label" "remoteEntry.js not reachable: $url"
+    fi
+    return 0
+  fi
+  if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
+    print_bad "$label" "ESM remoteEntry served; run ./scripts/wsl/repair-v22.3-frontend-remotes.sh"
+    return 0
+  fi
+  if printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'; then
+    print_ok "$label" "$url"
+  else
+    print_warn "$label" "reachable but does not look like a custom-element remoteEntry: $url"
   fi
 }
 
@@ -128,20 +170,25 @@ check_basic_proxy_upstream() {
 check_keycloak_login() {
   local label="Keycloak custom login"
   local tmp="/tmp/nebulaops-keycloak-auth-health.html"
+  local hdr="/tmp/nebulaops-keycloak-auth-health.headers"
   local challenge="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  local url="http://localhost:8180/realms/nebulaops/protocol/openid-connect/auth?client_id=nebulaops-frontend&redirect_uri=http%3A%2F%2Flocalhost%3A4200&response_type=code&scope=openid%20profile%20email&state=healthcheck&code_challenge=${challenge}&code_challenge_method=S256"
-  local code
-  code=$(curl -sS --max-time 8 -o "$tmp" -w "%{http_code}" "$url" 2>/dev/null || true)
-  if [ "$code" = "200" ] && grep -qiE "kc-form-login|NebulaOps v22\.2|name=\"username\"" "$tmp" 2>/dev/null; then
+  local url="${KEYCLOAK_PUBLIC_URL}/realms/nebulaops/protocol/openid-connect/auth?client_id=nebulaops-frontend&redirect_uri=http%3A%2F%2Fnebulaops.localhost%2F&response_type=code&scope=openid%20profile%20email&state=healthcheck&code_challenge=${challenge}&code_challenge_method=S256"
+  local code location
+  code=$(curl -sS --max-time 12 -D "$hdr" -o "$tmp" -w "%{http_code}" "$url" 2>/dev/null || true)
+  location=$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[Ll]ocation:[[:space:]]*/, ""); gsub(/\r/, ""); print; exit}' "$hdr" 2>/dev/null || true)
+  if [ "$code" = "200" ] && grep -qiE "kc-form-login|NebulaOps v22\.3|name=\"username\"" "$tmp" 2>/dev/null; then
     print_ok "$label" "HTTP 200 login page"
+  elif printf '%s' "$code:$location" | grep -qiE '^(301|302|303|307|308):.*(login-actions|/realms/nebulaops|/keycloak/)'; then
+    print_ok "$label" "OIDC redirect OK -> login flow"
   else
-    print_bad "$label" "HTTP ${code:-000}; run ./scripts/keycloak-ensure-sso-clients.sh"
+    print_warn "$label" "HTTP ${code:-000}; run ./scripts/keycloak-ensure-sso-clients.sh if login fails in browser"
   fi
+  rm -f "$hdr"
 }
 
 log_step "Container status"
 dc ps --format "table {{.Service}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null \
-  | head -60 || log_warn "Compose not available"
+  || log_warn "Compose not available"
 
 log_step "Endpoint health"
 TOKEN="$(keycloak_user_token)"
@@ -151,18 +198,22 @@ else
   print_warn "Keycloak token" "not available yet; API checks may show warnings"
 fi
 
-check_endpoint "Frontend shell" "http://localhost:4200"
-check_endpoint "MFE Docker" "http://localhost:4211/remoteEntry.js"
-check_endpoint "MFE OpenLens" "http://localhost:4212/remoteEntry.js"
-check_endpoint "MFE Tasks" "http://localhost:4213/remoteEntry.js"
-check_endpoint "MFE Observe" "http://localhost:4214/remoteEntry.js"
-check_endpoint "MFE CI/CD" "http://localhost:4215/remoteEntry.js"
-check_endpoint "MFE Terraform" "http://localhost:4216/remoteEntry.js"
-check_endpoint "MFE Security" "http://localhost:4217/remoteEntry.js"
-check_endpoint "MFE AI Ops" "http://localhost:4218/remoteEntry.js"
-check_endpoint "MFE FinOps" "http://localhost:4219/remoteEntry.js"
-check_endpoint "Gateway"       "http://localhost:8080/actuator/health"
-check_authed_endpoint "Gateway /api"  "http://localhost:8080/api/health"
+check_endpoint "Frontend shell" "${NEBULAOPS_PUBLIC_URL}/"
+check_mfe_remote "MFE Docker" "mfe-docker-desktop" "${NEBULAOPS_PUBLIC_URL}/remotes/docker-desktop/remoteEntry.js"
+check_mfe_remote "MFE OpenLens" "mfe-openlens-kubernetes" "${NEBULAOPS_PUBLIC_URL}/remotes/openlens-kubernetes/remoteEntry.js"
+check_mfe_remote "MFE Tasks" "mfe-task-management" "${NEBULAOPS_PUBLIC_URL}/remotes/task-management/remoteEntry.js"
+check_mfe_remote "MFE Observe" "mfe-observability" "${NEBULAOPS_PUBLIC_URL}/remotes/observability/remoteEntry.js"
+check_mfe_remote "MFE CI/CD" "mfe-cicd-gitops" "${NEBULAOPS_PUBLIC_URL}/remotes/cicd-gitops/remoteEntry.js"
+check_mfe_remote "MFE Terraform" "mfe-terraform-studio" "${NEBULAOPS_PUBLIC_URL}/remotes/terraform-studio/remoteEntry.js"
+check_mfe_remote "MFE Security" "mfe-devsecops" "${NEBULAOPS_PUBLIC_URL}/remotes/devsecops/remoteEntry.js"
+check_mfe_remote "MFE AI Ops" "mfe-ai-ops" "${NEBULAOPS_PUBLIC_URL}/remotes/ai-ops/remoteEntry.js"
+check_mfe_remote "MFE FinOps" "mfe-finops-cost" "${NEBULAOPS_PUBLIC_URL}/remotes/finops-cost/remoteEntry.js"
+check_mfe_remote "MFE INFRA" "mfe-infra-hub" "${NEBULAOPS_PUBLIC_URL}/remotes/infra-hub/remoteEntry.js"
+check_mfe_remote "MFE Release" "mfe-release-center" "${NEBULAOPS_PUBLIC_URL}/remotes/release-center/remoteEntry.js"
+check_mfe_remote "MFE Policy" "mfe-policy-center" "${NEBULAOPS_PUBLIC_URL}/remotes/policy-center/remoteEntry.js"
+check_mfe_remote "MFE Notifications" "mfe-notification-center" "${NEBULAOPS_PUBLIC_URL}/remotes/notification-center/remoteEntry.js"
+check_endpoint "Gateway"       "${NEBULAOPS_PUBLIC_URL}/actuator/health"
+check_authed_endpoint "Gateway /api"  "${NEBULAOPS_PUBLIC_URL}/api/health"
 check_endpoint "Auth"          "http://localhost:8081/actuator/health"
 check_endpoint "Task"          "http://localhost:8082/actuator/health"
 check_endpoint "Notification"  "http://localhost:8083/actuator/health"
@@ -175,12 +226,16 @@ check_endpoint "GitOps"        "http://localhost:8093/actuator/health"
 check_endpoint "EnvManager"    "http://localhost:8094/actuator/health"
 check_endpoint "AI Engine"     "http://localhost:8095/health"
 check_endpoint "Terraform"     "http://localhost:8096/actuator/health"
+check_required_service_endpoint "Cost" "cost-analytics-service" "http://localhost:8097/actuator/health"
+check_endpoint "Release"       "http://localhost:8098/actuator/health"
+check_endpoint "Policy"        "http://localhost:8100/actuator/health"
+check_endpoint "Audit"         "http://localhost:8101/actuator/health"
 check_endpoint "Go Cache"      "http://localhost:8091/health"
-check_endpoint "Grafana"       "http://localhost:3000/api/health"
+check_endpoint "Grafana"       "${NEBULAOPS_PUBLIC_URL}/grafana/api/health"
 if running_service prometheus-sso; then
   check_sso_redirect "Prometheus" "prometheus-sso" "http://localhost:9090/"
 else
-  check_host_or_running_service "Prometheus" "prometheus" "http://localhost:9090/-/healthy"
+  check_host_or_running_service "Prometheus" "prometheus" "${NEBULAOPS_PUBLIC_URL}/prometheus/-/healthy"
 fi
 check_endpoint "Loki"          "http://localhost:3100/loki/api/v1/status/buildinfo"
 
@@ -205,15 +260,20 @@ else
   check_endpoint "Redis UI" "http://admin:admin@localhost:8089"
 fi
 
-check_endpoint "Keycloak"      "http://localhost:8180/health/ready"
+check_endpoint "Keycloak"      "${KEYCLOAK_PUBLIC_URL}/health/ready"
 check_optional_endpoint "GitLab" "gitlab" "http://localhost:8929/-/health"
 check_keycloak_login
 
 log_step "Sample API smoke test (gateway → microservices, Keycloak token)"
-check_authed_endpoint "Tasks list"        "http://localhost:8080/api/tasks?organizationId=default-org"
-check_authed_endpoint "K8s snapshot"      "http://localhost:8080/api/kubernetes/snapshot"
-check_authed_endpoint "Docker containers" "http://localhost:8080/api/runtime/docker/containers"
-check_authed_endpoint "Helm releases"     "http://localhost:8080/api/runtime/helm/releases?namespace=all"
-check_authed_endpoint "Environments"      "http://localhost:8080/api/platform/environments"
+check_authed_endpoint "Tasks list"        "${NEBULAOPS_PUBLIC_URL}/api/tasks?organizationId=default-org"
+check_authed_endpoint "K8s snapshot"      "${NEBULAOPS_PUBLIC_URL}/api/kubernetes/snapshot"
+check_authed_endpoint "Docker containers" "${NEBULAOPS_PUBLIC_URL}/api/runtime/docker/containers"
+check_authed_endpoint "Helm releases"     "${NEBULAOPS_PUBLIC_URL}/api/runtime/helm/releases?namespace=all"
+check_authed_endpoint "Environments"      "${NEBULAOPS_PUBLIC_URL}/api/platform/environments"
+check_authed_endpoint "Releases"          "${NEBULAOPS_PUBLIC_URL}/api/releases"
+check_authed_endpoint "Policies"          "${NEBULAOPS_PUBLIC_URL}/api/policies"
+check_authed_endpoint "Events"            "${NEBULAOPS_PUBLIC_URL}/api/events"
+check_authed_endpoint "Notifications"     "${NEBULAOPS_PUBLIC_URL}/api/notifications/live"
+check_authed_endpoint "AI incidents"      "${NEBULAOPS_PUBLIC_URL}/api/ai-ops/incidents"
 
 echo

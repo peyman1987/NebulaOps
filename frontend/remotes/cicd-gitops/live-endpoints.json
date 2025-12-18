@@ -1,0 +1,19 @@
+{
+  "endpoints": [
+    {
+      "label": "Pipeline runs",
+      "url": "/api/pipeline/runs",
+      "kind": "pipeline"
+    },
+    {
+      "label": "Helm releases",
+      "url": "/api/runtime/helm/releases?namespace=all",
+      "kind": "helm"
+    },
+    {
+      "label": "Platform events",
+      "url": "/api/events?limit=50",
+      "kind": "event"
+    }
+  ]
+}

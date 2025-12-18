@@ -17,7 +17,12 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "nebulaops-auth-bridge.js",
+                "input": "src/assets",
+                "output": "/"
+              }
             ],
             "styles": [
               "src/styles.css"

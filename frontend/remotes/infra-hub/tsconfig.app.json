@@ -8,7 +8,6 @@
     "src/main.ts"
   ],
   "include": [
-    "src/**/*.d.ts",
-    "../../libs/nebulaops-mfe-core/src/**/*.ts"
+    "src/**/*.d.ts"
   ]
 }

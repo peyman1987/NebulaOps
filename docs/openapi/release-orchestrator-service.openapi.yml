@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: NebulaOps Release Orchestrator API
+  version: 22.3.0
+servers:
+- url: http://localhost:8098
+paths:
+  /api/releases:
+    get:
+      summary: List releases
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Create release
+      responses:
+        '200':
+          description: OK
+  /api/releases/{id}:
+    get:
+      summary: Release detail
+      responses:
+        '200':
+          description: OK
+  /api/releases/{id}/promote:
+    post:
+      summary: Promote release
+      responses:
+        '200':
+          description: OK
+  /api/releases/{id}/rollback:
+    post:
+      summary: Rollback release
+      responses:
+        '200':
+          description: OK
+  /api/releases/{id}/timeline:
+    get:
+      summary: Release timeline
+      responses:
+        '200':
+          description: OK
+  /api/releases/{id}/health-impact:
+    get:
+      summary: Release health impact
+      responses:
+        '200':
+          description: OK

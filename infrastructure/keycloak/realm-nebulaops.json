@@ -24,16 +24,16 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "redirectUris": [
-        "http://localhost:4200/*",
-        "http://localhost:4201/*"
+        "http://nebulaops.localhost/*",
+        "http://nebulaops.localhost/keycloak/*"
       ],
       "webOrigins": [
-        "http://localhost:4200",
-        "http://localhost:4201"
+        "http://nebulaops.localhost"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
-      }
+      },
+      "baseUrl": "http://nebulaops.localhost/"
     },
     {
       "clientId": "nebulaops-gateway",
@@ -75,14 +75,15 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "http://localhost:3000/login/generic_oauth"
+        "http://nebulaops.localhost/grafana/login/generic_oauth"
       ],
       "webOrigins": [
-        "http://localhost:3000"
+        "http://nebulaops.localhost"
       ],
       "attributes": {
         "post.logout.redirect.uris": "+"
-      }
+      },
+      "baseUrl": "http://nebulaops.localhost/grafana/"
     },
     {
       "clientId": "nebulaops-oauth2-proxy",
@@ -97,13 +98,18 @@
         "http://localhost:15672/oauth2/callback",
         "http://localhost:8088/oauth2/callback",
         "http://localhost:8089/oauth2/callback",
-        "http://localhost:9090/oauth2/callback"
+        "http://localhost:9090/oauth2/callback",
+        "http://nebulaops.localhost/rabbitmq/oauth2/callback",
+        "http://nebulaops.localhost/mongo/oauth2/callback",
+        "http://nebulaops.localhost/redis/oauth2/callback",
+        "http://nebulaops.localhost/prometheus/oauth2/callback"
       ],
       "webOrigins": [
         "http://localhost:15672",
         "http://localhost:8088",
         "http://localhost:8089",
-        "http://localhost:9090"
+        "http://localhost:9090",
+        "http://nebulaops.localhost"
       ],
       "attributes": {
         "post.logout.redirect.uris": "+"

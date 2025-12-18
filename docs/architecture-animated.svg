@@ -1,87 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860">
-    <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-            <stop stop-color="#020617"/>
-            <stop offset=".55" stop-color="#071633"/>
-            <stop offset="1" stop-color="#111827"/>
-        </linearGradient>
-        <linearGradient id="beam" x1="0" x2="1">
-            <stop stop-color="#38bdf8"/>
-            <stop offset=".5" stop-color="#326ce5"/>
-            <stop offset="1" stop-color="#a78bfa"/>
-        </linearGradient>
-        <filter id="glow">
-            <feGaussianBlur stdDeviation="5" result="b"/>
-            <feMerge>
-                <feMergeNode in="b"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-        <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
-            <path d="M42 0H0v42" fill="none" stroke="#38bdf8" stroke-opacity=".13"/>
-        </pattern>
-        <style>
-            .title{font:900 54px Inter,Arial;fill:#e0f2fe}.sub{font:500 22px
-            Inter,Arial;fill:#93c5fd}.node{fill:#0f172a;stroke:#60a5fa;stroke-width:2;filter:url(#glow)}.node-ok{stroke:#2dd4bf}.node-warn{stroke:#fbbf24}.node-bad{stroke:#fb7185}.txt{font:800
-            22px Inter,Arial;fill:white}.small{font:600 15px
-            Inter,Arial;fill:#bae6fd}.beam{stroke:url(#beam);stroke-width:4;stroke-dasharray:12
-            18;filter:url(#glow)}.hot{stroke:#fb7185}.bar-bg{fill:#172554}.bar{fill:url(#beam)}
-            @keyframes dash{to{stroke-dashoffset:-120}}@keyframes pulse{50%{r:58;opacity:.55}}@keyframes
-            float{50%{transform:translateY(-10px)}}.beam{animation:dash 2s linear infinite}.badpulse{animation:pulse 1s
-            ease-in-out infinite}.float{animation:float 4s ease-in-out infinite}
-        </style>
-    </defs>
-    <rect width="1400" height="860" fill="url(#bg)"/>
-    <rect width="1400" height="860" fill="url(#grid)" opacity=".8"/>
-    <text x="70" y="90" class="title">NebulaOps v19.3 · Kubernetes Visual Cluster</text>
-    <text x="72" y="128" class="sub">3D topology · live pods · services · ingress · volumes · logs · terminal · metrics
-        · events · YAML
-    </text>
-    <g opacity=".85">
-        <path class="beam" d="M170 420 C260 260 360 245 470 260"/>
-        <path class="beam hot" d="M530 300 C610 350 650 385 715 430"/>
-        <path class="beam" d="M770 390 C880 250 955 250 1060 285"/>
-        <path class="beam" d="M785 475 C900 585 1000 610 1125 635"/>
-        <path class="beam" d="M1125 330 C1190 415 1195 520 1138 605"/>
-    </g>
-    <g class="float">
-        <circle cx="170" cy="420" r="70" class="node node-ok"/>
-        <text x="130" y="412" class="txt">Ingress</text>
-        <text x="114" y="442" class="small">edge traffic</text>
-    </g>
-    <g class="float">
-        <circle cx="490" cy="270" r="78" class="node node-warn"/>
-        <text x="442" y="258" class="txt">Frontend</text>
-        <text x="430" y="289" class="small">pods x2 · cpu 58%</text>
-        <rect x="430" y="312" width="120" height="10" rx="5" class="bar-bg"/>
-        <rect x="430" y="312" width="70" height="10" rx="5" class="bar"/>
-    </g>
-    <g class="float">
-        <circle cx="735" cy="435" r="82" class="node node-bad"/>
-        <circle cx="735" cy="435" r="92" fill="none" stroke="#fb7185" stroke-width="5" opacity=".35" class="badpulse"/>
-        <text x="683" y="424" class="txt">Gateway</text>
-        <text x="660" y="455" class="small">CrashLoop · cpu 91%</text>
-        <rect x="675" y="478" width="120" height="10" rx="5" class="bar-bg"/>
-        <rect x="675" y="478" width="110" height="10" rx="5" fill="#fb7185"/>
-    </g>
-    <g class="float">
-        <circle cx="1080" cy="295" r="74" class="node node-warn"/>
-        <text x="1038" y="285" class="txt">Tasks</text>
-        <text x="1015" y="316" class="small">deploy · hpa watch</text>
-    </g>
-    <g class="float">
-        <circle cx="1125" cy="635" r="74" class="node node-ok"/>
-        <text x="1076" y="626" class="txt">MongoDB</text>
-        <text x="1064" y="657" class="small">statefulset + pvc</text>
-    </g>
-    <g class="float">
-        <rect x="535" y="650" width="190" height="90" rx="28" class="node node-ok"/>
-        <text x="585" y="690" class="txt">RabbitMQ</text>
-        <text x="575" y="720" class="small">queue mesh healthy</text>
-    </g>
-    <g transform="translate(70 720)">
-        <rect width="390" height="80" rx="24" fill="#0f172a" stroke="#38bdf8" opacity=".9"/>
-        <text x="28" y="35" class="small">WOW EFFECT</text>
-        <text x="28" y="63" class="txt">Pod restart pulse + animated blast radius</text>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="NebulaOps v22.3 Same-Origin Runtime">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07111f"/><stop offset="1" stop-color="#110829"/></linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/></marker>
+    <marker id="arrow2" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#b476ff"/></marker>
+    <marker id="arrow3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#63ffb3"/></marker>
+    <style><![CDATA[
+.title{font:800 34px Inter,Segoe UI,Arial;fill:#f6fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#ffffff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#c5d3e8}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:#10243a;stroke:#345b87;stroke-width:1.4}.core{fill:#09233b;stroke:#58e7ff;stroke-width:2.2}.soft{fill:#151b35;stroke:#8065ff;stroke-width:1.4}.data{fill:#102d29;stroke:#63ffb3;stroke-width:1.4}.warn{fill:#332315;stroke:#ffba66;stroke-width:1.4}.flow{fill:none;stroke:#58e7ff;stroke-width:3;marker-end:url(#arrow)}.dash{fill:none;stroke:#b476ff;stroke-width:3;stroke-dasharray:10 8;marker-end:url(#arrow2)}.metric{fill:none;stroke:#63ffb3;stroke-width:3;stroke-dasharray:4 7;marker-end:url(#arrow3)}.pulse{animation:pulse 2.8s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+]]></style>
+  </defs>
+  <rect width="1400" height="820" fill="url(#bg)"/>
+  <text x="64" y="76" class="title">NebulaOps v22.3 Same-Origin Runtime</text>
+  <text x="64" y="106" class="sub">Browser entry: http://nebulaops.localhost · static MFE bundles · proxied API/platform routes</text>
+
+<rect x="64" y="124" width="116" height="28" rx="14" fill="#58e7ff"/><text x="78" y="143" class="chip">same-origin</text>
+<rect x="200" y="124" width="180" height="28" rx="14" fill="#58e7ff"/><text x="214" y="143" class="chip">no public MFE ports</text>
+<rect x="392" y="124" width="132" height="28" rx="14" fill="#58e7ff"/><text x="406" y="143" class="chip">reverse proxy</text>
+<path d="M320 230 C 355 230, 355 230, 390 230" class="flow"/>
+<path d="M700 230 C 740 230, 740 230, 780 230" class="flow"/>
+<path d="M700 230 C 890 230, 890 230, 1080 230" class="flow"/>
+<path d="M540 320 C 400 320, 400 430, 260 430" class="dash"/>
+<path d="M910 300 C 775 300, 775 430, 640 430" class="metric"/>
+<path d="M1010 300 C 1015 300, 1015 430, 1020 430" class="dash"/>
+<rect x="60" y="160" width="260" height="140" rx="20" class="core"/>
+<text x="84" y="198" class="label">Browser</text>
+<text x="84" y="226" class="small">Shell UI</text>
+<text x="84" y="250" class="small">Standalone MFE links</text>
+<text x="84" y="274" class="small">Keycloak redirects</text>
+<rect x="390" y="140" width="310" height="180" rx="20" class="panel"/>
+<text x="414" y="178" class="label">Frontend Nginx</text>
+<text x="414" y="206" class="small">Serves Angular shell</text>
+<text x="414" y="230" class="small">Serves /remotes/** assets</text>
+<text x="414" y="254" class="small">Proxies /api, /keycloak, /grafana</text>
+<rect x="780" y="150" width="260" height="150" rx="20" class="soft"/>
+<text x="804" y="188" class="label">Gateway</text>
+<text x="804" y="216" class="small">/api/**</text>
+<text x="804" y="240" class="small">Spring Boot services</text>
+<text x="804" y="264" class="small">Go helpers</text>
+<rect x="1080" y="150" width="260" height="150" rx="20" class="soft"/>
+<text x="1104" y="188" class="label">Identity / Tools</text>
+<text x="1104" y="216" class="small">Keycloak</text>
+<text x="1104" y="240" class="small">Grafana</text>
+<text x="1104" y="264" class="small">Prometheus</text>
+<rect x="120" y="430" width="280" height="150" rx="20" class="panel"/>
+<text x="144" y="468" class="label">Static MFE bundle set</text>
+<text x="144" y="496" class="small">Docker, OpenLens, Tasks</text>
+<text x="144" y="520" class="small">Infra, Release, Policy</text>
+<text x="144" y="544" class="small">AI Ops, FinOps, Notifications</text>
+<rect x="500" y="430" width="280" height="150" rx="20" class="data"/>
+<text x="524" y="468" class="label">Data and messaging</text>
+<text x="524" y="496" class="small">MongoDB</text>
+<text x="524" y="520" class="small">RabbitMQ</text>
+<text x="524" y="544" class="small">Redis</text>
+<rect x="880" y="430" width="280" height="150" rx="20" class="warn"/>
+<text x="904" y="468" class="label">Delivery assets</text>
+<text x="904" y="496" class="small">Helm</text>
+<text x="904" y="520" class="small">GitLab CI</text>
+<text x="904" y="544" class="small">Argo CD</text>
+<circle cx="1180" cy="116" r="10" fill="#63ffb3" class="pulse"/><text x="1200" y="121" class="small">validated preflight assets</text>
 </svg>

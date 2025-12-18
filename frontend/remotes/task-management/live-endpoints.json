@@ -1,0 +1,14 @@
+{
+  "endpoints": [
+    {
+      "label": "Tasks",
+      "url": "/api/tasks?organizationId=default-org",
+      "kind": "task"
+    },
+    {
+      "label": "Platform events",
+      "url": "/api/events?limit=50",
+      "kind": "event"
+    }
+  ]
+}

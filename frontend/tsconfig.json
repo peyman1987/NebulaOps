@@ -7,13 +7,7 @@
     "strict": true,
     "skipLibCheck": true,
     "experimentalDecorators": true,
-    "importHelpers": true,
-    "baseUrl": ".",
-    "paths": {
-      "@nebulaops/mfe-core": [
-        "libs/nebulaops-mfe-core/src/public-api.ts"
-      ]
-    }
+    "importHelpers": true
   },
   "angularCompilerOptions": {
     "strictTemplates": true

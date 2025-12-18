@@ -1,0 +1,33 @@
+{
+  "endpoints": [
+    {
+      "label": "Cost summary",
+      "url": "/api/cost/summary",
+      "kind": "cost",
+      "itemsPath": "breakdown"
+    },
+    {
+      "label": "Service costs",
+      "url": "/api/cost/services",
+      "kind": "serviceCost",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Forecast",
+      "url": "/api/cost/forecast",
+      "kind": "forecast"
+    },
+    {
+      "label": "Anomalies",
+      "url": "/api/cost/anomalies",
+      "kind": "anomaly",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Recommendations",
+      "url": "/api/cost/recommendations",
+      "kind": "recommendation",
+      "itemsPath": "items"
+    }
+  ]
+}

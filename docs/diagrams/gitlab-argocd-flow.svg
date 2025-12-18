@@ -1,122 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="CI/CD and GitOps Delivery Flow">
-    <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#07111f"/>
-            <stop offset="1" stop-color="#110829"/>
-        </linearGradient>
-        <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#11233a" stop-opacity=".92"/>
-            <stop offset="1" stop-color="#1a1235" stop-opacity=".92"/>
-        </linearGradient>
-        <filter id="glow">
-            <feGaussianBlur stdDeviation="4" result="b"/>
-            <feMerge>
-                <feMergeNode in="b"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-            <path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/>
-        </marker>
-        <style><![CDATA[
-        .title{font:800 34px Inter,Segoe UI,Arial;fill:#f5fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#fff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#b8c8dd}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:url(#card);stroke:#294b73;stroke-width:1.4;rx:24}.core{fill:#0c2037;stroke:#58e7ff;stroke-width:2.2;filter:url(#glow)}.api{stroke:#58e7ff}.event{stroke:#b476ff;stroke-dasharray:10 8}.metric{stroke:#63ffb3;stroke-dasharray:4 7}.flow{fill:none;stroke-width:3;marker-end:url(#arrow);filter:url(#glow);opacity:.95}.pulse{animation:pulse 2.8s ease-in-out infinite}.dash{animation:dash 7s linear infinite}@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-160}}
-      ]]></style>
-    </defs>
-    <rect width="1400" height="820" fill="url(#bg)"/>
-    <path d="M60 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M140 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M220 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M300 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M380 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M460 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M540 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M620 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M700 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M780 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M860 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M940 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1020 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1100 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1180 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1260 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M1340 120 V780" stroke="#163150" stroke-opacity=".25"/>
-    <path d="M40 140 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 210 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 280 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 350 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 420 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 490 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 560 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 630 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 700 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <path d="M40 770 H1360" stroke="#163150" stroke-opacity=".22"/>
-    <text x="70" y="72" class="title">CI/CD and GitOps Delivery Flow</text>
-    <text x="72" y="102" class="sub">Source changes move through GitLab CI and Argo CD into Kubernetes runtime state.
-    </text>
-    <g class="pulse">
-        <rect x="45.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="79.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="103.0" y="242" class="label">Developer</text>
-        <text x="73.0" y="274" class="small">Commit code</text>
-        <text x="73.0" y="294" class="small">Open merge request</text>
-        <text x="73.0" y="314" class="small">Review pipeline</text>
-    </g>
-    <g class="pulse">
-        <rect x="320.0" y="190.0" width="300" height="140" class="core" rx="24"/>
-        <circle cx="354.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="378.0" y="242" class="label">GitLab CI</text>
-        <text x="348.0" y="274" class="small">Build images</text>
-        <text x="348.0" y="294" class="small">Run tests</text>
-        <text x="348.0" y="314" class="small">Publish artifacts</text>
-    </g>
-    <g class="pulse">
-        <rect x="635.0" y="204.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="669.0" cy="242" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="693.0" y="242" class="label">Registry</text>
-        <text x="663.0" y="274" class="small">Versioned images</text>
-        <text x="663.0" y="294" class="small">Immutable tags</text>
-        <text x="663.0" y="314" class="small">Scan results</text>
-    </g>
-    <g class="pulse">
-        <rect x="635.0" y="504.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="669.0" cy="542" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="693.0" y="542" class="label">GitOps Repo</text>
-        <text x="663.0" y="574" class="small">Helm values</text>
-        <text x="663.0" y="594" class="small">Environment manifests</text>
-        <text x="663.0" y="614" class="small">Promotion history</text>
-    </g>
-    <g class="pulse">
-        <rect x="915.0" y="354.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="949.0" cy="392" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="973.0" y="392" class="label">Argo CD</text>
-        <text x="943.0" y="424" class="small">Diff desired/live</text>
-        <text x="943.0" y="444" class="small">Sync application</text>
-        <text x="943.0" y="464" class="small">Health status</text>
-    </g>
-    <g class="pulse">
-        <rect x="1105.0" y="354.0" width="250" height="112" class="panel" rx="24"/>
-        <circle cx="1139.0" cy="392" r="11" fill="#58e7ff" opacity=".9"/>
-        <text x="1163.0" y="392" class="label">Kubernetes</text>
-        <text x="1133.0" y="424" class="small">Deploy workloads</text>
-        <text x="1133.0" y="444" class="small">Expose services</text>
-        <text x="1133.0" y="464" class="small">Report status</text>
-    </g>
-    <path class="flow dash api" d="M170 260 C 320.0 260, 320.0 260, 470 260"/>
-    <text x="270.0" y="252.0" class="small">push</text>
-    <path class="flow dash api" d="M470 260 C 615.0 260, 615.0 260, 760 260"/>
-    <text x="565.0" y="252.0" class="small">image</text>
-    <path class="flow dash api" d="M470 260 C 615.0 260, 615.0 560, 760 560"/>
-    <text x="565.0" y="402.0" class="small">update manifests</text>
-    <path class="flow dash api" d="M760 560 C 900.0 560, 900.0 410, 1040 410"/>
-    <text x="850.0" y="477.0" class="small">watch</text>
-    <path class="flow dash api" d="M1040 410 C 1135.0 410, 1135.0 410, 1230 410"/>
-    <text x="1085.0" y="402.0" class="small">sync</text>
-    <path class="flow dash metric" d="M1230 410 C 1135.0 410, 1135.0 410, 1040 410"/>
-    <text x="1085.0" y="402.0" class="small">health</text>
-    <rect x="980" y="58" width="112" height="26" rx="13" fill="#58e7ff" opacity=".9"/>
-    <text x="994" y="76" class="chip">API/request</text>
-    <rect x="1110" y="58" width="112" height="26" rx="13" fill="#b476ff" opacity=".9"/>
-    <text x="1124" y="76" class="chip">Async event</text>
-    <rect x="1240" y="58" width="112" height="26" rx="13" fill="#63ffb3" opacity=".9"/>
-    <text x="1254" y="76" class="chip">Metrics/logs</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="GitLab CI and Argo CD Flow">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07111f"/><stop offset="1" stop-color="#110829"/></linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/></marker>
+    <marker id="arrow2" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#b476ff"/></marker>
+    <marker id="arrow3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#63ffb3"/></marker>
+    <style><![CDATA[
+.title{font:800 34px Inter,Segoe UI,Arial;fill:#f6fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#ffffff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#c5d3e8}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:#10243a;stroke:#345b87;stroke-width:1.4}.core{fill:#09233b;stroke:#58e7ff;stroke-width:2.2}.soft{fill:#151b35;stroke:#8065ff;stroke-width:1.4}.data{fill:#102d29;stroke:#63ffb3;stroke-width:1.4}.warn{fill:#332315;stroke:#ffba66;stroke-width:1.4}.flow{fill:none;stroke:#58e7ff;stroke-width:3;marker-end:url(#arrow)}.dash{fill:none;stroke:#b476ff;stroke-width:3;stroke-dasharray:10 8;marker-end:url(#arrow2)}.metric{fill:none;stroke:#63ffb3;stroke-width:3;stroke-dasharray:4 7;marker-end:url(#arrow3)}.pulse{animation:pulse 2.8s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+]]></style>
+  </defs>
+  <rect width="1400" height="820" fill="url(#bg)"/>
+  <text x="64" y="76" class="title">GitLab CI and Argo CD Flow</text>
+  <text x="64" y="106" class="sub">Optional local GitLab validates the package; Argo CD assets describe Kubernetes reconciliation.</text>
+
+<rect x="74" y="134" width="148" height="28" rx="14" fill="#58e7ff"/><text x="88" y="153" class="chip">optional GitLab</text>
+<rect x="230" y="134" width="84" height="28" rx="14" fill="#58e7ff"/><text x="244" y="153" class="chip">Argo CD</text>
+<rect x="326" y="134" width="60" height="28" rx="14" fill="#58e7ff"/><text x="340" y="153" class="chip">Helm</text>
+<path d="M330 255 C 370 255, 370 255, 410 255" class="flow"/>
+<path d="M670 255 C 710 255, 710 255, 750 255" class="flow"/>
+<path d="M1010 255 C 1050 255, 1050 255, 1090 255" class="flow"/>
+<path d="M540 340 C 540 340, 540 470, 540 470" class="dash"/>
+<path d="M680 545 C 735 545, 735 545, 790 545" class="flow"/>
+<path d="M1210 340 C 1070 340, 1070 470, 930 470" class="dash"/>
+<rect x="70" y="180" width="260" height="150" rx="20" class="core"/>
+<text x="94" y="218" class="label">Repository</text>
+<text x="94" y="246" class="small">Code, docs, SVGs</text>
+<text x="94" y="270" class="small">Docker/Helm assets</text>
+<text x="94" y="294" class="small">OpenAPI specs</text>
+<rect x="410" y="170" width="260" height="170" rx="20" class="warn"/>
+<text x="434" y="208" class="label">GitLab CI</text>
+<text x="434" y="236" class="small">Static preflight</text>
+<text x="434" y="260" class="small">Build validation</text>
+<text x="434" y="284" class="small">Package checks</text>
+<rect x="750" y="170" width="260" height="170" rx="20" class="panel"/>
+<text x="774" y="208" class="label">Container Images</text>
+<text x="774" y="236" class="small">Frontend shell</text>
+<text x="774" y="260" class="small">MFE static bundles</text>
+<text x="774" y="284" class="small">Backend services</text>
+<rect x="1090" y="170" width="240" height="170" rx="20" class="warn"/>
+<text x="1114" y="208" class="label">Argo CD</text>
+<text x="1114" y="236" class="small">Project</text>
+<text x="1114" y="260" class="small">Application</text>
+<text x="1114" y="284" class="small">ApplicationSet</text>
+<rect x="410" y="470" width="270" height="150" rx="20" class="soft"/>
+<text x="434" y="508" class="label">Helm</text>
+<text x="434" y="536" class="small">Chart.yaml</text>
+<text x="434" y="560" class="small">values.yaml</text>
+<text x="434" y="584" class="small">Kubernetes manifests</text>
+<rect x="790" y="470" width="270" height="150" rx="20" class="data"/>
+<text x="814" y="508" class="label">Cluster Runtime</text>
+<text x="814" y="536" class="small">Ingress / service routes</text>
+<text x="814" y="560" class="small">Gateway APIs</text>
+<text x="814" y="584" class="small">Observability stack</text>
 </svg>

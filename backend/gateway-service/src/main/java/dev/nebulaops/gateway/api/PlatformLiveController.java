@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * v22.2 — Platform endpoints returning shapes Angular expects.
+ * v22.3 — Platform endpoints returning shapes Angular expects.
  */
 @SuppressWarnings({"unchecked","rawtypes"})
 @RestController
@@ -54,7 +54,7 @@ public class PlatformLiveController {
         return observability.lokiQuery(query);
     }
 
-    /** v22.2 — Returns shape: { live, scans, cves, controls, threats } matching Angular interfaces. */
+    /** v22.3 — Returns shape: { live, scans, cves, controls, threats } matching Angular interfaces. */
     @GetMapping("/devsecops")
     public Map<String, Object> devsecopsEnriched(@RequestParam(defaultValue = ".") String path) {
         Map trivyRaw = security.trivyFs(path);
@@ -108,41 +108,10 @@ public class PlatformLiveController {
             }
         }
 
-        // If no live data, expose a clear placeholder scan so the UI shows tool state
-        if (scans.isEmpty()) {
-            scans.add(Map.of(
-                "id", "scan-trivy-status",
-                "tool", "Trivy",
-                "target", path,
-                "status", live ? "passed" : "queued",
-                "critical", 0, "high", 0, "medium", 0,
-                "duration", live ? "0s" : "not-run"
-            ));
-        }
 
-        // Synthesize compliance controls from scan results (CIS-flavored, derived from real data)
+        // Do not synthesize controls or threats. Only real scan rows and CVEs are returned here.
         List<Map<String, Object>> controls = new ArrayList<>();
-        controls.add(controlOf("CIS-DI-0001", "CIS Docker",  "No critical vulnerabilities in scanned images", critSum == 0 ? 100 : 0,    critSum == 0 ? "pass" : "fail"));
-        controls.add(controlOf("CIS-DI-0002", "CIS Docker",  "Limit high severity findings to acceptable levels", highSum <= 3 ? 100 : 60, highSum <= 3 ? "pass" : "warn"));
-        controls.add(controlOf("NIST-SI-2",   "NIST 800-53", "Flaw remediation — track and fix CVEs",            cves.isEmpty() ? 100 : Math.max(30, 100 - cves.size() * 5), cves.size() < 10 ? "pass" : "warn"));
-        controls.add(controlOf("SOC2-CC7-1",  "SOC2",        "System monitoring — live scan tool reachable",      live ? 100 : 0,            live ? "pass" : "fail"));
-
-        // Threat radar — derive from real CVE counts (geometric positioning around the radar)
         List<Map<String, Object>> threats = new ArrayList<>();
-        int idx = 0;
-        for (Map<String, Object> cve : cves) {
-            if (idx >= 6) break;
-            double angle = (idx * 60.0) * Math.PI / 180.0;
-            double radius = "CRITICAL".equals(cve.get("severity")) ? 30 : "HIGH".equals(cve.get("severity")) ? 50 : 70;
-            threats.add(Map.of(
-                "name",     cve.get("cve"),
-                "x",        50 + radius * Math.cos(angle) / 100.0 * 50,
-                "y",        50 + radius * Math.sin(angle) / 100.0 * 50,
-                "severity", cve.get("severity"),
-                "vector",   cve.get("packageName")
-            ));
-            idx++;
-        }
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("live",       live);

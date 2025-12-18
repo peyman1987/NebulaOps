@@ -1,0 +1,27 @@
+{
+  "endpoints": [
+    {
+      "label": "Observability stack",
+      "url": "/api/platform/observability",
+      "kind": "probe",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Prometheus query",
+      "url": "/api/platform/observability/prometheus?query=up",
+      "kind": "metric",
+      "itemsPath": "data.data.result"
+    },
+    {
+      "label": "Loki query",
+      "url": "/api/platform/observability/loki?query=%7Bjob%3D~%22.%2B%22%7D",
+      "kind": "log",
+      "itemsPath": "data.data.result"
+    },
+    {
+      "label": "Grafana health",
+      "url": "/api/runtime/grafana/health",
+      "kind": "health"
+    }
+  ]
+}

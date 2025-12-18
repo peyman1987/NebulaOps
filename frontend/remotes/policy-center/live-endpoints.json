@@ -1,0 +1,26 @@
+{
+  "endpoints": [
+    {
+      "label": "Policies",
+      "url": "/api/policies",
+      "kind": "policy"
+    },
+    {
+      "label": "Evaluations",
+      "url": "/api/policies/evaluations",
+      "kind": "evaluation",
+      "itemsPath": "items"
+    },
+    {
+      "label": "CVEs",
+      "url": "/api/platform/devsecops",
+      "kind": "cve",
+      "itemsPath": "cves"
+    },
+    {
+      "label": "Cost forecast",
+      "url": "/api/cost/forecast",
+      "kind": "forecast"
+    }
+  ]
+}

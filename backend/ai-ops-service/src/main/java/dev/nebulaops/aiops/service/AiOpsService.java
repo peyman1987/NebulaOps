@@ -40,9 +40,9 @@ public class AiOpsService {
         out.put("rootCause", rootCause);
         out.put("confidence", live ? 0.72 : 0.0);
         out.put("blastRadius", extractBlastRadius(logs, pods.stdout()));
-        out.put("fix", fix);
-        out.put("yaml", "# Suggested action is intentionally not auto-applied. Review before applying.\n# " + fix.replace("\n", " "));
-        out.put("events", List.of(event("Live diagnostic", live ? "MEDIUM" : "LOW", live ? "completed" : "no-live-source", rootCause)));
+        out.put("fix", live ? fix : "");
+        out.put("yaml", live ? "# Suggested action is intentionally not auto-applied. Review before applying.\n# " + fix.replace("\n", " ") : "");
+        out.put("events", live ? List.of(event("Live diagnostic", "MEDIUM", "completed", rootCause)) : List.of());
         out.put("nodes", List.of());
         out.put("live", live);
         out.put("toolStatus", Map.of("pods", pods.status(), "events", events.status()));

@@ -1,1172 +1,394 @@
-/* NebulaOps v22.2 · OpenLens Kubernetes MFE — Full Feature Edition */
-/* Vanilla Web Component — no build step needed */
+/* NebulaOps v22.3 auth bridge
+ * Makes shell-loaded and standalone MFE requests share a valid Bearer token.
+ * - Shell origin: reuses localStorage token or bootstraps dev admin token.
+ * - Standalone MFE route (/remotes/<mfe>/): uses the same nebulaops.localhost origin and the shared shell token.
+ * - Patches fetch/XMLHttpRequest so the first API request waits for token availability.
+ * - Rewrites legacy relative runtime endpoints to the gateway API path.
+ */
+(function nebulaopsAuthBridge() {
+  'use strict';
+  var VERSION = 'v22.3.9-restore-ui-live-api';
+  var JWT_KEY = 'nebulaops.v22_3.jwt';
+  var USER_KEY = 'nebulaops.v22_3.user';
+  var LOGIN_URL = '/api/auth/login';
+  var DEV_LOGIN_BODY = JSON.stringify({ email: 'admin', password: 'admin' });
 
-const JWT_KEY = 'nebulaops.v22_2.jwt';
-function token() { return localStorage.getItem(JWT_KEY) || ''; }
-
-async function api(path, options = {}) {
-  const headers = { 'Content-Type': 'application/json', ...(token() ? { Authorization: `Bearer ${token()}` } : {}), ...options.headers };
-  const res = await fetch(path, { ...options, headers });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  const ct = res.headers.get('content-type') || '';
-  return ct.includes('application/json') ? res.json() : res.text();
-}
-
-async function apiMutation(method, path, body) {
-  return api(path, { method, body: body ? JSON.stringify(body) : undefined });
-}
-
-function escapeHtml(v) { return String(v ?? '').replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
-
-function statusClass(s) {
-  if (!s) return '';
-  const st = String(s).toLowerCase();
-  if (['running', 'active', 'deployed', 'ready', 'available', 'succeeded', 'healthy'].some(k => st.includes(k))) return 'ok';
-  if (['error', 'failed', 'crashloop', 'oomkilled', 'evicted', 'unhealthy'].some(k => st.includes(k))) return 'danger';
-  if (['pending', 'terminating', 'unknown', 'waiting', 'warning'].some(k => st.includes(k))) return 'warn';
-  return '';
-}
-
-/* ─── Simulated Kubernetes data ─── */
-/* These mock objects simulate what kubectl/the gateway would return.
-   In production the real gateway endpoints are called instead. */
-function mockK8sData() {
-  const namespaces = ['default', 'kube-system', 'monitoring', 'production', 'staging'];
-  const now = new Date();
-  const ago = (m) => new Date(now - m * 60000).toISOString();
-
-  const pods = [
-    { name: 'api-gateway-7d9f8b-xk2pl', namespace: 'production', status: 'Running', ready: '2/2', restarts: 0, node: 'node-01', ip: '10.0.1.12', labels: { app: 'api-gateway', version: 'v2.1' }, deployment: 'api-gateway', age: ago(340), image: 'nginx:1.27-alpine' },
-    { name: 'api-gateway-7d9f8b-mz9qr', namespace: 'production', status: 'Running', ready: '2/2', restarts: 1, node: 'node-02', ip: '10.0.1.13', labels: { app: 'api-gateway', version: 'v2.1' }, deployment: 'api-gateway', age: ago(300), image: 'nginx:1.27-alpine' },
-    { name: 'frontend-6c5b8-wq3nt', namespace: 'production', status: 'Running', ready: '1/1', restarts: 0, node: 'node-01', ip: '10.0.1.14', labels: { app: 'frontend', version: 'v22.2' }, deployment: 'frontend', age: ago(180), image: 'nebulaops-frontend:22.2' },
-    { name: 'auth-service-5f7d9-pk1mn', namespace: 'production', status: 'CrashLoopBackOff', ready: '0/1', restarts: 7, node: 'node-02', ip: '10.0.1.15', labels: { app: 'auth-service', version: 'v1.4' }, deployment: 'auth-service', age: ago(90), image: 'nebulaops-auth:1.4' },
-    { name: 'postgres-0', namespace: 'production', status: 'Running', ready: '1/1', restarts: 0, node: 'node-03', ip: '10.0.1.16', labels: { app: 'postgres', 'statefulset.kubernetes.io/pod-name': 'postgres-0' }, deployment: null, statefulset: 'postgres', age: ago(2880), image: 'postgres:16-alpine' },
-    { name: 'prometheus-0', namespace: 'monitoring', status: 'Running', ready: '1/1', restarts: 0, node: 'node-01', ip: '10.0.2.10', labels: { app: 'prometheus' }, deployment: null, statefulset: 'prometheus', age: ago(5760), image: 'prom/prometheus:v2.52' },
-    { name: 'grafana-7b4c9-lz8vx', namespace: 'monitoring', status: 'Running', ready: '1/1', restarts: 0, node: 'node-02', ip: '10.0.2.11', labels: { app: 'grafana' }, deployment: 'grafana', age: ago(1440), image: 'grafana/grafana:10.4' },
-    { name: 'ai-ops-6d8f7-wr2km', namespace: 'production', status: 'Pending', ready: '0/1', restarts: 0, node: '', ip: '', labels: { app: 'ai-ops', version: 'v1.0' }, deployment: 'ai-ops', age: ago(5), image: 'nebulaops-ai:1.0' },
-    { name: 'coredns-787d4-nq5xp', namespace: 'kube-system', status: 'Running', ready: '1/1', restarts: 0, node: 'node-01', ip: '10.96.0.10', labels: { app: 'coredns' }, deployment: 'coredns', age: ago(20160), image: 'registry.k8s.io/coredns:v1.11.1' },
-  ];
-
-  const deployments = [
-    { name: 'api-gateway', namespace: 'production', ready: '2/2', upToDate: 2, available: 2, replicas: 2, strategy: 'RollingUpdate', image: 'nginx:1.27-alpine', age: ago(340), selector: { app: 'api-gateway' } },
-    { name: 'frontend', namespace: 'production', ready: '1/1', upToDate: 1, available: 1, replicas: 1, strategy: 'RollingUpdate', image: 'nebulaops-frontend:22.2', age: ago(180), selector: { app: 'frontend' } },
-    { name: 'auth-service', namespace: 'production', ready: '0/1', upToDate: 1, available: 0, replicas: 1, strategy: 'RollingUpdate', image: 'nebulaops-auth:1.4', age: ago(90), selector: { app: 'auth-service' } },
-    { name: 'grafana', namespace: 'monitoring', ready: '1/1', upToDate: 1, available: 1, replicas: 1, strategy: 'Recreate', image: 'grafana/grafana:10.4', age: ago(1440), selector: { app: 'grafana' } },
-    { name: 'ai-ops', namespace: 'production', ready: '0/1', upToDate: 1, available: 0, replicas: 1, strategy: 'RollingUpdate', image: 'nebulaops-ai:1.0', age: ago(5), selector: { app: 'ai-ops' } },
-    { name: 'coredns', namespace: 'kube-system', ready: '1/1', upToDate: 1, available: 1, replicas: 1, strategy: 'RollingUpdate', image: 'registry.k8s.io/coredns:v1.11.1', age: ago(20160), selector: { app: 'coredns' } },
-  ];
-
-  const services = [
-    { name: 'api-gateway-svc', namespace: 'production', type: 'LoadBalancer', clusterIP: '10.96.1.10', externalIP: '203.0.113.10', ports: '80:31080/TCP, 443:31443/TCP', selector: { app: 'api-gateway' }, age: ago(340) },
-    { name: 'frontend-svc', namespace: 'production', type: 'ClusterIP', clusterIP: '10.96.1.11', externalIP: '', ports: '4200:32000/TCP', selector: { app: 'frontend' }, age: ago(180) },
-    { name: 'auth-service-svc', namespace: 'production', type: 'ClusterIP', clusterIP: '10.96.1.12', externalIP: '', ports: '8081:32001/TCP', selector: { app: 'auth-service' }, age: ago(90) },
-    { name: 'postgres-svc', namespace: 'production', type: 'ClusterIP', clusterIP: '10.96.1.13', externalIP: '', ports: '5432/TCP', selector: { 'app': 'postgres' }, age: ago(2880) },
-    { name: 'prometheus-svc', namespace: 'monitoring', type: 'ClusterIP', clusterIP: '10.96.2.10', externalIP: '', ports: '9090/TCP', selector: { app: 'prometheus' }, age: ago(5760) },
-    { name: 'grafana-svc', namespace: 'monitoring', type: 'NodePort', clusterIP: '10.96.2.11', externalIP: '', ports: '3000:30300/TCP', selector: { app: 'grafana' }, age: ago(1440) },
-    { name: 'kubernetes', namespace: 'default', type: 'ClusterIP', clusterIP: '10.96.0.1', externalIP: '', ports: '443/TCP', selector: {}, age: ago(20160) },
-  ];
-
-  const replicasets = [
-    { name: 'api-gateway-7d9f8b', namespace: 'production', desired: 2, current: 2, ready: 2, deployment: 'api-gateway', age: ago(340) },
-    { name: 'api-gateway-8e2c1a', namespace: 'production', desired: 0, current: 0, ready: 0, deployment: 'api-gateway', age: ago(1200) },
-    { name: 'frontend-6c5b8', namespace: 'production', desired: 1, current: 1, ready: 1, deployment: 'frontend', age: ago(180) },
-    { name: 'auth-service-5f7d9', namespace: 'production', desired: 1, current: 1, ready: 0, deployment: 'auth-service', age: ago(90) },
-    { name: 'grafana-7b4c9', namespace: 'monitoring', desired: 1, current: 1, ready: 1, deployment: 'grafana', age: ago(1440) },
-    { name: 'ai-ops-6d8f7', namespace: 'production', desired: 1, current: 1, ready: 0, deployment: 'ai-ops', age: ago(5) },
-  ];
-
-  const configmaps = [
-    { name: 'api-gateway-config', namespace: 'production', keys: 3, age: ago(340) },
-    { name: 'prometheus-config', namespace: 'monitoring', keys: 5, age: ago(5760) },
-    { name: 'grafana-datasources', namespace: 'monitoring', keys: 2, age: ago(1440) },
-    { name: 'kube-proxy', namespace: 'kube-system', keys: 1, age: ago(20160) },
-    { name: 'coredns', namespace: 'kube-system', keys: 1, age: ago(20160) },
-  ];
-
-  const secrets = [
-    { name: 'postgres-credentials', namespace: 'production', type: 'Opaque', keys: 2, age: ago(2880) },
-    { name: 'registry-pull-secret', namespace: 'production', type: 'kubernetes.io/dockerconfigjson', keys: 1, age: ago(5760) },
-    { name: 'tls-cert', namespace: 'production', type: 'kubernetes.io/tls', keys: 2, age: ago(720) },
-    { name: 'keycloak-admin', namespace: 'production', type: 'Opaque', keys: 3, age: ago(340) },
-  ];
-
-  const events = [
-    { type: 'Warning', reason: 'BackOff', message: 'Back-off restarting failed container auth-service', object: 'Pod/auth-service-5f7d9-pk1mn', namespace: 'production', count: 14, age: ago(3) },
-    { type: 'Normal', reason: 'Scheduled', message: 'Successfully assigned production/ai-ops-6d8f7-wr2km to node-02', object: 'Pod/ai-ops-6d8f7-wr2km', namespace: 'production', count: 1, age: ago(5) },
-    { type: 'Warning', reason: 'Failed', message: 'Failed to pull image "nebulaops-ai:1.0": rpc error: code = Unknown', object: 'Pod/ai-ops-6d8f7-wr2km', namespace: 'production', count: 3, age: ago(5) },
-    { type: 'Normal', reason: 'Pulling', message: 'Pulling image "nginx:1.27-alpine"', object: 'Pod/api-gateway-7d9f8b-xk2pl', namespace: 'production', count: 1, age: ago(340) },
-    { type: 'Normal', reason: 'Started', message: 'Started container api-gateway', object: 'Pod/api-gateway-7d9f8b-xk2pl', namespace: 'production', count: 1, age: ago(338) },
-  ];
-
-  const nodes = [
-    { name: 'node-01', status: 'Ready', roles: 'control-plane', version: 'v1.30.2', os: 'linux/amd64', cpu: '4', memory: '16Gi', pods: 3, age: ago(20160) },
-    { name: 'node-02', status: 'Ready', roles: 'worker', version: 'v1.30.2', os: 'linux/amd64', cpu: '8', memory: '32Gi', pods: 4, age: ago(18000) },
-    { name: 'node-03', status: 'Ready', roles: 'worker', version: 'v1.30.2', os: 'linux/amd64', cpu: '8', memory: '32Gi', pods: 2, age: ago(16800) },
-  ];
-
-  const statefulsets = [
-    { name: 'postgres', namespace: 'production', ready: '1/1', replicas: 1, serviceName: 'postgres-svc', age: ago(2880) },
-    { name: 'prometheus', namespace: 'monitoring', ready: '1/1', replicas: 1, serviceName: 'prometheus-svc', age: ago(5760) },
-  ];
-
-  const helm = [
-    { name: 'monitoring-stack', namespace: 'monitoring', chart: 'kube-prometheus-stack-58.4.0', status: 'deployed', revision: 3, age: ago(1440) },
-    { name: 'cert-manager', namespace: 'cert-manager', chart: 'cert-manager-v1.14.5', status: 'deployed', revision: 1, age: ago(5760) },
-    { name: 'ingress-nginx', namespace: 'ingress-nginx', chart: 'ingress-nginx-4.10.1', status: 'deployed', revision: 2, age: ago(2880) },
-    { name: 'nebulaops-app', namespace: 'production', chart: 'nebulaops-22.2.0', status: 'deployed', revision: 14, age: ago(180) },
-  ];
-
-  return { namespaces, pods, deployments, services, replicasets, configmaps, secrets, events, nodes, statefulsets, helm };
-}
-
-function generateYaml(kind, name, namespace, data) {
-  const labels = Object.entries(data.labels || data.selector || {}).map(([k, v]) => `    ${k}: ${v}`).join('\n');
-  const ts = new Date().toISOString();
-  switch (kind) {
-    case 'Pod': return `apiVersion: v1
-kind: Pod
-metadata:
-  name: ${name}
-  namespace: ${namespace}
-  labels:
-${labels || '    app: ' + name}
-  creationTimestamp: "${data.age}"
-spec:
-  nodeName: ${data.node || 'node-01'}
-  containers:
-  - name: ${name.split('-')[0]}
-    image: ${data.image || 'nginx:latest'}
-    imagePullPolicy: IfNotPresent
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 500m
-        memory: 512Mi
-  restartPolicy: Always
-  terminationGracePeriodSeconds: 30
-status:
-  phase: ${data.status}
-  podIP: ${data.ip || ''}
-  hostIP: 10.0.1.1`;
-    case 'Deployment': return `apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${name}
-  namespace: ${namespace}
-  labels:
-${labels || '    app: ' + name}
-  creationTimestamp: "${data.age}"
-spec:
-  replicas: ${data.replicas || 1}
-  selector:
-    matchLabels:
-${labels || '      app: ' + name}
-  strategy:
-    type: ${data.strategy || 'RollingUpdate'}
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 0
-  template:
-    metadata:
-      labels:
-${labels || '        app: ' + name}
-    spec:
-      containers:
-      - name: ${name}
-        image: ${data.image || 'nginx:latest'}
-        imagePullPolicy: IfNotPresent
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-status:
-  availableReplicas: ${data.available || 0}
-  readyReplicas: ${(data.ready || '0/0').split('/')[0]}
-  replicas: ${data.replicas || 1}`;
-    case 'Service': return `apiVersion: v1
-kind: Service
-metadata:
-  name: ${name}
-  namespace: ${namespace}
-  creationTimestamp: "${data.age}"
-spec:
-  type: ${data.type || 'ClusterIP'}
-  clusterIP: ${data.clusterIP || ''}
-  selector:
-${Object.entries(data.selector || {}).map(([k,v]) => `    ${k}: ${v}`).join('\n') || '    app: ' + name}
-  ports:
-${(data.ports || '80/TCP').split(',').map(p => `  - port: ${p.trim().split(':')[0].replace('/TCP','').replace('/UDP','')}\n    targetPort: ${p.trim().split(':')[0].replace('/TCP','').replace('/UDP','')}`).join('\n')}
-status:
-  loadBalancer: {}`;
-    default: return `# ${kind} ${name} YAML\napiVersion: v1\nkind: ${kind}\nmetadata:\n  name: ${name}\n  namespace: ${namespace}`;
+  if (window.__NEBULAOPS_AUTH_BRIDGE_VERSION__ === VERSION) {
+    return;
   }
-}
+  window.__NEBULAOPS_AUTH_BRIDGE_VERSION__ = VERSION;
 
-function generateLogs(podName, status) {
-  const lines = [];
-  const ts = () => new Date().toISOString();
-  if (status === 'CrashLoopBackOff') {
-    lines.push(`${ts()} INFO  Starting application...`);
-    lines.push(`${ts()} INFO  Loading configuration from /etc/config/app.yaml`);
-    lines.push(`${ts()} ERROR Failed to connect to database: connection refused (postgres:5432)`);
-    lines.push(`${ts()} ERROR Health check failed: dependency unavailable`);
-    lines.push(`${ts()} FATAL Application startup failed with exit code 1`);
-    lines.push(`${ts()} WARN  Restarting container... (attempt 7)`);
-  } else if (status === 'Running') {
-    lines.push(`${ts()} INFO  Application started successfully`);
-    lines.push(`${ts()} INFO  Listening on :8080`);
-    lines.push(`${ts()} INFO  Connected to database`);
-    lines.push(`${ts()} INFO  GET /health 200 OK 2ms`);
-    lines.push(`${ts()} INFO  GET /api/v1/users 200 OK 45ms`);
-    lines.push(`${ts()} INFO  POST /api/v1/auth/token 200 OK 112ms`);
-    lines.push(`${ts()} INFO  GET /api/kubernetes/snapshot 200 OK 234ms`);
-    lines.push(`${ts()} INFO  Metrics scraped by Prometheus`);
-  } else {
-    lines.push(`${ts()} INFO  Container initializing...`);
-    lines.push(`${ts()} INFO  Waiting for dependencies...`);
+  function safeGet(key) {
+    try { return window.localStorage.getItem(key) || ''; } catch (_) { return ''; }
   }
-  return lines.join('\n');
-}
 
-/* ─── CSS ─── */
+  function safeSet(key, value) {
+    try { if (value) window.localStorage.setItem(key, value); } catch (_) {}
+  }
+
+  function safeRemove(key) {
+    try { window.localStorage.removeItem(key); } catch (_) {}
+  }
+
+  function clearToken() {
+    window.__NEBULAOPS_ACCESS_TOKEN__ = '';
+    safeRemove(JWT_KEY);
+  }
+
+  function tokenLooksExpired(token) {
+    try {
+      var parts = String(token || '').split('.');
+      if (parts.length < 2) return false;
+      var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return !!payload.exp && (payload.exp * 1000) < (Date.now() + 30000);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function getUrlToken() {
+    try {
+      var url = new URL(window.location.href);
+      var candidates = [
+        url.searchParams.get('access_token'),
+        url.searchParams.get('token'),
+        url.searchParams.get('nebulaops_token')
+      ];
+      if (url.hash) {
+        var hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+        candidates.push(hash.get('access_token'), hash.get('token'), hash.get('nebulaops_token'));
+      }
+      for (var i = 0; i < candidates.length; i++) {
+        if (candidates[i] && candidates[i].length > 16) return candidates[i];
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  function publishToken(token, user) {
+    if (!token) return token;
+    safeSet(JWT_KEY, token);
+    safeSet(USER_KEY, user || safeGet(USER_KEY) || 'admin');
+    window.__NEBULAOPS_ACCESS_TOKEN__ = token;
+    try {
+      window.dispatchEvent(new CustomEvent('nebulaops:auth-token', { detail: { token: token, source: 'auth-bridge' } }));
+    } catch (_) {}
+    return token;
+  }
+
+  function currentToken() {
+    return window.__NEBULAOPS_ACCESS_TOKEN__ || safeGet(JWT_KEY) || '';
+  }
+
+  function isApiLikeUrl(url) {
+    var text = String(url || '');
+    if (!text) return false;
+    if (text.indexOf('/api/') === 0) return true;
+    if (/^https?:\/\/localhost:\d+\/api\//.test(text)) return true;
+    if (/^https?:\/\/127\.0\.0\.1:\d+\/api\//.test(text)) return true;
+    return !!legacyEndpointToGateway(text);
+  }
+
+  function isAuthEndpoint(url) {
+    var text = String(url || '');
+    return text.indexOf('/api/auth/login') !== -1 ||
+           text.indexOf('/api/auth/register') !== -1 ||
+           text.indexOf('/api/auth/refresh') !== -1 ||
+           text.indexOf('/realms/') !== -1 ||
+           text.indexOf('/protocol/openid-connect/') !== -1;
+  }
+
+  function legacyEndpointToGateway(url) {
+    var text = String(url || '').replace(/^\.\//, '').replace(/^\//, '');
+    text = text.split('?')[0].split('#')[0];
+    var map = {
+      'containers': '/api/runtime/docker/containers',
+      'images': '/api/runtime/docker/images',
+      'volumes': '/api/runtime/docker/volumes',
+      'networks': '/api/runtime/docker/networks',
+      'docker/containers': '/api/runtime/docker/containers',
+      'docker/images': '/api/runtime/docker/images',
+      'docker/volumes': '/api/runtime/docker/volumes',
+      'docker/networks': '/api/runtime/docker/networks',
+      'kubernetes/snapshot': '/api/kubernetes/snapshot',
+      'helm/releases': '/api/runtime/helm/releases?namespace=all',
+      'tasks': '/api/tasks?organizationId=default-org',
+      'notifications': '/api/notifications/live',
+      'events': '/api/events',
+      'releases': '/api/releases',
+      'policies': '/api/policies',
+      'cost/summary': '/api/cost/summary'
+    };
+    return map[text] || '';
+  }
+
+  function normalizeUrl(url) {
+    var replacement = legacyEndpointToGateway(url);
+    if (!replacement) return url;
+    try {
+      var original = String(url || '');
+      var query = original.indexOf('?') >= 0 ? original.slice(original.indexOf('?')) : '';
+      if (replacement.indexOf('?') >= 0) query = '';
+      return replacement + query;
+    } catch (_) {
+      return replacement;
+    }
+  }
+
+  async function loginDevAdmin() {
+    try {
+      var response = await window.fetch(LOGIN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: DEV_LOGIN_BODY,
+        cache: 'no-store',
+        credentials: 'same-origin'
+      });
+      if (!response || !response.ok) return '';
+      var payload = await response.json().catch(function () { return {}; });
+      var token = payload.accessToken || payload.access_token || '';
+      var user = payload.user && (payload.user.email || payload.user.displayName || payload.user.username);
+      return publishToken(token, user || 'admin');
+    } catch (err) {
+      console.warn('[NebulaOps auth bridge] dev login failed:', err && err.message ? err.message : err);
+      return '';
+    }
+  }
+
+  async function ensureToken() {
+    var tokenFromUrl = getUrlToken();
+    if (tokenFromUrl) return publishToken(tokenFromUrl, 'admin');
+    var existing = currentToken();
+    if (existing && !tokenLooksExpired(existing)) return existing;
+    if (existing) clearToken();
+    return loginDevAdmin();
+  }
+
+  window.__NEBULAOPS_GET_ACCESS_TOKEN__ = currentToken;
+  window.__NEBULAOPS_ENSURE_ACCESS_TOKEN__ = ensureToken;
+  window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || ensureToken();
+
+  if (window.fetch && !window.__NEBULAOPS_FETCH_AUTH_PATCHED__) {
+    var nativeFetch = window.fetch.bind(window);
+    window.__NEBULAOPS_FETCH_AUTH_PATCHED__ = true;
+    window.fetch = async function nebulaopsFetch(input, init) {
+      var requestUrl = typeof input === 'string' ? input : (input && input.url) || '';
+      var rewrittenUrl = normalizeUrl(requestUrl);
+      var shouldAuth = isApiLikeUrl(rewrittenUrl) && !isAuthEndpoint(rewrittenUrl);
+      if (!shouldAuth) {
+        if (rewrittenUrl !== requestUrl && typeof input === 'string') return nativeFetch(rewrittenUrl, init);
+        return nativeFetch(input, init);
+      }
+      var token = await ensureToken();
+      var nextInit = Object.assign({}, init || {});
+      var headers = new Headers(nextInit.headers || (input instanceof Request ? input.headers : undefined));
+      if (token && !headers.has('Authorization')) headers.set('Authorization', 'Bearer ' + token);
+      headers.set('X-NebulaOps-Auth-Bridge', VERSION);
+      nextInit.headers = headers;
+      var response;
+      if (input instanceof Request) {
+        input = new Request(rewrittenUrl !== requestUrl ? rewrittenUrl : input, nextInit);
+        response = await nativeFetch(input);
+      } else {
+        response = await nativeFetch(rewrittenUrl, nextInit);
+      }
+      if (response && response.status === 401 && !nextInit.__nebulaopsAuthRetry) {
+        clearToken();
+        var freshToken = await loginDevAdmin();
+        if (freshToken) {
+          var retryInit = Object.assign({}, nextInit, { __nebulaopsAuthRetry: true });
+          var retryHeaders = new Headers(retryInit.headers || {});
+          retryHeaders.set('Authorization', 'Bearer ' + freshToken);
+          retryHeaders.set('X-NebulaOps-Auth-Bridge', VERSION);
+          retryInit.headers = retryHeaders;
+          delete retryInit.__nebulaopsAuthRetry;
+          if (input instanceof Request) {
+            var retryRequest = new Request(rewrittenUrl !== requestUrl ? rewrittenUrl : input.url, retryInit);
+            return nativeFetch(retryRequest);
+          }
+          return nativeFetch(rewrittenUrl, retryInit);
+        }
+      }
+      return response;
+    };
+  }
+
+  if (window.XMLHttpRequest && !window.__NEBULAOPS_XHR_AUTH_PATCHED__) {
+    var XHR = window.XMLHttpRequest;
+    var nativeOpen = XHR.prototype.open;
+    var nativeSend = XHR.prototype.send;
+    window.__NEBULAOPS_XHR_AUTH_PATCHED__ = true;
+
+    XHR.prototype.open = function nebulaopsOpen(method, url) {
+      var rewrittenUrl = normalizeUrl(url);
+      this.__nebulaopsRequestUrl = rewrittenUrl;
+      this.__nebulaopsNeedsAuth = isApiLikeUrl(rewrittenUrl) && !isAuthEndpoint(rewrittenUrl);
+      var args = Array.prototype.slice.call(arguments);
+      args[1] = rewrittenUrl;
+      return nativeOpen.apply(this, args);
+    };
+
+    XHR.prototype.send = function nebulaopsSend(body) {
+      var xhr = this;
+      if (!xhr.__nebulaopsNeedsAuth) return nativeSend.call(xhr, body);
+      window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || ensureToken();
+      window.__NEBULAOPS_AUTH_READY__.then(function (token) {
+        try {
+          if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+          xhr.setRequestHeader('X-NebulaOps-Auth-Bridge', VERSION);
+        } catch (_) {}
+        nativeSend.call(xhr, body);
+      }).catch(function () {
+        nativeSend.call(xhr, body);
+      });
+      return undefined;
+    };
+  }
+})();
+
+
+(function(){
+'use strict';
 const CSS = `
-  :host{display:block;color:#eef6ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;--blue:#7adfff;--purple:#a78bfa;--green:#34d399;--red:#f87171;--amber:#fbbf24;--bg:rgba(3,7,18,.92);--card:rgba(255,255,255,.055);--border:rgba(140,180,255,.15)}
-  *{box-sizing:border-box;margin:0;padding:0} button{font:inherit;cursor:pointer;color:inherit} a{color:inherit;text-decoration:none}
-  .shell{display:grid;grid-template-rows:auto 1fr;min-height:650px;background:radial-gradient(circle at top left,rgba(0,216,255,.08),transparent 35%),radial-gradient(circle at right top,rgba(139,92,246,.08),transparent 30%),var(--bg)}
-  /* Topbar */
-  .topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25);flex-wrap:wrap}
-  .topbar-title{display:flex;align-items:center;gap:8px;margin-right:12px}.topbar-title .cube{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#53e7ff,#7e61ff 62%,#20145c);display:grid;place-items:center;font-weight:900;font-size:11px;transform:perspective(200px) rotateX(8deg) rotateY(-10deg)}
-  .topbar-title h2{font-size:15px;font-weight:700} .topbar-title small{color:var(--blue);font-size:11px;font-weight:600;letter-spacing:.12em}
-  .ns-select{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:#eef6ff;font-size:13px;cursor:pointer}
-  .cluster-badge{background:rgba(122,223,255,.12);border:1px solid rgba(122,223,255,.25);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--blue);font-weight:600}
-  .refresh-btn{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;transition:.15s}.refresh-btn:hover{border-color:var(--blue);color:var(--blue)}
-  /* Layout */
-  .body{display:grid;grid-template-columns:220px 1fr;height:100%;overflow:hidden}
-  /* Sidetree */
-  .sidetree{background:rgba(0,0,0,.22);border-right:1px solid var(--border);overflow-y:auto;padding:10px 0}
-  .tree-section{margin-bottom:2px}
-  .tree-header{padding:6px 14px 4px;font-size:10px;font-weight:800;letter-spacing:.15em;color:rgba(122,223,255,.6);text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
-  .tree-header .count{background:rgba(122,223,255,.14);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;color:var(--blue)}
-  .tree-item{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:13px;cursor:pointer;border-radius:0;transition:.12s;border-left:2px solid transparent;position:relative}
-  .tree-item:hover{background:rgba(255,255,255,.06);border-left-color:rgba(122,223,255,.4)}
-  .tree-item.active{background:rgba(122,223,255,.1);border-left-color:var(--blue);color:#fff}
-  .tree-item .icon{width:18px;text-align:center;font-size:13px;flex-shrink:0}
-  .tree-item .label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tree-item .badge{font-size:10px;padding:1px 6px;border-radius:8px;font-weight:700;flex-shrink:0}
-  .tree-item .badge.ok{background:rgba(52,211,153,.15);color:var(--green)}
-  .tree-item .badge.danger{background:rgba(248,113,113,.15);color:var(--red)}
-  .tree-item .badge.warn{background:rgba(251,191,36,.15);color:var(--amber)}
-  /* Main panel */
-  .panel{overflow-y:auto;padding:20px}
-  /* Resource table */
-  .panel-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-  .panel-header h3{font-size:18px;font-weight:700} .panel-header small{color:#92a3ca;font-size:13px}
-  .search-box{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:#eef6ff;font-size:13px;width:220px}.search-box:focus{outline:none;border-color:var(--blue)}
-  .action-btn{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:8px;padding:6px 13px;font-size:12px;font-weight:600;transition:.15s}
-  .action-btn:hover{border-color:var(--blue);color:var(--blue)}
-  .action-btn.danger-btn:hover{border-color:var(--red);color:var(--red)}
-  .action-btn.green-btn{border-color:rgba(52,211,153,.3);color:var(--green)}.action-btn.green-btn:hover{border-color:var(--green)}
-  .tbl{width:100%;border-collapse:collapse;font-size:13px}
-  .tbl th{text-align:left;padding:7px 10px;color:#92a3ca;font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border)}
-  .tbl td{padding:8px 10px;border-bottom:1px solid rgba(140,180,255,.07);vertical-align:middle}
-  .tbl tr:hover td{background:rgba(255,255,255,.03)}
-  .tbl tr.selected td{background:rgba(122,223,255,.07)}
-  .name-link{color:var(--blue);cursor:pointer;font-weight:600}.name-link:hover{text-decoration:underline}
-  .pill{display:inline-block;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:700;white-space:nowrap}
-  .pill.ok{background:rgba(52,211,153,.15);color:var(--green)}.pill.danger{background:rgba(248,113,113,.15);color:var(--red)}.pill.warn{background:rgba(251,191,36,.15);color:var(--amber)}.pill.neutral{background:rgba(122,223,255,.1);color:var(--blue)}
-  /* Detail panel */
-  .detail-view{display:grid;gap:14px}
-  .detail-header{display:flex;align-items:flex-start;gap:14px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:16px}
-  .detail-header .kind-badge{background:linear-gradient(145deg,#7e61ff,#53e7ff);border-radius:10px;padding:10px 14px;font-weight:900;font-size:12px;letter-spacing:.05em;flex-shrink:0}
-  .detail-header .info{flex:1}
-  .detail-header h3{font-size:19px;font-weight:700;margin-bottom:4px}
-  .detail-header .meta{color:#92a3ca;font-size:13px;display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
-  .detail-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:14px}
-  .tab{padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:#92a3ca;transition:.15s}
-  .tab:hover{color:#eef6ff}.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
-  .tab-content{display:none}.tab-content.active{display:block}
-  .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-  .info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
-  .info-card .ic-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(122,223,255,.6);margin-bottom:5px}
-  .info-card .ic-value{font-size:14px;font-weight:600;word-break:break-all}
-  .label-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-  .label-chip{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.2);border-radius:6px;padding:3px 8px;font-size:11px;font-family:ui-monospace,monospace;color:#c4b5fd}
-  /* Related resources */
-  .related-section{margin-top:14px}
-  .related-section h4{font-size:13px;font-weight:700;color:var(--blue);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-  .related-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-  .related-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:.15s}
-  .related-card:hover{border-color:var(--blue);background:rgba(122,223,255,.07)}
-  .related-card .rc-kind{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--purple);margin-bottom:4px}
-  .related-card .rc-name{font-size:14px;font-weight:700;margin-bottom:2px}
-  .related-card .rc-meta{font-size:12px;color:#92a3ca}
-  /* Action buttons row */
-  .actions-row{display:flex;gap:8px;flex-wrap:wrap;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:12px}
-  .act{border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;transition:.15s;display:flex;align-items:center;gap:6px}
-  .act:hover{transform:translateY(-1px)}
-  .act.act-primary{border-color:rgba(122,223,255,.35);color:var(--blue)}.act.act-primary:hover{background:rgba(122,223,255,.12)}
-  .act.act-warn{border-color:rgba(251,191,36,.3);color:var(--amber)}.act.act-warn:hover{background:rgba(251,191,36,.1)}
-  .act.act-danger{border-color:rgba(248,113,113,.3);color:var(--red)}.act.act-danger:hover{background:rgba(248,113,113,.12)}
-  .act.act-green{border-color:rgba(52,211,153,.3);color:var(--green)}.act.act-green:hover{background:rgba(52,211,153,.1)}
-  /* YAML editor */
-  .yaml-editor{width:100%;min-height:360px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:12px;padding:14px;color:#bff7ff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;resize:vertical;tab-size:2}
-  .yaml-editor:focus{outline:none;border-color:var(--blue)}
-  .yaml-actions{display:flex;gap:8px;margin-top:10px;align-items:center}
-  .yaml-status{font-size:12px;color:var(--green);display:none}
-  .yaml-status.show{display:block}
-  /* Logs */
-  .log-area{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.7;max-height:400px;overflow-y:auto;color:#bff7ff;white-space:pre-wrap}
-  .log-line.error{color:var(--red)}.log-line.warn{color:var(--amber)}.log-line.info{color:#bff7ff}.log-line.fatal{color:var(--red);font-weight:700}
-  .log-controls{display:flex;gap:8px;margin-bottom:10px;align-items:center}
-  /* Scale modal */
-  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999}
-  .modal{background:#0c1229;border:1px solid var(--border);border-radius:18px;padding:24px;min-width:340px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
-  .modal h3{font-size:16px;font-weight:700;margin-bottom:14px}
-  .modal-input{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:#eef6ff;font-size:15px;width:100%;margin:8px 0 14px}
-  .modal-input:focus{outline:none;border-color:var(--blue)}
-  .modal-actions{display:flex;gap:10px;justify-content:flex-end}
-  /* Events */
-  .event-row{display:flex;gap:12px;padding:10px;border-bottom:1px solid rgba(140,180,255,.07);align-items:flex-start}
-  .event-type{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;flex-shrink:0;margin-top:2px}
-  .event-type.Warning{background:rgba(251,191,36,.15);color:var(--amber)}.event-type.Normal{background:rgba(52,211,153,.12);color:var(--green)}
-  .event-msg{font-size:13px;line-height:1.5} .event-obj{font-size:11px;color:#92a3ca;margin-top:2px}
-  /* Nodes */
-  .node-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
-  .node-card h4{font-size:15px;font-weight:700;margin-bottom:8px}
-  .node-stats{display:flex;gap:20px;flex-wrap:wrap}
-  .node-stat{font-size:12px;color:#92a3ca} .node-stat b{color:#eef6ff;font-size:14px}
-  /* Toast */
-  .toast{position:fixed;bottom:24px;right:24px;background:#0c1229;border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;z-index:9999;transform:translateY(100px);opacity:0;transition:.3s;box-shadow:0 10px 40px rgba(0,0,0,.4)}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast.toast-ok{border-color:rgba(52,211,153,.4);color:var(--green)}
-  .toast.toast-err{border-color:rgba(248,113,113,.4);color:var(--red)}
-  /* Overview cards */
-  .overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:18px}
-  .ov-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
-  .ov-card .ov-num{font-size:32px;font-weight:900;color:#fff;line-height:1}
-  .ov-card .ov-label{font-size:11px;font-weight:700;letter-spacing:.1em;color:#92a3ca;margin-top:4px;text-transform:uppercase}
-  .ov-card .ov-sub{font-size:12px;color:var(--red);margin-top:3px}
-  /* Helm */
-  .helm-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
-  .helm-icon{font-size:28px} .helm-info{flex:1} .helm-info h4{font-size:14px;font-weight:700} .helm-info small{font-size:12px;color:#92a3ca}
-  /* Empty */
-  .empty{padding:30px;text-align:center;color:#92a3ca;font-size:14px}
-  @media(max-width:860px){.body{grid-template-columns:1fr}.sidetree{display:none}}
-`;
-
-class NebulaopsMfeOpenlensKubernetes extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    const data = mockK8sData();
-    this._state = {
-      activeSection: 'overview',
-      activeNs: 'all',
-      search: '',
-      selectedItem: null,
-      activeTab: 'overview',
-      yamlSaved: {},
-      scaleModal: null,
-      confirmModal: null,
-      toast: null,
-      ...data
-    };
-  }
-
-  connectedCallback() { this.render(); }
-
-  get ns() { return this._state.activeNs; }
-
-  filteredBy(arr, nsKey = 'namespace') {
-    const items = this.ns === 'all' ? arr : arr.filter(i => i[nsKey] === this.ns);
-    const s = this._state.search.toLowerCase();
-    if (!s) return items;
-    return items.filter(i => JSON.stringify(i).toLowerCase().includes(s));
-  }
-
-  showToast(msg, type = 'ok') {
-    this._state.toast = { msg, type };
-    this.render();
-    setTimeout(() => { this._state.toast = null; this.render(); }, 2800);
-  }
-
-  navigate(section, item = null) {
-    this._state.activeSection = section;
-    this._state.selectedItem = item;
-    this._state.activeTab = 'overview';
-    this._state.search = '';
-    this.render();
-  }
-
-  navigateToRelated(kind, name, namespace) {
-    const kindToSection = { Pod: 'pods', Deployment: 'deployments', Service: 'services', ReplicaSet: 'replicasets' };
-    const section = kindToSection[kind];
-    if (!section) return;
-    const data = this._state[section];
-    const item = data?.find(i => i.name === name && (!namespace || i.namespace === namespace));
-    if (item) { this._state.activeNs = namespace || 'all'; this.navigate(section, item); }
-  }
-
-  getRelatedResources(item) {
-    if (!item) return {};
-    const related = {};
-    // Pod → Deployment + Service + ReplicaSet
-    if (item.deployment) {
-      related.deployment = this._state.deployments.find(d => d.name === item.deployment && d.namespace === item.namespace);
-    }
-    if (item.statefulset) {
-      related.statefulset = this._state.statefulsets.find(s => s.name === item.statefulset && s.namespace === item.namespace);
-    }
-    // Pod → Service (by label matching)
-    related.services = this._state.services.filter(svc => {
-      if (svc.namespace !== item.namespace) return false;
-      return Object.entries(svc.selector || {}).every(([k, v]) => item.labels?.[k] === v);
-    });
-    // Pod → ReplicaSet
-    if (item.deployment) {
-      related.replicasets = this._state.replicasets.filter(rs => rs.deployment === item.deployment && rs.namespace === item.namespace);
-    }
-    // Deployment → Pods + Services + ReplicaSets
-    if (!item.ip && item.replicas !== undefined) { // it's a deployment
-      related.pods = this._state.pods.filter(p => p.deployment === item.name && p.namespace === item.namespace);
-      related.services = this._state.services.filter(svc => {
-        if (svc.namespace !== item.namespace) return false;
-        return Object.entries(svc.selector || {}).every(([k, v]) => item.selector?.[k] === v);
-      });
-      related.replicasets = this._state.replicasets.filter(rs => rs.deployment === item.name && rs.namespace === item.namespace);
-    }
-    // Service → Pods
-    if (item.clusterIP) {
-      related.pods = this._state.pods.filter(p => {
-        if (p.namespace !== item.namespace) return false;
-        return Object.entries(item.selector || {}).every(([k, v]) => p.labels?.[k] === v);
-      });
-    }
-    // ReplicaSet → Deployment + Pods
-    if (item.desired !== undefined && item.deployment) {
-      related.deployment = this._state.deployments.find(d => d.name === item.deployment && d.namespace === item.namespace);
-      related.pods = this._state.pods.filter(p => p.name.startsWith(item.name));
-    }
-    return related;
-  }
-
-  /* ─── Action handlers ─── */
-  restartPod(pod) {
-    const idx = this._state.pods.findIndex(p => p.name === pod.name);
-    if (idx >= 0) {
-      this._state.pods[idx] = { ...pod, restarts: pod.restarts + 1, status: 'Running', age: new Date().toISOString() };
-      if (this._state.selectedItem?.name === pod.name) this._state.selectedItem = this._state.pods[idx];
-    }
-    this.showToast(`✅ Pod ${pod.name} restarted`);
-  }
-
-  deletePod(pod) {
-    this._state.pods = this._state.pods.filter(p => p.name !== pod.name);
-    if (this._state.selectedItem?.name === pod.name) { this._state.selectedItem = null; }
-    this._state.confirmModal = null;
-    this.showToast(`🗑️ Pod ${pod.name} eliminato`);
-  }
-
-  scaleDeployment(dep, replicas) {
-    const idx = this._state.deployments.findIndex(d => d.name === dep.name);
-    if (idx >= 0) {
-      this._state.deployments[idx] = { ...dep, replicas, ready: `${Math.min(replicas, parseInt(dep.ready))}/${replicas}`, available: replicas };
-      if (this._state.selectedItem?.name === dep.name) this._state.selectedItem = this._state.deployments[idx];
-    }
-    this._state.scaleModal = null;
-    this.showToast(`⚖️ ${dep.name} scalato a ${replicas} replica${replicas !== 1 ? 's' : ''}`);
-  }
-
-  restartDeployment(dep) {
-    this.showToast(`♻️ Deployment ${dep.name} restarted (rolling restart)`);
-  }
-
-  deleteDeployment(dep) {
-    this._state.deployments = this._state.deployments.filter(d => d.name !== dep.name);
-    if (this._state.selectedItem?.name === dep.name) this._state.selectedItem = null;
-    this._state.confirmModal = null;
-    this.showToast(`🗑️ Deployment ${dep.name} eliminato`);
-  }
-
-  saveYaml(key, value) {
-    this._state.yamlSaved[key] = { value, savedAt: new Date().toISOString() };
-    this.showToast(`💾 YAML salvato per ${key}`);
-  }
-
-  /* ─── Render helpers ─── */
-  renderTreeBadge(items, nsFilter) {
-    const filtered = nsFilter === 'all' ? items : items.filter(i => i.namespace === nsFilter);
-    const hasIssue = filtered.some(i => i.status === 'CrashLoopBackOff' || i.status === 'Error' || i.status === 'Failed' || (i.ready && i.ready.split('/')[0] === '0'));
-    const hasPending = filtered.some(i => i.status === 'Pending' || i.status === 'Terminating');
-    const cls = hasIssue ? 'danger' : hasPending ? 'warn' : 'ok';
-    return `<span class="badge ${cls}">${filtered.length}</span>`;
-  }
-
-  renderSideTree() {
-    const ns = this.ns;
-    const sections = [
-      { label: 'Cluster', items: [] },
-      { label: 'Workloads', items: [
-        { id: 'pods', icon: '⬡', label: 'Pods', badge: this.renderTreeBadge(this._state.pods, ns) },
-        { id: 'deployments', icon: '🚀', label: 'Deployments', badge: this.renderTreeBadge(this._state.deployments, ns) },
-        { id: 'statefulsets', icon: '💾', label: 'StatefulSets', badge: `<span class="badge ok">${(ns==='all'?this._state.statefulsets:this._state.statefulsets.filter(s=>s.namespace===ns)).length}</span>` },
-        { id: 'replicasets', icon: '🔄', label: 'ReplicaSets', badge: `<span class="badge neutral">${(ns==='all'?this._state.replicasets:this._state.replicasets.filter(s=>s.namespace===ns)).length}</span>` },
-      ]},
-      { label: 'Network', items: [
-        { id: 'services', icon: '🌐', label: 'Services', badge: `<span class="badge neutral">${(ns==='all'?this._state.services:this._state.services.filter(s=>s.namespace===ns)).length}</span>` },
-      ]},
-      { label: 'Config', items: [
-        { id: 'configmaps', icon: '📋', label: 'ConfigMaps', badge: `<span class="badge neutral">${(ns==='all'?this._state.configmaps:this._state.configmaps.filter(s=>s.namespace===ns)).length}</span>` },
-        { id: 'secrets', icon: '🔐', label: 'Secrets', badge: `<span class="badge neutral">${(ns==='all'?this._state.secrets:this._state.secrets.filter(s=>s.namespace===ns)).length}</span>` },
-      ]},
-      { label: 'Infrastructure', items: [
-        { id: 'nodes', icon: '🖥️', label: 'Nodes', badge: `<span class="badge ok">${this._state.nodes.length}</span>` },
-        { id: 'events', icon: '⚡', label: 'Events', badge: `<span class="badge warn">${this._state.events.length}</span>` },
-      ]},
-      { label: 'Helm', items: [
-        { id: 'helm', icon: '⛵', label: 'Releases', badge: `<span class="badge ok">${this._state.helm.length}</span>` },
-      ]},
-    ];
-
-    return `
-      <div class="tree-item ${this._state.activeSection==='overview'?'active':''}" data-nav="overview">
-        <span class="icon">🏠</span><span class="label">Overview</span>
-      </div>
-      ${sections.map(sec => `
-        <div class="tree-section">
-          ${sec.label !== 'Cluster' ? `<div class="tree-header">${sec.label}</div>` : ''}
-          ${sec.items.map(item => `
-            <div class="tree-item ${this._state.activeSection===item.id?'active':''}" data-nav="${item.id}">
-              <span class="icon">${item.icon}</span>
-              <span class="label">${item.label}</span>
-              ${item.badge}
-            </div>
-          `).join('')}
-        </div>
-      `).join('')}
-    `;
-  }
-
-  renderOverview() {
-    const pods = this.filteredBy(this._state.pods);
-    const criticalPods = pods.filter(p => p.status === 'CrashLoopBackOff' || p.status === 'Error' || p.status === 'Failed');
-    const pendingPods = pods.filter(p => p.status === 'Pending');
-    const deployments = this.filteredBy(this._state.deployments);
-    const unhealthyDeps = deployments.filter(d => d.ready.split('/')[0] === '0');
-    return `
-      <div class="panel-header"><h3>🏠 Cluster Overview</h3><small>Namespace: ${this.ns}</small></div>
-      <div class="overview-grid">
-        <div class="ov-card"><div class="ov-num">${pods.length}</div><div class="ov-label">Pods</div>${criticalPods.length?`<div class="ov-sub">⚠️ ${criticalPods.length} critical</div>`:''}</div>
-        <div class="ov-card"><div class="ov-num">${deployments.length}</div><div class="ov-label">Deployments</div>${unhealthyDeps.length?`<div class="ov-sub">⚠️ ${unhealthyDeps.length} down</div>`:''}</div>
-        <div class="ov-card"><div class="ov-num">${this.filteredBy(this._state.services).length}</div><div class="ov-label">Services</div></div>
-        <div class="ov-card"><div class="ov-num">${this._state.nodes.length}</div><div class="ov-label">Nodes</div></div>
-        <div class="ov-card"><div class="ov-num">${this._state.helm.length}</div><div class="ov-label">Helm Releases</div></div>
-        <div class="ov-card"><div class="ov-num">${this._state.events.filter(e=>e.type==='Warning').length}</div><div class="ov-label">Warnings</div></div>
-      </div>
-      ${criticalPods.length ? `
-        <div style="margin-bottom:14px">
-          <div class="related-section"><h4>🔴 Critical Pods</h4></div>
-          <table class="tbl"><thead><tr><th>Name</th><th>Namespace</th><th>Status</th><th>Restarts</th><th>Actions</th></tr></thead>
-          <tbody>${criticalPods.map(p => `<tr>
-            <td><span class="name-link" data-nav="pods" data-item="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span></td>
-            <td>${escapeHtml(p.namespace)}</td>
-            <td><span class="pill danger">${escapeHtml(p.status)}</span></td>
-            <td>${p.restarts}</td>
-            <td><button class="act act-primary btn-restart" data-pod="${escapeHtml(p.name)}">↺ Restart</button></td>
-          </tr>`).join('')}</tbody></table>
-        </div>
-      ` : ''}
-      <div style="margin-bottom:14px">
-        <div class="related-section"><h4>⚡ Recent Events</h4></div>
-        ${this._state.events.slice(0,5).map(e => `<div class="event-row">
-          <span class="event-type ${e.type}">${e.type}</span>
-          <div><div class="event-msg">${escapeHtml(e.message)}</div><div class="event-obj">${escapeHtml(e.object)} · ${escapeHtml(e.namespace)}</div></div>
-        </div>`).join('')}
-      </div>
-      <div class="related-section"><h4>⛵ Helm Releases</h4></div>
-      ${this._state.helm.map(h => `<div class="helm-card">
-        <div class="helm-icon">⛵</div>
-        <div class="helm-info"><h4>${escapeHtml(h.name)}</h4><small>${escapeHtml(h.chart)} · rev ${h.revision} · ${escapeHtml(h.namespace)}</small></div>
-        <span class="pill ok">${escapeHtml(h.status)}</span>
-      </div>`).join('')}
-    `;
-  }
-
-  renderPodsTable() {
-    const pods = this.filteredBy(this._state.pods);
-    if (pods.length === 0) return `<div class="empty">No pod found</div>`;
-    return `<table class="tbl">
-      <thead><tr><th>Name</th><th>Namespace</th><th>Ready</th><th>Status</th><th>Restarts</th><th>Node</th><th>IP</th><th>Actions</th></tr></thead>
-      <tbody>${pods.map(p => `<tr class="${this._state.selectedItem?.name===p.name?'selected':''}">
-        <td><span class="name-link" data-detail="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span></td>
-        <td><span class="pill neutral">${escapeHtml(p.namespace)}</span></td>
-        <td>${escapeHtml(p.ready)}</td>
-        <td><span class="pill ${statusClass(p.status)}">${escapeHtml(p.status)}</span></td>
-        <td>${p.restarts > 0 ? `<span style="color:var(--amber)">${p.restarts}</span>` : p.restarts}</td>
-        <td>${escapeHtml(p.node||'—')}</td>
-        <td style="font-size:12px;font-family:monospace">${escapeHtml(p.ip||'—')}</td>
-        <td style="display:flex;gap:5px">
-          <button class="act act-primary btn-restart" data-pod="${escapeHtml(p.name)}" title="Restart">↺</button>
-          <button class="act act-danger btn-delete-pod" data-pod="${escapeHtml(p.name)}" title="Delete">🗑</button>
-        </td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  renderDeploymentsTable() {
-    const deps = this.filteredBy(this._state.deployments);
-    if (deps.length === 0) return `<div class="empty">No deployment found</div>`;
-    return `<table class="tbl">
-      <thead><tr><th>Name</th><th>Namespace</th><th>Ready</th><th>Strategy</th><th>Image</th><th>Actions</th></tr></thead>
-      <tbody>${deps.map(d => `<tr class="${this._state.selectedItem?.name===d.name?'selected':''}">
-        <td><span class="name-link" data-detail="${escapeHtml(d.name)}">${escapeHtml(d.name)}</span></td>
-        <td><span class="pill neutral">${escapeHtml(d.namespace)}</span></td>
-        <td><span class="pill ${d.ready.split('/')[0]===d.ready.split('/')[1]?'ok':'danger'}">${escapeHtml(d.ready)}</span></td>
-        <td><span class="pill neutral">${escapeHtml(d.strategy)}</span></td>
-        <td style="font-size:12px;font-family:monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis">${escapeHtml(d.image)}</td>
-        <td style="display:flex;gap:5px">
-          <button class="act act-green btn-scale" data-dep="${escapeHtml(d.name)}" title="Scale">⚖️</button>
-          <button class="act act-primary btn-restart-dep" data-dep="${escapeHtml(d.name)}" title="Restart">↺</button>
-          <button class="act act-danger btn-delete-dep" data-dep="${escapeHtml(d.name)}" title="Delete">🗑</button>
-        </td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  renderServicesTable() {
-    const svcs = this.filteredBy(this._state.services);
-    if (svcs.length === 0) return `<div class="empty">No service found</div>`;
-    return `<table class="tbl">
-      <thead><tr><th>Name</th><th>Namespace</th><th>Type</th><th>Cluster IP</th><th>External IP</th><th>Ports</th></tr></thead>
-      <tbody>${svcs.map(s => `<tr class="${this._state.selectedItem?.name===s.name?'selected':''}">
-        <td><span class="name-link" data-detail="${escapeHtml(s.name)}">${escapeHtml(s.name)}</span></td>
-        <td><span class="pill neutral">${escapeHtml(s.namespace)}</span></td>
-        <td><span class="pill ${s.type==='LoadBalancer'?'ok':s.type==='NodePort'?'warn':'neutral'}">${escapeHtml(s.type)}</span></td>
-        <td style="font-family:monospace;font-size:12px">${escapeHtml(s.clusterIP)}</td>
-        <td style="font-family:monospace;font-size:12px">${escapeHtml(s.externalIP||'—')}</td>
-        <td style="font-size:12px">${escapeHtml(s.ports)}</td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  renderReplicaSetsTable() {
-    const rsets = this.filteredBy(this._state.replicasets);
-    return `<table class="tbl">
-      <thead><tr><th>Name</th><th>Namespace</th><th>Desired</th><th>Current</th><th>Ready</th><th>Deployment</th></tr></thead>
-      <tbody>${rsets.map(rs => `<tr class="${this._state.selectedItem?.name===rs.name?'selected':''}">
-        <td><span class="name-link" data-detail="${escapeHtml(rs.name)}">${escapeHtml(rs.name)}</span></td>
-        <td><span class="pill neutral">${escapeHtml(rs.namespace)}</span></td>
-        <td>${rs.desired}</td><td>${rs.current}</td>
-        <td><span class="pill ${rs.ready===rs.desired?'ok':'warn'}">${rs.ready}</span></td>
-        <td><span class="name-link" data-nav="deployments" data-item="${escapeHtml(rs.deployment)}">${escapeHtml(rs.deployment||'—')}</span></td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  renderStatefulSetsTable() {
-    const ssets = this.filteredBy(this._state.statefulsets);
-    return `<table class="tbl">
-      <thead><tr><th>Name</th><th>Namespace</th><th>Ready</th><th>Replicas</th><th>Service</th></tr></thead>
-      <tbody>${ssets.map(s => `<tr>
-        <td><b>${escapeHtml(s.name)}</b></td>
-        <td><span class="pill neutral">${escapeHtml(s.namespace)}</span></td>
-        <td><span class="pill ok">${escapeHtml(s.ready)}</span></td>
-        <td>${s.replicas}</td>
-        <td>${escapeHtml(s.serviceName)}</td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  renderConfigMapsTable() {
-    const cms = this.filteredBy(this._state.configmaps);
-    return `<table class="tbl">
-      <thead><tr><th>Name</th><th>Namespace</th><th>Keys</th></tr></thead>
-      <tbody>${cms.map(c => `<tr>
-        <td><b>${escapeHtml(c.name)}</b></td>
-        <td><span class="pill neutral">${escapeHtml(c.namespace)}</span></td>
-        <td>${c.keys}</td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  renderSecretsTable() {
-    const secs = this.filteredBy(this._state.secrets);
-    return `<table class="tbl">
-      <thead><tr><th>Name</th><th>Namespace</th><th>Type</th><th>Keys</th></tr></thead>
-      <tbody>${secs.map(s => `<tr>
-        <td><b>${escapeHtml(s.name)}</b></td>
-        <td><span class="pill neutral">${escapeHtml(s.namespace)}</span></td>
-        <td style="font-size:12px">${escapeHtml(s.type)}</td>
-        <td>${s.keys}</td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  renderNodesSection() {
-    return this._state.nodes.map(n => `
-      <div class="node-card">
-        <h4>🖥️ ${escapeHtml(n.name)} <span class="pill ${statusClass(n.status)}">${escapeHtml(n.status)}</span> <span class="pill neutral" style="margin-left:6px">${escapeHtml(n.roles)}</span></h4>
-        <div class="node-stats">
-          <div class="node-stat">OS<br><b>${escapeHtml(n.os)}</b></div>
-          <div class="node-stat">K8s version<br><b>${escapeHtml(n.version)}</b></div>
-          <div class="node-stat">CPU<br><b>${escapeHtml(n.cpu)} cores</b></div>
-          <div class="node-stat">Memory<br><b>${escapeHtml(n.memory)}</b></div>
-          <div class="node-stat">Pods<br><b>${n.pods}</b></div>
-        </div>
-      </div>`).join('');
-  }
-
-  renderEventsSection() {
-    return this._state.events.map(e => `<div class="event-row">
-      <span class="event-type ${e.type}">${e.type}</span>
-      <div>
-        <div class="event-msg">${escapeHtml(e.message)}</div>
-        <div class="event-obj">${escapeHtml(e.object)} · ${escapeHtml(e.namespace)} · count: ${e.count}</div>
-      </div>
-    </div>`).join('');
-  }
-
-  renderHelmSection() {
-    return this._state.helm.map(h => `<div class="helm-card">
-      <div class="helm-icon">⛵</div>
-      <div class="helm-info">
-        <h4>${escapeHtml(h.name)}</h4>
-        <small>${escapeHtml(h.chart)} · namespace: ${escapeHtml(h.namespace)} · revision: ${h.revision}</small>
-      </div>
-      <span class="pill ok">${escapeHtml(h.status)}</span>
-    </div>`).join('');
-  }
-
-  /* ─── Detail view ─── */
-  renderDetail(item, kind) {
-    const related = this.getRelatedResources(item);
-    const yamlKey = `${kind}/${item.namespace}/${item.name}`;
-    const yamlContent = this._state.yamlSaved[yamlKey]?.value || generateYaml(kind, item.name, item.namespace, item);
-
-    const relatedHtml = () => {
-      const parts = [];
-      if (related.deployment) parts.push(`
-        <div class="related-section"><h4>🚀 Deployment</h4></div>
-        <div class="related-cards">
-          <div class="related-card" data-nav="deployments" data-item="${escapeHtml(related.deployment.name)}">
-            <div class="rc-kind">Deployment</div>
-            <div class="rc-name">${escapeHtml(related.deployment.name)}</div>
-            <div class="rc-meta">Ready: ${escapeHtml(related.deployment.ready)} · ${escapeHtml(related.deployment.namespace)}</div>
-          </div>
-        </div>`);
-      if (related.statefulset) parts.push(`
-        <div class="related-section"><h4>💾 StatefulSet</h4></div>
-        <div class="related-cards">
-          <div class="related-card">
-            <div class="rc-kind">StatefulSet</div>
-            <div class="rc-name">${escapeHtml(related.statefulset.name)}</div>
-            <div class="rc-meta">Ready: ${escapeHtml(related.statefulset.ready)}</div>
-          </div>
-        </div>`);
-      if (related.services?.length) parts.push(`
-        <div class="related-section"><h4>🌐 Services</h4></div>
-        <div class="related-cards">${related.services.map(s => `
-          <div class="related-card" data-nav="services" data-item="${escapeHtml(s.name)}">
-            <div class="rc-kind">Service</div>
-            <div class="rc-name">${escapeHtml(s.name)}</div>
-            <div class="rc-meta">${escapeHtml(s.type)} · ${escapeHtml(s.clusterIP)}</div>
-          </div>`).join('')}
-        </div>`);
-      if (related.replicasets?.length) parts.push(`
-        <div class="related-section"><h4>🔄 ReplicaSets</h4></div>
-        <div class="related-cards">${related.replicasets.map(rs => `
-          <div class="related-card" data-nav="replicasets" data-item="${escapeHtml(rs.name)}">
-            <div class="rc-kind">ReplicaSet</div>
-            <div class="rc-name">${escapeHtml(rs.name)}</div>
-            <div class="rc-meta">Desired: ${rs.desired} · Ready: ${rs.ready}</div>
-          </div>`).join('')}
-        </div>`);
-      if (related.pods?.length) parts.push(`
-        <div class="related-section"><h4>⬡ Pods</h4></div>
-        <div class="related-cards">${related.pods.map(p => `
-          <div class="related-card" data-nav="pods" data-item="${escapeHtml(p.name)}">
-            <div class="rc-kind">Pod</div>
-            <div class="rc-name">${escapeHtml(p.name)}</div>
-            <div class="rc-meta"><span class="pill ${statusClass(p.status)}" style="font-size:10px">${escapeHtml(p.status)}</span> · restarts: ${p.restarts}</div>
-          </div>`).join('')}
-        </div>`);
-      return parts.join('');
-    };
-
-    const isPod = !!item.ip !== undefined && item.node !== undefined;
-    const isDeployment = item.replicas !== undefined;
-
-    const actionsHtml = isPod ? `
-      <div class="actions-row">
-        <button class="act act-primary btn-restart" data-pod="${escapeHtml(item.name)}">↺ Restart Pod</button>
-        <button class="act act-warn btn-logs" data-pod="${escapeHtml(item.name)}">📜 View Logs</button>
-        <button class="act act-danger btn-delete-pod" data-pod="${escapeHtml(item.name)}">🗑️ Delete Pod</button>
-      </div>` : isDeployment ? `
-      <div class="actions-row">
-        <button class="act act-green btn-scale" data-dep="${escapeHtml(item.name)}">⚖️ Scale</button>
-        <button class="act act-primary btn-restart-dep" data-dep="${escapeHtml(item.name)}">♻️ Rolling Restart</button>
-        <button class="act act-danger btn-delete-dep" data-dep="${escapeHtml(item.name)}">🗑️ Delete</button>
-      </div>` : '';
-
-    const statusField = item.status || item.ready || item.type || '—';
-
-    return `
-      <div class="detail-view">
-        <div class="detail-header">
-          <div class="kind-badge">${kind.toUpperCase()}</div>
-          <div class="info">
-            <h3>${escapeHtml(item.name)}</h3>
-            <div class="meta">
-              <span>📁 ${escapeHtml(item.namespace || '—')}</span>
-              <span><span class="pill ${statusClass(statusField)}">${escapeHtml(statusField)}</span></span>
-              ${item.node ? `<span>🖥️ ${escapeHtml(item.node)}</span>` : ''}
-              ${item.ip ? `<span>🔌 ${escapeHtml(item.ip)}</span>` : ''}
-              ${item.replicas !== undefined ? `<span>⚖️ ${item.replicas} replica${item.replicas!==1?'s':''}</span>` : ''}
-            </div>
-          </div>
-        </div>
-        ${actionsHtml}
-        <div>
-          <div class="detail-tabs">
-            <div class="tab ${this._state.activeTab==='overview'?'active':''}" data-tab="overview">Overview</div>
-            <div class="tab ${this._state.activeTab==='related'?'active':''}" data-tab="related">Related Resources</div>
-            <div class="tab ${this._state.activeTab==='yaml'?'active':''}" data-tab="yaml">YAML</div>
-            ${isPod ? `<div class="tab ${this._state.activeTab==='logs'?'active':''}" data-tab="logs">Logs</div>` : ''}
-          </div>
-          <div class="tab-content ${this._state.activeTab==='overview'?'active':''}">
-            <div class="info-grid">
-              ${Object.entries(item).filter(([k,v]) => typeof v !== 'object' && k !== 'labels' && k !== 'selector').map(([k,v]) => `
-                <div class="info-card"><div class="ic-label">${escapeHtml(k)}</div><div class="ic-value">${escapeHtml(String(v))}</div></div>
-              `).join('')}
-            </div>
-            ${item.labels ? `<div style="margin-top:12px"><div class="ic-label" style="margin-bottom:6px">LABELS</div><div class="label-chips">${Object.entries(item.labels).map(([k,v]) => `<span class="label-chip">${escapeHtml(k)}=${escapeHtml(v)}</span>`).join('')}</div></div>` : ''}
-            ${item.selector && Object.keys(item.selector).length ? `<div style="margin-top:12px"><div class="ic-label" style="margin-bottom:6px">SELECTOR</div><div class="label-chips">${Object.entries(item.selector).map(([k,v]) => `<span class="label-chip">${escapeHtml(k)}=${escapeHtml(v)}</span>`).join('')}</div></div>` : ''}
-          </div>
-          <div class="tab-content ${this._state.activeTab==='related'?'active':''}">
-            ${relatedHtml() || '<div class="empty">No related resource found</div>'}
-          </div>
-          <div class="tab-content ${this._state.activeTab==='yaml'?'active':''}">
-            <div style="margin-bottom:8px;font-size:12px;color:#92a3ca">Modifica il YAML e salva localmente. In produzione questo aggiorna la risorsa via kubectl apply.</div>
-            <textarea class="yaml-editor" id="yaml-editor-${escapeHtml(item.name)}">${escapeHtml(yamlContent)}</textarea>
-            <div class="yaml-actions">
-              <button class="act act-green btn-save-yaml" data-key="${escapeHtml(yamlKey)}">💾 Salva YAML</button>
-              <button class="act act-primary btn-copy-yaml" data-key="${escapeHtml(yamlKey)}">📋 Copia</button>
-              <span class="yaml-status ${this._state.yamlSaved[yamlKey]?'show':''}" id="yaml-status">✅ Salvato il ${this._state.yamlSaved[yamlKey]?.savedAt ? new Date(this._state.yamlSaved[yamlKey].savedAt).toLocaleTimeString('it-IT') : ''}</span>
-            </div>
-          </div>
-          ${isPod ? `<div class="tab-content ${this._state.activeTab==='logs'?'active':''}">
-            <div class="log-controls">
-              <span class="pill neutral">📜 Container logs</span>
-              <span style="font-size:12px;color:#92a3ca">Simulati — in produzione via kubectl logs</span>
-            </div>
-            <div class="log-area">${generateLogs(item.name, item.status).split('\n').map(line => {
-              const cls = line.includes('ERROR')||line.includes('error') ? 'error' : line.includes('WARN') ? 'warn' : line.includes('FATAL') ? 'fatal' : 'info';
-              return `<div class="log-line ${cls}">${escapeHtml(line)}</div>`;
-            }).join('')}</div>
-          </div>` : ''}
-        </div>
-      </div>
-    `;
-  }
-
-  renderPanel() {
-    const section = this._state.activeSection;
-    const selected = this._state.selectedItem;
-
-    if (selected) {
-      const kindMap = { pods:'Pod', deployments:'Deployment', services:'Service', replicasets:'ReplicaSet', statefulsets:'StatefulSet' };
-      const kind = kindMap[section] || section;
-      return `
-        <div class="panel-header">
-          <button class="act act-primary" id="btn-back">← Torna a ${section}</button>
-          <h3>${kind}: ${escapeHtml(selected.name)}</h3>
-        </div>
-        ${this.renderDetail(selected, kind)}
-      `;
-    }
-
-    const tableMap = {
-      overview: () => this.renderOverview(),
-      pods: () => `<div class="panel-header"><h3>⬡ Pods</h3><small>${this.filteredBy(this._state.pods).length} resources</small><input class="search-box" placeholder="Search pods…" id="search-input" value="${escapeHtml(this._state.search)}"></div>${this.renderPodsTable()}`,
-      deployments: () => `<div class="panel-header"><h3>🚀 Deployments</h3><small>${this.filteredBy(this._state.deployments).length} resources</small><input class="search-box" placeholder="Search deployments…" id="search-input" value="${escapeHtml(this._state.search)}"></div>${this.renderDeploymentsTable()}`,
-      services: () => `<div class="panel-header"><h3>🌐 Services</h3><small>${this.filteredBy(this._state.services).length} resources</small><input class="search-box" placeholder="Search services…" id="search-input" value="${escapeHtml(this._state.search)}"></div>${this.renderServicesTable()}`,
-      replicasets: () => `<div class="panel-header"><h3>🔄 ReplicaSets</h3><small>${this.filteredBy(this._state.replicasets).length} resources</small></div>${this.renderReplicaSetsTable()}`,
-      statefulsets: () => `<div class="panel-header"><h3>💾 StatefulSets</h3></div>${this.renderStatefulSetsTable()}`,
-      configmaps: () => `<div class="panel-header"><h3>📋 ConfigMaps</h3></div>${this.renderConfigMapsTable()}`,
-      secrets: () => `<div class="panel-header"><h3>🔐 Secrets</h3></div>${this.renderSecretsTable()}`,
-      nodes: () => `<div class="panel-header"><h3>🖥️ Nodes</h3></div>${this.renderNodesSection()}`,
-      events: () => `<div class="panel-header"><h3>⚡ Events</h3></div>${this.renderEventsSection()}`,
-      helm: () => `<div class="panel-header"><h3>⛵ Helm Releases</h3></div>${this.renderHelmSection()}`,
-    };
-    return tableMap[section] ? tableMap[section]() : `<div class="empty">Sezione non trovata</div>`;
-  }
-
-  renderScaleModal() {
-    const dep = this._state.scaleModal;
-    if (!dep) return '';
-    return `<div class="modal-backdrop" id="modal-scale">
-      <div class="modal">
-        <h3>⚖️ Scale Deployment: ${escapeHtml(dep.name)}</h3>
-        <div style="font-size:13px;color:#92a3ca;margin-bottom:8px">Repliche attuali: <b style="color:#fff">${dep.replicas}</b></div>
-        <label style="font-size:13px">New replicas:</label>
-        <input type="number" class="modal-input" id="scale-input" value="${dep.replicas}" min="0" max="20">
-        <div class="modal-actions">
-          <button class="act act-primary" id="btn-scale-cancel">Annulla</button>
-          <button class="act act-green" id="btn-scale-confirm">✅ Applica</button>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  renderConfirmModal() {
-    const m = this._state.confirmModal;
-    if (!m) return '';
-    return `<div class="modal-backdrop" id="modal-confirm">
-      <div class="modal">
-        <h3>${escapeHtml(m.title)}</h3>
-        <p style="font-size:13px;color:#92a3ca;margin-bottom:16px">${escapeHtml(m.message)}</p>
-        <div class="modal-actions">
-          <button class="act act-primary" id="btn-confirm-cancel">Annulla</button>
-          <button class="act act-danger" id="btn-confirm-ok">🗑️ Elimina</button>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  renderToast() {
-    const t = this._state.toast;
-    if (!t) return '';
-    return `<div class="toast toast-${t.type} show">${escapeHtml(t.msg)}</div>`;
-  }
-
-  render() {
-    const nsOptions = ['all', ...this._state.namespaces].map(n =>
-      `<option value="${n}" ${this._state.activeNs === n ? 'selected' : ''}>${n}</option>`).join('');
-
-    this.shadowRoot.innerHTML = `
-      <style>${CSS}</style>
-      <div class="shell">
-        <div class="topbar">
-          <div class="topbar-title">
-            <div class="cube">N22</div>
-            <div><h2>OpenLens Kubernetes</h2><small>NEBULAOPS MFE · RUNTIME · K8s</small></div>
-          </div>
-          <span class="cluster-badge">☸️ cluster: nebulaops-local</span>
-          <select class="ns-select" id="ns-select">${nsOptions}</select>
-          <button class="refresh-btn" id="btn-refresh">⟳ Refresh</button>
-          <span style="margin-left:auto;font-size:12px;color:#92a3ca">3 nodes · K8s v1.30.2</span>
-        </div>
-        <div class="body">
-          <nav class="sidetree">${this.renderSideTree()}</nav>
-          <main class="panel">${this.renderPanel()}</main>
-        </div>
-      </div>
-      ${this.renderScaleModal()}
-      ${this.renderConfirmModal()}
-      ${this.renderToast()}
-    `;
-    this._attachEvents();
-  }
-
-  _attachEvents() {
-    const sr = this.shadowRoot;
-
-    /* Namespace select */
-    sr.getElementById('ns-select')?.addEventListener('change', e => {
-      this._state.activeNs = e.target.value;
-      this._state.selectedItem = null;
-      this.render();
-    });
-
-    /* Refresh */
-    sr.getElementById('btn-refresh')?.addEventListener('click', () => {
-      this.showToast('🔄 Cluster data refreshed');
-    });
-
-    /* Search */
-    sr.getElementById('search-input')?.addEventListener('input', e => {
-      this._state.search = e.target.value;
-      this.render();
-    });
-
-    /* Back button */
-    sr.getElementById('btn-back')?.addEventListener('click', () => {
-      this._state.selectedItem = null;
-      this._state.activeTab = 'overview';
-      this.render();
-    });
-
-    /* Sidetree navigation */
-    sr.querySelectorAll('.tree-item[data-nav]').forEach(el => {
-      el.addEventListener('click', () => {
-        const nav = el.dataset.nav;
-        this._state.selectedItem = null;
-        this.navigate(nav);
-      });
-    });
-
-    /* Name links for detail */
-    sr.querySelectorAll('[data-detail]').forEach(el => {
-      el.addEventListener('click', () => {
-        const name = el.dataset.detail;
-        const section = this._state.activeSection;
-        const data = this._state[section];
-        const item = data?.find(i => i.name === name);
-        if (item) { this._state.selectedItem = item; this.render(); }
-      });
-    });
-
-    /* Cross-resource nav links */
-    sr.querySelectorAll('[data-nav][data-item]').forEach(el => {
-      el.addEventListener('click', () => {
-        const nav = el.dataset.nav;
-        const itemName = el.dataset.item;
-        const data = this._state[nav];
-        const item = data?.find(i => i.name === itemName);
-        if (item) {
-          this._state.activeNs = item.namespace || this._state.activeNs;
-          this._state.activeSection = nav;
-          this._state.selectedItem = item;
-          this._state.activeTab = 'overview';
-          this.render();
-        }
-      });
-    });
-
-    /* Tabs */
-    sr.querySelectorAll('.tab[data-tab]').forEach(el => {
-      el.addEventListener('click', () => {
-        this._state.activeTab = el.dataset.tab;
-        this.render();
-      });
-    });
-
-    /* Restart pod buttons */
-    sr.querySelectorAll('.btn-restart[data-pod]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        const pod = this._state.pods.find(p => p.name === el.dataset.pod);
-        if (pod) this.restartPod(pod);
-      });
-    });
-
-    /* Delete pod */
-    sr.querySelectorAll('.btn-delete-pod[data-pod]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        const podName = el.dataset.pod;
-        const pod = this._state.pods.find(p => p.name === podName);
-        if (!pod) return;
-        this._state.confirmModal = {
-          title: `Elimina Pod: ${podName}`,
-          message: `Sei sicuro di voler eliminare il pod "${podName}"? Kubernetes ne creerà uno nuovo se gestito da un controller.`,
-          action: () => this.deletePod(pod)
-        };
-        this.render();
-      });
-    });
-
-    /* Scale deployment */
-    sr.querySelectorAll('.btn-scale[data-dep]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        const dep = this._state.deployments.find(d => d.name === el.dataset.dep);
-        if (dep) { this._state.scaleModal = dep; this.render(); }
-      });
-    });
-
-    /* Restart deployment */
-    sr.querySelectorAll('.btn-restart-dep[data-dep]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        const dep = this._state.deployments.find(d => d.name === el.dataset.dep);
-        if (dep) this.restartDeployment(dep);
-      });
-    });
-
-    /* Delete deployment */
-    sr.querySelectorAll('.btn-delete-dep[data-dep]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        const depName = el.dataset.dep;
-        const dep = this._state.deployments.find(d => d.name === depName);
-        if (!dep) return;
-        this._state.confirmModal = {
-          title: `Elimina Deployment: ${depName}`,
-          message: `Sei sicuro di voler eliminare il deployment "${depName}" e tutti i pod gestiti?`,
-          action: () => this.deleteDeployment(dep)
-        };
-        this.render();
-      });
-    });
-
-    /* YAML Save */
-    sr.querySelectorAll('.btn-save-yaml[data-key]').forEach(el => {
-      el.addEventListener('click', () => {
-        const key = el.dataset.key;
-        const editorId = `yaml-editor-${key.split('/').pop()}`;
-        const textarea = sr.querySelector('.yaml-editor');
-        if (textarea) this.saveYaml(key, textarea.value);
-      });
-    });
-
-    /* YAML Copy */
-    sr.querySelectorAll('.btn-copy-yaml').forEach(el => {
-      el.addEventListener('click', () => {
-        const textarea = sr.querySelector('.yaml-editor');
-        if (textarea) {
-          navigator.clipboard.writeText(textarea.value).then(() => this.showToast('📋 YAML copiato negli appunti'));
-        }
-      });
-    });
-
-    /* Scale modal */
-    sr.getElementById('btn-scale-cancel')?.addEventListener('click', () => {
-      this._state.scaleModal = null; this.render();
-    });
-    sr.getElementById('btn-scale-confirm')?.addEventListener('click', () => {
-      const val = parseInt(sr.getElementById('scale-input')?.value || '0');
-      if (!isNaN(val) && val >= 0) this.scaleDeployment(this._state.scaleModal, val);
-    });
-
-    /* Confirm modal */
-    sr.getElementById('btn-confirm-cancel')?.addEventListener('click', () => {
-      this._state.confirmModal = null; this.render();
-    });
-    sr.getElementById('btn-confirm-ok')?.addEventListener('click', () => {
-      this._state.confirmModal?.action?.();
-    });
-
-    /* Logs btn from overview table */
-    sr.querySelectorAll('.btn-logs[data-pod]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        const pod = this._state.pods.find(p => p.name === el.dataset.pod);
-        if (pod) { this._state.selectedItem = pod; this._state.activeTab = 'logs'; this.render(); }
-      });
-    });
-
-    /* Related resource cards */
-    sr.querySelectorAll('.related-card[data-nav]').forEach(el => {
-      el.addEventListener('click', () => {
-        const nav = el.dataset.nav;
-        const name = el.dataset.item;
-        const data = this._state[nav];
-        const item = data?.find(i => i.name === name);
-        if (item) {
-          this._state.activeSection = nav;
-          this._state.selectedItem = item;
-          this._state.activeTab = 'overview';
-          this.render();
-        }
-      });
-    });
-  }
+:host{display:block;color:#eaf3ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#071024;--panel:#0d1831;--panel2:#111d3a;--line:#213654;--muted:#89a0c3;--accent:#34d3ff;--ok:#2dd4bf;--warn:#fbbf24;--bad:#fb7185;--violet:#8b5cf6}*{box-sizing:border-box}.mfe{min-height:100vh;background:radial-gradient(circle at 10% 0%,rgba(34,211,238,.18),transparent 30%),linear-gradient(135deg,#071024,#0a1024 58%,#121436);padding:34px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:24px}.title{display:flex;align-items:center;gap:18px}.icon{width:72px;height:72px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,#1bb7ff,#8b5cf6);box-shadow:0 18px 50px rgba(0,0,0,.28);font-size:34px}.eyebrow{color:#79e7ff;font-weight:900;letter-spacing:.24em;text-transform:uppercase;font-size:12px}.h1{font-size:38px;line-height:1.04;margin:6px 0 6px;font-weight:1000;letter-spacing:-.04em}.sub{color:#b9c8e7;font-size:15px;max-width:900px;line-height:1.45}.top-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid #2b4264;background:#111d37;color:#eaf3ff;border-radius:13px;padding:10px 14px;font-weight:850;cursor:pointer;transition:.15s}.btn:hover{transform:translateY(-1px);border-color:#45d8ff}.btn.primary{background:linear-gradient(135deg,#1fb6ff,#7c3aed);border:0}.btn.danger{border-color:#7f1d1d;color:#fecaca}.btn.warn{border-color:#a16207;color:#fde68a}.btn.ok{border-color:#0f766e;color:#99f6e4}.btn:disabled{opacity:.38;cursor:not-allowed;transform:none}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.metric{background:linear-gradient(180deg,rgba(16,29,58,.94),rgba(11,20,43,.94));border:1px solid #263b61;border-radius:18px;padding:16px}.metric .label{color:#8fb0df;font-size:12px}.metric .value{font-size:28px;font-weight:1000;margin-top:7px}.shell{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px}.side{border:1px solid #263b61;border-radius:22px;background:rgba(9,18,40,.72);padding:14px;position:sticky;top:16px;align-self:start}.sectionTitle{color:#79e7ff;font-weight:950;letter-spacing:.14em;text-transform:uppercase;font-size:12px;margin:8px 8px 14px}.navbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 12px;margin:5px 0;border:1px solid transparent;border-radius:14px;background:transparent;color:#c8d7f3;text-align:left;font-weight:850;cursor:pointer}.navbtn:hover,.navbtn.active{background:#0d3554;border-color:#1d81aa;color:#fff}.pill{padding:3px 9px;border-radius:999px;background:#123a58;color:#7ee8ff;font-size:12px;border:1px solid #1d6d91}.content{border:1px solid #263b61;border-radius:22px;background:rgba(9,18,40,.72);overflow:hidden}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #263b61}.toolbar h2{margin:0;font-size:18px}.search{background:#0b142c;color:#eaf3ff;border:1px solid #263b61;border-radius:13px;padding:10px 13px;min-width:260px}.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:820px}.table th{color:#7ee8ff;font-size:11px;text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:12px 14px;border-bottom:1px solid #263b61}.table td{padding:12px 14px;border-bottom:1px solid rgba(38,59,97,.65);vertical-align:top}.rowTitle{font-weight:900;color:#fff}.muted{color:#8ea2c5;font-size:12px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:850;background:#17233f;border:1px solid #2c4168}.status.ok{color:#99f6e4;border-color:#0f766e}.status.warn{color:#fde68a;border-color:#a16207}.status.bad{color:#fecaca;border-color:#7f1d1d}.actions{display:flex;gap:7px;flex-wrap:wrap}.small{font-size:12px;padding:7px 9px;border-radius:10px}.empty{padding:48px 20px;text-align:center;color:#acc0de}.empty b{display:block;color:#fff;margin-bottom:8px}.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{border:1px solid #263b61;border-radius:20px;background:rgba(10,19,42,.76);padding:16px}.card h3{margin:0 0 12px}.raw{white-space:pre-wrap;background:#050b1b;border:1px solid #22395e;border-radius:14px;padding:12px;max-height:300px;overflow:auto;color:#bfd1ee;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}.toast{position:fixed;right:24px;bottom:24px;background:#071024;border:1px solid #36d7ff;color:#fff;border-radius:16px;padding:14px 18px;box-shadow:0 18px 60px rgba(0,0,0,.42);z-index:99999}.diag{margin-top:10px;color:#fca5a5;font-size:12px}.badgeRow{display:flex;gap:8px;flex-wrap:wrap}.link{color:#7ee8ff;text-decoration:none}.link:hover{text-decoration:underline}@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.shell{grid-template-columns:1fr}.split{grid-template-columns:1fr}.top{flex-direction:column}.search{min-width:0;width:100%}}`;
+const h = (s)=>String(s??'');
+const esc = (s)=>h(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const short = (s,n=12)=>{s=h(s);return s.length>n?s.slice(0,n):s};
+const lower = s => h(s).toLowerCase();
+const nowTime = () => new Date().toLocaleTimeString();
+function statusClass(s){s=lower(s); if(s.includes('run')||s.includes('up')||s.includes('ready')||s==='true'||s.includes('active')) return 'ok'; if(s.includes('warn')||s.includes('pending')||s.includes('created')) return 'warn'; if(s.includes('error')||s.includes('fail')||s.includes('exit')||s.includes('crash')||s.includes('unauth')) return 'bad'; return '';}
+function normalizeItems(payload){
+  if(Array.isArray(payload)) return payload;
+  if(!payload || typeof payload!=='object') return [];
+  if(Array.isArray(payload.items)) return payload.items;
+  if(Array.isArray(payload.data)) return payload.data;
+  if(payload.data && Array.isArray(payload.data.items)) return payload.data.items;
+  if(payload.data && Array.isArray(payload.data.result)) return payload.data.result;
+  if(payload.result && Array.isArray(payload.result)) return payload.result;
+  if(payload.content && Array.isArray(payload.content)) return payload.content;
+  return [];
 }
+function flatten(obj){
+  const o = obj || {};
+  const md = o.metadata || {};
+  const st = o.status || {};
+  const spec = o.spec || {};
+  const names = Array.isArray(o.Names) ? o.Names : [];
+  return {
+    id: h(o.id || o.Id || md.uid || o.name || md.name || o.ID),
+    name: h(o.name || o.Name || md.name || (names[0]||'').replace(/^\//,'') || o.repository || o.Repository || o.RepoTags?.[0] || o.Id || ''),
+    namespace: h(o.namespace || md.namespace || o.Namespace || ''),
+    image: h(o.image || o.Image || (spec.template && spec.template.spec && spec.template.spec.containers && spec.template.spec.containers[0] && spec.template.spec.containers[0].image) || (spec.containers && spec.containers[0] && spec.containers[0].image) || ''),
+    status: h(o.state || o.State || o.status || st.phase || o.Status || o.ready || ''),
+    created: h(o.created || o.CreatedAt || o.Created || md.creationTimestamp || ''),
+    ports: h(o.ports || o.Ports || ''),
+    size: h(o.size || o.Size || o.VirtualSize || ''),
+    ready: h(o.ready || (st.readyReplicas!=null && spec.replicas!=null ? `${st.readyReplicas}/${spec.replicas}` : '') || ''),
+    replicas: (o.replicas ?? spec.replicas ?? st.replicas ?? ''),
+    kind: h(o.kind || ''),
+    raw: o
+  };
+}
+class BaseMfe extends HTMLElement{
+  constructor(){super(); this.attachShadow({mode:'open'}); this.state={loading:false,lastRefresh:'-',errors:{},data:{},active:'',filter:'',toast:'',raw:null}; this.config={};}
+  connectedCallback(){ if(this._connected) return; this._connected=true; this.state.active=this.config.tabs?.[0]?.id||''; this.render(); this.refresh(); }
+  qs(sel){return this.shadowRoot.querySelector(sel)}
+  qsa(sel){return Array.from(this.shadowRoot.querySelectorAll(sel))}
+  setState(p){Object.assign(this.state,p); this.render();}
+  toast(msg){this.state.toast=msg; this.render(); setTimeout(()=>{this.state.toast=''; this.render();},3600)}
+  async request(url, opts={}, retry=true){
+    const headers=Object.assign({'Accept':'application/json'}, opts.headers||{});
+    if(opts.body && !headers['Content-Type']) headers['Content-Type']='application/json';
+    const res=await fetch(url, Object.assign({cache:'no-store'}, opts, {headers}));
+    if(res.status===401 && retry && window.__NEBULAOPS_REFRESH_TOKEN__){
+      try{ await window.__NEBULAOPS_REFRESH_TOKEN__(); }catch(_){ }
+      return this.request(url, opts, false);
+    }
+    const text=await res.text(); let body=text; try{ body=text?JSON.parse(text):null; }catch(_){ }
+    if(!res.ok){ const e=new Error(`${res.status} ${res.statusText}`); e.status=res.status; e.body=body; throw e; }
+    return body;
+  }
+  async refresh(){
+    this.state.loading=true; this.state.errors={}; this.render();
+    const data={}; const errors={};
+    await Promise.all((this.config.tabs||[]).map(async t=>{
+      try{ data[t.id]=await this.request(t.url); }catch(e){ errors[t.id]=`${e.status||''} ${e.message||e}`.trim() + (e.body && e.body.error ? ` · ${e.body.error}` : ''); data[t.id]=null; }
+    }));
+    this.state.data=data; this.state.errors=errors; this.state.lastRefresh=nowTime(); this.state.loading=false; this.render();
+  }
+  tabItems(id){ return normalizeItems(this.state.data[id]).map(flatten); }
+  filterItems(items){const q=lower(this.state.filter); if(!q) return items; return items.filter(x=>lower(JSON.stringify(x.raw)).includes(q)||lower(x.name).includes(q)||lower(x.id).includes(q)||lower(x.namespace).includes(q)||lower(x.image).includes(q));}
+  metrics(){const tabs=this.config.tabs||[]; const total=tabs.reduce((a,t)=>a+this.tabItems(t.id).length,0); const ok=tabs.length-Object.keys(this.state.errors).length; return {endpoints:tabs.length, live:ok, records:total, unavailable:Object.keys(this.state.errors).length};}
+  render(){
+    const m=this.metrics(); const active=(this.config.tabs||[]).find(t=>t.id===this.state.active) || (this.config.tabs||[])[0] || {}; const rows=this.filterItems(this.tabItems(active.id));
+    this.shadowRoot.innerHTML=`<style>${CSS}</style><div class="mfe"><div class="top"><div class="title"><div class="icon">${esc(this.config.icon||'◇')}</div><div><div class="eyebrow">${esc(this.config.eyebrow||'NebulaOps')}</div><div class="h1">${esc(this.config.title||'Module')}</div><div class="sub">${esc(this.config.subtitle||'')}</div></div></div><div class="top-actions"><button class="btn primary" data-act="refresh">${this.state.loading?'Refreshing...':'Refresh live data'}</button><a class="btn" href="/remoteEntry.js" target="_blank">remoteEntry.js</a></div></div>${this.renderBody(m,active,rows)}</div>${this.state.toast?`<div class="toast">${esc(this.state.toast)}</div>`:''}`;
+    this.shadowRoot.querySelector('[data-act="refresh"]')?.addEventListener('click',()=>this.refresh());
+    this.shadowRoot.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{this.state.active=b.getAttribute('data-tab');this.render();}));
+    this.shadowRoot.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>this.handleAction(b.getAttribute('data-action'), b.getAttribute('data-id'), b.getAttribute('data-tab'))));
+    const search=this.shadowRoot.querySelector('[data-search]'); if(search){search.value=this.state.filter; search.addEventListener('input',e=>{this.state.filter=e.target.value;this.render();});}
+  }
+  renderBody(m,active,rows){ return `<div class="grid"><div class="metric"><div class="label">Endpoint checks</div><div class="value">${m.endpoints}</div></div><div class="metric"><div class="label">Live sources</div><div class="value">${m.live}</div></div><div class="metric"><div class="label">Records returned</div><div class="value">${m.records}</div></div><div class="metric"><div class="label">Unavailable sources</div><div class="value">${m.unavailable}</div></div></div><div class="shell"><div class="side"><div class="sectionTitle">Live endpoints</div>${(this.config.tabs||[]).map(t=>`<button class="navbtn ${this.state.active===t.id?'active':''}" data-tab="${esc(t.id)}"><span>${esc(t.label)}</span><span class="pill">${this.tabItems(t.id).length}</span></button>`).join('')}</div><div class="content"><div class="toolbar"><h2>${esc(active.label||'Endpoint')}</h2><input class="search" data-search placeholder="Filter current endpoint..."></div>${this.renderTable(active,rows)}</div></div>`; }
+  renderTable(active, rows){
+    const err=this.state.errors[active.id];
+    if(err) return `<div class="empty"><b>Live endpoint unavailable</b><span>${esc(active.url)}</span><div class="diag">${esc(err)}</div></div>`;
+    if(!rows.length) return `<div class="empty"><b>No records returned by this live endpoint.</b><span>Endpoint: ${esc(active.url||'')}</span></div>`;
+    return `<div class="tableWrap"><table class="table"><thead><tr>${(active.columns||['Name','Status','Details','Actions']).map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(x=>this.renderRow(active,x)).join('')}</tbody></table></div>`;
+  }
+  renderRow(active,x){return `<tr><td><div class="rowTitle">${esc(x.name||short(x.id))}</div><div class="muted">${esc(short(x.id,18))}</div></td><td><span class="status ${statusClass(x.status)}">${esc(x.status||'-')}</span></td><td><div class="muted">${esc(x.namespace||x.image||x.ports||x.size||x.created||'-')}</div></td><td><div class="actions">${this.renderActions(active,x)}</div></td></tr>`}
+  renderActions(active,x){return `<button class="btn small" data-action="raw" data-tab="${esc(active.id)}" data-id="${esc(x.id||x.name)}">Raw</button>`}
+  findItem(tab,id){return this.tabItems(tab).find(x=>(x.id||x.name)===id) || this.tabItems(tab).find(x=>x.name===id)}
+  async handleAction(action,id,tab){ if(action==='raw'){ const item=this.findItem(tab,id); this.toast(JSON.stringify(item?.raw||{},null,2).slice(0,900)); return; } }
+}
+window.__NebulaBaseMfe=BaseMfe; window.__NebulaMfeHelpers={esc,short,flatten,normalizeItems,statusClass};
+})();
 
-customElements.define('nebulaops-mfe-openlens-kubernetes', NebulaopsMfeOpenlensKubernetes);
+
+(function(){
+'use strict';
+const Base = window.__NebulaBaseMfe; const {esc,short,statusClass}=window.__NebulaMfeHelpers;
+class OpenLensMfe extends Base{
+ constructor(){super();this.config={icon:'☸️',eyebrow:'Runtime · Kubernetes',title:'OpenLens Kubernetes',subtitle:'Dedicated Kubernetes console with live namespaces, pods, deployments, services, events and Helm actions. Empty tables mean kubectl returned no live records.',tabs:[
+  {id:'cluster',label:'Cluster snapshot',url:'/api/kubernetes/snapshot',columns:['Resource','Status','Details','Actions']},
+  {id:'nodes',label:'Nodes',url:'/api/kubernetes/nodes',columns:['Node','Status','Roles','Actions']},
+  {id:'namespaces',label:'Namespaces',url:'/api/kubernetes/namespaces',columns:['Namespace','Status','Age','Actions']},
+  {id:'pods',label:'Pods',url:'/api/kubernetes/resources?kind=pods&namespace=all',columns:['Pod','Status','Namespace / Image','Actions']},
+  {id:'deployments',label:'Deployments',url:'/api/kubernetes/resources?kind=deployments&namespace=all',columns:['Deployment','Ready','Namespace / Replicas','Actions']},
+  {id:'services',label:'Services',url:'/api/kubernetes/resources?kind=services&namespace=all',columns:['Service','Type','Namespace / Ports','Actions']},
+  {id:'events',label:'Events',url:'/api/kubernetes/events?namespace=all',columns:['Event','Type','Object / Message','Actions']},
+  {id:'helm',label:'Helm releases',url:'/api/runtime/helm/releases?namespace=all',columns:['Release','Status','Namespace / Chart','Actions']}
+ ]}}
+ tabItems(id){
+  if(id==='cluster'){
+    const p=this.state.data[id]||{}; const rows=[]; ['cluster','nodes','pods','deployments','services','events'].forEach(k=>{if(p[k]) rows.push({id:k,name:k,status:p[k].status||p[k].live||'',namespace:'',image:p[k].toolStatus?.note||'',raw:p[k]});}); return rows;
+  }
+  return super.tabItems(id);
+ }
+ renderRow(active,x){return `<tr><td><div class="rowTitle">${esc(x.name||short(x.id))}</div><div class="muted">${esc(short(x.id,20))}</div></td><td><span class="status ${statusClass(x.status||x.ready)}">${esc(x.ready||x.status||'-')}</span></td><td><div>${esc(x.namespace||x.raw?.metadata?.namespace||'')}</div><div class="muted">${esc(x.image||x.raw?.message||x.raw?.reason||x.raw?.chart||x.raw?.type||'')}</div></td><td><div class="actions">${this.renderActions(active,x)}</div></td></tr>`;}
+ renderActions(active,x){const id=esc(x.id||x.name); const ns=esc(x.namespace||x.raw?.metadata?.namespace||'default');
+  if(active.id==='pods') return `<button class="btn small" data-action="pod-logs" data-tab="${active.id}" data-id="${id}">Logs</button><button class="btn small" data-action="pod-describe" data-tab="${active.id}" data-id="${id}">Describe</button><button class="btn small warn" data-action="pod-restart" data-tab="${active.id}" data-id="${id}">Restart</button><button class="btn small danger" data-action="pod-delete" data-tab="${active.id}" data-id="${id}">Delete</button>`;
+  if(active.id==='deployments') return `<button class="btn small ok" data-action="deployment-scale" data-tab="${active.id}" data-id="${id}">Scale</button><button class="btn small warn" data-action="deployment-restart" data-tab="${active.id}" data-id="${id}">Restart</button><button class="btn small" data-action="deployment-yaml" data-tab="${active.id}" data-id="${id}">YAML</button><button class="btn small" data-action="deployment-describe" data-tab="${active.id}" data-id="${id}">Describe</button>`;
+  if(active.id==='services') return `<button class="btn small" data-action="service-yaml" data-tab="${active.id}" data-id="${id}">YAML</button><button class="btn small" data-action="service-describe" data-tab="${active.id}" data-id="${id}">Describe</button>`;
+  if(active.id==='nodes') return `<button class="btn small warn" data-action="node-cordon" data-tab="${active.id}" data-id="${id}">Cordon</button><button class="btn small ok" data-action="node-uncordon" data-tab="${active.id}" data-id="${id}">Uncordon</button><button class="btn small danger" data-action="node-drain" data-tab="${active.id}" data-id="${id}">Drain</button><button class="btn small" data-action="node-describe" data-tab="${active.id}" data-id="${id}">Describe</button>`;
+  return `<button class="btn small" data-action="raw" data-tab="${active.id}" data-id="${id}">Raw</button>`;}
+ async handleAction(action,id,tab){const item=this.findItem(tab,id)||{}; const name=encodeURIComponent(item.name||id); const ns=encodeURIComponent(item.namespace||item.raw?.metadata?.namespace||'default');
+  try{let r;
+   if(action==='pod-logs') r=await this.request(`/api/kubernetes/pods/${ns}/${name}/logs?tail=120`);
+   else if(action==='pod-describe') r=await this.request(`/api/kubernetes/pods/${ns}/${name}/describe`);
+   else if(action==='pod-restart') r=await this.request(`/api/kubernetes/pods/${ns}/${name}/restart`,{method:'POST'});
+   else if(action==='pod-delete') { if(!confirm(`Delete pod ${item.name}?`)) return; r=await this.request(`/api/kubernetes/pods/${ns}/${name}`,{method:'DELETE'}); await this.refresh(); }
+   else if(action==='deployment-scale') { const replicas=prompt('Replicas', String(item.replicas||1)); if(replicas===null) return; r=await this.request(`/api/kubernetes/deployments/${ns}/${name}/scale`,{method:'POST',body:JSON.stringify({replicas:Number(replicas)})}); await this.refresh(); }
+   else if(action==='deployment-restart') { r=await this.request(`/api/kubernetes/deployments/${ns}/${name}/restart`,{method:'POST'}); await this.refresh(); }
+   else if(action==='deployment-yaml') r=await this.request(`/api/kubernetes/deployments/${ns}/${name}/yaml`);
+   else if(action==='deployment-describe') r=await this.request(`/api/kubernetes/deployments/${ns}/${name}/describe`);
+   else if(action==='service-yaml') r=await this.request(`/api/kubernetes/services/${ns}/${name}/yaml`);
+   else if(action==='service-describe') r=await this.request(`/api/kubernetes/services/${ns}/${name}/describe`);
+   else if(action==='node-cordon') { r=await this.request(`/api/kubernetes/nodes/${name}/cordon`,{method:'POST'}); await this.refresh(); }
+   else if(action==='node-uncordon') { r=await this.request(`/api/kubernetes/nodes/${name}/uncordon`,{method:'POST'}); await this.refresh(); }
+   else if(action==='node-drain') { if(!confirm(`Drain node ${item.name}?`)) return; r=await this.request(`/api/kubernetes/nodes/${name}/drain`,{method:'POST'}); await this.refresh(); }
+   else if(action==='node-describe') r=await this.request(`/api/kubernetes/nodes/${name}/describe`);
+   else return super.handleAction(action,id,tab);
+   this.toast((r?.stdout||r?.stderr||r?.message||JSON.stringify(r,null,2)||'OK').slice(0,1400));
+  }catch(e){this.toast(`${action} failed: ${e.body?.error||e.message||e}`);}}
+}
+if(!customElements.get('nebulaops-mfe-openlens-kubernetes')) customElements.define('nebulaops-mfe-openlens-kubernetes',OpenLensMfe);
+})();

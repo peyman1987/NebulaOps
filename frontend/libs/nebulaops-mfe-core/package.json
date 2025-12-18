@@ -1,9 +1,0 @@
-{
-  "name": "@nebulaops/mfe-core",
-  "version": "22.2.0",
-  "private": true,
-  "sideEffects": false,
-  "exports": {
-    ".": "./src/public-api.ts"
-  }
-}

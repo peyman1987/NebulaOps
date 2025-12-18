@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-PROJECT_NAME=${COMPOSE_PROJECT_NAME:-nebulaops-v22-2}
+PROJECT_NAME=${COMPOSE_PROJECT_NAME:-nebulaops-v22-3}
 SERVICES=(gateway-service devsecops-service pipeline-engine-service gitops-control-service environment-manager-service terraform-studio-service ai-ops-service)
 for svc in "${SERVICES[@]}"; do
   cid=$(docker compose -p "$PROJECT_NAME" ps -q "$svc" 2>/dev/null || true)

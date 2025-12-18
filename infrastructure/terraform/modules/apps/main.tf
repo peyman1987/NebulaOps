@@ -1,7 +1,7 @@
 variable "namespace" { type = string }
 
 resource "local_file" "helm_values" {
-  filename = "${path.root}/../infrastructure/helm/nebulaops/values.v18.generated.yaml"
+  filename = "${path.root}/../infrastructure/helm/nebulaops/values.v22-3.generated.yaml"
   content  = <<YAML
 namespace: ${var.namespace}
 frontend:
