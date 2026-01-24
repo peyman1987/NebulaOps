@@ -1,0 +1,40 @@
+{
+  "endpoints": [
+    {
+      "label": "Overview",
+      "url": "/api/progressive-delivery/overview?namespace=all",
+      "kind": "overview",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Rollouts",
+      "url": "/api/progressive-delivery/rollouts?namespace=all",
+      "kind": "rollout",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Argo CD applications",
+      "url": "/api/progressive-delivery/applications",
+      "kind": "application",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Analysis runs",
+      "url": "/api/progressive-delivery/analysis-runs?namespace=all",
+      "kind": "analysisRun",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Experiments",
+      "url": "/api/progressive-delivery/experiments?namespace=all",
+      "kind": "experiment",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Progressive delivery audit",
+      "url": "/api/audit/events?type=PROGRESSIVE_ROLLOUT_PROMOTED&limit=100",
+      "kind": "audit",
+      "itemsPath": "items"
+    }
+  ]
+}

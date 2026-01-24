@@ -11,13 +11,15 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 /**
- * v22.3 — Gateway proxy for endpoints not directly served by the gateway.
+ * v22.4 — Gateway proxy for endpoints not directly served by the gateway.
  *
- * Improvements over v22.3:
+ * Improvements over v22.4:
  *  - Added proxy routes for: /cost/**, /notifications/**, /audit/**, /secrets/**, /registry/**
  *  - Added pipeline/runs forward with pagination support
  *  - All proxy targets wired from application.yml (single source of truth)
@@ -46,6 +48,7 @@ public class ProxyController {
     @Value("${proxy.devsecops}")      private String devsecopsUrl;
     @Value("${proxy.release}")        private String releaseUrl;
     @Value("${proxy.policy}")         private String policyUrl;
+    @Value("${proxy.progressive-delivery}") private String progressiveDeliveryUrl;
     @Value("${proxy.audit}")          private String auditUrl;
 
 
@@ -63,13 +66,87 @@ public class ProxyController {
                        Map.of("error", "auth-service unavailable"));
     }
 
+    // ── Identity / Keycloak admin proxy ───────────────────────────────────────
+
+    @GetMapping("/identity/realms/{realm}/users")
+    public ResponseEntity<Object> identityUsers(@PathVariable String realm,
+                                                @RequestParam(required = false) String search) {
+        String url = authUrl + "/api/identity/realms/" + realm + "/users" + (search == null ? "" : "?search=" + enc(search));
+        return forward(() -> rest.getForObject(url, Object.class), List.of());
+    }
+
+    @PostMapping("/identity/realms/{realm}/users")
+    public ResponseEntity<Object> identityCreateUser(@PathVariable String realm, @RequestBody Object body) {
+        return forward(() -> rest.postForObject(authUrl + "/api/identity/realms/" + realm + "/users", body, Object.class),
+                Map.of("error", "identity admin unavailable"));
+    }
+
+    @PutMapping("/identity/realms/{realm}/users/{id}")
+    public ResponseEntity<Object> identityUpdateUser(@PathVariable String realm, @PathVariable String id, @RequestBody Object body) {
+        return forward(() -> rest.exchange(authUrl + "/api/identity/realms/" + realm + "/users/" + id,
+                HttpMethod.PUT, jsonEntity(body), Object.class).getBody(), Map.of("error", "identity admin unavailable"));
+    }
+
+    @PatchMapping("/identity/realms/{realm}/users/{id}/disable")
+    public ResponseEntity<Object> identityDisableUser(@PathVariable String realm, @PathVariable String id) {
+        return forward(() -> rest.exchange(authUrl + "/api/identity/realms/" + realm + "/users/" + id + "/disable",
+                HttpMethod.PATCH, jsonEntity(Map.of()), Object.class).getBody(), Map.of("error", "identity admin unavailable"));
+    }
+
+    @GetMapping("/identity/realms/{realm}/groups")
+    public ResponseEntity<Object> identityGroups(@PathVariable String realm) {
+        return forward(() -> rest.getForObject(authUrl + "/api/identity/realms/" + realm + "/groups", Object.class), List.of());
+    }
+
+    @PostMapping("/identity/realms/{realm}/groups")
+    public ResponseEntity<Object> identityCreateGroup(@PathVariable String realm, @RequestBody Object body) {
+        return forward(() -> rest.postForObject(authUrl + "/api/identity/realms/" + realm + "/groups", body, Object.class),
+                Map.of("error", "identity admin unavailable"));
+    }
+
+    @PutMapping("/identity/realms/{realm}/groups/{id}")
+    public ResponseEntity<Object> identityUpdateGroup(@PathVariable String realm, @PathVariable String id, @RequestBody Object body) {
+        return forward(() -> rest.exchange(authUrl + "/api/identity/realms/" + realm + "/groups/" + id,
+                HttpMethod.PUT, jsonEntity(body), Object.class).getBody(), Map.of("error", "identity admin unavailable"));
+    }
+
+    @PatchMapping("/identity/realms/{realm}/groups/{id}/disable")
+    public ResponseEntity<Object> identityDisableGroup(@PathVariable String realm, @PathVariable String id) {
+        return forward(() -> rest.exchange(authUrl + "/api/identity/realms/" + realm + "/groups/" + id + "/disable",
+                HttpMethod.PATCH, jsonEntity(Map.of()), Object.class).getBody(), Map.of("error", "identity admin unavailable"));
+    }
+
+    @GetMapping("/identity/realms/{realm}/roles")
+    public ResponseEntity<Object> identityRoles(@PathVariable String realm) {
+        return forward(() -> rest.getForObject(authUrl + "/api/identity/realms/" + realm + "/roles", Object.class), List.of());
+    }
+
+    @PostMapping("/identity/realms/{realm}/roles")
+    public ResponseEntity<Object> identityCreateRole(@PathVariable String realm, @RequestBody Object body) {
+        return forward(() -> rest.postForObject(authUrl + "/api/identity/realms/" + realm + "/roles", body, Object.class),
+                Map.of("error", "identity admin unavailable"));
+    }
+
+    @PutMapping("/identity/realms/{realm}/roles/{name}")
+    public ResponseEntity<Object> identityUpdateRole(@PathVariable String realm, @PathVariable String name, @RequestBody Object body) {
+        return forward(() -> rest.exchange(authUrl + "/api/identity/realms/" + realm + "/roles/" + name,
+                HttpMethod.PUT, jsonEntity(body), Object.class).getBody(), Map.of("error", "identity admin unavailable"));
+    }
+
+    @PatchMapping("/identity/realms/{realm}/roles/{name}/disable")
+    public ResponseEntity<Object> identityDisableRole(@PathVariable String realm, @PathVariable String name) {
+        return forward(() -> rest.exchange(authUrl + "/api/identity/realms/" + realm + "/roles/" + name + "/disable",
+                HttpMethod.PATCH, jsonEntity(Map.of()), Object.class).getBody(), Map.of("error", "identity admin unavailable"));
+    }
+
+
     // ── Tasks proxy ───────────────────────────────────────────────────────────
 
     @GetMapping("/tasks")
     public ResponseEntity<Object> listTasks(
             @RequestParam(required = false) String organizationId) {
         String url = taskUrl + "/api/tasks"
-                   + (organizationId != null ? "?organizationId=" + organizationId : "");
+                   + (organizationId != null ? "?organizationId=" + enc(organizationId) : "");
         return forward(() -> rest.getForObject(url, Object.class), List.of());
     }
 
@@ -105,6 +182,70 @@ public class ProxyController {
                                  new HttpEntity<>("{}", h),
                                  Object.class).getBody();
         }, Map.of("error", "task-service unavailable"));
+    }
+
+    @PatchMapping("/tasks/{id}/move")
+    public ResponseEntity<Object> moveTask(@PathVariable String id, @RequestBody(required = false) Object body) {
+        return forward(() -> rest.exchange(taskUrl + "/api/tasks/" + id + "/move",
+                                 HttpMethod.PATCH,
+                                 jsonEntity(body == null ? Map.of() : body),
+                                 Object.class).getBody(),
+                       Map.of("error", "task-service unavailable"));
+    }
+
+
+    // ── Observability & Audit Center proxy ───────────────────────────────────
+
+    @GetMapping({"/observability", "/observability/stack"})
+    public ResponseEntity<Object> observabilityStack() {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability", Object.class),
+                Map.of("live", false, "items", List.of(), "error", "observability-service unavailable"));
+    }
+
+    @GetMapping("/observability/overview")
+    public ResponseEntity<Object> observabilityOverview(@RequestParam(defaultValue = "default-org") String organizationId) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/overview?organizationId=" + enc(organizationId), Object.class),
+                Map.of("live", false, "items", List.of(), "error", "observability-service unavailable"));
+    }
+
+    @GetMapping("/observability/services")
+    public ResponseEntity<Object> observabilityServices() {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/services", Object.class), List.of());
+    }
+
+    @GetMapping("/observability/metrics/prometheus")
+    public ResponseEntity<Object> observabilityPrometheus(@RequestParam(defaultValue = "up") String query) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/metrics/prometheus?query=" + enc(query), Object.class), List.of());
+    }
+
+    @GetMapping("/observability/logs/loki")
+    public ResponseEntity<Object> observabilityLoki(@RequestParam(defaultValue = "{job=~\".+\"}") String query) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/logs/loki?query=" + enc(query), Object.class), List.of());
+    }
+
+    @GetMapping("/observability/traces/tempo")
+    public ResponseEntity<Object> observabilityTempo(@RequestParam(defaultValue = "20") int limit) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/traces/tempo?limit=" + limit, Object.class), List.of());
+    }
+
+    @GetMapping("/observability/audit/events")
+    public ResponseEntity<Object> observabilityAudit(@RequestParam(defaultValue = "100") int limit) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/audit/events?limit=" + limit, Object.class), List.of());
+    }
+
+    @GetMapping("/observability/events/notifications")
+    public ResponseEntity<Object> observabilityNotifications(@RequestParam(defaultValue = "100") int limit) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/events/notifications?limit=" + limit, Object.class), List.of());
+    }
+
+    @GetMapping("/observability/events/tasks")
+    public ResponseEntity<Object> observabilityTasks(@RequestParam(defaultValue = "default-org") String organizationId) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/events/tasks?organizationId=" + enc(organizationId), Object.class), List.of());
+    }
+
+    @GetMapping("/observability/events/rabbitmq")
+    public ResponseEntity<Object> observabilityRabbitmq() {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/events/rabbitmq", Object.class), List.of());
     }
 
     // ── AI Ops proxy ──────────────────────────────────────────────────────────
@@ -253,11 +394,21 @@ public class ProxyController {
     public ResponseEntity<Object> auditEvents(
             @RequestParam(defaultValue = "100") int limit,
             @RequestParam(required = false)     String actor,
-            @RequestParam(required = false)     String action) {
+            @RequestParam(required = false)     String action,
+            @RequestParam(required = false)     String type,
+            @RequestParam(required = false)     String correlationId) {
         StringBuilder url = new StringBuilder(auditUrl + "/api/audit/events?limit=" + limit);
-        if (actor  != null) url.append("&actor=").append(actor);
-        if (action != null) url.append("&action=").append(action);
+        if (actor != null) url.append("&actor=").append(enc(actor));
+        if (correlationId != null) url.append("&correlationId=").append(enc(correlationId));
+        String eventType = type != null ? type : action;
+        if (eventType != null) url.append("&type=").append(enc(eventType));
         return forward(() -> rest.getForObject(url.toString(), Object.class), List.of());
+    }
+
+    @PostMapping("/audit/events")
+    public ResponseEntity<Object> recordAuditEvent(@RequestBody Object body) {
+        return forward(() -> rest.postForObject(auditUrl + "/api/audit/events", body, Object.class),
+                       Map.of("error", "audit-service unavailable"));
     }
 
 
@@ -357,44 +508,144 @@ public class ProxyController {
                        Map.of("id", id, "live", false, "error", "release-orchestrator unavailable"));
     }
 
-    // ── Policy Center proxy ───────────────────────────────────────────────────
+    // ── Policy, Approval & Governance Center proxy ────────────────────────────
 
-    @GetMapping("/policies")
+    @GetMapping("/governance")
+    public ResponseEntity<Object> governanceSummary() {
+        return forward(() -> rest.getForObject(policyUrl + "/api/governance", Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "policy-governance unavailable"));
+    }
+
+    @GetMapping({"/governance/policies", "/policies"})
     public ResponseEntity<Object> policiesProxy() {
-        return forward(() -> rest.getForObject(policyUrl + "/api/policies", Object.class), List.of());
+        return forward(() -> rest.getForObject(policyUrl + "/api/governance/policies", Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "policy-governance unavailable"));
     }
 
-    @PostMapping("/policies")
+    @PostMapping({"/governance/policies", "/policies"})
     public ResponseEntity<Object> createPolicy(@RequestBody Object body) {
-        return forward(() -> rest.postForObject(policyUrl + "/api/policies", body, Object.class),
-                       Map.of("error", "policy-governance unavailable"));
+        return forward(() -> rest.postForObject(policyUrl + "/api/governance/policies", body, Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "policy-governance unavailable"));
     }
 
-    @PutMapping("/policies/{id}")
+    @PutMapping({"/governance/policies/{id}", "/policies/{id}"})
     public ResponseEntity<Object> updatePolicy(@PathVariable String id, @RequestBody Object body) {
-        return forward(() -> rest.exchange(policyUrl + "/api/policies/" + id,
-                                           HttpMethod.PUT, new HttpEntity<>(body), Object.class).getBody(),
-                       Map.of("error", "policy-governance unavailable"));
+        return forward(() -> rest.exchange(policyUrl + "/api/governance/policies/" + id,
+                                           HttpMethod.PUT, jsonEntity(body), Object.class).getBody(),
+                       Map.of("live", false, "realDataOnly", true, "error", "policy-governance unavailable"));
     }
 
-    @DeleteMapping("/policies/{id}")
+    @DeleteMapping({"/governance/policies/{id}", "/policies/{id}"})
     public ResponseEntity<Object> deletePolicy(@PathVariable String id) {
-        return forward(() -> {
-            rest.delete(policyUrl + "/api/policies/" + id);
-            return Map.of("deleted", id);
-        }, Map.of("error", "policy-governance unavailable"));
+        return forward(() -> rest.exchange(policyUrl + "/api/governance/policies/" + id,
+                                           HttpMethod.DELETE, jsonEntity(Map.of()), Object.class).getBody(),
+                       Map.of("live", false, "realDataOnly", true, "error", "policy-governance unavailable"));
     }
 
-    @PostMapping("/policies/evaluate")
-    public ResponseEntity<Object> evaluatePolicy(@RequestBody(required = false) Object body) {
-        return forward(() -> rest.postForObject(policyUrl + "/api/policies/evaluate",
+    @PostMapping({"/governance/decisions", "/policies/evaluate"})
+    public ResponseEntity<Object> governanceDecision(@RequestBody(required = false) Object body) {
+        return forward(() -> rest.postForObject(policyUrl + "/api/governance/decisions",
                                                 body == null ? Map.of() : body, Object.class),
-                       Map.of("live", false, "error", "policy-governance unavailable"));
+                       Map.of("live", false, "realDataOnly", true, "error", "policy-governance unavailable"));
     }
 
-    @GetMapping("/policies/evaluations")
-    public ResponseEntity<Object> policyEvaluations() {
-        return forward(() -> rest.getForObject(policyUrl + "/api/policies/evaluations", Object.class), List.of());
+    @GetMapping({"/governance/decisions", "/policies/evaluations"})
+    public ResponseEntity<Object> governanceDecisions(@RequestParam(defaultValue = "100") int limit,
+                                                      @RequestParam(required = false) String outcome,
+                                                      @RequestParam(required = false) String correlationId) {
+        StringBuilder url = new StringBuilder(policyUrl + "/api/governance/decisions?limit=" + limit);
+        if (outcome != null) url.append("&outcome=").append(enc(outcome));
+        if (correlationId != null) url.append("&correlationId=").append(enc(correlationId));
+        return forward(() -> rest.getForObject(url.toString(), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "policy-governance unavailable"));
+    }
+
+    @GetMapping("/governance/approvals")
+    public ResponseEntity<Object> governanceApprovals(@RequestParam(defaultValue = "100") int limit,
+                                                      @RequestParam(required = false) String status) {
+        StringBuilder url = new StringBuilder(policyUrl + "/api/governance/approvals?limit=" + limit);
+        if (status != null) url.append("&status=").append(enc(status));
+        return forward(() -> rest.getForObject(url.toString(), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "policy-governance unavailable"));
+    }
+
+    @PostMapping("/governance/approvals/{id}/approve")
+    public ResponseEntity<Object> approveGovernanceRequest(@PathVariable String id, @RequestBody(required = false) Object body) {
+        return forward(() -> rest.postForObject(policyUrl + "/api/governance/approvals/" + id + "/approve",
+                                                body == null ? Map.of() : body, Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "policy-governance unavailable"));
+    }
+
+    @PostMapping("/governance/approvals/{id}/reject")
+    public ResponseEntity<Object> rejectGovernanceRequest(@PathVariable String id, @RequestBody(required = false) Object body) {
+        return forward(() -> rest.postForObject(policyUrl + "/api/governance/approvals/" + id + "/reject",
+                                                body == null ? Map.of() : body, Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "policy-governance unavailable"));
+    }
+
+    @GetMapping("/governance/violations")
+    public ResponseEntity<Object> governanceViolations(@RequestParam(defaultValue = "100") int limit) {
+        return forward(() -> rest.getForObject(policyUrl + "/api/governance/violations?limit=" + limit, Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "policy-governance unavailable"));
+    }
+
+
+
+    // ── Progressive Delivery Center proxy ───────────────────────────────────
+
+    @GetMapping({"/progressive-delivery", "/progressive-delivery/overview"})
+    public ResponseEntity<Object> progressiveOverview(@RequestParam(defaultValue = "all") String namespace) {
+        return forward(() -> rest.getForObject(progressiveDeliveryUrl + "/api/progressive-delivery/overview?namespace=" + enc(namespace), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "progressive-delivery-service unavailable"));
+    }
+
+    @GetMapping("/progressive-delivery/rollouts")
+    public ResponseEntity<Object> progressiveRollouts(@RequestParam(defaultValue = "all") String namespace) {
+        return forward(() -> rest.getForObject(progressiveDeliveryUrl + "/api/progressive-delivery/rollouts?namespace=" + enc(namespace), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "progressive-delivery-service unavailable"));
+    }
+
+    @GetMapping("/progressive-delivery/analysis-runs")
+    public ResponseEntity<Object> progressiveAnalysisRuns(@RequestParam(defaultValue = "all") String namespace) {
+        return forward(() -> rest.getForObject(progressiveDeliveryUrl + "/api/progressive-delivery/analysis-runs?namespace=" + enc(namespace), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "progressive-delivery-service unavailable"));
+    }
+
+    @GetMapping("/progressive-delivery/experiments")
+    public ResponseEntity<Object> progressiveExperiments(@RequestParam(defaultValue = "all") String namespace) {
+        return forward(() -> rest.getForObject(progressiveDeliveryUrl + "/api/progressive-delivery/experiments?namespace=" + enc(namespace), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "progressive-delivery-service unavailable"));
+    }
+
+    @GetMapping("/progressive-delivery/applications")
+    public ResponseEntity<Object> progressiveApplications() {
+        return forward(() -> rest.getForObject(progressiveDeliveryUrl + "/api/progressive-delivery/applications", Object.class),
+                       Map.of("live", false, "realDataOnly", true, "items", List.of(), "error", "progressive-delivery-service unavailable"));
+    }
+
+    @PostMapping("/progressive-delivery/applications/{app}/sync")
+    public ResponseEntity<Object> progressiveSyncApplication(@PathVariable String app) {
+        return forward(() -> rest.postForObject(progressiveDeliveryUrl + "/api/progressive-delivery/applications/" + enc(app) + "/sync", Map.of(), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "progressive-delivery-service unavailable"));
+    }
+
+    @PostMapping("/progressive-delivery/rollouts/{namespace}/{name}/promote")
+    public ResponseEntity<Object> progressivePromote(@PathVariable String namespace, @PathVariable String name,
+                                                     @RequestParam(defaultValue = "false") boolean full) {
+        return forward(() -> rest.postForObject(progressiveDeliveryUrl + "/api/progressive-delivery/rollouts/" + enc(namespace) + "/" + enc(name) + "/promote?full=" + full, Map.of(), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "progressive-delivery-service unavailable"));
+    }
+
+    @PostMapping("/progressive-delivery/rollouts/{namespace}/{name}/abort")
+    public ResponseEntity<Object> progressiveAbort(@PathVariable String namespace, @PathVariable String name) {
+        return forward(() -> rest.postForObject(progressiveDeliveryUrl + "/api/progressive-delivery/rollouts/" + enc(namespace) + "/" + enc(name) + "/abort", Map.of(), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "progressive-delivery-service unavailable"));
+    }
+
+    @PostMapping("/progressive-delivery/rollouts/{namespace}/{name}/restart")
+    public ResponseEntity<Object> progressiveRestart(@PathVariable String namespace, @PathVariable String name) {
+        return forward(() -> rest.postForObject(progressiveDeliveryUrl + "/api/progressive-delivery/rollouts/" + enc(namespace) + "/" + enc(name) + "/restart", Map.of(), Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "progressive-delivery-service unavailable"));
     }
 
     // ── Platform events proxy ─────────────────────────────────────────────────
@@ -402,7 +653,7 @@ public class ProxyController {
     @GetMapping("/events")
     public ResponseEntity<Object> platformEvents(@RequestParam(defaultValue = "100") int limit,
                                                  @RequestParam(required = false) String correlationId) {
-        String url = auditUrl + "/api/events?limit=" + limit + (correlationId != null ? "&correlationId=" + correlationId : "");
+        String url = auditUrl + "/api/events?limit=" + limit + (correlationId != null ? "&correlationId=" + enc(correlationId) : "");
         return forward(() -> rest.getForObject(url, Object.class), List.of());
     }
 
@@ -416,6 +667,16 @@ public class ProxyController {
 
     @FunctionalInterface
     interface Call { Object run() throws Exception; }
+
+    private HttpEntity<Object> jsonEntity(Object body) {
+        HttpHeaders h = new HttpHeaders();
+        h.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<>(body == null ? Map.of() : body, h);
+    }
+
+    private String enc(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
+    }
 
     private ResponseEntity<Object> forward(Call call, Object fallback) {
         try {

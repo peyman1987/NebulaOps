@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.3 reliable backend build.
+# NebulaOps v22.4 reliable backend build.
 # Builds all Spring Boot service JARs once with a shared Maven repository, so
 # Docker image builds do not redownload Maven dependencies per microservice.
 #
@@ -60,6 +60,7 @@ services=(
   cost-analytics-service
   release-orchestrator-service
   policy-governance-service
+  progressive-delivery-service
   audit-service
   spring-mvc-service
 )
@@ -240,8 +241,8 @@ done
 # backend/<service>/target/*.jar. A root .dockerignore that excludes **/target
 # without re-including those JARs makes Docker fail with:
 #   lstat /backend/<service>/target: no such file or directory
-if [ -f "$ROOT_DIR/scripts/wsl/repair-v22.3-docker-context.sh" ]; then
-  "$ROOT_DIR/scripts/wsl/repair-v22.3-docker-context.sh" >/dev/null
+if [ -f "$ROOT_DIR/scripts/wsl/repair-v22.4-docker-context.sh" ]; then
+  "$ROOT_DIR/scripts/wsl/repair-v22.4-docker-context.sh" >/dev/null
 fi
 
 log_ok "Backend build completed"

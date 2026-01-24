@@ -1,6 +1,6 @@
 # NebulaOps documentation
 
-This directory contains the aligned documentation for the NebulaOps v22.3 same-origin local runtime.
+This directory contains the aligned documentation for the NebulaOps v22.4 same-origin local runtime.
 
 | File | Purpose |
 | --- | --- |

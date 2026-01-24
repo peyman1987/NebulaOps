@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.3 — Authenticated smoke test through gateway using Keycloak token.
+# v22.4 — Authenticated smoke test through gateway using Keycloak token.
 set -euo pipefail
 BASE=${BASE:-http://nebulaops.localhost}
 KEYCLOAK_URL=${KEYCLOAK_URL:-http://nebulaops.localhost/keycloak}

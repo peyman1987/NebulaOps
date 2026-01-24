@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.3 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
+# v22.4 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
 # Usage: ./scripts/wsl/start.sh [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight]
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
@@ -27,7 +27,7 @@ Usage: $0 [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--
   --with-sso-proxy     Also start OAuth2 Proxy wrappers for RabbitMQ, Mongo Express
                        and Redis Commander. Prometheus SSO remains optional
                        via COMPOSE_PROFILES=sso-prometheus.
-  --skip-preflight      Skip the full static v22.3 preflight. Use only after a
+  --skip-preflight      Skip the full static v22.4 preflight. Use only after a
                        successful preflight in the same workspace.
 USAGE
       exit 0
@@ -39,12 +39,12 @@ cd "$ROOT_DIR"
 
 run_integrated_preflight() {
   if [ "$RUN_PREFLIGHT" != "true" ]; then
-    log_warn "Full v22.3 preflight skipped by --skip-preflight"
+    log_warn "Full v22.4 preflight skipped by --skip-preflight"
     return 0
   fi
 
-  log_step "Running integrated v22.3 preflight"
-  "$ROOT_DIR/scripts/wsl/preflight-v22.3.sh"
+  log_step "Running integrated v22.4 preflight"
+  "$ROOT_DIR/scripts/wsl/preflight-v22.4.sh"
 }
 
 run_integrated_preflight
@@ -71,7 +71,7 @@ locales=en,it
 THEME
 
   cat > "$theme_dir/login.ftl" <<'FTL'
-<#-- NebulaOps v22.3 standalone Keycloak login page. No template.ftl import. -->
+<#-- NebulaOps v22.4 standalone Keycloak login page. No template.ftl import. -->
 <#assign nbLoginAction="">
 <#assign nbUsername="">
 <#assign nbRemember=false>
@@ -95,7 +95,7 @@ THEME
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>NebulaOps v22.3 Login</title>
+  <title>NebulaOps v22.4 Login</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
@@ -172,10 +172,10 @@ THEME
 <body>
   <main class="nb-card">
     <div class="nb-brand">
-      <div class="nb-logo">N22.3</div>
+      <div class="nb-logo">N22.4</div>
       <div class="nb-brand-text">
         <p>Terraform enabled SaaS cockpit</p>
-        <h1>NebulaOps v22.3</h1>
+        <h1>NebulaOps v22.4</h1>
       </div>
     </div>
     <p class="nb-lead">DevOps portfolio platform - Docker · Kubernetes · Helm · Terraform · GitOps</p>
@@ -216,7 +216,7 @@ THEME
       <input type="hidden" id="id-hidden-input" name="credentialId" value="${nbSelectedCredential?html}">
       <button tabindex="4" class="nb-submit-btn" name="login" id="kc-login" type="submit">Login</button>
     </form>
-    <div class="nb-footer">DevOps Enterprise Cockpit · v22.3 · Local-first</div>
+    <div class="nb-footer">DevOps Enterprise Cockpit · v22.4 · Local-first</div>
   </main>
 </body>
 </html>
@@ -355,9 +355,9 @@ sso_redirect_probe() {
 
 validate_sso_proxy_redirects() {
   log_step "Validating SSO proxy redirects"
-  sso_redirect_probe "RabbitMQ" "http://localhost:15672/" || return 1
-  sso_redirect_probe "Mongo Express" "http://localhost:8088/" || return 1
-  sso_redirect_probe "Redis Commander" "http://localhost:8089/" || return 1
+  sso_redirect_probe "RabbitMQ" "http://localhost:${RABBITMQ_SSO_HOST_PORT:-15673}/" || return 1
+  sso_redirect_probe "Mongo Express" "http://localhost:${MONGO_EXPRESS_SSO_HOST_PORT:-18088}/" || return 1
+  sso_redirect_probe "Redis Commander" "http://localhost:${REDIS_COMMANDER_SSO_HOST_PORT:-18089}/" || return 1
 }
 
 
@@ -414,21 +414,27 @@ release_nebulaops_port() {
 release_tool_ui_ports_for_mode() {
   local mode="$1"
   log_step "Checking tool UI ports for $mode mode"
-  release_nebulaops_port 15672 "RabbitMQ $mode UI"
-  release_nebulaops_port 8088  "Mongo Express $mode UI"
-  release_nebulaops_port 8089  "Redis Commander $mode UI"
+  release_nebulaops_port "${GRAFANA_HOST_PORT:-3300}" "Grafana $mode UI"
+  release_nebulaops_port 15672 "RabbitMQ native UI"
+  release_nebulaops_port 8088  "Mongo Express native UI"
+  release_nebulaops_port 8089  "Redis Commander native UI"
+  if [ "$mode" = "SSO" ]; then
+    release_nebulaops_port "${RABBITMQ_SSO_HOST_PORT:-15673}" "RabbitMQ SSO UI"
+    release_nebulaops_port "${MONGO_EXPRESS_SSO_HOST_PORT:-18088}" "Mongo Express SSO UI"
+    release_nebulaops_port "${REDIS_COMMANDER_SSO_HOST_PORT:-18089}" "Redis Commander SSO UI"
+  fi
 }
 
 release_frontend_mfe_ports() {
   log_step "Checking shell and micro frontend ports"
-  for port in ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223; do
-    release_nebulaops_port "$port" "NebulaOps v22.3 frontend/micro frontend"
+  for port in ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223 4224 4225; do
+    release_nebulaops_port "$port" "NebulaOps v22.4 frontend/micro frontend"
   done
 }
 
 release_v223_extended_service_ports() {
-  log_step "Checking v22.3 extended service ports"
-  release_nebulaops_port 8097 "NebulaOps v22.3 cost analytics service"
+  log_step "Checking v22.4 extended service ports"
+  release_nebulaops_port 8097 "NebulaOps v22.4 cost analytics service"
 }
 
 running_service() {
@@ -442,13 +448,15 @@ ensure_v223_extended_modules() {
     mfe-release-center
     mfe-policy-center
     mfe-notification-center
+    mfe-identity-admin
+    mfe-progressive-delivery
   )
 
-  log_step "Ensuring v22.3 extended modules"
-  # These modules are part of the standard v22.3 cockpit and must be started
+  log_step "Ensuring v22.4 extended modules"
+  # These modules are part of the standard v22.4 cockpit and must be started
   # even when the shell is launched with optional SSO profiles. Running this
   # targeted up after the main compose up also repairs workspaces that were
-  # started from an earlier v22.3 package where these endpoints were not active.
+  # started from an earlier v22.4 package where these endpoints were not active.
   dc up -d "${services[@]}"
 
   local service
@@ -470,6 +478,12 @@ ensure_v223_extended_modules() {
     log_warn "MFE Policy is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-policy-center"
   wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/notification-center/remoteEntry.js" 60 "mfe-notification-center" || \
     log_warn "MFE Notifications is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-notification-center"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/identity-admin/remoteEntry.js" 60 "mfe-identity-admin" || \
+    log_warn "MFE Identity Admin is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-identity-admin"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/progressive-delivery/remoteEntry.js" 60 "mfe-progressive-delivery" || \
+    log_warn "MFE Progressive Delivery is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-progressive-delivery"
+  wait_http "http://localhost:8102/actuator/health" 90 "progressive-delivery-service" || \
+    log_warn "Progressive Delivery service is still warming up. Inspect: ./scripts/wsl/logs.sh progressive-delivery-service"
 }
 
 served_mfe_remote_is_classic() {
@@ -479,14 +493,14 @@ served_mfe_remote_is_classic() {
   if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
     return 1
   fi
-  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v22.3 auth bridge|nebulaopsAuthBridge'; then
+  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v22.4 auth bridge|nebulaopsAuthBridge'; then
     return 1
   fi
   printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'
 }
 
 ensure_v223_live_mfe_remote_entries() {
-  local remotes=(docker-desktop openlens-kubernetes task-management observability cicd-gitops terraform-studio devsecops ai-ops finops-cost infra-hub release-center policy-center notification-center)
+  local remotes=(docker-desktop openlens-kubernetes task-management observability cicd-gitops terraform-studio devsecops ai-ops finops-cost infra-hub release-center policy-center notification-center identity-admin progressive-delivery)
   local slug invalid=0
   log_step "Verifying live MFE runtime bundles as same-origin static bundles"
   for slug in "${remotes[@]}"; do
@@ -499,9 +513,9 @@ ensure_v223_live_mfe_remote_entries() {
   done
 
   if [ "$invalid" -ne 0 ]; then
-    log_warn "Blank MFE body risk detected. Run ./scripts/wsl/repair-v22.3-frontend-remotes.sh if the browser still shows empty MFE pages."
+    log_warn "Blank MFE body risk detected. Run ./scripts/wsl/repair-v22.4-frontend-remotes.sh if the browser still shows empty MFE pages."
     if [ "${NEBULAOPS_AUTO_REPAIR_MFE:-false}" = "true" ]; then
-      "$ROOT_DIR/scripts/wsl/repair-v22.3-frontend-remotes.sh"
+      "$ROOT_DIR/scripts/wsl/repair-v22.4-frontend-remotes.sh"
     fi
   fi
 }
@@ -540,14 +554,14 @@ fi
 
 # Root docker-compose builds backend runtime images from context '.'.
 # The backend target/*.jar files must remain visible in Docker build context.
-"$ROOT_DIR/scripts/wsl/repair-v22.3-docker-context.sh"
+"$ROOT_DIR/scripts/wsl/repair-v22.4-docker-context.sh"
 
 if [ "$REBUILD_GATEWAY" = "true" ]; then
   log_step "Force-rebuilding gateway-service"
   dc build gateway-service
 fi
 
-log_step "Starting NebulaOps v22.3"
+log_step "Starting NebulaOps v22.4"
 # Ensure shared Docker network exists (external: true in docker-compose.yml)
 if ! docker network inspect nebulaops-network &>/dev/null; then
   log_info "Creating shared network: nebulaops-network"
@@ -608,7 +622,7 @@ wait_http "http://localhost:8080/actuator/health" 120 "gateway-service" || \
 
 cat <<INFO
 
-${C_BOLD}NebulaOps v22.3 is running.${C_RESET}
+${C_BOLD}NebulaOps v22.4 is running.${C_RESET}
 
   ${C_CYAN}Frontend${C_RESET}    ${NEBULAOPS_PUBLIC_URL}
   ${C_CYAN}Gateway${C_RESET}     ${NEBULAOPS_PUBLIC_URL}/actuator/health
@@ -617,9 +631,9 @@ ${C_BOLD}NebulaOps v22.3 is running.${C_RESET}
   ${C_CYAN}GitLab${C_RESET}      optional: ./scripts/wsl/start.sh --with-gitlab
   ${C_CYAN}SSO Proxies${C_RESET} optional: ./scripts/wsl/start.sh --with-sso-proxy
   ${C_CYAN}Prometheus${C_RESET}  ${NEBULAOPS_PUBLIC_URL}/prometheus/        native health/UI in every mode
-  ${C_CYAN}RabbitMQ${C_RESET}    http://localhost:15672       native guest/guest; Keycloak SSO with --with-sso-proxy
-  ${C_CYAN}Mongo${C_RESET}       http://localhost:8088        native admin/admin; Keycloak SSO with --with-sso-proxy
-  ${C_CYAN}Redis UI${C_RESET}    http://localhost:8089        native admin/admin; Keycloak SSO with --with-sso-proxy
+  ${C_CYAN}RabbitMQ${C_RESET}    native http://localhost:15672       guest/guest; SSO http://localhost:${RABBITMQ_SSO_HOST_PORT:-15673}
+  ${C_CYAN}Mongo${C_RESET}       native http://localhost:8088        admin/admin; SSO http://localhost:${MONGO_EXPRESS_SSO_HOST_PORT:-18088}
+  ${C_CYAN}Redis UI${C_RESET}    native http://localhost:8089        admin/admin; SSO http://localhost:${REDIS_COMMANDER_SSO_HOST_PORT:-18089}
 
 Useful:  ./scripts/wsl/health.sh        — overall status
          ./scripts/wsl/logs.sh <svc>    — tail service logs

@@ -1,4 +1,4 @@
-/* NebulaOps v22.3 auth bridge
+/* NebulaOps v22.4 auth bridge
  * Makes shell-loaded and standalone MFE requests share a valid Bearer token.
  * - Shell origin: reuses localStorage token or bootstraps dev admin token.
  * - Standalone MFE route (/remotes/<mfe>/): uses the same nebulaops.localhost origin and the shared shell token.
@@ -7,9 +7,9 @@
  */
 (function nebulaopsAuthBridge() {
   'use strict';
-  var VERSION = 'v22.3.9-restore-ui-live-api';
-  var JWT_KEY = 'nebulaops.v22_3.jwt';
-  var USER_KEY = 'nebulaops.v22_3.user';
+  var VERSION = 'v22.4.9-restore-ui-live-api';
+  var JWT_KEY = 'nebulaops.v22_4.jwt';
+  var USER_KEY = 'nebulaops.v22_4.user';
   var LOGIN_URL = '/api/auth/login';
   var DEV_LOGIN_BODY = JSON.stringify({ email: 'admin', password: 'admin' });
 
@@ -166,6 +166,7 @@
 
   window.__NEBULAOPS_GET_ACCESS_TOKEN__ = currentToken;
   window.__NEBULAOPS_ENSURE_ACCESS_TOKEN__ = ensureToken;
+  window.__NEBULAOPS_REFRESH_TOKEN__ = function(){ clearToken(); return loginDevAdmin(); };
   window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || ensureToken();
 
   if (window.fetch && !window.__NEBULAOPS_FETCH_AUTH_PATCHED__) {
@@ -231,7 +232,8 @@
     XHR.prototype.send = function nebulaopsSend(body) {
       var xhr = this;
       if (!xhr.__nebulaopsNeedsAuth) return nativeSend.call(xhr, body);
-      window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || ensureToken();
+      window.__NEBULAOPS_REFRESH_TOKEN__ = function(){ clearToken(); return loginDevAdmin(); };
+  window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || ensureToken();
       window.__NEBULAOPS_AUTH_READY__.then(function (token) {
         try {
           if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
@@ -247,128 +249,137 @@
 })();
 
 
-(function(){
-'use strict';
-const CSS = `
-:host{display:block;color:#eaf3ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#071024;--panel:#0d1831;--panel2:#111d3a;--line:#213654;--muted:#89a0c3;--accent:#34d3ff;--ok:#2dd4bf;--warn:#fbbf24;--bad:#fb7185;--violet:#8b5cf6}*{box-sizing:border-box}.mfe{min-height:100vh;background:radial-gradient(circle at 10% 0%,rgba(34,211,238,.18),transparent 30%),linear-gradient(135deg,#071024,#0a1024 58%,#121436);padding:34px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:24px}.title{display:flex;align-items:center;gap:18px}.icon{width:72px;height:72px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,#1bb7ff,#8b5cf6);box-shadow:0 18px 50px rgba(0,0,0,.28);font-size:34px}.eyebrow{color:#79e7ff;font-weight:900;letter-spacing:.24em;text-transform:uppercase;font-size:12px}.h1{font-size:38px;line-height:1.04;margin:6px 0 6px;font-weight:1000;letter-spacing:-.04em}.sub{color:#b9c8e7;font-size:15px;max-width:900px;line-height:1.45}.top-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid #2b4264;background:#111d37;color:#eaf3ff;border-radius:13px;padding:10px 14px;font-weight:850;cursor:pointer;transition:.15s}.btn:hover{transform:translateY(-1px);border-color:#45d8ff}.btn.primary{background:linear-gradient(135deg,#1fb6ff,#7c3aed);border:0}.btn.danger{border-color:#7f1d1d;color:#fecaca}.btn.warn{border-color:#a16207;color:#fde68a}.btn.ok{border-color:#0f766e;color:#99f6e4}.btn:disabled{opacity:.38;cursor:not-allowed;transform:none}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.metric{background:linear-gradient(180deg,rgba(16,29,58,.94),rgba(11,20,43,.94));border:1px solid #263b61;border-radius:18px;padding:16px}.metric .label{color:#8fb0df;font-size:12px}.metric .value{font-size:28px;font-weight:1000;margin-top:7px}.shell{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px}.side{border:1px solid #263b61;border-radius:22px;background:rgba(9,18,40,.72);padding:14px;position:sticky;top:16px;align-self:start}.sectionTitle{color:#79e7ff;font-weight:950;letter-spacing:.14em;text-transform:uppercase;font-size:12px;margin:8px 8px 14px}.navbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 12px;margin:5px 0;border:1px solid transparent;border-radius:14px;background:transparent;color:#c8d7f3;text-align:left;font-weight:850;cursor:pointer}.navbtn:hover,.navbtn.active{background:#0d3554;border-color:#1d81aa;color:#fff}.pill{padding:3px 9px;border-radius:999px;background:#123a58;color:#7ee8ff;font-size:12px;border:1px solid #1d6d91}.content{border:1px solid #263b61;border-radius:22px;background:rgba(9,18,40,.72);overflow:hidden}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #263b61}.toolbar h2{margin:0;font-size:18px}.search{background:#0b142c;color:#eaf3ff;border:1px solid #263b61;border-radius:13px;padding:10px 13px;min-width:260px}.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:820px}.table th{color:#7ee8ff;font-size:11px;text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:12px 14px;border-bottom:1px solid #263b61}.table td{padding:12px 14px;border-bottom:1px solid rgba(38,59,97,.65);vertical-align:top}.rowTitle{font-weight:900;color:#fff}.muted{color:#8ea2c5;font-size:12px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:850;background:#17233f;border:1px solid #2c4168}.status.ok{color:#99f6e4;border-color:#0f766e}.status.warn{color:#fde68a;border-color:#a16207}.status.bad{color:#fecaca;border-color:#7f1d1d}.actions{display:flex;gap:7px;flex-wrap:wrap}.small{font-size:12px;padding:7px 9px;border-radius:10px}.empty{padding:48px 20px;text-align:center;color:#acc0de}.empty b{display:block;color:#fff;margin-bottom:8px}.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{border:1px solid #263b61;border-radius:20px;background:rgba(10,19,42,.76);padding:16px}.card h3{margin:0 0 12px}.raw{white-space:pre-wrap;background:#050b1b;border:1px solid #22395e;border-radius:14px;padding:12px;max-height:300px;overflow:auto;color:#bfd1ee;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}.toast{position:fixed;right:24px;bottom:24px;background:#071024;border:1px solid #36d7ff;color:#fff;border-radius:16px;padding:14px 18px;box-shadow:0 18px 60px rgba(0,0,0,.42);z-index:99999}.diag{margin-top:10px;color:#fca5a5;font-size:12px}.badgeRow{display:flex;gap:8px;flex-wrap:wrap}.link{color:#7ee8ff;text-decoration:none}.link:hover{text-decoration:underline}@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.shell{grid-template-columns:1fr}.split{grid-template-columns:1fr}.top{flex-direction:column}.search{min-width:0;width:100%}}`;
-const h = (s)=>String(s??'');
-const esc = (s)=>h(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const short = (s,n=12)=>{s=h(s);return s.length>n?s.slice(0,n):s};
-const lower = s => h(s).toLowerCase();
-const nowTime = () => new Date().toLocaleTimeString();
-function statusClass(s){s=lower(s); if(s.includes('run')||s.includes('up')||s.includes('ready')||s==='true'||s.includes('active')) return 'ok'; if(s.includes('warn')||s.includes('pending')||s.includes('created')) return 'warn'; if(s.includes('error')||s.includes('fail')||s.includes('exit')||s.includes('crash')||s.includes('unauth')) return 'bad'; return '';}
-function normalizeItems(payload){
-  if(Array.isArray(payload)) return payload;
-  if(!payload || typeof payload!=='object') return [];
-  if(Array.isArray(payload.items)) return payload.items;
-  if(Array.isArray(payload.data)) return payload.data;
-  if(payload.data && Array.isArray(payload.data.items)) return payload.data.items;
-  if(payload.data && Array.isArray(payload.data.result)) return payload.data.result;
-  if(payload.result && Array.isArray(payload.result)) return payload.result;
-  if(payload.content && Array.isArray(payload.content)) return payload.content;
-  return [];
-}
-function flatten(obj){
-  const o = obj || {};
-  const md = o.metadata || {};
-  const st = o.status || {};
-  const spec = o.spec || {};
-  const names = Array.isArray(o.Names) ? o.Names : [];
-  return {
-    id: h(o.id || o.Id || md.uid || o.name || md.name || o.ID),
-    name: h(o.name || o.Name || md.name || (names[0]||'').replace(/^\//,'') || o.repository || o.Repository || o.RepoTags?.[0] || o.Id || ''),
-    namespace: h(o.namespace || md.namespace || o.Namespace || ''),
-    image: h(o.image || o.Image || (spec.template && spec.template.spec && spec.template.spec.containers && spec.template.spec.containers[0] && spec.template.spec.containers[0].image) || (spec.containers && spec.containers[0] && spec.containers[0].image) || ''),
-    status: h(o.state || o.State || o.status || st.phase || o.Status || o.ready || ''),
-    created: h(o.created || o.CreatedAt || o.Created || md.creationTimestamp || ''),
-    ports: h(o.ports || o.Ports || ''),
-    size: h(o.size || o.Size || o.VirtualSize || ''),
-    ready: h(o.ready || (st.readyReplicas!=null && spec.replicas!=null ? `${st.readyReplicas}/${spec.replicas}` : '') || ''),
-    replicas: (o.replicas ?? spec.replicas ?? st.replicas ?? ''),
-    kind: h(o.kind || ''),
-    raw: o
-  };
-}
-class BaseMfe extends HTMLElement{
-  constructor(){super(); this.attachShadow({mode:'open'}); this.state={loading:false,lastRefresh:'-',errors:{},data:{},active:'',filter:'',toast:'',raw:null}; this.config={};}
-  connectedCallback(){ if(this._connected) return; this._connected=true; this.state.active=this.config.tabs?.[0]?.id||''; this.render(); this.refresh(); }
-  qs(sel){return this.shadowRoot.querySelector(sel)}
-  qsa(sel){return Array.from(this.shadowRoot.querySelectorAll(sel))}
-  setState(p){Object.assign(this.state,p); this.render();}
-  toast(msg){this.state.toast=msg; this.render(); setTimeout(()=>{this.state.toast=''; this.render();},3600)}
-  async request(url, opts={}, retry=true){
-    const headers=Object.assign({'Accept':'application/json'}, opts.headers||{});
-    if(opts.body && !headers['Content-Type']) headers['Content-Type']='application/json';
-    const res=await fetch(url, Object.assign({cache:'no-store'}, opts, {headers}));
-    if(res.status===401 && retry && window.__NEBULAOPS_REFRESH_TOKEN__){
-      try{ await window.__NEBULAOPS_REFRESH_TOKEN__(); }catch(_){ }
-      return this.request(url, opts, false);
+/* NebulaOps v22.4.6-live-real-data-observability-audit · live endpoint custom element.
+   This bundle does not contain seeded records. It renders only responses returned by NebulaOps APIs. */
+(function nebulaopsLiveRemote(){
+  'use strict';
+  const CFG = {
+  "tag": "nebulaops-mfe-infra-hub",
+  "title": "INFRA Hub",
+  "scope": "Infrastructure · Hub",
+  "port": 4220,
+  "id": "infra-hub",
+  "config": {
+    "endpoints": [
+      {
+        "label": "Environments",
+        "url": "/api/platform/environments",
+        "kind": "environment"
+      },
+      {
+        "label": "Docker containers",
+        "url": "/api/runtime/docker/containers",
+        "kind": "container"
+      },
+      {
+        "label": "Kubernetes nodes",
+        "url": "/api/platform/k8s/nodes",
+        "kind": "node",
+        "itemsPath": "data.items"
+      },
+      {
+        "label": "Terraform modules",
+        "url": "/api/platform/terraform/modules",
+        "kind": "module",
+        "itemsPath": "data"
+      }
+    ]
+  }
+};
+  const VERSION = 'v22.4.6-live-real-data-observability-audit';
+  const TOKEN_KEY = 'nebulaops.v22_4.jwt';
+  const css = `
+    :host{display:block;color:#eaf4ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+    .mfe{min-height:640px;padding:28px;background:radial-gradient(circle at top left,rgba(25,179,255,.18),transparent 36%),linear-gradient(135deg,#07111f,#0b1026 58%,#11152d);}
+    .hero{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:22px}.hero-left{display:flex;gap:16px;align-items:center;min-width:280px}.icon{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,#00c8ff,#8b5cf6);box-shadow:0 18px 40px rgba(0,0,0,.3);font-size:34px}.eyebrow{letter-spacing:.22em;text-transform:uppercase;color:#6ee7ff;font-size:12px;font-weight:800}.title{margin:4px 0 6px;font-size:34px;line-height:1;font-weight:900}.subtitle{color:#a8b7d8;font-size:15px;max-width:780px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid rgba(125,211,252,.28);background:rgba(14,24,48,.82);color:#eaf4ff;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;text-decoration:none}.btn.primary{background:linear-gradient(135deg,#0ea5e9,#7c3aed);border:0}.btn.danger{border-color:rgba(248,113,113,.45);color:#fecaca}.grid{display:grid;grid-template-columns:280px 1fr;gap:18px}.side{border:1px solid rgba(148,163,184,.18);background:rgba(8,15,34,.72);border-radius:22px;padding:14px;align-self:start;position:sticky;top:12px}.side h3{font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:#78e0ff;margin:4px 8px 12px}.navbtn{width:100%;text-align:left;display:flex;justify-content:space-between;gap:10px;margin:6px 0;border:1px solid transparent;background:transparent;color:#b7c6e6;border-radius:14px;padding:11px 12px;cursor:pointer;font-weight:800}.navbtn.active,.navbtn:hover{background:rgba(14,165,233,.13);border-color:rgba(14,165,233,.35);color:#fff}.count{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(14,165,233,.18);border:1px solid rgba(14,165,233,.3)}.content{min-width:0}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card{border:1px solid rgba(148,163,184,.18);background:linear-gradient(180deg,rgba(16,26,55,.86),rgba(9,16,36,.82));border-radius:20px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.2)}.metric-label{color:#9fb0d4;font-size:12px}.metric-value{font-size:26px;font-weight:900;margin-top:6px}.panel{border:1px solid rgba(56,189,248,.24);background:rgba(4,10,24,.72);border-radius:22px;overflow:hidden}.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px 18px;border-bottom:1px solid rgba(148,163,184,.16);background:rgba(15,23,42,.65)}.panel-title{font-size:15px;font-weight:900}.status{font-size:12px;border:1px solid rgba(148,163,184,.24);border-radius:999px;padding:5px 9px;color:#b7c6e6}.status.ok{color:#bbf7d0;border-color:rgba(34,197,94,.45);background:rgba(22,163,74,.12)}.status.warn{color:#fde68a;border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.12)}.status.err{color:#fecaca;border-color:rgba(248,113,113,.45);background:rgba(239,68,68,.12)}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.input{background:rgba(15,23,42,.8);border:1px solid rgba(148,163,184,.2);border-radius:12px;color:#eaf4ff;padding:10px 12px;min-width:240px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:820px}.table th{text-align:left;color:#7dd3fc;text-transform:uppercase;letter-spacing:.14em;font-size:11px;background:rgba(15,23,42,.55)}.table th,.table td{padding:13px 14px;border-bottom:1px solid rgba(148,163,184,.12);vertical-align:top}.table td{font-size:13px;color:#dce7ff}.mono{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;color:#a7f3d0}.json{max-height:420px;overflow:auto;white-space:pre-wrap;font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;color:#c7d2fe;background:rgba(2,6,23,.6);border-radius:16px;padding:14px}.empty{padding:32px;color:#a8b7d8;text-align:center}.toast{position:fixed;right:24px;bottom:24px;background:#0f172a;border:1px solid rgba(125,211,252,.35);border-radius:14px;padding:12px 16px;box-shadow:0 18px 40px rgba(0,0,0,.35);z-index:50}.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;font-size:11px;border:1px solid rgba(148,163,184,.22);color:#b7c6e6}.pill.ok{color:#bbf7d0;border-color:rgba(34,197,94,.38)}.pill.err{color:#fecaca;border-color:rgba(248,113,113,.4)}.muted{color:#8ea2c9}.small{font-size:12px}.inline-actions{display:flex;gap:8px;flex-wrap:wrap}@media(max-width:980px){.grid{grid-template-columns:1fr}.side{position:static}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.cards{grid-template-columns:1fr}.title{font-size:28px}}
+  `;
+  const iconById = { 'docker-desktop':'🐳','openlens-kubernetes':'☸️','task-management':'✅','observability':'📈','cicd-gitops':'🚀','terraform-studio':'🧱','devsecops':'🛡️','ai-ops':'🤖','finops-cost':'💶','infra-hub':'🏗️','release-center':'🚢','policy-center':'⚖️','notification-center':'🔔','identity-admin':'👥' };
+  function token(){ try { return window.__NEBULAOPS_ACCESS_TOKEN__ || localStorage.getItem(TOKEN_KEY) || ''; } catch(_) { return window.__NEBULAOPS_ACCESS_TOKEN__ || ''; } }
+  function esc(value){ return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function getPath(obj, path){ if(!path) return obj; return String(path).split('.').reduce((acc,key)=> acc && acc[key] !== undefined ? acc[key] : undefined, obj); }
+  function asArray(payload, path){
+    const selected = getPath(payload, path);
+    const val = selected !== undefined ? selected : payload;
+    if(Array.isArray(val)) return val;
+    if(val && Array.isArray(val.items)) return val.items;
+    if(val && val.data && Array.isArray(val.data.items)) return val.data.items;
+    if(val && val.data && Array.isArray(val.data)) return val.data;
+    if(val && val.body && val.body.data && Array.isArray(val.body.data.result)) return val.body.data.result;
+    if(val && val.body && Array.isArray(val.body.items)) return val.body.items;
+    if(val && typeof val === 'object') return Object.entries(val).filter(([k]) => !['toolStatus','data','body','live','url','statusCode','durationMs','executedAt'].includes(k)).map(([key,value]) => ({ key, value }));
+    return [];
+  }
+  function liveFlag(payload, ok){ if(!ok) return false; if(payload && typeof payload === 'object' && payload.live === false) return false; if(payload && payload.error) return false; return true; }
+  function human(v){ if(v === null || v === undefined || v === '') return '—'; if(typeof v === 'object') return JSON.stringify(v); return String(v); }
+  function flattenItem(item){
+    if(!item || typeof item !== 'object') return { value: item };
+    const meta = item.metadata || {}; const status = item.status || {}; const spec = item.spec || {};
+    const firstContainer = Array.isArray(spec.containers) ? spec.containers[0] : (spec.template && spec.template.spec && Array.isArray(spec.template.spec.containers) ? spec.template.spec.containers[0] : {});
+    return { id: item.id || item.Id || meta.uid || item.name || meta.name || item.key || item.repository || item.image || '', name: item.name || item.Name || meta.name || item.key || item.repository || item.title || item.id || '', namespace: item.namespace || meta.namespace || '', kind: item.kind || item.Kind || '', status: item.status || item.State || status.phase || status.status || item.phase || item.health || item.severity || '', image: item.image || item.Image || (firstContainer && firstContainer.image) || '', ports: item.ports || item.Ports || '', created: item.created || item.createdAt || meta.creationTimestamp || item.updatedAt || '', raw: item };
+  }
+  class LiveRemote extends HTMLElement {
+    constructor(){ super(); this.attachShadow({mode:'open'}); this.state={active:0, filter:'', loading:false, endpoints:[], toast:'', realm:'nebulaops', dragTaskId:''}; }
+    connectedCallback(){ this.render(); this.refresh(); }
+    toast(msg){ this.state.toast = msg; this.render(); setTimeout(()=>{ this.state.toast=''; this.render(); }, 2800); }
+    async request(url, opts){
+      await (window.__NEBULAOPS_AUTH_READY__ && window.__NEBULAOPS_AUTH_READY__.catch ? window.__NEBULAOPS_AUTH_READY__.catch(()=>undefined) : Promise.resolve());
+      const h = new Headers((opts && opts.headers) || {}); if(!h.has('Content-Type') && opts && opts.body) h.set('Content-Type','application/json');
+      const t = token(); if(t && !h.has('Authorization')) h.set('Authorization','Bearer '+t);
+      h.set('X-NebulaOps-MFE', CFG.id); h.set('X-NebulaOps-Live-Only', VERSION);
+      const res = await fetch(url, {...(opts||{}), headers:h}); const text = await res.text(); let body = text;
+      try { body = text ? JSON.parse(text) : {}; } catch(_) {}
+      if(!res.ok) throw {status:res.status, body}; return body;
     }
-    const text=await res.text(); let body=text; try{ body=text?JSON.parse(text):null; }catch(_){ }
-    if(!res.ok){ const e=new Error(`${res.status} ${res.statusText}`); e.status=res.status; e.body=body; throw e; }
-    return body;
-  }
-  async refresh(){
-    this.state.loading=true; this.state.errors={}; this.render();
-    const data={}; const errors={};
-    await Promise.all((this.config.tabs||[]).map(async t=>{
-      try{ data[t.id]=await this.request(t.url); }catch(e){ errors[t.id]=`${e.status||''} ${e.message||e}`.trim() + (e.body && e.body.error ? ` · ${e.body.error}` : ''); data[t.id]=null; }
-    }));
-    this.state.data=data; this.state.errors=errors; this.state.lastRefresh=nowTime(); this.state.loading=false; this.render();
-  }
-  tabItems(id){ return normalizeItems(this.state.data[id]).map(flatten); }
-  filterItems(items){const q=lower(this.state.filter); if(!q) return items; return items.filter(x=>lower(JSON.stringify(x.raw)).includes(q)||lower(x.name).includes(q)||lower(x.id).includes(q)||lower(x.namespace).includes(q)||lower(x.image).includes(q));}
-  metrics(){const tabs=this.config.tabs||[]; const total=tabs.reduce((a,t)=>a+this.tabItems(t.id).length,0); const ok=tabs.length-Object.keys(this.state.errors).length; return {endpoints:tabs.length, live:ok, records:total, unavailable:Object.keys(this.state.errors).length};}
-  render(){
-    const m=this.metrics(); const active=(this.config.tabs||[]).find(t=>t.id===this.state.active) || (this.config.tabs||[])[0] || {}; const rows=this.filterItems(this.tabItems(active.id));
-    this.shadowRoot.innerHTML=`<style>${CSS}</style><div class="mfe"><div class="top"><div class="title"><div class="icon">${esc(this.config.icon||'◇')}</div><div><div class="eyebrow">${esc(this.config.eyebrow||'NebulaOps')}</div><div class="h1">${esc(this.config.title||'Module')}</div><div class="sub">${esc(this.config.subtitle||'')}</div></div></div><div class="top-actions"><button class="btn primary" data-act="refresh">${this.state.loading?'Refreshing...':'Refresh live data'}</button><a class="btn" href="/remoteEntry.js" target="_blank">remoteEntry.js</a></div></div>${this.renderBody(m,active,rows)}</div>${this.state.toast?`<div class="toast">${esc(this.state.toast)}</div>`:''}`;
-    this.shadowRoot.querySelector('[data-act="refresh"]')?.addEventListener('click',()=>this.refresh());
-    this.shadowRoot.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{this.state.active=b.getAttribute('data-tab');this.render();}));
-    this.shadowRoot.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>this.handleAction(b.getAttribute('data-action'), b.getAttribute('data-id'), b.getAttribute('data-tab'))));
-    const search=this.shadowRoot.querySelector('[data-search]'); if(search){search.value=this.state.filter; search.addEventListener('input',e=>{this.state.filter=e.target.value;this.render();});}
-  }
-  renderBody(m,active,rows){ return `<div class="grid"><div class="metric"><div class="label">Endpoint checks</div><div class="value">${m.endpoints}</div></div><div class="metric"><div class="label">Live sources</div><div class="value">${m.live}</div></div><div class="metric"><div class="label">Records returned</div><div class="value">${m.records}</div></div><div class="metric"><div class="label">Unavailable sources</div><div class="value">${m.unavailable}</div></div></div><div class="shell"><div class="side"><div class="sectionTitle">Live endpoints</div>${(this.config.tabs||[]).map(t=>`<button class="navbtn ${this.state.active===t.id?'active':''}" data-tab="${esc(t.id)}"><span>${esc(t.label)}</span><span class="pill">${this.tabItems(t.id).length}</span></button>`).join('')}</div><div class="content"><div class="toolbar"><h2>${esc(active.label||'Endpoint')}</h2><input class="search" data-search placeholder="Filter current endpoint..."></div>${this.renderTable(active,rows)}</div></div>`; }
-  renderTable(active, rows){
-    const err=this.state.errors[active.id];
-    if(err) return `<div class="empty"><b>Live endpoint unavailable</b><span>${esc(active.url)}</span><div class="diag">${esc(err)}</div></div>`;
-    if(!rows.length) return `<div class="empty"><b>No records returned by this live endpoint.</b><span>Endpoint: ${esc(active.url||'')}</span></div>`;
-    return `<div class="tableWrap"><table class="table"><thead><tr>${(active.columns||['Name','Status','Details','Actions']).map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(x=>this.renderRow(active,x)).join('')}</tbody></table></div>`;
-  }
-  renderRow(active,x){return `<tr><td><div class="rowTitle">${esc(x.name||short(x.id))}</div><div class="muted">${esc(short(x.id,18))}</div></td><td><span class="status ${statusClass(x.status)}">${esc(x.status||'-')}</span></td><td><div class="muted">${esc(x.namespace||x.image||x.ports||x.size||x.created||'-')}</div></td><td><div class="actions">${this.renderActions(active,x)}</div></td></tr>`}
-  renderActions(active,x){return `<button class="btn small" data-action="raw" data-tab="${esc(active.id)}" data-id="${esc(x.id||x.name)}">Raw</button>`}
-  findItem(tab,id){return this.tabItems(tab).find(x=>(x.id||x.name)===id) || this.tabItems(tab).find(x=>x.name===id)}
-  async handleAction(action,id,tab){ if(action==='raw'){ const item=this.findItem(tab,id); this.toast(JSON.stringify(item?.raw||{},null,2).slice(0,900)); return; } }
-}
-window.__NebulaBaseMfe=BaseMfe; window.__NebulaMfeHelpers={esc,short,flatten,normalizeItems,statusClass};
-})();
+    async refresh(){
+      const endpoints = CFG.config.endpoints || []; this.state.loading = true; this.render(); const results = [];
+      for(const ep of endpoints){ const started = performance.now(); try{ const requestUrl = CFG.id==='identity-admin' ? this.identityUrl((/group/i.test(ep.label||'')?'groups':/role/i.test(ep.label||'')?'roles':'users')) : ep.url; const body = await this.request(requestUrl, {method: ep.method || 'GET', body: ep.body ? JSON.stringify(ep.body) : undefined}); const rows = asArray(body, ep.itemsPath); results.push({...ep, ok:true, live:liveFlag(body,true), duration:Math.round(performance.now()-started), body, rows}); }catch(e){ results.push({...ep, ok:false, live:false, duration:Math.round(performance.now()-started), body:e.body || {error:e.message || String(e), status:e.status}, rows:[]}); } }
+      this.state.endpoints = results; this.state.loading=false; this.render();
+    }
+    counts(){ const total=this.state.endpoints.reduce((a,e)=>a+(e.rows?e.rows.length:0),0); const live=this.state.endpoints.filter(e=>e.live).length; const errors=this.state.endpoints.filter(e=>!e.ok||!e.live).length; return {total,live,errors,endpoints:this.state.endpoints.length}; }
+    activeEndpoint(){ return this.state.endpoints[this.state.active] || this.state.endpoints[0] || (CFG.config.endpoints||[])[0] || {}; }
+    setActive(i){ this.state.active=i; this.render(); }
+    setFilter(v){ this.state.filter=v.toLowerCase(); this.render(); }
+    filteredRows(ep){ const q=this.state.filter; const rows=ep.rows||[]; return q ? rows.filter(r=>JSON.stringify(r).toLowerCase().includes(q)) : rows; }
+    async dockerAction(action, item){ const row=flattenItem(item); const id=encodeURIComponent(row.id || row.name); const map={start:['POST',`/api/runtime/docker/containers/${id}/start`],stop:['POST',`/api/runtime/docker/containers/${id}/stop`],restart:['POST',`/api/runtime/docker/containers/${id}/restart`],remove:['DELETE',`/api/runtime/docker/containers/${id}`]}; const spec=map[action]; if(!spec) return; try{ await this.request(spec[1],{method:spec[0]}); this.toast(`${action} executed for ${row.name || id}`); await this.refresh(); }catch(e){ this.toast(`${action} failed: ${human(e.body && (e.body.error || e.body.stderr) || e.message)}`); } }
+    async pruneImages(){ try{ await this.request('/api/runtime/docker/images/prune',{method:'POST',body:JSON.stringify({})}); this.toast('Image prune requested'); await this.refresh(); }catch(e){ this.toast('Image prune failed'); } }
+    async taskStatus(item,status){ const id=encodeURIComponent(item.id || item._id || item.key || ''); if(!id) return; try{ await this.request(`/api/tasks/${id}/status/${status}`,{method:'PATCH',body:JSON.stringify({})}); this.toast(`Task moved to ${status}`); await this.refresh(); }catch(e){ this.toast(`Task update failed: ${human(e.body && e.body.error || e.message)}`); } }
+    async releaseAction(kind,item){ const id=encodeURIComponent(item.id || item.name || ''); if(!id) return; try{ await this.request(`/api/releases/${id}/${kind}`,{method:'POST',body:JSON.stringify({})}); this.toast(`Release ${kind} requested`); await this.refresh(); }catch(e){ this.toast(`Release ${kind} failed`); } }
+    async evaluatePolicy(){ try{ const body=await this.request('/api/governance/decisions',{method:'POST',body:JSON.stringify({action:'runtime.evaluate',target:{name:'current-runtime'},payload:{requestedFrom:'policy-center'}})}); this.toast(`Governance decision: ${human(body.outcome || body.allow)}`); await this.refresh(); }catch(e){ this.toast('Governance evaluation failed'); } }
+    async approvalAction(id,action){ if(!id) return; const comment=prompt(action==='approve'?'Approval comment':'Rejection comment',''); if(comment===null) return; try{ await this.request(`/api/governance/approvals/${encodeURIComponent(id)}/${action}`,{method:'POST',body:JSON.stringify({comment})}); this.toast(`Approval ${action} submitted`); await this.refresh(); }catch(e){ this.toast(`Approval ${action} failed`); } }
+    async k8sAction(action,item){ const row=flattenItem(item); const ns=encodeURIComponent(row.namespace || 'default'); const name=encodeURIComponent(row.name || ''); if(!name) return; let url='', method='POST', body={}; if(action==='restartPod') url=`/api/kubernetes/pods/${ns}/${name}/restart`; if(action==='deletePod'){ url=`/api/kubernetes/pods/${ns}/${name}`; method='DELETE'; } if(action==='restartDeployment') url=`/api/kubernetes/deployments/${ns}/${name}/restart`; if(action==='scaleDeployment'){ const replicas=prompt('Replicas', String(item.replicas || item.spec?.replicas || 1)); if(replicas===null) return; url=`/api/kubernetes/deployments/${ns}/${name}/scale`; body={replicas:Number(replicas)}; } try{ await this.request(url,{method,body: method==='DELETE' ? undefined : JSON.stringify(body)}); this.toast(`${action} executed for ${row.name}`); await this.refresh(); }catch(e){ this.toast(`${action} failed: ${human(e.body && (e.body.stderr || e.body.error) || e.message)}`); } }
+    actionButtons(ep,item){ const id=CFG.id; const row=flattenItem(item); const kind=(row.kind || ep.kind || '').toLowerCase(); if(id==='docker-desktop' && /container/.test(ep.label.toLowerCase())) return `<div class="inline-actions"><button class="btn" data-act="docker:start" data-key="${esc(row.id)}">Start</button><button class="btn" data-act="docker:stop" data-key="${esc(row.id)}">Stop</button><button class="btn" data-act="docker:restart" data-key="${esc(row.id)}">Restart</button><button class="btn danger" data-act="docker:remove" data-key="${esc(row.id)}">Remove</button></div>`; if(id==='task-management') return `<div class="inline-actions"><button class="btn" data-act="task:IN_PROGRESS" data-key="${esc(row.id)}">Start</button><button class="btn" data-act="task:REVIEW" data-key="${esc(row.id)}">Test</button><button class="btn" data-act="task:DONE" data-key="${esc(row.id)}">Done</button></div>`; if(id==='release-center') return `<div class="inline-actions"><button class="btn" data-act="release:promote" data-key="${esc(row.id || row.name)}">Promote</button><button class="btn danger" data-act="release:rollback" data-key="${esc(row.id || row.name)}">Rollback</button></div>`; if(id==='policy-center' && /approval/i.test(ep.label||'') && String(item.status||'').toUpperCase()==='PENDING') return `<div class="inline-actions"><button class="btn" data-approval-act="approve" data-approval-id="${esc(item.id || row.id)}">Approve</button><button class="btn danger" data-approval-act="reject" data-approval-id="${esc(item.id || row.id)}">Reject</button></div>`; if(id==='openlens-kubernetes' && kind.includes('pod')) return `<div class="inline-actions"><button class="btn" data-act="k8s:restartPod" data-key="${esc(row.id || row.name)}">Restart</button><button class="btn danger" data-act="k8s:deletePod" data-key="${esc(row.id || row.name)}">Delete</button></div>`; if(id==='openlens-kubernetes' && kind.includes('deployment')) return `<div class="inline-actions"><button class="btn" data-act="k8s:scaleDeployment" data-key="${esc(row.id || row.name)}">Scale</button><button class="btn" data-act="k8s:restartDeployment" data-key="${esc(row.id || row.name)}">Restart</button></div>`; return ''; }
 
+    taskEndpoint(){ return (this.state.endpoints || []).find(e => /task/i.test(e.kind || e.label || '') || String(e.url || '').includes('/api/tasks')) || {rows:[]}; }
+    taskColumns(){ return [
+      ['TODO','To start'], ['IN_PROGRESS','In progress'], ['REVIEW','To test'], ['DONE','Done']
+    ]; }
+    allTasks(){ return (this.taskEndpoint().rows || []).filter(Boolean); }
+    async createTask(){
+      const root=this.shadowRoot; const title=root.getElementById('taskTitle')?.value?.trim(); if(!title){ this.toast('Task title is required'); return; }
+      const body={ organizationId:'default-org', projectId:root.getElementById('taskProject')?.value?.trim() || 'portfolio', title, description:root.getElementById('taskDescription')?.value?.trim() || '', status:root.getElementById('taskStatus')?.value || 'TODO', priority:root.getElementById('taskPriority')?.value || 'MEDIUM', assigneeId:root.getElementById('taskAssignee')?.value?.trim() || 'unassigned', labels:(root.getElementById('taskLabels')?.value || '').split(',').map(x=>x.trim()).filter(Boolean) };
+      try{ await this.request('/api/tasks',{method:'POST',body:JSON.stringify(body)}); this.toast('Task created and notification event published'); await this.refresh(); }
+      catch(e){ this.toast(`Task creation failed: ${human(e.body && e.body.error || e.message)}`); }
+    }
+    async deleteTask(id){ if(!id || !confirm('Remove this task?')) return; try{ await this.request(`/api/tasks/${encodeURIComponent(id)}`,{method:'DELETE'}); this.toast('Task removed'); await this.refresh(); }catch(e){ this.toast('Task remove failed'); } }
+    async moveTask(id,status,sortOrder){ if(!id || !status) return; try{ await this.request(`/api/tasks/${encodeURIComponent(id)}/move`,{method:'PATCH',body:JSON.stringify({status, sortOrder: sortOrder || Date.now()})}); this.toast(`Task moved to ${status}`); await this.refresh(); }catch(e){ this.toast(`Task move failed: ${human(e.body && e.body.error || e.message)}`); } }
+    taskCard(task){ const priority=task.priority || 'MEDIUM'; const assignee=task.assigneeId || 'unassigned'; const labels=Array.isArray(task.labels)?task.labels:[]; return `<article class="task-card" draggable="true" data-drag-task="${esc(task.id)}"><div class="task-title">${esc(task.title || task.name || 'Untitled task')}</div><div class="muted small">${esc(task.description || '')}</div><div class="task-meta"><span class="pill">${esc(priority)}</span><span class="pill">${esc(assignee)}</span></div>${labels.length?`<div class="task-labels">${labels.map(l=>`<span>${esc(l)}</span>`).join('')}</div>`:''}<div class="inline-actions"><button class="btn" data-task-move="IN_PROGRESS" data-task-id="${esc(task.id)}">Start</button><button class="btn" data-task-move="REVIEW" data-task-id="${esc(task.id)}">Test</button><button class="btn" data-task-move="DONE" data-task-id="${esc(task.id)}">Done</button><button class="btn danger" data-task-delete="${esc(task.id)}">Remove</button></div></article>`; }
+    taskBoard(){ const tasks=this.allTasks(); const cols=this.taskColumns().map(([status,label])=>{ const items=tasks.filter(t=>(t.status||'TODO')===status).sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)); return `<section class="kanban-col" data-drop-status="${status}"><div class="kanban-head"><strong>${label}</strong><span class="count">${items.length}</span></div><div class="kanban-dropzone">${items.length?items.map(t=>this.taskCard(t)).join(''):'<div class="empty small">Drop tasks here</div>'}</div></section>`; }).join(''); return `<div class="task-board"><div class="panel task-create"><div class="panel-head"><div><div class="panel-title">Create task</div><div class="muted small">The assignee receives a notification through RabbitMQ and the notification service.</div></div></div><div class="form-grid"><input id="taskTitle" class="input" placeholder="Title"><input id="taskAssignee" class="input" placeholder="Assignee username or email"><input id="taskProject" class="input" placeholder="Project" value="portfolio"><select id="taskStatus" class="input"><option value="TODO">To start</option><option value="IN_PROGRESS">In progress</option><option value="REVIEW">To test</option><option value="DONE">Done</option></select><select id="taskPriority" class="input"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select><input id="taskLabels" class="input" placeholder="Labels, comma separated"><textarea id="taskDescription" class="input" placeholder="Description"></textarea><button class="btn primary" id="taskCreate">Add task</button></div></div><div class="kanban">${cols}</div></div>`; }
+    identityEndpointKind(){ const ep=this.activeEndpoint(); const label=String(ep.label || '').toLowerCase(); if(label.includes('group')) return 'groups'; if(label.includes('role')) return 'roles'; return 'users'; }
+    identityUrl(kind, id, action){ const realm=encodeURIComponent(this.state.realm || 'nebulaops'); let base=`/api/identity/realms/${realm}/${kind}`; if(id) base += `/${encodeURIComponent(id)}`; if(action) base += `/${action}`; return base; }
+    async identityCreate(){ const kind=this.identityEndpointKind(); const root=this.shadowRoot; let body={}; if(kind==='users'){ const username=root.getElementById('identityUsername')?.value?.trim(); if(!username){ this.toast('Username is required'); return; } body={username,email:root.getElementById('identityEmail')?.value?.trim() || username,firstName:root.getElementById('identityFirstName')?.value?.trim() || '',lastName:root.getElementById('identityLastName')?.value?.trim() || '',enabled:true}; } else if(kind==='groups'){ const name=root.getElementById('identityName')?.value?.trim(); if(!name){ this.toast('Group name is required'); return; } body={name}; } else { const name=root.getElementById('identityName')?.value?.trim(); if(!name){ this.toast('Role name is required'); return; } body={name,description:root.getElementById('identityDescription')?.value?.trim() || ''}; }
+      try{ await this.request(this.identityUrl(kind),{method:'POST',body:JSON.stringify(body)}); this.toast(`${kind.slice(0,-1)} created`); await this.refresh(); }catch(e){ this.toast(`Identity create failed: ${human(e.body && e.body.error || e.message)}`); }
+    }
+    async identityDisable(kind,id){ if(!id || !confirm(`Disable ${kind.slice(0,-1)} ${id}?`)) return; try{ await this.request(this.identityUrl(kind,id,'disable'),{method:'PATCH',body:JSON.stringify({})}); this.toast(`${kind.slice(0,-1)} disabled`); await this.refresh(); }catch(e){ this.toast('Disable failed'); } }
+    async identityEdit(kind,item){ const id=item.id || item.name; if(!id) return; let body={...item}; if(kind==='users'){ const email=prompt('Email', item.email || ''); if(email===null) return; body.email=email; body.firstName=prompt('First name', item.firstName || '') || ''; body.lastName=prompt('Last name', item.lastName || '') || ''; body.enabled=item.enabled !== false; } else if(kind==='groups'){ const name=prompt('Group name', item.name || ''); if(name===null) return; body.name=name; } else { const description=prompt('Role description', item.description || ''); if(description===null) return; body.description=description; body.name=item.name; }
+      try{ await this.request(this.identityUrl(kind,id),{method:'PUT',body:JSON.stringify(body)}); this.toast(`${kind.slice(0,-1)} updated`); await this.refresh(); }catch(e){ this.toast('Update failed'); } }
+    identityConsole(){ const ep=this.activeEndpoint(); const kind=this.identityEndpointKind(); const rows=this.filteredRows(ep); const createForm=kind==='users'?`<input id="identityUsername" class="input" placeholder="Username"><input id="identityEmail" class="input" placeholder="Email"><input id="identityFirstName" class="input" placeholder="First name"><input id="identityLastName" class="input" placeholder="Last name">`:`<input id="identityName" class="input" placeholder="${kind==='groups'?'Group name':'Role name'}">${kind==='roles'?'<input id="identityDescription" class="input" placeholder="Description">':''}`; const table=rows.length?`<div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Name</th><th>Email / Description</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>{ const id=r.id || r.name || i; const name=r.username || r.name || r.firstName || id; const detail=r.email || r.description || (r.path || '—'); const disabled=(r.enabled===false) || (r.attributes && String(r.attributes.disabled).includes('true')); return `<tr><td class="mono">${esc(id)}</td><td><strong>${esc(name)}</strong><div class="muted small">${esc(r.firstName || '')} ${esc(r.lastName || '')}</div></td><td>${esc(detail)}</td><td><span class="pill ${disabled?'err':'ok'}">${disabled?'disabled':'enabled'}</span></td><td><div class="inline-actions"><button class="btn" data-identity-edit="${esc(kind)}" data-identity-id="${esc(id)}">Edit</button><button class="btn danger" data-identity-disable="${esc(kind)}" data-identity-id="${esc(id)}">Disable</button></div></td></tr>`; }).join('')}</tbody></table></div>`:`<div class="empty">No ${kind} returned by Keycloak for this realm.</div>`; return `<div class="identity-console"><div class="panel"><div class="panel-head"><div><div class="panel-title">Keycloak realm identity administration</div><div class="muted small">Lists are cached in Redis for 45 seconds and invalidated after mutations.</div></div><div class="toolbar"><input id="identityRealm" class="input" value="${esc(this.state.realm || 'nebulaops')}" placeholder="Realm"><button class="btn" id="identityRealmLoad">Load realm</button></div></div><div class="form-grid identity-form">${createForm}<button id="identityCreate" class="btn primary">Add ${kind.slice(0,-1)}</button></div></div><div class="grid"><aside class="side"><h3>Keycloak resources</h3>${(this.state.endpoints.length?this.state.endpoints:CFG.config.endpoints||[]).map((e,i)=>`<button class="navbtn ${i===this.state.active?'active':''}" data-nav="${i}"><span>${esc(e.label)}</span><span class="count">${(e.rows||[]).length||0}</span></button>`).join('')}</aside><main class="content"><div class="panel"><div class="panel-head"><div><div class="panel-title">${esc(ep.label || kind)}</div><div class="muted small mono">${esc(this.identityUrl(kind))}</div></div><div class="toolbar"><input class="input" id="filter" placeholder="Filter..." value="${esc(this.state.filter)}"><span class="status ${ep.ok?'ok':'warn'}">${ep.ok?'LIVE':'PENDING'}</span></div></div>${table}<div style="padding:16px"><details><summary class="muted small">Raw endpoint response</summary><pre class="json">${esc(JSON.stringify(ep.body||{},null,2))}</pre></details></div></div></main></div></div>`; }
 
-(function(){
-'use strict';
-const Base=window.__NebulaBaseMfe; const {esc,statusClass}=window.__NebulaMfeHelpers;
-class InfraMfe extends Base{
- constructor(){super();this.config={icon:'🛰️',eyebrow:'Infrastructure · Hub',title:'INFRA Hub',subtitle:'Infrastructure launchpad and health console for real NebulaOps tools, SSO bridges, data plane and micro-frontends.',tabs:[
-  {id:'tools',label:'Tool UIs',url:'/api/platform/tools',columns:['Tool','Status','URL','Actions']},
-  {id:'health',label:'Gateway health',url:'/api/health',columns:['Service','Status','Details','Actions']},
-  {id:'containers',label:'Runtime containers',url:'/api/runtime/docker/containers',columns:['Container','Status','Image / Ports','Actions']},
-  {id:'events',label:'Platform events',url:'/api/events',columns:['Event','Type','Source','Actions']}
- ]}}
- tabItems(id){
-  if(id==='tools'){
-    const links=[
-      ['Grafana','http://localhost:3000/api/health','http://localhost:3000'],['Prometheus','http://localhost:9090/-/healthy','http://localhost:9090'],['Loki','http://localhost:3100/loki/api/v1/status/buildinfo','http://localhost:3100'],['Tempo','http://localhost:3200/ready','http://localhost:3200'],['RabbitMQ','http://localhost:15672','http://localhost:15672'],['Mongo Express','http://localhost:8088','http://localhost:8088'],['Redis Commander','http://localhost:8089','http://localhost:8089'],['Gateway API','http://localhost:8080/actuator/health','http://localhost:8080/actuator/health']
-    ];
-    return links.map(x=>({id:x[0],name:x[0],status:'open external',namespace:'',image:x[1],raw:{title:x[0],healthUrl:x[1],url:x[2]}}));
+    summaryCards(){ const c=this.counts(); return `<div class="cards"><div class="card"><div class="metric-label">Endpoint checks</div><div class="metric-value">${c.endpoints}</div></div><div class="card"><div class="metric-label">Live sources</div><div class="metric-value">${c.live}</div></div><div class="card"><div class="metric-label">Records returned</div><div class="metric-value">${c.total}</div></div><div class="card"><div class="metric-label">Unavailable sources</div><div class="metric-value">${c.errors}</div></div></div>`; }
+    rowHtml(ep,item,idx){ const row=flattenItem(item); const status=row.status || item.severity || item.status || item.phase || ''; const pillClass=/running|active|ok|pass|healthy|available|success|done|applied/i.test(status)?'ok':(/fail|error|down|blocked|critical|unavailable/i.test(status)?'err':''); return `<tr><td class="mono">${esc(row.id || idx+1)}</td><td><strong>${esc(row.name || item.title || item.message || row.kind || 'record')}</strong><div class="muted small">${esc(row.namespace || row.kind || ep.label)}</div></td><td>${esc(row.image || item.repository || item.source || item.tool || '—')}</td><td><span class="pill ${pillClass}">${esc(status || '—')}</span></td><td>${esc(row.ports || row.created || item.createdAt || item.updatedAt || '—')}</td><td>${this.actionButtons(ep,item)}</td></tr>`; }
+
+    observabilityConsole(){ const endpoints=this.state.endpoints.length ? this.state.endpoints : (CFG.config.endpoints||[]).map(e=>({...e,rows:[],ok:false,live:false,body:null})); const nav=endpoints.map((e,i)=>`<button class="navbtn ${i===this.state.active?'active':''}" data-nav="${i}"><span>${esc(e.label)}</span><span class="count">${e.rows?e.rows.length:0}</span></button>`).join(''); const ep=this.activeEndpoint(); const rows=this.filteredRows(ep); const serviceRows=(endpoints.find(e=>/service health/i.test(e.label))?.rows)||[]; const liveCount=serviceRows.filter(r=>r.live===true || Number(r.status)>0 && Number(r.status)<500).length; const table=rows.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Name</th><th>Source</th><th>Status</th><th>Details</th><th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>this.rowHtml(ep,r,i)).join('')}</tbody></table></div>` : `<div class="empty">No records returned by this live source.<br><span class="small">No mock or seeded records are rendered here.</span></div>`; return `<div class="observability-console"><div class="panel" style="margin-bottom:18px"><div class="panel-head"><div><div class="panel-title">Runtime data policy</div><div class="muted small">This console renders only responses returned by NebulaOps APIs, Prometheus, Loki, Tempo, RabbitMQ and audit-service. Empty states mean the source returned no rows or is unavailable.</div></div><span class="status ${liveCount?'ok':'warn'}">${liveCount} services live</span></div></div><div class="grid"><aside class="side"><h3>Live sources</h3>${nav}</aside><main class="content"><div class="panel"><div class="panel-head"><div><div class="panel-title">${esc(ep.label || 'Live source')}</div><div class="muted small mono">${esc(ep.url || '')}</div></div><div class="toolbar"><input class="input" id="filter" placeholder="Filter live data..." value="${esc(this.state.filter)}"><span class="status ${ep.ok?'ok':'warn'}">${ep.ok?'LIVE':'UNAVAILABLE'}</span></div></div>${table}<div style="padding:16px"><details><summary class="muted small">Raw live response</summary><pre class="json">${esc(JSON.stringify(ep.body||{},null,2))}</pre></details></div></div></main></div></div>`; }
+    endpointPanel(){ const ep=this.activeEndpoint(); const rows=this.filteredRows(ep); const statusClass=ep.ok && ep.live ? 'ok' : ep.ok ? 'warn' : 'err'; const raw=ep.body ? esc(JSON.stringify(ep.body,null,2)) : ''; const table=rows.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Name</th><th>Source/Image</th><th>Status</th><th>Details</th><th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>this.rowHtml(ep,r,i)).join('')}</tbody></table></div>` : `<div class="empty">No records returned by this live endpoint.<br><span class="small">Endpoint: <span class="mono">${esc(ep.url || '')}</span></span></div>`; return `<div class="panel"><div class="panel-head"><div><div class="panel-title">${esc(ep.label || 'Endpoint')}</div><div class="muted small mono">${esc(ep.url || '')}</div></div><div class="toolbar"><input class="input" id="filter" placeholder="Filter current endpoint..." value="${esc(this.state.filter)}"><span class="status ${statusClass}">${ep.ok ? (ep.live ? 'LIVE' : 'NO LIVE DATA') : 'ERROR'} · ${ep.duration ?? 0}ms</span></div></div>${table}<div style="padding:16px"><details><summary class="muted small">Raw endpoint response</summary><pre class="json">${raw}</pre></details></div></div>`; }
+    render(){ const endpoints=this.state.endpoints.length ? this.state.endpoints : (CFG.config.endpoints || []).map(e=>({...e, rows:[], ok:false, live:false, body:null})); const nav=endpoints.map((e,i)=>`<button class="navbtn ${i===this.state.active?'active':''}" data-nav="${i}"><span>${esc(e.label)}</span><span class="count">${e.rows?e.rows.length:0}</span></button>`).join(''); const extra=CFG.id==='docker-desktop' ? '<button class="btn" id="prune">Prune images</button>' : CFG.id==='policy-center' ? '<button class="btn" id="evalPolicy">Evaluate current runtime</button>' : ''; const specialContent=CFG.id==='task-management'?this.taskBoard():(CFG.id==='identity-admin'?this.identityConsole():(CFG.id==='observability'?this.observabilityConsole():null)); this.shadowRoot.innerHTML = `<style>${css}.kanban{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px}.kanban-col{border:1px solid rgba(148,163,184,.18);background:rgba(8,15,34,.72);border-radius:20px;padding:12px;min-height:360px}.kanban-col.drag-over{border-color:rgba(56,189,248,.8);box-shadow:0 0 0 3px rgba(56,189,248,.12)}.kanban-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.task-card{border:1px solid rgba(148,163,184,.2);background:linear-gradient(180deg,rgba(16,26,55,.92),rgba(9,16,36,.9));border-radius:16px;padding:12px;margin-bottom:10px;cursor:grab}.task-card:active{cursor:grabbing}.task-title{font-weight:900;margin-bottom:6px}.task-meta,.task-labels{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.task-labels span{font-size:11px;color:#bfdbfe;background:rgba(59,130,246,.14);border:1px solid rgba(59,130,246,.24);padding:3px 7px;border-radius:999px}.form-grid{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px;padding:16px}.form-grid textarea{grid-column:span 3;min-height:44px;resize:vertical}.task-create{margin-bottom:18px}.identity-form{grid-template-columns:repeat(5,minmax(150px,1fr))}@media(max-width:1100px){.kanban{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid,.identity-form{grid-template-columns:1fr}.form-grid textarea{grid-column:auto}}@media(max-width:700px){.kanban{grid-template-columns:1fr}}</style><section class="mfe"><div class="hero"><div class="hero-left"><div class="icon">${iconById[CFG.id] || '◆'}</div><div><div class="eyebrow">${esc(CFG.scope)}</div><h1 class="title">${esc(CFG.title)}</h1><div class="subtitle">Live-only remote module. The view is populated from NebulaOps gateway and service endpoints; empty states mean the live source returned no records.</div></div></div><div class="actions"><button class="btn primary" id="refresh">${this.state.loading?'Loading...':'Refresh live data'}</button>${extra}<a class="btn" href="/remoteEntry.js?v=${VERSION}" target="_blank" rel="noreferrer">remoteEntry.js</a></div></div>${this.summaryCards()}${specialContent || `<div class="grid"><aside class="side"><h3>Live endpoints</h3>${nav}</aside><main class="content">${this.endpointPanel()}</main></div>`}${this.state.toast?`<div class="toast">${esc(this.state.toast)}</div>`:''}</section>`; this.shadowRoot.getElementById('refresh')?.addEventListener('click',()=>this.refresh()); this.shadowRoot.getElementById('prune')?.addEventListener('click',()=>this.pruneImages()); this.shadowRoot.getElementById('evalPolicy')?.addEventListener('click',()=>this.evaluatePolicy()); this.shadowRoot.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>this.setActive(Number(b.getAttribute('data-nav'))))); this.shadowRoot.getElementById('filter')?.addEventListener('input',e=>this.setFilter(e.target.value)); this.shadowRoot.querySelectorAll('[data-act]').forEach(btn=>btn.addEventListener('click',()=>{ const [area,act]=btn.getAttribute('data-act').split(':'); const key=btn.getAttribute('data-key'); const ep=this.activeEndpoint(); const item=(ep.rows||[]).find(r=>String(flattenItem(r).id||flattenItem(r).name)===String(key)); if(area==='docker') this.dockerAction(act,item||{}); if(area==='task') this.taskStatus(item||{},act); if(area==='release') this.releaseAction(act,item||{}); if(area==='k8s') this.k8sAction(act,item||{}); })); this.shadowRoot.querySelectorAll('[data-approval-act]').forEach(btn=>btn.addEventListener('click',()=>this.approvalAction(btn.getAttribute('data-approval-id'), btn.getAttribute('data-approval-act')))); this.shadowRoot.getElementById('taskCreate')?.addEventListener('click',()=>this.createTask()); this.shadowRoot.querySelectorAll('[data-task-delete]').forEach(b=>b.addEventListener('click',()=>this.deleteTask(b.getAttribute('data-task-delete')))); this.shadowRoot.querySelectorAll('[data-task-move]').forEach(b=>b.addEventListener('click',()=>this.moveTask(b.getAttribute('data-task-id'), b.getAttribute('data-task-move')))); this.shadowRoot.querySelectorAll('[data-drag-task]').forEach(card=>{ card.addEventListener('dragstart',e=>{ this.state.dragTaskId=card.getAttribute('data-drag-task') || ''; e.dataTransfer?.setData('text/plain', this.state.dragTaskId); }); }); this.shadowRoot.querySelectorAll('[data-drop-status]').forEach(col=>{ col.addEventListener('dragover',e=>{ e.preventDefault(); col.classList.add('drag-over'); }); col.addEventListener('dragleave',()=>col.classList.remove('drag-over')); col.addEventListener('drop',e=>{ e.preventDefault(); col.classList.remove('drag-over'); const id=e.dataTransfer?.getData('text/plain') || this.state.dragTaskId; this.moveTask(id, col.getAttribute('data-drop-status')); }); }); this.shadowRoot.getElementById('identityCreate')?.addEventListener('click',()=>this.identityCreate()); this.shadowRoot.getElementById('identityRealmLoad')?.addEventListener('click',()=>{ this.state.realm=this.shadowRoot.getElementById('identityRealm')?.value?.trim() || 'nebulaops'; this.refresh(); }); this.shadowRoot.querySelectorAll('[data-identity-disable]').forEach(b=>b.addEventListener('click',()=>this.identityDisable(b.getAttribute('data-identity-disable'), b.getAttribute('data-identity-id')))); this.shadowRoot.querySelectorAll('[data-identity-edit]').forEach(b=>b.addEventListener('click',()=>{ const kind=b.getAttribute('data-identity-edit'); const id=b.getAttribute('data-identity-id'); const ep=this.activeEndpoint(); const item=(ep.rows||[]).find(r=>String(r.id||r.name)===String(id)); this.identityEdit(kind,item||{}); })); }
   }
-  return super.tabItems(id);
- }
- renderRow(active,x){return `<tr><td><div class="rowTitle">${esc(x.name)}</div><div class="muted">${esc(x.id)}</div></td><td><span class="status ${statusClass(x.status)}">${esc(x.status||'-')}</span></td><td><div class="muted">${esc(x.image||x.raw?.url||x.raw?.healthUrl||'')}</div></td><td><div class="actions">${this.renderActions(active,x)}</div></td></tr>`;}
- renderActions(active,x){const id=esc(x.id||x.name); if(active.id==='tools') return `<a class="btn small ok" href="${esc(x.raw.url)}" target="_blank">Open</a><a class="btn small" href="${esc(x.raw.healthUrl)}" target="_blank">Health</a>`; if(active.id==='containers') return `<button class="btn small" data-action="raw" data-tab="containers" data-id="${id}">Raw</button>`; return `<button class="btn small" data-action="raw" data-tab="${active.id}" data-id="${id}">Raw</button>`;}
- async refresh(){
-   // /api/platform/tools may not exist by design; tools are launch links only, other tabs still hit live endpoints.
-   await super.refresh();
-   if(this.state.errors.tools){delete this.state.errors.tools; this.render();}
- }
-}
-if(!customElements.get('nebulaops-mfe-infra-hub')) customElements.define('nebulaops-mfe-infra-hub',InfraMfe);
+  if(!customElements.get(CFG.tag)) customElements.define(CFG.tag, LiveRemote);
 })();

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# v22.3 — Reset Keycloak realm state and start the platform with OAuth2 Proxy protected tool UIs.
+# v22.4 — Reset Keycloak realm state and start the platform with OAuth2 Proxy protected tool UIs.
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v22-3}"
+PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v22-4}"
 
 echo "[nebulaops] Stopping stack and removing old Keycloak/OAuth2 session state..."
 docker compose -p "$PROJECT_NAME" -f docker-compose.yml down --remove-orphans || true
@@ -12,7 +12,7 @@ docker compose -p "$PROJECT_NAME" -f docker-compose.yml down --remove-orphans ||
 echo "[nebulaops] Removing Keycloak DB volume so realm/theme/client redirects are reimported..."
 for volume in \
   "${PROJECT_NAME}_keycloak-db-data" \
-  "nebulaops-v22-3_keycloak-db-data" \
+  "nebulaops-v22-4_keycloak-db-data" \
   "nebulaops_keycloak-db-data" \
   "keycloak-db-data"; do
   docker volume rm "$volume" 2>/dev/null || true
@@ -24,8 +24,8 @@ echo "[nebulaops] Starting Keycloak + platform with OAuth2 Proxy for Mongo/Rabbi
 
 echo "[nebulaops] Done. Open:"
 echo "  Frontend   http://nebulaops.localhost"
-echo "  Grafana    http://localhost:3000"
+echo "  Grafana    http://localhost:${GRAFANA_HOST_PORT:-3300}"
 echo "  Keycloak   http://nebulaops.localhost/keycloak"
-echo "  RabbitMQ   http://localhost:15672   Keycloak SSO"
-echo "  Mongo UI   http://localhost:8088    Keycloak SSO"
-echo "  Redis UI   http://localhost:8089    Keycloak SSO"
+echo "  RabbitMQ   http://localhost:${RABBITMQ_SSO_HOST_PORT:-15673}   Keycloak SSO"
+echo "  Mongo UI   http://localhost:${MONGO_EXPRESS_SSO_HOST_PORT:-18088}    Keycloak SSO"
+echo "  Redis UI   http://localhost:${REDIS_COMMANDER_SSO_HOST_PORT:-18089}    Keycloak SSO"

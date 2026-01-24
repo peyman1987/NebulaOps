@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# v22.3 — Shared helpers sourced by all WSL scripts.
+# v22.4 — Shared helpers sourced by all WSL scripts.
 # Provides logging, status indicators, project naming, compose helpers.
 
 # Project naming — derived once, consumed by all scripts
-export PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v22-3}"
+export PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v22-4}"
 export ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 export COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
 export CONFIG_FILE="$ROOT_DIR/config/platform.yml"
 export NEBULAOPS_PUBLIC_URL="${NEBULAOPS_PUBLIC_URL:-http://nebulaops.localhost}"
 export NEBULAOPS_HTTP_PORT="${NEBULAOPS_HTTP_PORT:-80}"
+export GRAFANA_HOST_PORT="${GRAFANA_HOST_PORT:-3300}"
 export KEYCLOAK_PUBLIC_URL="${KEYCLOAK_PUBLIC_URL:-$NEBULAOPS_PUBLIC_URL/keycloak}"
 export KEYCLOAK_DIRECT_URL="${KEYCLOAK_DIRECT_URL:-http://localhost:8180}"
 

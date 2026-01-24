@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   NebulaOps v22.3 · Shell Host · Global Styles
+   NebulaOps v22.4 · Shell Host · Global Styles
 ══════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ───────────────────────────────────────── */
@@ -631,7 +631,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .launcher-close { font-size: 24px; line-height: 1; }
 @media (max-width: 900px) { .command-results { grid-template-columns: 1fr; } }
 
-/* v22.3 FE hardening: live status banner */
+/* v22.4 FE hardening: live status banner */
 .shell-live-banner {
   margin: 14px 16px 0;
   padding: 12px 14px;
@@ -672,7 +672,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 }
 
 
-/* v22.3 shell layout: persistent left sidebar behavior. */
+/* v22.4 shell layout: persistent left sidebar behavior. */
 .shell-layout {
   grid-template-columns: 280px minmax(0, 1fr);
   grid-template-rows: 1fr;

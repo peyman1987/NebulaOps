@@ -19,7 +19,7 @@ health, metrics and platform behavior visible during local execution.
 | Tool        | URL                    |
 |-------------|------------------------|
 | Prometheus  | http://localhost:9090  |
-| Grafana     | http://localhost:3000  |
+| Grafana     | http://localhost:3300  |
 | RabbitMQ UI | http://localhost:15672 |
 
 ## Recommended dashboard panels

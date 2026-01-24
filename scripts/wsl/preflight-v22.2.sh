@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# v22.3 — Static and semi-static verification before runtime start.
+# v22.4 — Static and semi-static verification before runtime start.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"
 
-log_step "NebulaOps v22.3 static preflight"
+log_step "NebulaOps v22.4 static preflight"
 python3 scripts/validate-package.py
 python3 scripts/validate-yaml.py docker-compose.yml infrastructure/docker-compose.yml .gitlab-ci.yml infrastructure/argocd/application.yaml infrastructure/argocd/project.yaml infrastructure/argocd/applicationset.yaml
 find scripts -name "*.sh" -print0 | xargs -0 -I{} bash -n {}
@@ -27,4 +27,4 @@ if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
 else
   log_warn "Docker daemon not reachable in this shell. Runtime start must be verified inside WSL/Docker host."
 fi
-log_ok "NebulaOps v22.3 preflight completed"
+log_ok "NebulaOps v22.4 preflight completed"

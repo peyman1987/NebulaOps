@@ -18,7 +18,9 @@ const remotes = [
   ['infra-hub', 'nebulaops-mfe-infra-hub'],
   ['release-center', 'nebulaops-mfe-release-center'],
   ['policy-center', 'nebulaops-mfe-policy-center'],
+  ['progressive-delivery', 'nebulaops-mfe-progressive-delivery'],
   ['notification-center', 'nebulaops-mfe-notification-center'],
+  ['identity-admin', 'nebulaops-mfe-identity-admin'],
 ];
 
 let failures = 0;
@@ -49,7 +51,7 @@ for (const [name, tag] of remotes) {
       console.error(`Remote ${name} does not register expected custom element ${tag}`);
       failures += 1;
     }
-    if (!content.includes('nebulaops.v22_3.jwt')) {
+    if (!content.includes('nebulaops.v22_4.jwt')) {
       console.error(`Remote ${name} does not read the shared NebulaOps JWT key`);
       failures += 1;
     }
@@ -77,8 +79,8 @@ for (const [name, tag] of remotes) {
 
   if (existsSync(manifest)) {
     const manifestJson = JSON.parse(readFileSync(manifest, 'utf8'));
-    if (manifestJson.version !== '22.3.0') {
-      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 22.3.0`);
+    if (manifestJson.version !== '22.4.0') {
+      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 22.4.0`);
       failures += 1;
     }
   }
@@ -86,8 +88,8 @@ for (const [name, tag] of remotes) {
 }
 
 if (failures > 0) {
-  console.error(`NebulaOps v22.3 remote verification failed: ${failures} issue(s)`);
+  console.error(`NebulaOps v22.4 remote verification failed: ${failures} issue(s)`);
   process.exit(1);
 }
 
-console.log('NebulaOps v22.3 classic micro frontends verified. Shell owns side navigation; each remote renders standalone content.');
+console.log('NebulaOps v22.4 classic micro frontends verified. Shell owns side navigation; each remote renders standalone content.');

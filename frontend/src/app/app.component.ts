@@ -15,9 +15,9 @@ import {
   PUBLIC_ORIGIN
 } from './api.config';
 
-const REMOTE_ENTRY_BUILD = 'v22.3.10-localhost-final';
+const REMOTE_ENTRY_BUILD = 'v22.4.10-localhost-final';
 
-type RemoteId = 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'notification-center';
+type RemoteId = 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'progressive-delivery' | 'notification-center' | 'identity-admin';
 type ServiceGroup = 'Identity' | 'Runtime' | 'Observability' | 'Data' | 'DevOps' | 'Micro Frontend' | 'Release' | 'Governance' | 'Notifications';
 
 interface RemoteDefinition {
@@ -79,192 +79,236 @@ export class AppComponent implements OnInit {
 
   readonly remotes: RemoteDefinition[] = [
     {
-        "id": "docker-desktop",
-        "tag": "nebulaops-mfe-docker-desktop",
-        "title": "Docker Desktop",
-        "subtitle": "Docker container, image, volume, network and runtime actions through the gateway.",
-        "icon": "🐳",
-        "route": "/remotes/docker-desktop/",
-        "color": "cyan",
-        "scope": "Runtime · Docker",
-        "group": "Runtime",
-        "service": "mfe-docker-desktop",
-        "path": "/remotes/docker-desktop/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'docker-desktop',
+      tag: 'nebulaops-mfe-docker-desktop',
+      title: 'Docker Desktop',
+      subtitle: 'Docker container, image, volume, network and runtime actions through the gateway.',
+      icon: '🐳',
+      route: '/remotes/docker-desktop/',
+      color: 'cyan',
+      scope: 'Runtime · Docker',
+      group: 'Runtime',
+      service: 'mfe-docker-desktop',
+      path: '/remotes/docker-desktop/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "openlens-kubernetes",
-        "tag": "nebulaops-mfe-openlens-kubernetes",
-        "title": "OpenLens Kubernetes",
-        "subtitle": "Cluster, namespace, workload, service, event and Helm release view.",
-        "icon": "☸️",
-        "route": "/remotes/openlens-kubernetes/",
-        "color": "blue",
-        "scope": "Runtime · Kubernetes",
-        "group": "Runtime",
-        "service": "mfe-openlens-kubernetes",
-        "path": "/remotes/openlens-kubernetes/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'openlens-kubernetes',
+      tag: 'nebulaops-mfe-openlens-kubernetes',
+      title: 'OpenLens Kubernetes',
+      subtitle: 'Cluster, namespace, workload, service, event and Helm release view.',
+      icon: '☸️',
+      route: '/remotes/openlens-kubernetes/',
+      color: 'blue',
+      scope: 'Runtime · Kubernetes',
+      group: 'Runtime',
+      service: 'mfe-openlens-kubernetes',
+      path: '/remotes/openlens-kubernetes/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "task-management",
-        "tag": "nebulaops-mfe-task-management",
-        "title": "Task Management",
-        "subtitle": "Backlog, priority, ownership, RabbitMQ events and notifications.",
-        "icon": "✅",
-        "route": "/remotes/task-management/",
-        "color": "violet",
-        "scope": "Delivery · Tasks",
-        "group": "Delivery",
-        "service": "mfe-task-management",
-        "path": "/remotes/task-management/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'task-management',
+      tag: 'nebulaops-mfe-task-management',
+      title: 'Task Management',
+      subtitle: 'Backlog, priority, ownership, RabbitMQ events and notifications.',
+      icon: '✅',
+      route: '/remotes/task-management/',
+      color: 'violet',
+      scope: 'Delivery · Tasks',
+      group: 'Delivery',
+      service: 'mfe-task-management',
+      path: '/remotes/task-management/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "observability",
-        "tag": "nebulaops-mfe-observability",
-        "title": "Observability",
-        "subtitle": "Grafana, Prometheus, Loki, Tempo, OpenTelemetry and platform KPIs.",
-        "icon": "📈",
-        "route": "/remotes/observability/",
-        "color": "green",
-        "scope": "SRE · Metrics/Logs/Traces",
-        "group": "SRE",
-        "service": "mfe-observability",
-        "path": "/remotes/observability/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'observability',
+      tag: 'nebulaops-mfe-observability',
+      title: 'Observability & Audit Center',
+      subtitle: 'Live service health, Prometheus, Loki, Tempo, RabbitMQ, task events and audit trail.',
+      icon: '📈',
+      route: '/remotes/observability/',
+      color: 'green',
+      scope: 'SRE · Metrics/Logs/Traces/Audit',
+      group: 'SRE',
+      service: 'mfe-observability',
+      path: '/remotes/observability/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "cicd-gitops",
-        "tag": "nebulaops-mfe-cicd-gitops",
-        "title": "CI/CD + GitOps",
-        "subtitle": "Pipeline, optional GitLab, Helm, ArgoCD and promotion flow.",
-        "icon": "🚀",
-        "route": "/remotes/cicd-gitops/",
-        "color": "orange",
-        "scope": "DevOps · Pipelines/GitOps",
-        "group": "DevOps",
-        "service": "mfe-cicd-gitops",
-        "path": "/remotes/cicd-gitops/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'cicd-gitops',
+      tag: 'nebulaops-mfe-cicd-gitops',
+      title: 'CI/CD + GitOps',
+      subtitle: 'Pipeline, optional GitLab, Helm, ArgoCD and promotion flow.',
+      icon: '🚀',
+      route: '/remotes/cicd-gitops/',
+      color: 'orange',
+      scope: 'DevOps · Pipelines/GitOps',
+      group: 'DevOps',
+      service: 'mfe-cicd-gitops',
+      path: '/remotes/cicd-gitops/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "terraform-studio",
-        "tag": "nebulaops-mfe-terraform-studio",
-        "title": "Terraform Studio",
-        "subtitle": "Local plan, validate and apply workflows for environments and Terraform modules.",
-        "icon": "🧱",
-        "route": "/remotes/terraform-studio/",
-        "color": "purple",
-        "scope": "IaC · Environments",
-        "group": "IaC",
-        "service": "mfe-terraform-studio",
-        "path": "/remotes/terraform-studio/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'terraform-studio',
+      tag: 'nebulaops-mfe-terraform-studio',
+      title: 'Terraform Studio',
+      subtitle: 'Local plan, validate and apply workflows for environments and Terraform modules.',
+      icon: '🧱',
+      route: '/remotes/terraform-studio/',
+      color: 'purple',
+      scope: 'IaC · Environments',
+      group: 'IaC',
+      service: 'mfe-terraform-studio',
+      path: '/remotes/terraform-studio/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "devsecops",
-        "tag": "nebulaops-mfe-devsecops",
-        "title": "DevSecOps",
-        "subtitle": "Vulnerabilities, secret posture, Trivy, policy and hardening.",
-        "icon": "🛡️",
-        "route": "/remotes/devsecops/",
-        "color": "red",
-        "scope": "Security · Secrets/Vulns",
-        "group": "Security",
-        "service": "mfe-devsecops",
-        "path": "/remotes/devsecops/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'devsecops',
+      tag: 'nebulaops-mfe-devsecops',
+      title: 'DevSecOps',
+      subtitle: 'Vulnerabilities, secret posture, Trivy, policy and hardening.',
+      icon: '🛡️',
+      route: '/remotes/devsecops/',
+      color: 'red',
+      scope: 'Security · Secrets/Vulns',
+      group: 'Security',
+      service: 'mfe-devsecops',
+      path: '/remotes/devsecops/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "ai-ops",
-        "tag": "nebulaops-mfe-ai-ops",
-        "title": "AI Ops",
-        "subtitle": "RCA, operational insights, anomaly hints and platform assistant.",
-        "icon": "🤖",
-        "route": "/remotes/ai-ops/",
-        "color": "pink",
-        "scope": "AI · RCA/Assist",
-        "group": "AI",
-        "service": "mfe-ai-ops",
-        "path": "/remotes/ai-ops/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'ai-ops',
+      tag: 'nebulaops-mfe-ai-ops',
+      title: 'AI Ops',
+      subtitle: 'RCA, operational insights, anomaly hints and platform assistant.',
+      icon: '🤖',
+      route: '/remotes/ai-ops/',
+      color: 'pink',
+      scope: 'AI · RCA/Assist',
+      group: 'AI',
+      service: 'mfe-ai-ops',
+      path: '/remotes/ai-ops/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
     {
-        "id": "finops-cost",
-        "tag": "nebulaops-mfe-finops-cost",
-        "title": "FinOps Cost",
-        "subtitle": "Cost analytics, resource spend, forecast and optimization.",
-        "icon": "💸",
-        "route": "/remotes/finops-cost/",
-        "color": "amber",
-        "scope": "Cost · Analytics",
-        "group": "FinOps",
-        "service": "mfe-finops-cost",
-        "path": "/remotes/finops-cost/remoteEntry.js",
-        "status": "remote app · independently deployable"
+      id: 'finops-cost',
+      tag: 'nebulaops-mfe-finops-cost',
+      title: 'FinOps Cost',
+      subtitle: 'Cost analytics, resource spend, forecast and optimization.',
+      icon: '💸',
+      route: '/remotes/finops-cost/',
+      color: 'amber',
+      scope: 'Cost · Analytics',
+      group: 'FinOps',
+      service: 'mfe-finops-cost',
+      path: '/remotes/finops-cost/remoteEntry.js',
+      status: 'remote app · independently deployable'
     },
-{
-        "id": "infra-hub",
-        "tag": "nebulaops-mfe-infra-hub",
-        "title": "INFRA Hub",
-        "subtitle": "Infrastructure console for tool UIs, gateway, data plane, SSO and platform runtime.",
-        "icon": "🛰️",
-        "route": "/remotes/infra-hub/",
-        "color": "cyan",
-        "scope": "Infrastructure · Hub",
-        "group": "Runtime",
-        "service": "mfe-infra-hub",
-        "path": "/remotes/infra-hub/remoteEntry.js",
-        "status": "remote app · independently deployable"
-},
-{
-        "id": "release-center",
-        "tag": "nebulaops-mfe-release-center",
-        "title": "Release Center",
-        "subtitle": "Lifecycle release: build, image, scan, policy gate, GitOps sync, rollout e rollback.",
-        "icon": "🚢",
-        "route": "/remotes/release-center/",
-        "color": "orange",
-        "scope": "Release · Promotion/Rollback",
-        "group": "Release",
-        "service": "mfe-release-center",
-        "path": "/remotes/release-center/remoteEntry.js",
-        "status": "remote app · independently deployable"
-},
-{
-        "id": "policy-center",
-        "tag": "nebulaops-mfe-policy-center",
-        "title": "Policy Center",
-        "subtitle": "Governance per security, deployment, runtime e FinOps con valutazioni PASS/WARN/FAIL.",
-        "icon": "⚖️",
-        "route": "/remotes/policy-center/",
-        "color": "purple",
-        "scope": "Governance · Policy Gates",
-        "group": "Governance",
-        "service": "mfe-policy-center",
-        "path": "/remotes/policy-center/remoteEntry.js",
-        "status": "remote app · independently deployable"
-}
-,
-{
-        "id": "notification-center",
-        "tag": "nebulaops-mfe-notification-center",
-        "title": "Notification Center",
-        "subtitle": "Live notification stream, preferences, audit-linked alerts and platform events.",
-        "icon": "🔔",
-        "route": "/remotes/notification-center/",
-        "color": "green",
-        "scope": "Platform · Notifications/SSE",
-        "group": "Notifications",
-        "service": "mfe-notification-center",
-        "path": "/remotes/notification-center/remoteEntry.js",
-        "status": "remote app · independently deployable"
-}
-
-] as RemoteDefinition[];
+    {
+      id: 'infra-hub',
+      tag: 'nebulaops-mfe-infra-hub',
+      title: 'INFRA Hub',
+      subtitle: 'Infrastructure console for tool UIs, gateway, data plane, SSO and platform runtime.',
+      icon: '🛰️',
+      route: '/remotes/infra-hub/',
+      color: 'cyan',
+      scope: 'Infrastructure · Hub',
+      group: 'Runtime',
+      service: 'mfe-infra-hub',
+      path: '/remotes/infra-hub/remoteEntry.js',
+      status: 'remote app · independently deployable'
+    },
+    {
+      id: 'release-center',
+      tag: 'nebulaops-mfe-release-center',
+      title: 'Release Center',
+      subtitle: 'Lifecycle release: build, image, scan, policy gate, GitOps sync, rollout and rollback.',
+      icon: '🚢',
+      route: '/remotes/release-center/',
+      color: 'orange',
+      scope: 'Release · Promotion/Rollback',
+      group: 'Release',
+      service: 'mfe-release-center',
+      path: '/remotes/release-center/remoteEntry.js',
+      status: 'remote app · independently deployable'
+    },
+    {
+      id: 'progressive-delivery',
+      tag: 'nebulaops-mfe-progressive-delivery',
+      title: 'Progressive Delivery Center',
+      subtitle: 'Argo Rollouts, canary and blue-green runtime actions from live Kubernetes and Argo CD data.',
+      icon: '🚢',
+      route: '/remotes/progressive-delivery/',
+      color: 'orange',
+      scope: 'Release · Argo Rollouts',
+      group: 'Release',
+      service: 'mfe-progressive-delivery',
+      path: '/remotes/progressive-delivery/remoteEntry.js',
+      status: 'remote app · independently deployable'
+    },
+    {
+      id: 'policy-center',
+      tag: 'nebulaops-mfe-policy-center',
+      title: 'Policy, Approval & Governance Center',
+      subtitle: 'OPA policy engine, approval workflow, governance decisions, violations and audit-linked notifications from real runtime records.',
+      icon: '⚖️',
+      route: '/remotes/policy-center/',
+      color: 'purple',
+      scope: 'Governance · Approval · OPA',
+      group: 'Governance',
+      service: 'mfe-policy-center',
+      path: '/remotes/policy-center/remoteEntry.js',
+      status: 'remote app · independently deployable'
+    },
+    {
+      id: 'notification-center',
+      tag: 'nebulaops-mfe-notification-center',
+      title: 'Notification Center',
+      subtitle: 'Live notification stream, preferences, audit-linked alerts and platform events.',
+      icon: '🔔',
+      route: '/remotes/notification-center/',
+      color: 'green',
+      scope: 'Platform · Notifications/SSE',
+      group: 'Notifications',
+      service: 'mfe-notification-center',
+      path: '/remotes/notification-center/remoteEntry.js',
+      status: 'remote app · independently deployable'
+    },
+    {
+      id: 'identity-admin',
+      tag: 'nebulaops-mfe-identity-admin',
+      title: 'Identity Admin',
+      subtitle: 'Keycloak realm users, groups and roles with Redis-backed list cache.',
+      icon: '👥',
+      route: '/remotes/identity-admin/',
+      color: 'blue',
+      scope: 'Identity · Keycloak Realm',
+      group: 'Identity',
+      service: 'mfe-identity-admin',
+      path: '/remotes/identity-admin/remoteEntry.js',
+      status: 'remote app · independently deployable'
+    }
+  ] as RemoteDefinition[];
 
   readonly serviceLinks: ServiceLink[] = [
+
+
+{
+        "title": "Identity Admin MFE",
+        "subtitle": "Identity · Keycloak Realm",
+        "url": "/remotes/identity-admin/",
+        "icon": "👥",
+        "port": "/remotes",
+        "group": "Identity"
+},
+{
+        "title": "Identity Admin API",
+        "subtitle": "Keycloak users, groups and roles through auth-service with Redis cache",
+        "url": "/api/identity/realms/nebulaops/users",
+        "icon": "👥",
+        "port": "8081",
+        "group": "Identity"
+},
 
 {
         "title": "Notification Center MFE",
@@ -283,6 +327,23 @@ export class AppComponent implements OnInit {
         "port": "/remotes",
         "group": "Micro Frontend"
 },
+
+{
+        "title": "Progressive Delivery Center MFE",
+        "subtitle": "Release · Argo Rollouts · Canary/Blue-Green",
+        "url": "/remotes/progressive-delivery/",
+        "icon": "🚢",
+        "port": "/remotes",
+        "group": "Release"
+},
+{
+        "title": "Progressive Delivery API",
+        "subtitle": "Argo Rollouts and Argo CD runtime API",
+        "url": "/api/progressive-delivery/overview?namespace=all",
+        "icon": "🚢",
+        "port": "8102",
+        "group": "Release"
+},
 {
         "title": "Release Center MFE",
         "subtitle": "Release · Promotion/Rollback",
@@ -292,8 +353,8 @@ export class AppComponent implements OnInit {
         "group": "Release"
 },
 {
-        "title": "Policy Center MFE",
-        "subtitle": "Governance · Policy Gates",
+        "title": "Policy, Approval & Governance Center MFE",
+        "subtitle": "Governance · Approval · OPA",
         "url": "/remotes/policy-center/",
         "icon": "⚖️",
         "port": "/remotes",
@@ -380,8 +441,8 @@ export class AppComponent implements OnInit {
         "group": "Micro Frontend"
     },
     {
-        "title": "Observability MFE",
-        "subtitle": "SRE · Metrics/Logs/Traces",
+        "title": "Observability & Audit Center MFE",
+        "subtitle": "SRE · Metrics/Logs/Traces/Audit",
         "url": "/remotes/observability/",
         "icon": "📈",
         "port": "/remotes",
@@ -461,7 +522,7 @@ export class AppComponent implements OnInit {
     }
 ] as ServiceLink[];
 
-  readonly activeRemoteConfig = computed(() => this.remotes.find(r => r.id === this.activeRemote()) ?? this.remotes[0]);
+  readonly activeRemoteConfig = computed(() => this.remotes.find(r => r?.id === this.activeRemote()) ?? this.remotes[0]);
 
   /** Sidebar nav groups — order and membership defined here */
   readonly remoteCount = computed(() => this.remotes.length);
@@ -470,6 +531,7 @@ export class AppComponent implements OnInit {
   readonly shellStatusClass = computed(() => this.shellStatus());
 
   sidebarGroups = [
+    { label: 'Identity',       icon: '👥',  groups: ['Identity'] },
     { label: 'Runtime',        icon: '⚙️',  groups: ['Runtime'] },
     { label: 'Platform Ops',   icon: '🔔',  groups: ['Notifications'] },
     { label: 'Delivery',       icon: '📦',  groups: ['Delivery'] },
@@ -540,9 +602,9 @@ export class AppComponent implements OnInit {
     try {
       const verifier = this.randomString(96);
       const challenge = await this.sha256Base64Url(verifier);
-      sessionStorage.setItem('nebulaops.v22_3.pkce', verifier);
+      sessionStorage.setItem('nebulaops.v22_4.pkce', verifier);
       const state = this.randomString(24);
-      sessionStorage.setItem('nebulaops.v22_3.state', state);
+      sessionStorage.setItem('nebulaops.v22_4.state', state);
       const params = new URLSearchParams({
         client_id: KC_CLIENT_ID,
         redirect_uri: KC_REDIRECT_URI,
@@ -562,8 +624,8 @@ export class AppComponent implements OnInit {
   logout(): void {
     localStorage.removeItem(JWT_KEY);
     localStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem('nebulaops.v22_3.pkce');
-    sessionStorage.removeItem('nebulaops.v22_3.state');
+    sessionStorage.removeItem('nebulaops.v22_4.pkce');
+    sessionStorage.removeItem('nebulaops.v22_4.state');
     this.authenticated.set(false);
     const params = new URLSearchParams({
       client_id: KC_CLIENT_ID,
@@ -596,7 +658,7 @@ export class AppComponent implements OnInit {
   }
 
   openActiveRemoteExternal(): void {
-    const remote = this.remotes.find(item => item.id === this.activeRemote());
+    const remote = this.remotes.find(item => item?.id === this.activeRemote());
     if (remote) window.open(`/remotes/${remote.id}/`, '_blank', 'noopener,noreferrer');
   }
 
@@ -605,7 +667,7 @@ export class AppComponent implements OnInit {
   }
 
   async activateRemote(id: RemoteId): Promise<void> {
-    const def = this.remotes.find(r => r.id === id);
+    const def = this.remotes.find(r => r?.id === id);
     if (!def) return;
     this.remoteError.set('');
     this.loadingRemote.set(true);
@@ -620,7 +682,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  trackByRemote(_: number, item: RemoteDefinition): string { return item.id; }
+  trackByRemote(index: number, item: RemoteDefinition): string { return item?.id ?? `remote-${index}`; }
   trackByLink(_: number, item: ServiceLink): string { return item.title; }
 
   private async handleKeycloakCallback(): Promise<void> {
@@ -628,12 +690,12 @@ export class AppComponent implements OnInit {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     if (!code) return;
-    const expectedState = sessionStorage.getItem('nebulaops.v22_3.state');
+    const expectedState = sessionStorage.getItem('nebulaops.v22_4.state');
     if (expectedState && state !== expectedState) {
       this.loginError.set('Invalid Keycloak response: state mismatch.');
       return;
     }
-    const verifier = sessionStorage.getItem('nebulaops.v22_3.pkce') || '';
+    const verifier = sessionStorage.getItem('nebulaops.v22_4.pkce') || '';
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: KC_CLIENT_ID,

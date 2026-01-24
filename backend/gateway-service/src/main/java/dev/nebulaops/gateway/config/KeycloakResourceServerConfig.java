@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * v22.3 — Keycloak resource-server integration.
+ * v22.4 — Keycloak resource-server integration.
  *
  * When nebulaops.security.enabled=true, the service validates Bearer JWTs
  * issued by the NebulaOps Keycloak realm. Public endpoints are limited to
@@ -45,7 +45,7 @@ import java.util.Map;
 public class KeycloakResourceServerConfig {
 
     /**
-     * v22.3 local/Keycloak JWT bridge.
+     * v22.4 local/Keycloak JWT bridge.
      *
      * Standalone micro frontends call /api/auth/login through their own Nginx
      * origin and receive the NebulaOps local HS256 JWT issued by auth-service.
@@ -55,7 +55,7 @@ public class KeycloakResourceServerConfig {
      */
     @Bean
     public JwtDecoder jwtDecoder(
-            @Value("${jwt.secret:nebulaops-v22-3-dev-secret-key-min-32-chars!!}") String jwtSecret,
+            @Value("${jwt.secret:nebulaops-v22-4-dev-secret-key-min-32-chars!!}") String jwtSecret,
             @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:}") String jwkSetUri) {
 
         SecretKey localKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
@@ -97,6 +97,7 @@ public class KeycloakResourceServerConfig {
                 .requestMatchers(
                         "/",
                         "/health",
+                        "/actuator/health",
                         "/actuator/health/**",
                         "/actuator/info",
                         "/actuator/prometheus",
@@ -168,8 +169,8 @@ public class KeycloakResourceServerConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "X-NebulaOps-Auth-Bridge"));
-        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "X-NebulaOps-Auth-Bridge", "X-Correlation-Id", "traceparent"));
+        config.setExposedHeaders(List.of("Authorization", "X-Correlation-Id"));
         config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

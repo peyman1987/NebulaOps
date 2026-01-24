@@ -1,5 +1,5 @@
 /**
- * v22.3 — Centralized frontend API configuration.
+ * v22.4 — Centralized frontend API configuration.
  * Public browser access is served through the same reverse-proxy origin:
  *   http://nebulaops.localhost
  *
@@ -112,6 +112,18 @@ export const API = {
     evaluations: `${API_BASE}/policies/evaluations`,
   },
 
+  progressiveDelivery: {
+    overview: (namespace: string = 'all') => `${API_BASE}/progressive-delivery/overview?namespace=${encodeURIComponent(namespace)}`,
+    rollouts: (namespace: string = 'all') => `${API_BASE}/progressive-delivery/rollouts?namespace=${encodeURIComponent(namespace)}`,
+    applications: `${API_BASE}/progressive-delivery/applications`,
+    analysisRuns: (namespace: string = 'all') => `${API_BASE}/progressive-delivery/analysis-runs?namespace=${encodeURIComponent(namespace)}`,
+    experiments: (namespace: string = 'all') => `${API_BASE}/progressive-delivery/experiments?namespace=${encodeURIComponent(namespace)}`,
+    promote: (namespace: string, name: string, full: boolean = false) => `${API_BASE}/progressive-delivery/rollouts/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/promote${full ? '?full=true' : ''}`,
+    abort: (namespace: string, name: string) => `${API_BASE}/progressive-delivery/rollouts/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/abort`,
+    restart: (namespace: string, name: string) => `${API_BASE}/progressive-delivery/rollouts/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/restart`,
+    syncApplication: (app: string) => `${API_BASE}/progressive-delivery/applications/${encodeURIComponent(app)}/sync`,
+  },
+
   audit: {
     events: `${API_BASE}/events`,
     auditEvents: `${API_BASE}/audit/events`,
@@ -123,6 +135,15 @@ export const API = {
     stream: `${API_BASE}/notifications/stream`,
     preferences: `${API_BASE}/notifications/preferences`,
     markRead: (id: string) => `${API_BASE}/notifications/${id}/read`,
+  },
+
+  identity: {
+    users:  (realm: string) => `${API_BASE}/identity/realms/${encodeURIComponent(realm)}/users`,
+    groups: (realm: string) => `${API_BASE}/identity/realms/${encodeURIComponent(realm)}/groups`,
+    roles:  (realm: string) => `${API_BASE}/identity/realms/${encodeURIComponent(realm)}/roles`,
+    disableUser:  (realm: string, id: string) => `${API_BASE}/identity/realms/${encodeURIComponent(realm)}/users/${encodeURIComponent(id)}/disable`,
+    disableGroup: (realm: string, id: string) => `${API_BASE}/identity/realms/${encodeURIComponent(realm)}/groups/${encodeURIComponent(id)}/disable`,
+    disableRole:  (realm: string, name: string) => `${API_BASE}/identity/realms/${encodeURIComponent(realm)}/roles/${encodeURIComponent(name)}/disable`,
   },
 
   cost: {
@@ -147,10 +168,10 @@ export const API = {
   },
 } as const;
 
-export const APP_VERSION = '22.3';
-export const APP_RELEASE = 'v22.3';
-export const JWT_KEY     = 'nebulaops.v22_3.jwt';
-export const USER_KEY    = 'nebulaops.v22_3.user';
+export const APP_VERSION = '22.4';
+export const APP_RELEASE = 'v22.4';
+export const JWT_KEY     = 'nebulaops.v22_4.jwt';
+export const USER_KEY    = 'nebulaops.v22_4.user';
 
 // ── Keycloak OIDC (Authorization Code + PKCE) ──────────────────
 export const KC_BASE         = '/keycloak';

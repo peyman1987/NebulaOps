@@ -25,8 +25,9 @@ proxy:
   release: ${RELEASE_ORCHESTRATOR_SERVICE_URL:http://release-orchestrator-service:8098}
   policy: ${POLICY_GOVERNANCE_SERVICE_URL:http://policy-governance-service:8100}
   audit: ${AUDIT_SERVICE_URL:http://audit-service:8101}
+  progressive-delivery: ${PROGRESSIVE_DELIVERY_SERVICE_URL:http://progressive-delivery-service:8102}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v22-3-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v22-4-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:

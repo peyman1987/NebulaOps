@@ -3,7 +3,7 @@
 ## Start
 
 ```bash
-cd /mnt/d/workspace/personal/NebulaOps/nebulaops-v22.3
+cd /mnt/d/workspace/personal/NebulaOps/nebulaops-v22.4
 chmod +x scripts/wsl/*.sh scripts/*.sh
 ./scripts/wsl/start.sh --rebuild
 ```

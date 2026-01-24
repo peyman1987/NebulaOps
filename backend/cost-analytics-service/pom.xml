@@ -6,11 +6,11 @@
   <parent>
     <groupId>dev.nebulaops</groupId>
     <artifactId>nebulaops-backend</artifactId>
-    <version>22.3.0</version>
+    <version>22.4.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>cost-analytics-service</artifactId>
-  <description>v22.3 — FinOps cost aggregation and analytics service</description>
+  <description>v22.4 — FinOps cost aggregation and analytics service</description>
   <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

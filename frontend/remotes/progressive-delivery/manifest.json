@@ -1,0 +1,10 @@
+{
+  "id": "progressive-delivery",
+  "title": "Progressive Delivery Center",
+  "version": "22.4.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-progressive-delivery",
+  "port": 4225,
+  "scope": "Release \u00b7 Argo Rollouts \u00b7 Canary/Blue-Green",
+  "shellOwnedNavigation": true
+}

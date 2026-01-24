@@ -6,13 +6,16 @@ spring:
   data:
     mongodb:
       uri: ${MONGO_URI:mongodb://nebula:nebula@localhost:27017/nebula_auth?authSource=admin}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   security:
     oauth2:
       resourceserver:
         jwt:
           jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v22-3-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v22-4-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:
@@ -24,3 +27,11 @@ management:
 nebulaops:
   security:
     enabled: ${KEYCLOAK_AUTH_ENABLED:false}
+  audit:
+    url: ${NEBULAOPS_AUDIT_URL:http://audit-service:8101}
+keycloak:
+  admin:
+    base-url: ${KEYCLOAK_URL:http://localhost:8180}
+    client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
+    username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+    password: ${KEYCLOAK_ADMIN_PASSWORD:admin}

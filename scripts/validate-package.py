@@ -125,6 +125,34 @@ for diagram in [
     if diagram not in tech_doc:
         errors.append(f"TECHNICAL_DOCUMENTATION missing diagram reference: {diagram}")
 
+# Frontend shell Docker image and template must include every shell-declared same-origin remote.
+try:
+    dockerfile = (ROOT / "frontend/Dockerfile").read_text(encoding="utf-8")
+    shell = (ROOT / "frontend/src/app/app.component.ts").read_text(encoding="utf-8")
+    template = (ROOT / "frontend/src/app/app.component.html").read_text(encoding="utf-8")
+    import re
+    remotes_match = re.search(r"readonly\s+remotes:\s+RemoteDefinition\[\]\s*=\s*\[(.*?)\]\s+as\s+RemoteDefinition\[\]", shell, re.S)
+    if not remotes_match:
+        errors.append("frontend shell remotes array not found")
+        remote_block = ""
+    else:
+        remote_block = remotes_match.group(1)
+        if re.search(r",\s*,", remote_block):
+            errors.append("frontend shell remotes array contains an empty slot; this breaks Array.find navigation at runtime")
+    remote_slugs = sorted(set(re.findall(r"['\"]route['\"]?\s*:\s*['\"]/remotes/([^/]+)/", remote_block)))
+    remote_tags = sorted(set(re.findall(r"['\"]tag['\"]?\s*:\s*['\"]([^'\"]+)", remote_block)))
+    if len(remote_slugs) != len(remote_tags):
+        errors.append(f"frontend shell remote slug/tag count mismatch: {len(remote_slugs)} slugs, {len(remote_tags)} tags")
+    for slug in remote_slugs:
+        expected = f"COPY remotes/{slug}/dist/browser/ /usr/share/nginx/html/remotes/{slug}/"
+        if expected not in dockerfile:
+            errors.append(f"frontend Dockerfile missing same-origin remote copy: {slug}")
+    for tag in remote_tags:
+        if f"<{tag}" not in template:
+            errors.append(f"frontend template missing custom element host for remote tag: {tag}")
+except Exception as exc:
+    errors.append(f"frontend remote copy/template validation failed: {exc}")
+
 if errors:
     print("Package validation FAILED")
     for err in errors:

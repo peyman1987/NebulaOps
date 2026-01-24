@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.3 — Focused diagnostics for Grafana/RabbitMQ/Mongo/Redis Keycloak SSO.
+# v22.4 — Focused diagnostics for Grafana/RabbitMQ/Mongo/Redis Keycloak SSO.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"
@@ -14,10 +14,10 @@ echo "== Ensuring Keycloak clients =="
 echo
 echo "== Public SSO redirect probes =="
 for pair in \
-  "RabbitMQ http://localhost:15672/" \
-  "Mongo http://localhost:8088/" \
-  "Redis http://localhost:8089/" \
-  "Grafana http://localhost:3000/login/generic_oauth"; do
+  "RabbitMQ http://localhost:${RABBITMQ_SSO_HOST_PORT:-15673}/" \
+  "Mongo http://localhost:${MONGO_EXPRESS_SSO_HOST_PORT:-18088}/" \
+  "Redis http://localhost:${REDIS_COMMANDER_SSO_HOST_PORT:-18089}/" \
+  "Grafana http://localhost:${GRAFANA_HOST_PORT:-3300}/login/generic_oauth"; do
   label="${pair%% *}"
   url="${pair#* }"
   tmp="$(mktemp)"

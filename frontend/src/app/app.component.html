@@ -1,5 +1,5 @@
 <!-- ══════════════════════════════════════════════════════════
-     NebulaOps v22.3 · Shell Host · Login
+     NebulaOps v22.4 · Shell Host · Login
 ══════════════════════════════════════════════════════════ -->
 <section *ngIf="!authenticated()" class="login-scene">
   <div class="grid-horizon"></div>
@@ -16,7 +16,7 @@
       </div>
       <div class="brand-text">
         <p class="kicker">NEBULAOPS ENTERPRISE PLATFORM</p>
-        <h1>Micro Frontend<br>Shell <span class="version-glow">v22.3</span></h1>
+        <h1>Micro Frontend<br>Shell <span class="version-glow">v22.4</span></h1>
       </div>
     </div>
 
@@ -78,7 +78,7 @@
       </div>
       <div class="sidebar-brand-text">
         <b>NebulaOps</b>
-        <small>Enterprise Platform v22.3</small>
+        <small>Enterprise Platform v22.4</small>
       </div>
     </div>
 
@@ -129,7 +129,7 @@
     <div class="sidebar-footer">
       <div class="sidebar-status-row">
         <span class="status-dot status-green"></span>
-        <span class="status-label">13 remotes · Keycloak SSO · v22.3</span>
+        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v22.4</span>
       </div>
       <button class="launcher-trigger" type="button" (click)="openLauncher()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -187,7 +187,7 @@
         </div>
         <div class="session-user">{{ currentUser() }}</div>
         <div class="session-info">JWT token shared with all remotes through localStorage and the Authorization Bearer header.</div>
-        <code class="session-code">nebulaops.v22_3.jwt</code>
+        <code class="session-code">nebulaops.v22_4.jwt</code>
       </div>
     </header>
 
@@ -227,8 +227,10 @@
       <nebulaops-mfe-finops-cost         *ngIf="activeRemote() === 'finops-cost'"></nebulaops-mfe-finops-cost>
       <nebulaops-mfe-infra-hub           *ngIf="activeRemote() === 'infra-hub'"></nebulaops-mfe-infra-hub>
       <nebulaops-mfe-release-center      *ngIf="activeRemote() === 'release-center'"></nebulaops-mfe-release-center>
+      <nebulaops-mfe-progressive-delivery *ngIf="activeRemote() === 'progressive-delivery'"></nebulaops-mfe-progressive-delivery>
       <nebulaops-mfe-policy-center       *ngIf="activeRemote() === 'policy-center'"></nebulaops-mfe-policy-center>
       <nebulaops-mfe-notification-center *ngIf="activeRemote() === 'notification-center'"></nebulaops-mfe-notification-center>
+      <nebulaops-mfe-identity-admin    *ngIf="activeRemote() === 'identity-admin'"></nebulaops-mfe-identity-admin>
     </section>
   </section>
 
@@ -240,7 +242,7 @@
         <div>
           <p class="kicker">NEBULAOPS COMMAND PALETTE</p>
           <h2>Global Search · MFE, services, routes</h2>
-          <small>Ricerca operativa centralizzata per navigare rapidamente la piattaforma v22.3.</small>
+          <small>Ricerca operativa centralizzata per navigare rapidamente la piattaforma v22.4.</small>
         </div>
         <button type="button" class="launcher-close" (click)="closeCommandPalette()" aria-label="Chiudi">×</button>
       </header>

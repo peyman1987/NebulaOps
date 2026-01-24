@@ -1,4 +1,4 @@
-/* NebulaOps v22.3 auth bridge
+/* NebulaOps v22.4 auth bridge
  * Makes shell-loaded and standalone MFE requests share a valid Bearer token.
  * - Shell origin: reuses localStorage token or bootstraps dev admin token.
  * - Standalone MFE route (/remotes/<mfe>/): uses the same nebulaops.localhost origin and the shared shell token.
@@ -7,9 +7,9 @@
  */
 (function nebulaopsAuthBridge() {
   'use strict';
-  var VERSION = 'v22.3.9-restore-ui-live-api';
-  var JWT_KEY = 'nebulaops.v22_3.jwt';
-  var USER_KEY = 'nebulaops.v22_3.user';
+  var VERSION = 'v22.4.9-restore-ui-live-api';
+  var JWT_KEY = 'nebulaops.v22_4.jwt';
+  var USER_KEY = 'nebulaops.v22_4.user';
   var LOGIN_URL = '/api/auth/login';
   var DEV_LOGIN_BODY = JSON.stringify({ email: 'admin', password: 'admin' });
 
@@ -166,8 +166,8 @@
 
   window.__NEBULAOPS_GET_ACCESS_TOKEN__ = currentToken;
   window.__NEBULAOPS_ENSURE_ACCESS_TOKEN__ = ensureToken;
-  window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || window.__NEBULAOPS_REFRESH_TOKEN__ = function(){ clearToken(); return loginDev(); };
-  ensureToken();
+  window.__NEBULAOPS_REFRESH_TOKEN__ = function(){ clearToken(); return loginDevAdmin(); };
+  window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || ensureToken();
 
   if (window.fetch && !window.__NEBULAOPS_FETCH_AUTH_PATCHED__) {
     var nativeFetch = window.fetch.bind(window);
@@ -180,8 +180,7 @@
         if (rewrittenUrl !== requestUrl && typeof input === 'string') return nativeFetch(rewrittenUrl, init);
         return nativeFetch(input, init);
       }
-      var token = await window.__NEBULAOPS_REFRESH_TOKEN__ = function(){ clearToken(); return loginDev(); };
-  ensureToken();
+      var token = await ensureToken();
       var nextInit = Object.assign({}, init || {});
       var headers = new Headers(nextInit.headers || (input instanceof Request ? input.headers : undefined));
       if (token && !headers.has('Authorization')) headers.set('Authorization', 'Bearer ' + token);
@@ -233,8 +232,8 @@
     XHR.prototype.send = function nebulaopsSend(body) {
       var xhr = this;
       if (!xhr.__nebulaopsNeedsAuth) return nativeSend.call(xhr, body);
-      window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || window.__NEBULAOPS_REFRESH_TOKEN__ = function(){ clearToken(); return loginDev(); };
-  ensureToken();
+      window.__NEBULAOPS_REFRESH_TOKEN__ = function(){ clearToken(); return loginDevAdmin(); };
+  window.__NEBULAOPS_AUTH_READY__ = window.__NEBULAOPS_AUTH_READY__ || ensureToken();
       window.__NEBULAOPS_AUTH_READY__.then(function (token) {
         try {
           if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);

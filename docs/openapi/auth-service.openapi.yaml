@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: NebulaOps auth-service API
-  version: 22.3.0
+  version: 22.4.0
   description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
 servers:
   - url: http://localhost:8081
@@ -54,3 +54,160 @@ paths:
           description: Invalid request.
         '500':
           description: Runtime tool/API error.
+  /api/identity/realms/{realm}/users:
+    get:
+      summary: List Keycloak users for a realm using Redis-backed cache
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+        - name: search
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200': { description: Users returned by Keycloak Admin API }
+    post:
+      summary: Create a Keycloak user in the selected realm
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: User creation result }
+  /api/identity/realms/{realm}/users/{id}:
+    put:
+      summary: Update a Keycloak user representation
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: User update result }
+  /api/identity/realms/{realm}/users/{id}/disable:
+    patch:
+      summary: Disable a Keycloak user account
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: User disable result }
+  /api/identity/realms/{realm}/groups:
+    get:
+      summary: List Keycloak groups for a realm using Redis-backed cache
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Groups returned by Keycloak Admin API }
+    post:
+      summary: Create a Keycloak group in the selected realm
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Group creation result }
+  /api/identity/realms/{realm}/groups/{id}:
+    put:
+      summary: Update a Keycloak group representation
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Group update result }
+  /api/identity/realms/{realm}/groups/{id}/disable:
+    patch:
+      summary: Mark a Keycloak group as disabled through group attributes
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Group disable result }
+  /api/identity/realms/{realm}/roles:
+    get:
+      summary: List realm roles using Redis-backed cache
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Roles returned by Keycloak Admin API }
+    post:
+      summary: Create a realm role
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Role creation result }
+  /api/identity/realms/{realm}/roles/{name}:
+    put:
+      summary: Update a realm role representation
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+        - name: name
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Role update result }
+  /api/identity/realms/{realm}/roles/{name}/disable:
+    patch:
+      summary: Mark a role as disabled through role attributes
+      tags: [identity-admin]
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+        - name: name
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Role disable result }

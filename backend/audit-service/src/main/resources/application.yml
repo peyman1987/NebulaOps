@@ -11,8 +11,13 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v22-3-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v22-4-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:
@@ -24,3 +29,7 @@ management:
 nebulaops:
   security:
     enabled: ${KEYCLOAK_AUTH_ENABLED:false}
+  audit:
+    task-events-queue: ${NEBULAOPS_AUDIT_TASK_EVENTS_QUEUE:nebula.audit.task.events}
+    task-exchange: ${NEBULAOPS_TASK_EXCHANGE:nebula.task.exchange}
+    task-routing-key: ${NEBULAOPS_TASK_ROUTING_KEY:task.event}

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# v22.3 — Free RabbitMQ/Mongo/Redis UI ports when switching between native and SSO modes.
+# v22.4 — Free RabbitMQ/Mongo/Redis UI ports when switching between native and SSO modes.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
-for PORT in 15672 8088 8089 ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219; do
+for PORT in 15672 15673 8088 18088 8089 18089 ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219; do
   rows="$(docker ps --filter "publish=$PORT" --format '{{.ID}}|{{.Names}}|{{.Label "com.docker.compose.project"}}|{{.Label "com.docker.compose.service"}}' 2>/dev/null || true)"
   if [ -z "$rows" ]; then
     log_ok "Port $PORT is free"

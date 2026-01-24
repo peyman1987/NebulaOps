@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.3 local frontend builder.
+# NebulaOps v22.4 local frontend builder.
 # Builds Angular shell and all MFE dist folders on the host/WSL, then Dockerfiles only copy dist into nginx.
 set -euo pipefail
 

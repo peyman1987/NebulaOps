@@ -27,7 +27,9 @@ public class NotificationController {
 
     @RabbitListener(queues = "nebula.task.events")
     public void onTaskEvent(Map<String, Object> event) {
-        addNotification("TASK_EVENT", "Task event received from RabbitMQ", "INFO", "task-service", event);
+        String message = String.valueOf(event.getOrDefault("notificationMessage", "Task event received from RabbitMQ"));
+        String type = String.valueOf(event.getOrDefault("type", "TASK_EVENT"));
+        addNotification(type, message, "INFO", "task-service", event);
     }
 
     @GetMapping
