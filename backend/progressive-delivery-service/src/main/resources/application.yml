@@ -1,0 +1,27 @@
+server:
+  port: 8102
+spring:
+  application:
+    name: progressive-delivery-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
+jwt:
+  secret: ${JWT_SECRET:nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+nebulaops:
+  security:
+    enabled: ${KEYCLOAK_AUTH_ENABLED:false}
+  audit:
+    url: ${NEBULAOPS_AUDIT_URL:http://audit-service:8101}
+  notification:
+    url: ${NEBULAOPS_NOTIFICATION_URL:http://notification-service:8083}
+  argocd:
+    url: ${NEBULAOPS_ARGOCD_URL:}
+    token: ${NEBULAOPS_ARGOCD_TOKEN:}

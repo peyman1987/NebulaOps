@@ -4,7 +4,7 @@
     <parent>
         <groupId>dev.nebulaops</groupId>
         <artifactId>nebulaops-backend</artifactId>
-        <version>22.3.0</version>
+        <version>22.4.0</version>
     </parent>
     <artifactId>environment-manager-service</artifactId>
     <dependencies>

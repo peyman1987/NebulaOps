@@ -1,10 +1,10 @@
 {
   "id": "policy-center",
-  "title": "Policy Center",
-  "version": "22.3.0",
+  "title": "Policy, Approval & Governance Center",
+  "version": "22.4.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-policy-center",
   "port": 4222,
-  "scope": "Governance \u00b7 Policy Gates",
+  "scope": "Governance \u00b7 Approval \u00b7 OPA",
   "shellOwnedNavigation": true
 }

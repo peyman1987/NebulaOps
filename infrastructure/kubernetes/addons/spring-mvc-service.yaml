@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: spring-mvc-service
-          image: nebulaops-v22-3-spring-mvc-service:latest
+          image: nebulaops-v22-4-spring-mvc-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.3 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
+# v22.4 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
@@ -52,7 +52,7 @@ check_required_service_endpoint() {
   elif running_service "$service"; then
     print_bad "$label" "service running but endpoint not reachable yet: $url"
   else
-    print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.3-red-endpoints.sh"
+    print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.4-red-endpoints.sh"
   fi
 }
 
@@ -61,14 +61,14 @@ check_mfe_remote() {
   body="$(curl -fsS --max-time 5 "$url" 2>/dev/null || true)"
   if [ -z "$body" ]; then
     if [ -n "$service" ] && ! running_service "$service"; then
-      print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.3-frontend-remotes.sh"
+      print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.4-frontend-remotes.sh"
     else
       print_bad "$label" "remoteEntry.js not reachable: $url"
     fi
     return 0
   fi
   if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
-    print_bad "$label" "ESM remoteEntry served; run ./scripts/wsl/repair-v22.3-frontend-remotes.sh"
+    print_bad "$label" "ESM remoteEntry served; run ./scripts/wsl/repair-v22.4-frontend-remotes.sh"
     return 0
   fi
   if printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'; then
@@ -212,6 +212,8 @@ check_mfe_remote "MFE INFRA" "mfe-infra-hub" "${NEBULAOPS_PUBLIC_URL}/remotes/in
 check_mfe_remote "MFE Release" "mfe-release-center" "${NEBULAOPS_PUBLIC_URL}/remotes/release-center/remoteEntry.js"
 check_mfe_remote "MFE Policy" "mfe-policy-center" "${NEBULAOPS_PUBLIC_URL}/remotes/policy-center/remoteEntry.js"
 check_mfe_remote "MFE Notifications" "mfe-notification-center" "${NEBULAOPS_PUBLIC_URL}/remotes/notification-center/remoteEntry.js"
+check_mfe_remote "MFE Identity" "mfe-identity-admin" "${NEBULAOPS_PUBLIC_URL}/remotes/identity-admin/remoteEntry.js"
+check_mfe_remote "MFE Progressive" "mfe-progressive-delivery" "${NEBULAOPS_PUBLIC_URL}/remotes/progressive-delivery/remoteEntry.js"
 check_endpoint "Gateway"       "${NEBULAOPS_PUBLIC_URL}/actuator/health"
 check_authed_endpoint "Gateway /api"  "${NEBULAOPS_PUBLIC_URL}/api/health"
 check_endpoint "Auth"          "http://localhost:8081/actuator/health"
@@ -240,21 +242,21 @@ fi
 check_endpoint "Loki"          "http://localhost:3100/loki/api/v1/status/buildinfo"
 
 if running_service rabbitmq-management-sso; then
-  check_sso_redirect "RabbitMQ" "rabbitmq-management-sso" "http://localhost:15672/"
+  check_sso_redirect "RabbitMQ" "rabbitmq-management-sso" "http://localhost:${RABBITMQ_SSO_HOST_PORT:-15673}/"
   check_basic_proxy_upstream "RabbitMQ backend" "rabbitmq-basic-proxy"
 else
   check_endpoint "RabbitMQ" "http://guest:guest@localhost:15672/api/overview"
 fi
 
 if running_service mongo-express-sso; then
-  check_sso_redirect "MongoDB UI" "mongo-express-sso" "http://localhost:8088/"
+  check_sso_redirect "MongoDB UI" "mongo-express-sso" "http://localhost:${MONGO_EXPRESS_SSO_HOST_PORT:-18088}/"
   check_basic_proxy_upstream "MongoDB backend" "mongo-express-basic-proxy"
 else
   check_endpoint "MongoDB UI" "http://admin:admin@localhost:8088"
 fi
 
 if running_service redis-commander-sso; then
-  check_sso_redirect "Redis UI" "redis-commander-sso" "http://localhost:8089/"
+  check_sso_redirect "Redis UI" "redis-commander-sso" "http://localhost:${REDIS_COMMANDER_SSO_HOST_PORT:-18089}/"
   check_basic_proxy_upstream "Redis backend" "redis-commander-basic-proxy"
 else
   check_endpoint "Redis UI" "http://admin:admin@localhost:8089"

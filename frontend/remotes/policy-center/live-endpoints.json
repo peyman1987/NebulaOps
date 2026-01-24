@@ -1,26 +1,45 @@
 {
   "endpoints": [
     {
-      "label": "Policies",
-      "url": "/api/policies",
-      "kind": "policy"
+      "label": "Governance summary",
+      "url": "/api/governance",
+      "kind": "summary"
     },
     {
-      "label": "Evaluations",
-      "url": "/api/policies/evaluations",
-      "kind": "evaluation",
+      "label": "OPA policies",
+      "url": "/api/governance/policies",
+      "kind": "policy",
       "itemsPath": "items"
     },
     {
-      "label": "CVEs",
-      "url": "/api/platform/devsecops",
-      "kind": "cve",
-      "itemsPath": "cves"
+      "label": "Decisions",
+      "url": "/api/governance/decisions",
+      "kind": "decision",
+      "itemsPath": "items"
     },
     {
-      "label": "Cost forecast",
-      "url": "/api/cost/forecast",
-      "kind": "forecast"
+      "label": "Approval requests",
+      "url": "/api/governance/approvals",
+      "kind": "approval",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Violations",
+      "url": "/api/governance/violations",
+      "kind": "violation",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Governance audit events",
+      "url": "/api/audit/events?type=GOVERNANCE_APPROVAL_REQUESTED&limit=100",
+      "kind": "audit",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Notifications",
+      "url": "/api/notifications?limit=100",
+      "kind": "notification",
+      "itemsPath": "items"
     }
   ]
 }

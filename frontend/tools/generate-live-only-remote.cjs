@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const root = process.argv[2] ? path.resolve(process.argv[2]) : __dirname;
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
 const manifestPath = path.join(root, 'manifest.json');
 const endpointPath = path.join(root, 'live-endpoints.json');
 if (!fs.existsSync(manifestPath)) throw new Error(`Missing manifest.json in ${root}`);
@@ -11,7 +11,7 @@ const tag = manifest.tag || `nebulaops-mfe-${path.basename(root)}`;
 const title = manifest.title || path.basename(root);
 const scope = manifest.scope || '';
 const port = manifest.port || '';
-const version = 'v22.3.6-live-real-data';
+const version = 'v22.4.6-live-real-data-observability-audit';
 const dist = path.join(root, 'dist', 'browser');
 const sharedAuth = path.join(root, '..', '..', 'shared', 'nebulaops-auth-bridge.js');
 const authBridge = fs.existsSync(sharedAuth) ? fs.readFileSync(sharedAuth, 'utf8') : '';
@@ -27,7 +27,7 @@ const html = `<!doctype html>
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>${title} · NebulaOps v22.3</title>
+  <title>${title} · NebulaOps v22.4</title>
   <link rel="icon" href="/favicon.ico">
   <style>*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050816;color:#eef6ff}body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}</style>
 </head>

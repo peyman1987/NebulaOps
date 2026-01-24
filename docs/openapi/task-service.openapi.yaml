@@ -86,3 +86,27 @@ paths:
           description: Invalid request.
         '500':
           description: Runtime tool/API error.
+
+  /api/tasks/{id}/move:
+    patch:
+      summary: Move a task to another Kanban column and update sort order
+      tags: [task-service]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [TODO, IN_PROGRESS, REVIEW, DONE]
+                sortOrder:
+                  type: integer
+      responses:
+        '200': { description: Updated task document }

@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import dev.nebulaops.task.domain.TaskDocument;
 
 public interface TaskRepository extends MongoRepository<TaskDocument, String> {
-    List<TaskDocument> findByOrganizationId(String organizationId);
+    List<TaskDocument> findByOrganizationIdOrderByStatusAscSortOrderAscUpdatedAtDesc(String organizationId);
 }

@@ -1,8 +1,8 @@
-# NebulaOps v22.3
+# NebulaOps v22.4
 
 NebulaOps is a local cloud-operations platform composed of an Angular shell, same-origin micro frontend bundles, Spring Boot services, Go runtime helpers, an AI engine, Keycloak, RabbitMQ, MongoDB, Redis, Prometheus, Grafana, Loki and Tempo.
 
-The v22.3 local runtime uses a single browser-facing origin:
+The v22.4 local runtime uses a single browser-facing origin:
 
 ```text
 http://nebulaops.localhost
@@ -13,7 +13,7 @@ The frontend Nginx image is the public entry point. It serves the shell, serves 
 ## Start
 
 ```bash
-cd nebulaops-v22.3
+cd nebulaops-v22.4
 chmod +x scripts/wsl/*.sh scripts/*.sh
 ./scripts/wsl/start.sh --rebuild
 ./scripts/wsl/health.sh
@@ -78,7 +78,7 @@ The maintained SVG set is intentionally aligned with the current reverse-proxy r
 
 ## Documentation
 
-Current documentation is aligned with the v22.3 same-origin runtime:
+Current documentation is aligned with the v22.4 same-origin runtime:
 
 - `ARCHITECTURE.md`
 - `docs/TECHNICAL_DOCUMENTATION.md`
@@ -89,3 +89,13 @@ Current documentation is aligned with the v22.3 same-origin runtime:
 - `docs/WSL_GUIDE.md`
 
 Legacy local URLs are not used for MFE standalone buttons or shell remote loading. Development-only commands may still use framework defaults internally, but the supported browser entry point is `http://nebulaops.localhost`.
+
+
+## Observability & Audit Center
+
+The v22.4 observability console is live-only. It reads service health, Prometheus, Loki, Tempo, RabbitMQ, task, notification and audit endpoints through `/api/observability/**`. It does not render seeded, sample or mock records; empty tables mean the runtime source returned no rows or was unavailable.
+
+
+## Progressive Delivery Center
+
+NebulaOps v22.4 includes a Progressive Delivery Center for live Argo Rollouts and Argo CD operations. It reads only runtime data from Kubernetes, Argo Rollouts and Argo CD through `/api/progressive-delivery/**`; empty states indicate no live records or an unreachable runtime source.

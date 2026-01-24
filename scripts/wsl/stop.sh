@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.3 — Stop NebulaOps stack quickly.
+# v22.4 — Stop NebulaOps stack quickly.
 # GitLab CE is intentionally treated as optional/heavy and is killed first by default.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
@@ -36,7 +36,7 @@ force_remove_service() {
   fi
 }
 
-log_step "Stopping NebulaOps v22.3"
+log_step "Stopping NebulaOps v22.4"
 
 if [ "$KEEP_GITLAB" != "true" ]; then
   force_remove_service gitlab
@@ -56,7 +56,7 @@ else
 fi
 
 # Also stop legacy project names if still running
-for LEGACY in nebulaops-v22-3 nebulaops-v22-1 nebulaops-v21-4 nebulaops-v20-2 nebulaops-v19-5 nebulaops; do
+for LEGACY in nebulaops-v22-4 nebulaops-v22-1 nebulaops-v21-4 nebulaops-v20-2 nebulaops-v19-5 nebulaops; do
   if docker compose -p "$LEGACY" ps -q 2>/dev/null | grep -q .; then
     log_warn "Found running containers under legacy project '$LEGACY' — stopping them too"
     docker compose -p "$LEGACY" -f "$COMPOSE_FILE" down --remove-orphans --timeout "$STOP_TIMEOUT" 2>/dev/null || \
@@ -66,7 +66,7 @@ done
 
 
 # Clean up stale NebulaOps containers that may keep tool UI ports bound across version upgrades.
-for PORT in 15672 8088 8089 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219; do
+for PORT in 15672 15673 8088 18088 8089 18089 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219; do
   docker ps --filter "publish=$PORT" \
     --format '{{.ID}}|{{.Names}}|{{.Label "com.docker.compose.project"}}|{{.Label "com.docker.compose.service"}}' 2>/dev/null \
     | while IFS='|' read -r id name project service; do

@@ -1,8 +1,8 @@
-# Copiare questo file nella root di nebulaops-v22.3 oppure usarlo con:
+# Copiare questo file nella root di nebulaops-v22.4 oppure usarlo con:
 # docker compose -f docker-compose.yml -f docker-compose.spring-mvc-service.yml up -d --build spring-mvc-service
 services:
   spring-mvc-service:
-    image: ${SPRING_MVC_IMAGE:-nebulaops-v22-3-spring-mvc-service:latest}
+    image: ${SPRING_MVC_IMAGE:-nebulaops-v22-4-spring-mvc-service:latest}
     build:
       context: ${NEBULAOPS_ROOT:-.}
       dockerfile: backend/spring-mvc-service/Dockerfile
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     labels:
       com.nebulaops.service: spring-mvc-service
-      com.nebulaops.version: v22.3
+      com.nebulaops.version: v22.4
       prometheus.io/scrape: "true"
       prometheus.io/path: /actuator/prometheus
       prometheus.io/port: "8099"

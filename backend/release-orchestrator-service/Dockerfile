@@ -1,4 +1,4 @@
-# NebulaOps v22.3 runtime image for release-orchestrator-service.
+# NebulaOps v22.4 runtime image for release-orchestrator-service.
 # Java compilation is intentionally executed once before Docker image build by:
 #   ./scripts/wsl/build-backend-jars.sh
 # This avoids downloading Maven dependencies separately in every service image.

@@ -1,72 +1,86 @@
 openapi: 3.0.3
 info:
-  title: NebulaOps observability-service API
-  version: 22.3.0
-  description: Live-only backend API. Responses are produced by services/adapters invoking real APIs, sockets, repositories, or CLI tools. No mock/statistical sample data is returned.
+  title: NebulaOps Observability & Audit Center API
+  version: 22.4.0
+  description: Live-only operational API. Responses are aggregated from runtime services and external observability tools; no seeded or mock records are generated.
 servers:
-  - url: http://localhost:8092
+  - url: /api/observability
 paths:
-  /api/observability:
+  /:
     get:
-      summary: Probe live observability APIs
-      tags:
-        - observability-service
+      summary: Probe observability stack components
       responses:
-        '200':
-          description: Live response from backend service.
-          content:
-            application/json:
-              schema:
-                type: object
-        '400':
-          description: Invalid request.
-        '500':
-          description: Runtime tool/API error.
-  /api/observability/prometheus:
+        '200': { description: Runtime probe result }
+  /overview:
     get:
-      summary: Run Prometheus query
-      tags:
-        - observability-service
+      summary: Return a live overview of services, tasks, audit, notifications and RabbitMQ
+      parameters:
+        - in: query
+          name: organizationId
+          schema: { type: string, default: default-org }
       responses:
-        '200':
-          description: Live response from backend service.
-          content:
-            application/json:
-              schema:
-                type: object
-        '400':
-          description: Invalid request.
-        '500':
-          description: Runtime tool/API error.
-  /api/observability/loki:
+        '200': { description: Live overview }
+  /services:
     get:
-      summary: Run Loki query
-      tags:
-        - observability-service
+      summary: Probe registered NebulaOps backend health endpoints
       responses:
-        '200':
-          description: Live response from backend service.
-          content:
-            application/json:
-              schema:
-                type: object
-        '400':
-          description: Invalid request.
-        '500':
-          description: Runtime tool/API error.
-  /api/observability/grafana:
+        '200': { description: Live service health list }
+  /metrics/prometheus:
     get:
-      summary: Read Grafana health
-      tags:
-        - observability-service
+      summary: Execute a Prometheus instant query
+      parameters:
+        - in: query
+          name: query
+          schema: { type: string, default: up }
       responses:
-        '200':
-          description: Live response from backend service.
-          content:
-            application/json:
-              schema:
-                type: object
-        '400':
-          description: Invalid request.
-        '500':
-          description: Runtime tool/API error.
+        '200': { description: Prometheus query response }
+  /logs/loki:
+    get:
+      summary: Execute a Loki query
+      parameters:
+        - in: query
+          name: query
+          schema: { type: string }
+      responses:
+        '200': { description: Loki query response }
+  /traces/tempo:
+    get:
+      summary: Search Tempo traces
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200': { description: Tempo trace search response }
+  /audit/events:
+    get:
+      summary: Read live audit events from audit-service
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 100 }
+      responses:
+        '200': { description: Audit event timeline }
+  /events/tasks:
+    get:
+      summary: Read runtime task records from task-service
+      parameters:
+        - in: query
+          name: organizationId
+          schema: { type: string, default: default-org }
+      responses:
+        '200': { description: Task records }
+  /events/notifications:
+    get:
+      summary: Read runtime notification records from notification-service
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 100 }
+      responses:
+        '200': { description: Notification records }
+  /events/rabbitmq:
+    get:
+      summary: Read RabbitMQ management overview
+      responses:
+        '200': { description: RabbitMQ runtime overview }

@@ -24,7 +24,7 @@ nebulaops:
   security:
     enabled: ${KEYCLOAK_AUTH_ENABLED:false}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v22-3-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v22-4-dev-secret-key-min-32-chars!!}
 management:
   endpoint:
     health:
