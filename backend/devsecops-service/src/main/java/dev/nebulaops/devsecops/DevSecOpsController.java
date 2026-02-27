@@ -42,7 +42,7 @@ public class DevSecOpsController {
 
     @PostMapping("/scan/image")
     public Map<String, Object> scanImageV23(@RequestBody(required = false) Map<String, Object> body) {
-        String image = body == null ? "nebulaops-v22-4-gateway-service:latest" : String.valueOf(body.getOrDefault("image", "nebulaops-v22-4-gateway-service:latest"));
+        String image = body == null ? "nebulaops-v22-5-gateway-service:latest" : String.valueOf(body.getOrDefault("image", "nebulaops-v22-5-gateway-service:latest"));
         Map<String, Object> raw = service.imageScan(image);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("image", image);

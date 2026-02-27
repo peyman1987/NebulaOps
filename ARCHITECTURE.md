@@ -1,6 +1,6 @@
 # Architecture
 
-NebulaOps v22.4 uses a same-origin browser architecture. The only supported browser entry point is `http://nebulaops.localhost`.
+NebulaOps v22.5 uses a same-origin browser architecture. The only supported browser entry point is `http://nebulaops.localhost`.
 
 ## Runtime model
 
@@ -12,7 +12,7 @@ NebulaOps v22.4 uses a same-origin browser architecture. The only supported brow
 - Go services provide lightweight cache/event-worker capabilities.
 - Helm, GitLab CI and Argo CD assets are included for deployment and GitOps workflows.
 
-![NebulaOps v22.4 runtime](docs/architecture-animated.svg)
+![NebulaOps v22.5 runtime](docs/architecture-animated.svg)
 
 ![Runtime architecture](docs/diagrams/runtime-architecture.svg)
 

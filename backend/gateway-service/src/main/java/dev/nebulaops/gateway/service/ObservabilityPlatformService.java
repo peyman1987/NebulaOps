@@ -14,9 +14,11 @@ import java.util.Map;
 @Service
 public class ObservabilityPlatformService {
     private final HttpApiClient http;
+    private final ObservabilityCacheClient cache;
 
-    public ObservabilityPlatformService(HttpApiClient http) {
+    public ObservabilityPlatformService(HttpApiClient http, ObservabilityCacheClient cache) {
         this.http = http;
+        this.cache = cache;
     }
 
     public Map<String, Object> stack() {
@@ -36,17 +38,33 @@ public class ObservabilityPlatformService {
     }
 
     public Map<String, Object> prometheusQuery(String query) {
-        String q = URLEncoder.encode(query == null || query.isBlank() ? "up" : query, StandardCharsets.UTF_8);
-        return http.get(env("PROMETHEUS_URL", "http://prometheus:9090") + "/api/v1/query?query=" + q);
+        String raw = query == null || query.isBlank() ? "up" : query;
+        return cachedQuery("prometheus", raw, env("PROMETHEUS_URL", "http://prometheus:9090") + "/api/v1/query?query=" + enc(raw));
     }
 
     public Map<String, Object> lokiQuery(String query) {
-        String q = URLEncoder.encode(query == null || query.isBlank() ? "{job=~\".+\"}" : query, StandardCharsets.UTF_8);
-        return http.get(env("LOKI_URL", "http://loki:3100") + "/loki/api/v1/query?query=" + q);
+        String raw = query == null || query.isBlank() ? "{job=~\".+\"}" : query;
+        return cachedQuery("loki", raw, env("LOKI_URL", "http://loki:3100") + "/loki/api/v1/query?query=" + enc(raw));
     }
 
     public Map<String, Object> grafanaHealth() {
         return http.get(env("GRAFANA_URL", "http://grafana:3000") + "/api/health");
+    }
+
+    private Map<String, Object> cachedQuery(String source, String rawQuery, String url) {
+        Map<String, Object> cached = cache.get(source, rawQuery);
+        if ("HIT".equals(String.valueOf(cached.get("cache")))) {
+            Map<String, Object> out = new LinkedHashMap<>(cached);
+            out.put("live", true);
+            out.put("source", source);
+            return out;
+        }
+        Map<String, Object> live = http.get(url);
+        if (Boolean.TRUE.equals(live.get("live"))) cache.put(source, rawQuery, live);
+        Map<String, Object> out = new LinkedHashMap<>(live);
+        out.put("cache", "MISS");
+        out.put("source", source);
+        return out;
     }
 
     private Map<String, Object> endpoint(String name, String role, String base, String path) {
@@ -62,7 +80,6 @@ public class ObservabilityPlatformService {
         return out;
     }
 
-    private String env(String key, String fallback) {
-        return System.getenv().getOrDefault(key, fallback);
-    }
+    private String enc(String value) { return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8); }
+    private String env(String key, String fallback) { return System.getenv().getOrDefault(key, fallback); }
 }

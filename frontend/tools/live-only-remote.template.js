@@ -4,7 +4,7 @@
   'use strict';
   const CFG = __CFG_JSON__;
   const VERSION = '__VERSION__';
-  const TOKEN_KEY = 'nebulaops.v22_4.jwt';
+  const TOKEN_KEY = 'nebulaops.v22_5.jwt';
   const css = `
     :host{display:block;color:#eaf4ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
     .mfe{min-height:640px;padding:28px;background:radial-gradient(circle at top left,rgba(25,179,255,.18),transparent 36%),linear-gradient(135deg,#07111f,#0b1026 58%,#11152d);}

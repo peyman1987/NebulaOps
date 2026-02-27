@@ -3,7 +3,7 @@
 | Key             | Value                                       |
 | --------------- | ------------------------------------------- |
 | name            | NebulaOps                                   |
-| version         | v22.4.0                                     |
+| version         | v22.5.0                                     |
 | release_date    | 2026-05                                     |
 | repo_layout     | monorepo (frontend + backend + infra)       |
 | maintainer      | Peyman Eshghi Malayeri                      |
@@ -40,7 +40,7 @@
 | `backend/gateway-service/.../application.yml` | Proxy targets                        |
 | `docker-compose.yml`                          | Stack composition                    |
 
-## API surface (v22.4)
+## API surface (v22.5)
 
 | Route group             | Endpoints                                      |
 | ----------------------- | ---------------------------------------------- |
@@ -50,15 +50,26 @@
 | `/api/runtime/**`       | docker containers/images/volumes, helm         |
 | `/api/platform/**`      | observability, gitops, devsecops, environments |
 | `/api/ai-ops/**`        | analyze, autofix                               |
-| `/api/pipeline/**`      | runs list, trigger (v22.4)                     |
-| `/api/cost/**`          | summary, breakdown, entries (v22.4)            |
-| `/api/notifications/**` | live, mark-read (v22.4)                        |
-| `/api/audit/**`         | events (v22.4)                                 |
-| `/api/secrets/**`       | list (v22.4)                                   |
-| `/api/registry/**`      | images (v22.4)                                 |
+| `/api/pipeline/**`      | runs list, trigger (v22.5)                     |
+| `/api/cost/**`          | summary, breakdown, entries (v22.5)            |
+| `/api/notifications/**` | live, mark-read (v22.5)                        |
+| `/api/audit/**`         | events (v22.5)                                 |
+| `/api/secrets/**`       | list (v22.5)                                   |
+| `/api/registry/**`      | images (v22.5)                                 |
 
 ## Entry points
 
 - `./scripts/wsl/start.sh` — start everything
 - `./scripts/wsl/health.sh` — check all services
 - `./scripts/wsl/restart-gateway.sh` — fast gateway restart
+
+
+## v22.5 Extension Set
+
+- APIForge — `extensions/apiforge` — NodePort `31110`
+
+## v22.5 Extension Selection
+
+Installed UI-controlled extensions: APIForge, KubeBridge and Contract Hub.
+
+Control actions exposed through the NebulaOps gateway and APP BAR: Start, Stop, Restart, Status and Open.

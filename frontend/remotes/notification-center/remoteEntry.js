@@ -1,4 +1,4 @@
-/* NebulaOps v22.4 auth bridge
+/* NebulaOps v22.5 auth bridge
  * Makes shell-loaded and standalone MFE requests share a valid Bearer token.
  * - Shell origin: reuses localStorage token or bootstraps dev admin token.
  * - Standalone MFE route (/remotes/<mfe>/): uses the same nebulaops.localhost origin and the shared shell token.
@@ -7,9 +7,9 @@
  */
 (function nebulaopsAuthBridge() {
   'use strict';
-  var VERSION = 'v22.4.9-restore-ui-live-api';
-  var JWT_KEY = 'nebulaops.v22_4.jwt';
-  var USER_KEY = 'nebulaops.v22_4.user';
+  var VERSION = 'v22.5.9-restore-ui-live-api';
+  var JWT_KEY = 'nebulaops.v22_5.jwt';
+  var USER_KEY = 'nebulaops.v22_5.user';
   var LOGIN_URL = '/api/auth/login';
   var DEV_LOGIN_BODY = JSON.stringify({ email: 'admin', password: 'admin' });
 
@@ -249,7 +249,7 @@
 })();
 
 
-/* NebulaOps v22.4.6-live-real-data-observability-audit · live endpoint custom element.
+/* NebulaOps v22.5.6-live-real-data-observability-audit · live endpoint custom element.
    This bundle does not contain seeded records. It renders only responses returned by NebulaOps APIs. */
 (function nebulaopsLiveRemote(){
   'use strict';
@@ -280,8 +280,8 @@
     ]
   }
 };
-  const VERSION = 'v22.4.6-live-real-data-observability-audit';
-  const TOKEN_KEY = 'nebulaops.v22_4.jwt';
+  const VERSION = 'v22.5.6-live-real-data-observability-audit';
+  const TOKEN_KEY = 'nebulaops.v22_5.jwt';
   const css = `
     :host{display:block;color:#eaf4ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
     .mfe{min-height:640px;padding:28px;background:radial-gradient(circle at top left,rgba(25,179,255,.18),transparent 36%),linear-gradient(135deg,#07111f,#0b1026 58%,#11152d);}

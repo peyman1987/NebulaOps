@@ -2,7 +2,7 @@
 
 ## Scope
 
-This document describes the current NebulaOps v22.4 local runtime. The platform is designed around a single browser-facing origin, `http://nebulaops.localhost`, with the frontend Nginx container serving static shell/MFE files and proxying API and platform routes into the Docker network.
+This document describes the current NebulaOps v22.5 local runtime. The platform is designed around a single browser-facing origin, `http://nebulaops.localhost`, with the frontend Nginx container serving static shell/MFE files and proxying API and platform routes into the Docker network.
 
 ## Frontend shell and remotes
 
@@ -72,9 +72,9 @@ Loki and Tempo remain internal runtime services unless directly exposed by the c
 
 ![Service port map](diagrams/service-port-map.svg)
 
-![Reverse proxy runtime](diagrams/nebulaops-v22-4-reverse-proxy-runtime.svg)
+![Reverse proxy runtime](diagrams/nebulaops-v22-5-reverse-proxy-runtime.svg)
 
 
 ## Progressive Delivery Center
 
-The v22.4 Progressive Delivery Center provides runtime canary/blue-green operations backed by `progressive-delivery-service`. It queries Argo Rollouts, Argo CD and Kubernetes at request time and exposes gateway routes under `/api/progressive-delivery/**`.
+The v22.5 Progressive Delivery Center provides runtime canary/blue-green operations backed by `progressive-delivery-service`. It queries Argo Rollouts, Argo CD and Kubernetes at request time and exposes gateway routes under `/api/progressive-delivery/**`.

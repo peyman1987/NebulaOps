@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.4 — Show gateway-service startup logs and probe health.
+# v22.5 — Show gateway-service startup logs and probe health.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 

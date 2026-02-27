@@ -7,6 +7,7 @@ stages:
   - validate
   - test
   - build
+  - security
   - package
   - deploy
   - verify
@@ -81,6 +82,22 @@ test:backend:
     paths:
       - backend/**/target/surefire-reports/
     expire_in: 1 week
+
+
+security:trivy-fs:
+  stage: security
+  image:
+    name: aquasec/trivy:0.56.2
+    entrypoint: [""]
+  script:
+    - trivy fs --exit-code 0 --severity CRITICAL,HIGH --ignore-unfixed --format json --output trivy-fs-report.json .
+    - trivy fs --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed --format table .
+  artifacts:
+    when: always
+    paths:
+      - trivy-fs-report.json
+    expire_in: 1 week
+  allow_failure: false
 
 .docker-build-template:
   stage: build

@@ -1,8 +1,8 @@
-# NebulaOps v22.4
+# NebulaOps v22.5
 
 NebulaOps is a local cloud-operations platform composed of an Angular shell, same-origin micro frontend bundles, Spring Boot services, Go runtime helpers, an AI engine, Keycloak, RabbitMQ, MongoDB, Redis, Prometheus, Grafana, Loki and Tempo.
 
-The v22.4 local runtime uses a single browser-facing origin:
+The v22.5 local runtime uses a single browser-facing origin:
 
 ```text
 http://nebulaops.localhost
@@ -13,7 +13,7 @@ The frontend Nginx image is the public entry point. It serves the shell, serves 
 ## Start
 
 ```bash
-cd nebulaops-v22.4
+cd nebulaops-v22.5
 chmod +x scripts/wsl/*.sh scripts/*.sh
 ./scripts/wsl/start.sh --rebuild
 ./scripts/wsl/health.sh
@@ -78,7 +78,7 @@ The maintained SVG set is intentionally aligned with the current reverse-proxy r
 
 ## Documentation
 
-Current documentation is aligned with the v22.4 same-origin runtime:
+Current documentation is aligned with the v22.5 same-origin runtime:
 
 - `ARCHITECTURE.md`
 - `docs/TECHNICAL_DOCUMENTATION.md`
@@ -93,9 +93,106 @@ Legacy local URLs are not used for MFE standalone buttons or shell remote loadin
 
 ## Observability & Audit Center
 
-The v22.4 observability console is live-only. It reads service health, Prometheus, Loki, Tempo, RabbitMQ, task, notification and audit endpoints through `/api/observability/**`. It does not render seeded, sample or mock records; empty tables mean the runtime source returned no rows or was unavailable.
+The v22.5 observability console is live-only. It reads service health, Prometheus, Loki, Tempo, RabbitMQ, task, notification and audit endpoints through `/api/observability/**`. It does not render seeded, sample or mock records; empty tables mean the runtime source returned no rows or was unavailable.
 
 
 ## Progressive Delivery Center
 
-NebulaOps v22.4 includes a Progressive Delivery Center for live Argo Rollouts and Argo CD operations. It reads only runtime data from Kubernetes, Argo Rollouts and Argo CD through `/api/progressive-delivery/**`; empty states indicate no live records or an unreachable runtime source.
+NebulaOps v22.5 includes a Progressive Delivery Center for live Argo Rollouts and Argo CD operations. It reads only runtime data from Kubernetes, Argo Rollouts and Argo CD through `/api/progressive-delivery/**`; empty states indicate no live records or an unreachable runtime source.
+
+### APIForge on Kubernetes
+
+NebulaOps v22.5 includes APIForge in the App Bar. The source is packaged as an extension under `extensions/apiforge/`. APIForge is deployed directly to Kubernetes and exposed on the local NodePort `31110`:
+
+```bash
+./scripts/wsl/deploy-apiforge-k8s.sh
+# open http://localhost:31110/apiforge/
+```
+
+The deployment manifest is `extensions/apiforge/k8s/deployment.yml`; it creates the APIForge deployment, service, persistent volume claim and optional ingress path `/apiforge`.
+
+
+## NebulaOps v22.5 Extensions
+
+NebulaOps v22.5 now keeps only APIForge as Kubernetes-hosted extension under `extensions/`, styled with the same NebulaOps dark/glass UI language and exposed in the App Bar:
+
+| Extension | Source | NodePort | Purpose |
+|---|---:|---:|---|
+| APIForge | `extensions/apiforge` | `31110` | Kubernetes-hosted REST, GraphQL and WebSocket API workspace |
+
+Deploy APIForge:
+
+```bash
+./scripts/wsl/deploy-extensions-k8s.sh
+```
+
+
+## v22.5 real-extension policy
+
+The v22.5 extensions do not ship operational records as artificial seed data. Runtime screens call Spring Boot MVC endpoints and render only live responses from Kubernetes, mounted runbook/SLO files or configured service APIs. Missing integrations are reported as `NOT_CONFIGURED`, `DEGRADED` or `UNAVAILABLE`.
+
+
+## APIForge UI-controlled extension
+
+NebulaOps v22.5 keeps only APIForge under `extensions/`. The core platform starts first; APIForge can then be started from the UI:
+
+```bash
+./scripts/wsl/start.sh --rebuild
+```
+
+Open the NebulaOps APP BAR and select **APIForge Control**. The control screen can start, stop and inspect the APIForge Kubernetes deployment.
+
+APIForge is served through the gateway after startup:
+
+```text
+http://nebulaops.localhost/apiforge/
+```
+
+Optional legacy auto-start remains available:
+
+```bash
+./scripts/wsl/start.sh --rebuild --with-extensions-k8s
+```
+
+
+## v22.5 UI-controlled extensions
+
+This package installs only the selected extension set:
+
+```text
+extensions/apiforge
+extensions/kubebridge
+extensions/contract-hub
+```
+
+The APP BAR is reserved for platform services. The separate EXTENSIONS button exposes exactly these three installed extensions and supports:
+
+```text
+Start
+Stop
+Restart
+Status
+Open
+```
+
+Default startup keeps extensions UI-controlled:
+
+```bash
+./scripts/wsl/start.sh --rebuild
+```
+
+Optional CLI auto-deploy remains available:
+
+```bash
+./scripts/wsl/start.sh --rebuild --with-extensions-k8s
+./scripts/wsl/deploy-extensions-k8s.sh --only apiforge
+./scripts/wsl/deploy-extensions-k8s.sh --only kubebridge
+./scripts/wsl/deploy-extensions-k8s.sh --only contract-hub
+```
+
+The extensions must not generate mock records or static operational data. Missing integrations are surfaced through explicit runtime states.
+
+
+## AI Engine v22.5
+
+The AI Engine uses Anthropic Messages API when `ANTHROPIC_API_KEY` is configured. When the key is absent or the provider is unreachable, the service returns an explicit `LLM_UNAVAILABLE` fallback response and does not fabricate RCA data.

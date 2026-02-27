@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nebulaops
+  labels:
+    app.kubernetes.io/name: nebulaops
+    app.kubernetes.io/part-of: nebulaops
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubebridge
+  namespace: nebulaops
+  labels:
+    app: kubebridge
+    app.kubernetes.io/name: kubebridge
+    app.kubernetes.io/component: extension
+    app.kubernetes.io/part-of: nebulaops
+    app.kubernetes.io/version: "22.5.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubebridge
+  template:
+    metadata:
+      labels:
+        app: kubebridge
+        app.kubernetes.io/name: kubebridge
+        app.kubernetes.io/component: extension
+        app.kubernetes.io/part-of: nebulaops
+    spec:
+      serviceAccountName: kubebridge
+      containers:
+        - name: kubebridge
+          image: nebulaops-v22-5-kubebridge:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: KUBE_TARGET_NAMESPACE
+              value: nebulaops
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 8
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 8
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 8
+          resources:
+            requests:
+              cpu: 80m
+              memory: 160Mi
+            limits:
+              cpu: 600m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubebridge
+  namespace: nebulaops
+  labels:
+    app: kubebridge
+    app.kubernetes.io/name: kubebridge
+    app.kubernetes.io/part-of: nebulaops
+spec:
+  type: NodePort
+  selector:
+    app: kubebridge
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      nodePort: 31111
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubebridge
+  namespace: nebulaops
+  labels:
+    app: kubebridge
+    app.kubernetes.io/name: kubebridge
+    app.kubernetes.io/part-of: nebulaops
+spec:
+  rules:
+    - host: nebulaops.local
+      http:
+        paths:
+          - path: /kubebridge
+            pathType: Prefix
+            backend:
+              service:
+                name: kubebridge
+                port:
+                  number: 8080
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubebridge
+  namespace: nebulaops
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubebridge-reader
+  namespace: nebulaops
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "events", "configmaps", "secrets", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubebridge-reader
+  namespace: nebulaops
+subjects:
+  - kind: ServiceAccount
+    name: kubebridge
+    namespace: nebulaops
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubebridge-reader

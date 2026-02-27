@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "apiforge",
+    "title": "APIForge",
+    "subtitle": "UI-controlled Kubernetes API workspace",
+    "icon": "⚒️",
+    "nodePort": 31110,
+    "url": "/api/extensions/console?extension=apiforge",
+    "openUrl": "/apiforge/",
+    "sourcePath": "extensions/apiforge",
+    "kubernetesManifest": "extensions/apiforge/k8s/deployment.yml",
+    "actions": ["start", "stop", "restart", "status", "open"]
+  },
+  {
+    "slug": "kubebridge",
+    "title": "KubeBridge",
+    "subtitle": "UI-controlled Kubernetes live control extension",
+    "icon": "☸️",
+    "nodePort": 31111,
+    "url": "/api/extensions/console?extension=kubebridge",
+    "openUrl": "/kubebridge/",
+    "sourcePath": "extensions/kubebridge",
+    "kubernetesManifest": "extensions/kubebridge/k8s/deployment.yml",
+    "actions": ["start", "stop", "restart", "status", "open"]
+  },
+  {
+    "slug": "contract-hub",
+    "title": "Contract Hub",
+    "subtitle": "UI-controlled API contract governance extension",
+    "icon": "📜",
+    "nodePort": 31114,
+    "url": "/api/extensions/console?extension=contract-hub",
+    "openUrl": "/contract-hub/",
+    "sourcePath": "extensions/contract-hub",
+    "kubernetesManifest": "extensions/contract-hub/k8s/deployment.yml",
+    "actions": ["start", "stop", "restart", "status", "open"]
+  }
+]

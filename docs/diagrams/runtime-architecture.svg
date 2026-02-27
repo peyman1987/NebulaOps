@@ -12,7 +12,7 @@
   <text x="64" y="76" class="title">Runtime Architecture</text>
   <text x="64" y="106" class="sub">Frontend Nginx is the only browser-facing web tier; services communicate on the Docker network.</text>
 
-<rect x="64" y="124" width="68" height="28" rx="14" fill="#58e7ff"/><text x="78" y="143" class="chip">v22.4</text>
+<rect x="64" y="124" width="68" height="28" rx="14" fill="#58e7ff"/><text x="78" y="143" class="chip">v22.5</text>
 <rect x="160" y="124" width="172" height="28" rx="14" fill="#58e7ff"/><text x="174" y="143" class="chip">WSL/Docker Compose</text>
 <path d="M320 230 C 350 230, 350 230, 380 230" class="flow"/>
 <path d="M680 230 C 720 230, 720 230, 760 230" class="flow"/>

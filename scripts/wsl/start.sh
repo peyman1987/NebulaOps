@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# v22.4 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
-# Usage: ./scripts/wsl/start.sh [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight]
+# v22.5 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
+# Usage: ./scripts/wsl/start.sh [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight] [--with-extensions-k8s]
+# Default: NebulaOps core starts first; installed extensions can be started from the UI.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
@@ -9,6 +10,7 @@ REBUILD_GATEWAY=false
 WITH_GITLAB=false
 WITH_SSO_PROXY=false
 RUN_PREFLIGHT=true
+WITH_EXTENSIONS_K8S="${NEBULAOPS_EXTENSIONS_K8S:-false}"
 for arg in "$@"; do
   case "$arg" in
     --rebuild|--build) REBUILD_ALL=true ;;
@@ -16,9 +18,11 @@ for arg in "$@"; do
     --with-gitlab) WITH_GITLAB=true ;;
     --with-sso-proxy|--with-sso-proxies) WITH_SSO_PROXY=true ;;
     --skip-preflight) RUN_PREFLIGHT=false ;;
+    --with-extensions-k8s|--with-apiforge-k8s|--auto-start-extensions-k8s) WITH_EXTENSIONS_K8S=true ;;
+    --skip-extensions-k8s|--skip-apiforge-k8s) WITH_EXTENSIONS_K8S=false ;;
     -h|--help)
       cat <<USAGE
-Usage: $0 [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight]
+Usage: $0 [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight] [--with-extensions-k8s]
   --rebuild            Build backend JARs and Docker images before startup
   --rebuild-gateway    Force no-cache rebuild of the gateway-service image
                        (use when gateway routes/config changed)
@@ -27,8 +31,12 @@ Usage: $0 [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--
   --with-sso-proxy     Also start OAuth2 Proxy wrappers for RabbitMQ, Mongo Express
                        and Redis Commander. Prometheus SSO remains optional
                        via COMPOSE_PROFILES=sso-prometheus.
-  --skip-preflight      Skip the full static v22.4 preflight. Use only after a
+  --skip-preflight      Skip the full static v22.5 preflight. Use only after a
                        successful preflight in the same workspace.
+  --with-extensions-k8s Build/load/apply installed extensions to Kubernetes during startup.
+                       Default is UI-controlled startup from the APP BAR.
+  --skip-extensions-k8s Keep installed extensions stopped during startup.
+                       Backward compatible aliases: --with-apiforge-k8s, --auto-start-extensions-k8s, --skip-apiforge-k8s
 USAGE
       exit 0
       ;;
@@ -39,12 +47,12 @@ cd "$ROOT_DIR"
 
 run_integrated_preflight() {
   if [ "$RUN_PREFLIGHT" != "true" ]; then
-    log_warn "Full v22.4 preflight skipped by --skip-preflight"
+    log_warn "Full v22.5 preflight skipped by --skip-preflight"
     return 0
   fi
 
-  log_step "Running integrated v22.4 preflight"
-  "$ROOT_DIR/scripts/wsl/preflight-v22.4.sh"
+  log_step "Running integrated v22.5 preflight"
+  "$ROOT_DIR/scripts/wsl/preflight-v22.5.sh"
 }
 
 run_integrated_preflight
@@ -71,7 +79,7 @@ locales=en,it
 THEME
 
   cat > "$theme_dir/login.ftl" <<'FTL'
-<#-- NebulaOps v22.4 standalone Keycloak login page. No template.ftl import. -->
+<#-- NebulaOps v22.5 standalone Keycloak login page. No template.ftl import. -->
 <#assign nbLoginAction="">
 <#assign nbUsername="">
 <#assign nbRemember=false>
@@ -95,7 +103,7 @@ THEME
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>NebulaOps v22.4 Login</title>
+  <title>NebulaOps v22.5 Login</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
@@ -172,10 +180,10 @@ THEME
 <body>
   <main class="nb-card">
     <div class="nb-brand">
-      <div class="nb-logo">N22.4</div>
+      <div class="nb-logo">N22.5</div>
       <div class="nb-brand-text">
         <p>Terraform enabled SaaS cockpit</p>
-        <h1>NebulaOps v22.4</h1>
+        <h1>NebulaOps v22.5</h1>
       </div>
     </div>
     <p class="nb-lead">DevOps portfolio platform - Docker · Kubernetes · Helm · Terraform · GitOps</p>
@@ -216,7 +224,7 @@ THEME
       <input type="hidden" id="id-hidden-input" name="credentialId" value="${nbSelectedCredential?html}">
       <button tabindex="4" class="nb-submit-btn" name="login" id="kc-login" type="submit">Login</button>
     </form>
-    <div class="nb-footer">DevOps Enterprise Cockpit · v22.4 · Local-first</div>
+    <div class="nb-footer">DevOps Enterprise Cockpit · v22.5 · Local-first</div>
   </main>
 </body>
 </html>
@@ -428,13 +436,13 @@ release_tool_ui_ports_for_mode() {
 release_frontend_mfe_ports() {
   log_step "Checking shell and micro frontend ports"
   for port in ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223 4224 4225; do
-    release_nebulaops_port "$port" "NebulaOps v22.4 frontend/micro frontend"
+    release_nebulaops_port "$port" "NebulaOps v22.5 frontend/micro frontend"
   done
 }
 
 release_v223_extended_service_ports() {
-  log_step "Checking v22.4 extended service ports"
-  release_nebulaops_port 8097 "NebulaOps v22.4 cost analytics service"
+  log_step "Checking v22.5 extended service ports"
+  release_nebulaops_port 8097 "NebulaOps v22.5 cost analytics service"
 }
 
 running_service() {
@@ -452,11 +460,11 @@ ensure_v223_extended_modules() {
     mfe-progressive-delivery
   )
 
-  log_step "Ensuring v22.4 extended modules"
-  # These modules are part of the standard v22.4 cockpit and must be started
+  log_step "Ensuring v22.5 extended modules"
+  # These modules are part of the standard v22.5 cockpit and must be started
   # even when the shell is launched with optional SSO profiles. Running this
   # targeted up after the main compose up also repairs workspaces that were
-  # started from an earlier v22.4 package where these endpoints were not active.
+  # started from an earlier v22.5 package where these endpoints were not active.
   dc up -d "${services[@]}"
 
   local service
@@ -493,7 +501,7 @@ served_mfe_remote_is_classic() {
   if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
     return 1
   fi
-  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v22.4 auth bridge|nebulaopsAuthBridge'; then
+  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v22.5 auth bridge|nebulaopsAuthBridge'; then
     return 1
   fi
   printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'
@@ -513,9 +521,9 @@ ensure_v223_live_mfe_remote_entries() {
   done
 
   if [ "$invalid" -ne 0 ]; then
-    log_warn "Blank MFE body risk detected. Run ./scripts/wsl/repair-v22.4-frontend-remotes.sh if the browser still shows empty MFE pages."
+    log_warn "Blank MFE body risk detected. Run ./scripts/wsl/repair-v22.5-frontend-remotes.sh if the browser still shows empty MFE pages."
     if [ "${NEBULAOPS_AUTO_REPAIR_MFE:-false}" = "true" ]; then
-      "$ROOT_DIR/scripts/wsl/repair-v22.4-frontend-remotes.sh"
+      "$ROOT_DIR/scripts/wsl/repair-v22.5-frontend-remotes.sh"
     fi
   fi
 }
@@ -554,14 +562,14 @@ fi
 
 # Root docker-compose builds backend runtime images from context '.'.
 # The backend target/*.jar files must remain visible in Docker build context.
-"$ROOT_DIR/scripts/wsl/repair-v22.4-docker-context.sh"
+"$ROOT_DIR/scripts/wsl/repair-v22.5-docker-context.sh"
 
 if [ "$REBUILD_GATEWAY" = "true" ]; then
   log_step "Force-rebuilding gateway-service"
   dc build gateway-service
 fi
 
-log_step "Starting NebulaOps v22.4"
+log_step "Starting NebulaOps v22.5"
 # Ensure shared Docker network exists (external: true in docker-compose.yml)
 if ! docker network inspect nebulaops-network &>/dev/null; then
   log_info "Creating shared network: nebulaops-network"
@@ -608,6 +616,33 @@ dc up -d --remove-orphans
 ensure_v223_extended_modules
 ensure_v223_live_mfe_remote_entries
 
+if [ "$WITH_EXTENSIONS_K8S" = "true" ]; then
+  log_step "Deploying installed extensions to Kubernetes"
+  if ! "$ROOT_DIR/scripts/wsl/deploy-extensions-k8s.sh"; then
+    if [ "${NEBULAOPS_EXTENSIONS_OPTIONAL:-false}" = "true" ]; then
+      log_warn "Extension deployment did not complete. Run ./scripts/wsl/deploy-extensions-k8s.sh after the cluster is ready."
+    else
+      log_err "Extension deployment failed. start.sh --rebuild is strict when --with-extensions-k8s is used."
+      log_err "Fix Kubernetes/registry errors above, or intentionally skip extensions with: ./scripts/wsl/start.sh --rebuild --skip-extensions-k8s"
+      exit 1
+    fi
+  else
+    log_step "Exposing installed extensions to the host browser"
+    if ! "$ROOT_DIR/scripts/wsl/expose-extensions-host.sh"; then
+      if [ "${NEBULAOPS_EXTENSIONS_OPTIONAL:-false}" = "true" ]; then
+        log_warn "Extensions are deployed, but the host/browser port bridge was not created."
+        log_warn "Run ./scripts/wsl/expose-extensions-host.sh after the cluster is ready."
+      else
+        log_err "Extension host/browser port bridges failed. Windows Chrome may show ERR_CONNECTION_REFUSED."
+        log_err "Fix the errors above, or intentionally skip extensions with: ./scripts/wsl/start.sh --rebuild --skip-extensions-k8s"
+        exit 1
+      fi
+    fi
+  fi
+else
+  log_info "Extension auto-deploy skipped. Open EXTENSIONS to start, stop, restart, inspect or open APIForge, KubeBridge and Contract Hub from the UI."
+fi
+
 log_step "Ensuring Keycloak clients"
 "$ROOT_DIR/scripts/keycloak-ensure-sso-clients.sh" || log_warn "Keycloak client auto-check failed; use ./scripts/keycloak-ensure-sso-clients.sh after startup"
 
@@ -622,7 +657,7 @@ wait_http "http://localhost:8080/actuator/health" 120 "gateway-service" || \
 
 cat <<INFO
 
-${C_BOLD}NebulaOps v22.4 is running.${C_RESET}
+${C_BOLD}NebulaOps v22.5 is running.${C_RESET}
 
   ${C_CYAN}Frontend${C_RESET}    ${NEBULAOPS_PUBLIC_URL}
   ${C_CYAN}Gateway${C_RESET}     ${NEBULAOPS_PUBLIC_URL}/actuator/health
@@ -631,6 +666,8 @@ ${C_BOLD}NebulaOps v22.4 is running.${C_RESET}
   ${C_CYAN}GitLab${C_RESET}      optional: ./scripts/wsl/start.sh --with-gitlab
   ${C_CYAN}SSO Proxies${C_RESET} optional: ./scripts/wsl/start.sh --with-sso-proxy
   ${C_CYAN}Prometheus${C_RESET}  ${NEBULAOPS_PUBLIC_URL}/prometheus/        native health/UI in every mode
+  ${C_CYAN}Extensions${C_RESET}  APIForge 31110 · KubeBridge 31111 · Contract Hub 31114
+  ${C_CYAN}Browser bridge${C_RESET} localhost:31110 is managed by kubectl port-forward
   ${C_CYAN}RabbitMQ${C_RESET}    native http://localhost:15672       guest/guest; SSO http://localhost:${RABBITMQ_SSO_HOST_PORT:-15673}
   ${C_CYAN}Mongo${C_RESET}       native http://localhost:8088        admin/admin; SSO http://localhost:${MONGO_EXPRESS_SSO_HOST_PORT:-18088}
   ${C_CYAN}Redis UI${C_RESET}    native http://localhost:8089        admin/admin; SSO http://localhost:${REDIS_COMMANDER_SSO_HOST_PORT:-18089}
@@ -638,6 +675,8 @@ ${C_BOLD}NebulaOps v22.4 is running.${C_RESET}
 Useful:  ./scripts/wsl/health.sh        — overall status
          ./scripts/wsl/logs.sh <svc>    — tail service logs
          ./scripts/wsl/restart-gateway.sh — quick gateway restart
+         ./scripts/wsl/deploy-extensions-k8s.sh — optional CLI deploy for installed extensions
+         EXTENSIONS — start/stop/restart/status/open extensions from UI
          ./scripts/wsl/stop.sh          — shut everything down
 
 INFO

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/peyman/nebulaops/cache-service/internal/auth"
@@ -24,6 +25,7 @@ func main() {
 		log.Fatalf("cache service startup failed: %v", err)
 	}
 	mux := http.NewServeMux()
+	obsCache := cache.NewObservabilityCache(svc)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")
 		_, _ = w.Write([]byte(`{"status":"UP","service":"go-cache-service"}`))
@@ -40,6 +42,48 @@ func main() {
 		w.Header().Set("content-type", "application/json")
 		_ = json.NewEncoder(w).Encode(stats)
 	})
+
+	mux.HandleFunc("/cache/observability/", func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+		defer cancel()
+		source := strings.TrimPrefix(r.URL.Path, "/cache/observability/")
+		query := r.URL.Query().Get("query")
+		if query == "" {
+			http.Error(w, "query is required", http.StatusBadRequest)
+			return
+		}
+		switch r.Method {
+		case http.MethodGet:
+			value, err := obsCache.Get(ctx, source, query)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+			w.Header().Set("content-type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{"source": source, "query": query, "key": obsCache.Key(source, query), "value": value, "cache": "HIT"})
+		case http.MethodPut, http.MethodPost:
+			var payload cache.ObservabilityPayload
+			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if payload.Query == "" {
+				payload.Query = query
+			}
+			if payload.Source == "" {
+				payload.Source = source
+			}
+			if err := obsCache.Put(ctx, payload.Source, payload.Query, payload.JSONValue(), payload.TTLSeconds); err != nil {
+				http.Error(w, err.Error(), http.StatusBadGateway)
+				return
+			}
+			w.Header().Set("content-type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{"status": "cached", "source": payload.Source, "query": payload.Query, "key": obsCache.Key(payload.Source, payload.Query)})
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
 	mux.HandleFunc("/cache/", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 		defer cancel()

@@ -1,0 +1,9 @@
+{
+  "slug": "kubebridge",
+  "title": "KubeBridge",
+  "subtitle": "Cluster workloads, services, events, logs and rollout status from the Kubernetes API through the NebulaOps gateway.",
+  "icon": "☸️",
+  "port": 31111,
+  "group": "Extensions",
+  "component": "kubernetes-control"
+}
