@@ -1,5 +1,5 @@
 <!-- ══════════════════════════════════════════════════════════
-     NebulaOps v22.4 · Shell Host · Login
+     NebulaOps v22.5 · Shell Host · Login
 ══════════════════════════════════════════════════════════ -->
 <section *ngIf="!authenticated()" class="login-scene">
   <div class="grid-horizon"></div>
@@ -16,7 +16,7 @@
       </div>
       <div class="brand-text">
         <p class="kicker">NEBULAOPS ENTERPRISE PLATFORM</p>
-        <h1>Micro Frontend<br>Shell <span class="version-glow">v22.4</span></h1>
+        <h1>Micro Frontend<br>Shell <span class="version-glow">v22.5</span></h1>
       </div>
     </div>
 
@@ -78,7 +78,7 @@
       </div>
       <div class="sidebar-brand-text">
         <b>NebulaOps</b>
-        <small>Enterprise Platform v22.4</small>
+        <small>Enterprise Platform v22.5</small>
       </div>
     </div>
 
@@ -129,13 +129,20 @@
     <div class="sidebar-footer">
       <div class="sidebar-status-row">
         <span class="status-dot status-green"></span>
-        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v22.4</span>
+        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v22.5</span>
       </div>
-      <button class="launcher-trigger" type="button" (click)="openLauncher()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        App Bar
-        <kbd>⌘</kbd>
-      </button>
+      <div class="neb-footer-actions">
+        <button class="launcher-trigger" type="button" (click)="openLauncher()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          App Bar
+          <kbd>⌘</kbd>
+        </button>
+        <button class="launcher-trigger neb-extensions-trigger" type="button" data-neb-ext-trigger>
+          <span aria-hidden="true">🧩</span>
+          Extensions
+          <kbd>UI</kbd>
+        </button>
+      </div>
     </div>
   </aside>
 
@@ -187,7 +194,7 @@
         </div>
         <div class="session-user">{{ currentUser() }}</div>
         <div class="session-info">JWT token shared with all remotes through localStorage and the Authorization Bearer header.</div>
-        <code class="session-code">nebulaops.v22_4.jwt</code>
+        <code class="session-code">nebulaops.v22_5.jwt</code>
       </div>
     </header>
 
@@ -242,7 +249,7 @@
         <div>
           <p class="kicker">NEBULAOPS COMMAND PALETTE</p>
           <h2>Global Search · MFE, services, routes</h2>
-          <small>Ricerca operativa centralizzata per navigare rapidamente la piattaforma v22.4.</small>
+          <small>Ricerca operativa centralizzata per navigare rapidamente la piattaforma v22.5.</small>
         </div>
         <button type="button" class="launcher-close" (click)="closeCommandPalette()" aria-label="Chiudi">×</button>
       </header>

@@ -27,7 +27,7 @@ proxy:
   audit: ${AUDIT_SERVICE_URL:http://audit-service:8101}
   progressive-delivery: ${PROGRESSIVE_DELIVERY_SERVICE_URL:http://progressive-delivery-service:8102}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v22-5-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:
@@ -39,3 +39,15 @@ management:
 nebulaops:
   security:
     enabled: ${KEYCLOAK_AUTH_ENABLED:false}
+
+  extensions:
+    control:
+      enabled: ${NEBULAOPS_EXTENSION_CONTROL_ENABLED:true}
+    workspace: ${NEBULAOPS_EXTENSIONS_WORKSPACE:/workspace}
+    local-registry: ${NEBULAOPS_EXTENSIONS_LOCAL_REGISTRY:localhost:5001}
+    platform: ${NEBULAOPS_EXTENSIONS_PLATFORM:linux/amd64}
+
+
+# NebulaOps v22.5 SECURITY WARNING:
+# - JWT_SECRET default is development-only. Set a strong external secret in production.
+# - KEYCLOAK_AUTH_ENABLED=false disables resource-server protection and is only acceptable for local troubleshooting.

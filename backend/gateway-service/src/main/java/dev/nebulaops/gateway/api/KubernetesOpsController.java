@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v22.4 — Kubernetes controller: live snapshot + all OpenLens actions.
+ * v22.5 — Kubernetes controller: live snapshot + all OpenLens actions.
  *
  * READ endpoints (no conflict with actions):
  *   GET /api/kubernetes/snapshot

@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   NebulaOps v22.4 · Shell Host · Global Styles
+   NebulaOps v22.5 · Shell Host · Global Styles
 ══════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ───────────────────────────────────────── */
@@ -590,19 +590,32 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
   scrollbar-color: rgba(122,223,255,.2) transparent;
 }
 .launcher-card {
+  position: relative;
   display: flex; flex-direction: column; gap: 8px;
   background: rgba(255,255,255,.05); border: 1px solid rgba(140,180,255,.14);
-  border-radius: 18px; padding: 16px 14px;
-  text-align: left; cursor: pointer; transition: .18s; min-height: 130px;
+  border-radius: 18px; padding: 16px 14px 34px;
+  text-align: left; cursor: pointer; transition: .18s;
+  min-height: 130px; box-sizing: border-box;
+  overflow: hidden;
 }
 .launcher-card:hover { border-color: rgba(122,223,255,.35); background: rgba(122,223,255,.06); transform: translateY(-2px); }
-.launcher-card-icon { font-size: 26px; line-height: 1; }
-.launcher-card-body { flex: 1; }
+.launcher-card-icon { font-size: 26px; line-height: 1; flex: 0 0 auto; }
+.launcher-card-body { flex: 1 1 auto; min-height: 0; overflow: hidden; }
 .launcher-card-body b { display: block; font-size: 13px; font-weight: 700; margin-bottom: 3px; }
-.launcher-card-body small { font-size: 11.5px; color: #6b7fa8; line-height: 1.4; }
-.launcher-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
-.launcher-group-tag { font-size: 10px; font-weight: 700; color: #7adfff; text-transform: uppercase; letter-spacing: .06em; }
-.launcher-port { font-size: 10.5px; color: #4a5a7a; font-family: ui-monospace, monospace; font-weight: 700; }
+.launcher-card-body small {
+  display: -webkit-box;
+  font-size: 11.5px; color: #6b7fa8; line-height: 1.4;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.launcher-card-footer {
+  position: absolute; left: 14px; right: 14px; bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 0; min-width: 0;
+}
+.launcher-group-tag { font-size: 10px; font-weight: 700; color: #7adfff; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+.launcher-port { font-size: 10.5px; color: #4a5a7a; font-family: ui-monospace, monospace; font-weight: 700; white-space: nowrap; }
 
 /* ══ RESPONSIVE ═════════════════════════════════════════════ */
 @media (max-width: 1100px) {
@@ -631,7 +644,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .launcher-close { font-size: 24px; line-height: 1; }
 @media (max-width: 900px) { .command-results { grid-template-columns: 1fr; } }
 
-/* v22.4 FE hardening: live status banner */
+/* v22.5 FE hardening: live status banner */
 .shell-live-banner {
   margin: 14px 16px 0;
   padding: 12px 14px;
@@ -672,7 +685,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 }
 
 
-/* v22.4 shell layout: persistent left sidebar behavior. */
+/* v22.5 shell layout: persistent left sidebar behavior. */
 .shell-layout {
   grid-template-columns: 280px minmax(0, 1fr);
   grid-template-rows: 1fr;
@@ -702,4 +715,33 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .nav-empty { margin: 14px; padding: 12px; border-radius: 12px; color: #8ea0c3; background: rgba(255,255,255,.035); border: 1px solid rgba(130,170,255,.1); font-size: 12px; }
 @media (max-width: 760px) {
   .shell-main { grid-column: 1; grid-row: 1; }
+}
+
+/* v22.5 APP BAR / EXTENSIONS split */
+.sidebar-footer.neb-footer-split,
+.sidebar-footer:has(.neb-footer-actions) {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+}
+.neb-footer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+.neb-footer-actions .launcher-trigger {
+  justify-content: center;
+  width: 100%;
+}
+.neb-extensions-trigger {
+  border-color: rgba(122,223,255,.30);
+  color: #7adfff;
+  background: rgba(122,223,255,.08);
+}
+.neb-ext-hidden-card {
+  display: none !important;
+}
+@media (max-width: 920px) {
+  .neb-footer-actions { grid-template-columns: 1fr; }
 }

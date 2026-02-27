@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NebulaOps Extension Unavailable</title>
+  <style>
+    :root{color-scheme:dark;--bg:#071124;--panel:#121b31;--panel2:#17213a;--line:#2b3b63;--text:#eaf2ff;--muted:#92a8d2;--accent:#7adfff;--warn:#facc15;--danger:#fb7185;}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 10%,rgba(122,223,255,.14),transparent 28%),linear-gradient(180deg,#071124,#0a1020);font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);display:flex;align-items:center;justify-content:center;padding:24px;}
+    .card{width:min(880px,100%);border:1px solid var(--line);background:linear-gradient(180deg,rgba(23,33,58,.96),rgba(12,19,35,.96));border-radius:28px;box-shadow:0 28px 90px rgba(0,0,0,.42);padding:32px;}
+    .kicker{margin:0 0 10px;color:var(--accent);font-weight:900;letter-spacing:.22em;font-size:12px;text-transform:uppercase}.row{display:flex;gap:18px;align-items:flex-start}.icon{font-size:42px}.title{margin:0;font-size:clamp(30px,5vw,52px);line-height:1.02}.muted{color:var(--muted);line-height:1.65}.status{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:24px 0}.tile{background:rgba(7,17,36,.65);border:1px solid rgba(122,223,255,.16);border-radius:18px;padding:14px}.tile small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.14em}.tile b{display:block;margin-top:8px;color:#fff}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}.btn{appearance:none;border:1px solid rgba(122,223,255,.35);background:rgba(122,223,255,.10);color:var(--text);border-radius:14px;padding:12px 16px;text-decoration:none;font-weight:800;cursor:pointer}.btn.primary{background:linear-gradient(135deg,#1d4ed8,#0891b2);border-color:transparent}.btn.warn{border-color:rgba(250,204,21,.42);background:rgba(250,204,21,.10)}pre{white-space:pre-wrap;background:#050b16;border:1px solid var(--line);border-radius:16px;padding:14px;color:#c7d2fe;max-height:220px;overflow:auto}.hidden{display:none}.danger{color:var(--danger)}
+  </style>
+</head>
+<body>
+  <section class="card">
+    <div class="row"><div class="icon">🧩</div><div><p class="kicker">NebulaOps Extension Gateway</p><h1 class="title"><span id="name">Extension</span> is not reachable</h1><p class="muted">The extension is installed but the current request could not be proxied through the NebulaOps gateway. Start it from the Extensions panel, then retry. No fallback/mock data is rendered.</p></div></div>
+    <div class="status">
+      <div class="tile"><small>Requested path</small><b id="path">—</b></div>
+      <div class="tile"><small>Detected extension</small><b id="slug">—</b></div>
+      <div class="tile"><small>Gateway state</small><b id="state">Checking...</b></div>
+    </div>
+    <div class="actions">
+      <a class="btn primary" id="console" href="/api/extensions/console">Open Extensions Control</a>
+      <button class="btn" id="retry" type="button">Retry</button>
+      <button class="btn warn" id="statusBtn" type="button">Refresh Status</button>
+    </div>
+    <pre id="raw" class="hidden"></pre>
+  </section>
+<script>
+(function(){
+  const map={apiforge:'APIForge',kubebridge:'KubeBridge','contract-hub':'Contract Hub'};
+  const path=location.pathname;
+  const parts=path.replace(/^\/extensions\//,'/').split('/').filter(Boolean);
+  const slug=parts[0]||'apiforge';
+  document.getElementById('path').textContent=path;
+  document.getElementById('slug').textContent=slug;
+  document.getElementById('name').textContent=map[slug]||'Extension';
+  document.getElementById('console').href='/api/extensions/console?extension='+encodeURIComponent(slug);
+  document.getElementById('retry').onclick=()=>location.reload();
+  async function status(){
+    const raw=document.getElementById('raw');
+    try{
+      const r=await fetch('/api/extensions/'+encodeURIComponent(slug)+'/status',{headers:{Accept:'application/json'},cache:'no-store'});
+      const j=await r.json();
+      document.getElementById('state').textContent=(j.state||'UNKNOWN')+' · proxy '+(j.gatewayProxy||'UNKNOWN');
+      raw.textContent=JSON.stringify(j,null,2); raw.classList.remove('hidden');
+    }catch(e){
+      document.getElementById('state').innerHTML='<span class="danger">Gateway unavailable</span>';
+      raw.textContent=String(e); raw.classList.remove('hidden');
+    }
+  }
+  document.getElementById('statusBtn').onclick=status;
+  status();
+})();
+</script>
+</body>
+</html>

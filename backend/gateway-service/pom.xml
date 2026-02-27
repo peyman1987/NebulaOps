@@ -4,7 +4,7 @@
     <parent>
         <groupId>dev.nebulaops</groupId>
         <artifactId>nebulaops-backend</artifactId>
-        <version>22.4.0</version>
+        <version>22.5.0</version>
     </parent>
     <artifactId>gateway-service</artifactId>
     <dependencies>
@@ -38,6 +38,12 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

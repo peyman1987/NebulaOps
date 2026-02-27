@@ -1,7 +1,7 @@
 {
   "id": "policy-center",
   "title": "Policy, Approval & Governance Center",
-  "version": "22.4.0",
+  "version": "22.5.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-policy-center",
   "port": 4222,

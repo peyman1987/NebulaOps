@@ -1,6 +1,6 @@
 {
-  "name": "nebulaops-v22-4-finops-cost",
-  "version": "22.4.0",
+  "name": "nebulaops-v22-5-finops-cost",
+  "version": "22.5.0",
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4219",

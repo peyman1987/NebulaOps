@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.4 — Free RabbitMQ/Mongo/Redis UI ports when switching between native and SSO modes.
+# v22.5 — Free RabbitMQ/Mongo/Redis UI ports when switching between native and SSO modes.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 

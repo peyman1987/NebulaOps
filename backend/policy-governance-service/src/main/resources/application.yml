@@ -12,7 +12,7 @@ spring:
         jwt:
           jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/nebulaops/protocol/openid-connect/certs}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v22-5-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:
@@ -29,3 +29,8 @@ nebulaops:
     url: ${OPA_URL:http://opa:8181}
   governance:
     enforcement-mode: ${GOVERNANCE_ENFORCEMENT_MODE:monitor}
+
+
+# NebulaOps v22.5 SECURITY WARNING:
+# - JWT_SECRET default is development-only. Set a strong external secret in production.
+# - KEYCLOAK_AUTH_ENABLED=false disables resource-server protection and is only acceptable for local troubleshooting.

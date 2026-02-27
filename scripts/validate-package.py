@@ -38,6 +38,14 @@ required_files = [
     "go/event-worker/go.mod",
     "go/event-worker/cmd/worker/main.go",
     "scripts/wsl/docker-cache-repair.sh",
+    "extensions/apiforge/pom.xml",
+    "extensions/apiforge/Dockerfile",
+    "extensions/apiforge/src/main/resources/application.properties",
+    "infrastructure/kubernetes/apiforge.yaml",
+    "scripts/wsl/deploy-apiforge-k8s.sh",
+    "scripts/wsl/deploy-extensions-k8s.sh",
+    "scripts/wsl/undeploy-extensions-k8s.sh",
+    "extensions/extensions.manifest.json",
 ]
 
 for path in required_files:
@@ -77,6 +85,7 @@ try:
         "infrastructure/argocd/project.yaml",
         "infrastructure/argocd/application.yaml",
         "infrastructure/argocd/applicationset.yaml",
+        "infrastructure/kubernetes/apiforge.yaml",
     ]:
         with open(ROOT / yaml_path, "r", encoding="utf-8") as f:
             list(yaml.safe_load_all(f))
@@ -124,6 +133,41 @@ for diagram in [
         errors.append(f"README missing diagram reference: {diagram}")
     if diagram not in tech_doc:
         errors.append(f"TECHNICAL_DOCUMENTATION missing diagram reference: {diagram}")
+
+# NebulaOps extensions must be controlled from the separate EXTENSIONS panel, not as APP BAR cards.
+try:
+    shell = (ROOT / "frontend/src/app/app.component.ts").read_text(encoding="utf-8")
+    template = (ROOT / "frontend/src/app/app.component.html").read_text(encoding="utf-8")
+    ext_panel = (ROOT / "frontend/src/assets/nebulaops-extension-control-panel.js").read_text(encoding="utf-8")
+    dist_index = (ROOT / "frontend/dist/nebulaops/browser/index.html").read_text(encoding="utf-8")
+    manifest = json.loads((ROOT / "extensions/extensions.manifest.json").read_text(encoding="utf-8"))
+    apiprops = (ROOT / "extensions/apiforge/src/main/resources/application.properties").read_text(encoding="utf-8")
+    if '"group": "Extensions"' in shell or "group: 'Extensions'" in shell:
+        errors.append("APP BAR serviceLinks must not contain Extensions cards; use the EXTENSIONS panel instead")
+    if "neb-extensions-trigger" not in template:
+        errors.append("Sidebar is missing the separate EXTENSIONS button")
+    if "nebulaops-extension-appbar-controls.js" in dist_index:
+        errors.append("Legacy nested APP BAR extension control script is still loaded")
+    if "nebulaops-extension-control-panel.js" not in dist_index:
+        errors.append("EXTENSIONS control panel script is not loaded in frontend dist index")
+    for item in manifest:
+        title = item["title"]
+        slug = item["slug"]
+        if slug not in ext_panel:
+            errors.append(f"EXTENSIONS panel missing installed extension slug: {slug}")
+        for action in ["start", "stop", "restart", "status", "open"]:
+            if action not in ext_panel:
+                errors.append(f"EXTENSIONS panel missing action {action} for {slug}")
+        k8s_path = ROOT / item["kubernetesManifest"]
+        k8s = k8s_path.read_text(encoding="utf-8")
+        if f"name: {slug}" not in k8s or f"nodePort: {item['nodePort']}" not in k8s:
+            errors.append(f"Kubernetes manifest missing resource names or NodePort for extension: {slug}")
+    if "server.servlet.context-path=/apiforge" not in apiprops:
+        errors.append("APIForge must run with /apiforge context path")
+    if "NebulaOps v22.5 extension theme override" not in (ROOT / "extensions/apiforge/src/main/resources/static/css/app.css").read_text(encoding="utf-8"):
+        errors.append("APIForge is missing NebulaOps extension theme override")
+except Exception as exc:
+    errors.append(f"NebulaOps extension validation failed: {exc}")
 
 # Frontend shell Docker image and template must include every shell-declared same-origin remote.
 try:

@@ -1,0 +1,11 @@
+services:
+  apiforge:
+    build: .
+    container_name: apiforge
+    ports:
+      - "8080:8080"
+    environment:
+      APIFORGE_DATA_DIR: /var/lib/apiforge
+    volumes:
+      - ./data:/var/lib/apiforge
+    restart: unless-stopped

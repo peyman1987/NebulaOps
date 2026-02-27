@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.4 — Stop NebulaOps stack quickly.
+# v22.5 — Stop NebulaOps stack quickly.
 # GitLab CE is intentionally treated as optional/heavy and is killed first by default.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
@@ -36,7 +36,11 @@ force_remove_service() {
   fi
 }
 
-log_step "Stopping NebulaOps v22.4"
+log_step "Stopping NebulaOps v22.5"
+
+if [ -x "$ROOT_DIR/scripts/wsl/stop-extensions-port-forward.sh" ]; then
+  "$ROOT_DIR/scripts/wsl/stop-extensions-port-forward.sh" >/dev/null 2>&1 || true
+fi
 
 if [ "$KEEP_GITLAB" != "true" ]; then
   force_remove_service gitlab
@@ -56,7 +60,7 @@ else
 fi
 
 # Also stop legacy project names if still running
-for LEGACY in nebulaops-v22-4 nebulaops-v22-1 nebulaops-v21-4 nebulaops-v20-2 nebulaops-v19-5 nebulaops; do
+for LEGACY in nebulaops-v22-5 nebulaops-v22-1 nebulaops-v21-4 nebulaops-v20-2 nebulaops-v19-5 nebulaops; do
   if docker compose -p "$LEGACY" ps -q 2>/dev/null | grep -q .; then
     log_warn "Found running containers under legacy project '$LEGACY' — stopping them too"
     docker compose -p "$LEGACY" -f "$COMPOSE_FILE" down --remove-orphans --timeout "$STOP_TIMEOUT" 2>/dev/null || \

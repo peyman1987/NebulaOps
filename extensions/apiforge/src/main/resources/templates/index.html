@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1" name="viewport">
+    <title>APIForge · NebulaOps Extension</title>
+    <link href="/apiforge/css/app.css" rel="stylesheet">
+</head>
+<body>
+<div class="drop-overlay" id="dropOverlay">
+    <div>Drop a Postman JSON collection here</div>
+</div>
+<div class="app shell-enter">
+    <aside class="sidebar">
+        <div class="brand"><span class="logo">⚒</span>
+            <div><b>APIForge</b><small>NebulaOps Extension · REST · GraphQL · WS</small></div>
+        </div>
+        <div class="env card"><label>Environment</label><select id="envSelect"></select></div>
+        <div class="side-tabs segmented">
+            <button class="active" data-side="collections">Collections</button>
+            <button data-side="history">History</button>
+        </div>
+        <div class="sidebar-hint">Drag & drop to reorder requests or import a Postman JSON collection.</div>
+        <div class="side-panel" id="collections"></div>
+        <div class="side-panel hidden" id="history"></div>
+        <button class="wide primary ghost" id="newCollection">+ Collection</button>
+    </aside>
+    <main>
+        <div class="topbar">
+            <div class="tabs" id="tabs"></div>
+            <div class="toolbar">
+                <button id="themePulse">✨ Focus</button>
+                <button id="clearUi">Reset UI</button>
+            </div>
+        </div>
+        <section class="request glass">
+            <div class="urlbar hero-bar">
+                <select id="method">
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                    <option>HEAD</option>
+                    <option>OPTIONS</option>
+                    <option>GRAPHQL</option>
+                    <option>WEBSOCKET</option>
+                </select>
+                <input id="url" placeholder="https://service.namespace.svc.cluster.local/api">
+                <button class="primary" id="send">Send</button>
+                <button id="saveReq">Save</button>
+                <button id="copyCurl">cURL</button>
+            </div>
+            <div class="subtabs">
+                <button class="active" data-tab="params">Params</button>
+                <button data-tab="auth">Auth</button>
+                <button data-tab="headers">Headers</button>
+                <button data-tab="body">Body</button>
+                <button data-tab="scripts">Scripts</button>
+                <button data-tab="graphql">GraphQL</button>
+                <button data-tab="ws">WebSocket</button>
+            </div>
+            <div class="panel active" id="params"><h3>Query Params</h3>
+                <div class="kv-list" id="paramsRows"></div>
+                <button onclick="addKV('paramsRows')">+ Param</button>
+            </div>
+            <div class="panel" id="auth"><h3>Authentication</h3><select id="authType">
+                <option value="none">No Auth</option>
+                <option value="bearer">Bearer Token</option>
+                <option value="basic">Basic Auth</option>
+                <option value="apiKeyHeader">API Key Header</option>
+                <option value="apiKeyQuery">API Key Query</option>
+                <option value="jwt">JWT</option>
+                <option value="oauth2">OAuth 2.0 Token</option>
+                <option value="digest">Digest Auth</option>
+                <option value="aws">AWS Signature</option>
+            </select>
+                <div class="auth-grid" id="authFields"></div>
+            </div>
+            <div class="panel" id="headers"><h3>Headers</h3>
+                <div class="kv-list" id="headerRows"></div>
+                <button onclick="addKV('headerRows')">+ Header</button>
+            </div>
+            <div class="panel" id="body"><h3>Body</h3><select id="bodyType">
+                <option value="none">none</option>
+                <option value="json">JSON</option>
+                <option value="xml">XML</option>
+                <option value="text">Text</option>
+                <option value="form">x-www-form-urlencoded</option>
+                <option value="multipart">Form-data</option>
+                <option value="binary">Binary body</option>
+            </select>
+                <button id="beautify">Beautify</button>
+                <textarea id="bodyText" placeholder='{"field":"value"}' spellcheck="false"></textarea></div>
+            <div class="panel" id="scripts"><h3>Pre-request Script</h3><textarea id="preScript">pm.environment.set('LAST_RUN', new Date().toISOString())</textarea>
+                <h3>Tests</h3><textarea id="testScript">pm.test('status is 2xx', () => pm.response.status >= 200 && pm.response.status < 300)</textarea>
+            </div>
+            <div class="panel" id="graphql"><h3>GraphQL</h3>
+                <button id="prettifyGql">Prettify</button>
+                <textarea id="gqlQuery">query { __typename }</textarea><input id="gqlOperation"
+                                                                                           placeholder="operationName"><textarea
+                        id="gqlVars" placeholder='{"var":"value"}'></textarea></div>
+            <div class="panel" id="ws"><h3>WebSocket</h3>
+                <button id="wsConnect">Connect</button>
+                <button id="wsClose">Close</button>
+                <textarea id="wsLog" readonly></textarea>
+                <div class="urlbar"><input id="wsMsg" placeholder="message">
+                    <button id="wsSend">Send WS</button>
+                </div>
+            </div>
+        </section>
+        <div class="splitter" id="splitter" title="Trascina per ridimensionare"></div>
+        <section class="response glass">
+            <div class="meta" id="meta">Ready</div>
+            <div class="subtabs">
+                <button class="active" data-rtab="resBody">Body</button>
+                <button id="copyResponse">Copy Body</button>
+                <button data-rtab="resHeaders">Headers</button>
+                <button data-rtab="resCookies">Cookies</button>
+                <button data-rtab="resTests">Tests</button>
+            </div>
+            <pre class="rpanel active" id="resBody"></pre>
+            <pre class="rpanel" id="resHeaders"></pre>
+            <pre class="rpanel" id="resCookies"></pre>
+            <pre class="rpanel" id="resTests"></pre>
+        </section>
+    </main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="/apiforge/js/app.js"></script>
+</body>
+</html>

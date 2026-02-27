@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nebulaops
+  labels:
+    app.kubernetes.io/name: nebulaops
+    app.kubernetes.io/part-of: nebulaops
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contract-hub
+  namespace: nebulaops
+  labels:
+    app: contract-hub
+    app.kubernetes.io/name: contract-hub
+    app.kubernetes.io/component: extension
+    app.kubernetes.io/part-of: nebulaops
+    app.kubernetes.io/version: "22.5.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: contract-hub
+  template:
+    metadata:
+      labels:
+        app: contract-hub
+        app.kubernetes.io/name: contract-hub
+        app.kubernetes.io/component: extension
+        app.kubernetes.io/part-of: nebulaops
+    spec:
+      containers:
+        - name: contract-hub
+          image: nebulaops-v22-5-contract-hub:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: KUBE_TARGET_NAMESPACE
+              value: nebulaops
+            - name: CONTRACT_HUB_TARGETS
+              valueFrom:
+                configMapKeyRef:
+                  name: nebulaops-extension-live-targets
+                  key: contract-hub-targets
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 8
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 8
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 8
+          resources:
+            requests:
+              cpu: 80m
+              memory: 160Mi
+            limits:
+              cpu: 600m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: contract-hub
+  namespace: nebulaops
+  labels:
+    app: contract-hub
+    app.kubernetes.io/name: contract-hub
+    app.kubernetes.io/part-of: nebulaops
+spec:
+  type: NodePort
+  selector:
+    app: contract-hub
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      nodePort: 31114
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: contract-hub
+  namespace: nebulaops
+  labels:
+    app: contract-hub
+    app.kubernetes.io/name: contract-hub
+    app.kubernetes.io/part-of: nebulaops
+spec:
+  rules:
+    - host: nebulaops.local
+      http:
+        paths:
+          - path: /contract-hub
+            pathType: Prefix
+            backend:
+              service:
+                name: contract-hub
+                port:
+                  number: 8080

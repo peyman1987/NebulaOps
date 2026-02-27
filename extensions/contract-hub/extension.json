@@ -1,0 +1,9 @@
+{
+  "slug": "contract-hub",
+  "title": "Contract Hub",
+  "subtitle": "OpenAPI, AsyncAPI, endpoint catalog, schema validation and breaking-change governance for service contracts.",
+  "icon": "📜",
+  "port": 31114,
+  "group": "Extensions",
+  "component": "contract-governance"
+}

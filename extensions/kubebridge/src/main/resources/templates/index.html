@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title th:text="${title} + ' · NebulaOps Extension'"></title>
+  <style>
+    :root{--bg:#060b18;--panel:#101a2f;--panel2:#14223d;--line:#263b62;--text:#eef6ff;--muted:#93a9c9;--cyan:#68e8ff;--blue:#5c8dff;--green:#64d98b;--orange:#ffc267;--red:#ff7786;--violet:#b692ff;--shadow:0 22px 54px rgba(0,0,0,.38)}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 18% -5%,rgba(91,141,255,.24),transparent 34%),radial-gradient(circle at 88% 8%,rgba(104,232,255,.14),transparent 28%),linear-gradient(135deg,#061023,#090e1d 58%,#11182d);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Arial;letter-spacing:.01em}.app{max-width:1420px;margin:0 auto;padding:26px}.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:22px}.eyebrow{color:var(--cyan);font-size:12px;letter-spacing:.34em;font-weight:900;text-transform:uppercase}.title{font-size:40px;line-height:1.04;font-weight:950;margin:10px 0 8px}.subtitle{color:var(--muted);font-size:15px;max-width:900px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{background:#1a2946;color:var(--text);border:1px solid var(--line);border-radius:13px;padding:11px 14px;font-weight:900;text-decoration:none;cursor:pointer}.btn:hover{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(104,232,255,.1)}.btn.secondary{background:#0b1324}.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px}.card{background:rgba(16,26,47,.9);border:1px solid rgba(104,232,255,.15);border-radius:24px;padding:18px;box-shadow:var(--shadow)}.status{display:flex;align-items:center;gap:12px;font-weight:950;font-size:21px}.dot{width:13px;height:13px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 6px rgba(147,169,201,.12)}.CONNECTED .dot,.READY .dot{background:var(--green);box-shadow:0 0 0 6px rgba(100,217,139,.14)}.DEGRADED .dot{background:var(--orange);box-shadow:0 0 0 6px rgba(255,194,103,.15)}.UNAVAILABLE .dot,.REJECTED .dot{background:var(--red);box-shadow:0 0 0 6px rgba(255,119,134,.15)}.NOT_CONFIGURED .dot,.NOT_SUPPORTED .dot{background:var(--violet);box-shadow:0 0 0 6px rgba(182,146,255,.14)}.meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.metric{background:var(--panel2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:13px}.metric small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em}.metric b{font-size:18px}.sections{display:grid;gap:18px;margin-top:18px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.section-head h2{margin:0;font-size:18px}.pill{font-size:12px;color:var(--cyan);border:1px solid rgba(104,232,255,.26);border-radius:999px;padding:6px 10px;background:rgba(104,232,255,.08);font-weight:900}.pill.warn{color:var(--orange);border-color:rgba(255,194,103,.32);background:rgba(255,194,103,.08)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}.item{background:rgba(20,34,61,.92);border:1px solid rgba(255,255,255,.08);border-radius:17px;padding:14px;min-height:108px}.item b{display:block;margin-bottom:8px}.kv{display:grid;grid-template-columns:118px 1fr;gap:8px;font-size:12px;margin:6px 0}.kv span:first-child{color:var(--muted)}pre{white-space:pre-wrap;word-break:break-word;background:#070b14;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;max-height:360px;overflow:auto}.msg{color:var(--muted);line-height:1.55}.contract{display:grid;gap:10px}.contract code{color:var(--cyan);background:#0b1221;border:1px solid rgba(104,232,255,.2);padding:4px 7px;border-radius:8px}.source-list{display:grid;gap:8px}.source-row{background:#0b1427;border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:10px}.run{margin-top:10px}.run button{width:100%;margin-top:8px}.output{margin-top:12px}.empty{color:var(--muted);font-style:italic}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.json-drawer{display:none;margin-top:18px}.json-drawer.open{display:block}@media(max-width:980px){.layout{grid-template-columns:1fr}.meta{grid-template-columns:repeat(2,1fr)}.top{display:block}.actions{margin-top:16px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="eyebrow">NebulaOps Extension Runtime</div>
+      <div class="title"><span th:text="${title}"></span></div>
+      <div class="subtitle"><span th:text="${category}"></span> · Spring Boot MVC · Kubernetes-ready · live integrations only.</div>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="loadAll()">Refresh</button>
+      <button class="btn secondary" onclick="toggleJson()">Raw JSON</button>
+      <a class="btn secondary" href="/healthz">Health</a>
+      <a class="btn secondary" href="/readyz">Readiness</a>
+    </div>
+  </header>
+
+  <section class="layout">
+    <main>
+      <article class="card">
+        <div id="statusBox" class="status"><span class="dot"></span><span>Loading live status…</span></div>
+        <p id="message" class="msg"></p>
+        <div class="meta">
+          <div class="metric"><small>Runtime</small><b id="runtime">Spring Boot MVC</b></div>
+          <div class="metric"><small>Status</small><b id="statusText">-</b></div>
+          <div class="metric"><small>Records</small><b id="itemCount">0</b></div>
+          <div class="metric"><small>Updated</small><b id="updatedAt">-</b></div>
+        </div>
+        <div class="toolbar">
+          <span class="pill">Data policy: LIVE_ONLY</span>
+          <span class="pill warn">Absent integrations return NOT_CONFIGURED / UNAVAILABLE</span>
+        </div>
+      </article>
+      <main id="sections" class="sections"></main>
+      <section id="runOutput" class="card output" style="display:none"><div class="section-head"><h2>Runbook output</h2><span id="exitCode" class="pill"></span></div><pre id="outputText"></pre></section>
+      <section id="jsonDrawer" class="card json-drawer"><div class="section-head"><h2>Raw live payload</h2><span class="pill">diagnostics</span></div><pre id="rawJson"></pre></section>
+    </main>
+
+    <aside class="card contract">
+      <div class="section-head"><h2>Runtime contract</h2><span class="pill" th:text="'NodePort ' + ${nodePort}"></span></div>
+      <div class="kv"><span>Slug</span><b th:text="${slug}"></b></div>
+      <div class="kv"><span>Live API</span><code id="apiPath"></code></div>
+      <div class="kv"><span>Capabilities</span><code id="capPath"></code></div>
+      <div class="kv"><span>Readiness</span><code>/readyz</code></div>
+      <div class="source-list" id="capabilitiesBox"><p class="empty">Loading runtime contract…</p></div>
+    </aside>
+  </section>
+</div>
+<script th:inline="javascript">
+  const SLUG = /*[[${slug}]]*/ 'extension';
+  const base = location.pathname.startsWith('/' + SLUG) ? '/' + SLUG : '';
+  document.getElementById('apiPath').textContent = base + '/api/live';
+  document.getElementById('capPath').textContent = base + '/api/capabilities';
+  const statusBox = document.getElementById('statusBox');
+  const sectionsEl = document.getElementById('sections');
+  let latestPayload = null;
+  function esc(v){return String(v ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function renderValue(v){
+    if(Array.isArray(v)) return v.map(esc).join(', ');
+    if(v && typeof v === 'object') return '<pre>'+esc(JSON.stringify(v,null,2))+'</pre>';
+    return esc(v);
+  }
+  async function loadAll(){ await Promise.all([loadCapabilities(), loadLive()]); }
+  async function loadCapabilities(){
+    try{
+      const r = await fetch(base + '/api/capabilities', {headers:{Accept:'application/json'}});
+      const data = await r.json();
+      const box = document.getElementById('capabilitiesBox');
+      const req = (data.requiredConfiguration || []).map(x => `<div class="source-row"><b>${esc(x)}</b></div>`).join('') || '<p class="empty">No extra configuration required.</p>';
+      box.innerHTML = `<div class="source-row"><div class="kv"><span>Mode</span><b>${esc(data.mode)}</b></div><div class="kv"><span>Configured</span><b>${esc(data.integrationState?.configured)}</b></div><div class="kv"><span>Namespace</span><b>${esc(data.kubernetesNamespace || '-')}</b></div></div><h2 style="font-size:15px;margin:10px 0 0">Required configuration</h2>${req}`;
+    }catch(e){ document.getElementById('capabilitiesBox').innerHTML='<p class="empty">Capabilities endpoint is not reachable.</p>'; }
+  }
+  async function loadLive(){
+    statusBox.className='status'; statusBox.innerHTML='<span class="dot"></span><span>Loading live status…</span>';
+    try{
+      const r = await fetch(base + '/api/live', {headers:{Accept:'application/json'}});
+      const data = await r.json(); latestPayload = data;
+      document.getElementById('rawJson').textContent = JSON.stringify(data,null,2);
+      const status = data.status || 'UNAVAILABLE';
+      statusBox.className='status ' + status;
+      statusBox.innerHTML='<span class="dot"></span><span>'+esc(status)+'</span>';
+      document.getElementById('statusText').textContent=status;
+      document.getElementById('runtime').textContent=data.runtime || 'Spring Boot MVC';
+      document.getElementById('message').innerHTML=esc(data.message || '');
+      document.getElementById('itemCount').textContent=(data.items || []).length;
+      document.getElementById('updatedAt').textContent=new Date(data.generatedAt || Date.now()).toLocaleTimeString();
+      const sections = data.sections && data.sections.length ? data.sections : [{name:'Live data',count:(data.items||[]).length,items:data.items||[]}];
+      sectionsEl.innerHTML = sections.map(renderSection).join('');
+    }catch(e){
+      statusBox.className='status UNAVAILABLE';
+      statusBox.innerHTML='<span class="dot"></span><span>UNAVAILABLE</span>';
+      document.getElementById('message').textContent=e.message;
+      sectionsEl.innerHTML='<section class="card"><p class="empty">Live API is not reachable.</p></section>';
+    }
+  }
+  function renderSection(s){
+    const items=s.items||[];
+    return `<section class="card"><div class="section-head"><h2>${esc(s.name)}</h2><span class="pill">${items.length}</span></div>` +
+      (items.length ? `<div class="grid">${items.map(renderItem).join('')}</div>` : `<p class="empty">No live records returned for this section.</p>`) + `</section>`;
+  }
+  function renderItem(item){
+    const name=item.name || item.path || item.url || item.object || 'record';
+    const canRun = item.path && item.executable && item.executionEnabled;
+    const runButton = item.path ? `<div class="run"><button class="btn" ${canRun ? '' : 'disabled'} onclick="executeRunbook('${esc(item.path)}')">${canRun ? 'Execute runbook' : 'Execution disabled'}</button></div>` : '';
+    const rows = Object.entries(item).filter(([k])=>k!=='name').map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><span>${renderValue(v)}</span></div>`).join('');
+    return `<article class="item"><b>${esc(name)}</b>${rows}${runButton}</article>`;
+  }
+  async function executeRunbook(path){
+    const out = document.getElementById('runOutput');
+    out.style.display='block'; document.getElementById('outputText').textContent='Executing ' + path + '…';
+    const r = await fetch(base + '/api/runbook/execute', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})});
+    const data = await r.json();
+    document.getElementById('exitCode').textContent = data.status + (data.exitCode !== undefined ? ' · exit ' + data.exitCode : '');
+    document.getElementById('outputText').textContent = data.output || data.message || '';
+  }
+  function toggleJson(){ document.getElementById('jsonDrawer').classList.toggle('open'); }
+  loadAll(); setInterval(loadAll, 30000);
+</script>
+</body>
+</html>

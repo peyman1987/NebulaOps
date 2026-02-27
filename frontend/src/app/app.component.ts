@@ -15,10 +15,10 @@ import {
   PUBLIC_ORIGIN
 } from './api.config';
 
-const REMOTE_ENTRY_BUILD = 'v22.4.10-localhost-final';
+const REMOTE_ENTRY_BUILD = 'v22.5.10-localhost-final';
 
 type RemoteId = 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'progressive-delivery' | 'notification-center' | 'identity-admin';
-type ServiceGroup = 'Identity' | 'Runtime' | 'Observability' | 'Data' | 'DevOps' | 'Micro Frontend' | 'Release' | 'Governance' | 'Notifications';
+type ServiceGroup = 'Identity' | 'Runtime' | 'Observability' | 'Data' | 'DevOps' | 'Micro Frontend' | 'Release' | 'Governance' | 'Notifications' | 'Extensions';
 
 interface RemoteDefinition {
   id: RemoteId;
@@ -291,6 +291,7 @@ export class AppComponent implements OnInit {
   ] as RemoteDefinition[];
 
   readonly serviceLinks: ServiceLink[] = [
+
 
 
 {
@@ -602,9 +603,9 @@ export class AppComponent implements OnInit {
     try {
       const verifier = this.randomString(96);
       const challenge = await this.sha256Base64Url(verifier);
-      sessionStorage.setItem('nebulaops.v22_4.pkce', verifier);
+      sessionStorage.setItem('nebulaops.v22_5.pkce', verifier);
       const state = this.randomString(24);
-      sessionStorage.setItem('nebulaops.v22_4.state', state);
+      sessionStorage.setItem('nebulaops.v22_5.state', state);
       const params = new URLSearchParams({
         client_id: KC_CLIENT_ID,
         redirect_uri: KC_REDIRECT_URI,
@@ -624,8 +625,8 @@ export class AppComponent implements OnInit {
   logout(): void {
     localStorage.removeItem(JWT_KEY);
     localStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem('nebulaops.v22_4.pkce');
-    sessionStorage.removeItem('nebulaops.v22_4.state');
+    sessionStorage.removeItem('nebulaops.v22_5.pkce');
+    sessionStorage.removeItem('nebulaops.v22_5.state');
     this.authenticated.set(false);
     const params = new URLSearchParams({
       client_id: KC_CLIENT_ID,
@@ -690,12 +691,12 @@ export class AppComponent implements OnInit {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     if (!code) return;
-    const expectedState = sessionStorage.getItem('nebulaops.v22_4.state');
+    const expectedState = sessionStorage.getItem('nebulaops.v22_5.state');
     if (expectedState && state !== expectedState) {
       this.loginError.set('Invalid Keycloak response: state mismatch.');
       return;
     }
-    const verifier = sessionStorage.getItem('nebulaops.v22_4.pkce') || '';
+    const verifier = sessionStorage.getItem('nebulaops.v22_5.pkce') || '';
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: KC_CLIENT_ID,

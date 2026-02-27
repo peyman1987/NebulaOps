@@ -1,4 +1,4 @@
-name: nebulaops-v22-4
+name: nebulaops-v22-5
 services:
   keycloak-db:
     image: postgres:16-alpine
@@ -106,14 +106,14 @@ services:
       retries: 20
       start_period: 20s
   auth-service:
-    image: nebulaops-v22-4-auth-service:latest
+    image: nebulaops-v22-5-auth-service:latest
     build:
       context: .
       dockerfile: backend/auth-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_auth?authSource=admin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -132,7 +132,7 @@ services:
     ports:
     - 8081:8081
   task-service:
-    image: nebulaops-v22-4-task-service:latest
+    image: nebulaops-v22-5-task-service:latest
     build:
       context: .
       dockerfile: backend/task-service/Dockerfile
@@ -143,7 +143,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -157,7 +157,7 @@ services:
     ports:
     - 8082:8082
   notification-service:
-    image: nebulaops-v22-4-notification-service:latest
+    image: nebulaops-v22-5-notification-service:latest
     build:
       context: .
       dockerfile: backend/notification-service/Dockerfile
@@ -168,7 +168,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -182,14 +182,14 @@ services:
     ports:
     - 8083:8083
   file-service:
-    image: nebulaops-v22-4-file-service:latest
+    image: nebulaops-v22-5-file-service:latest
     build:
       context: .
       dockerfile: backend/file-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_file?authSource=admin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -201,7 +201,7 @@ services:
     ports:
     - 8084:8084
   ai-engine:
-    image: nebulaops-v22-4-ai-engine:latest
+    image: nebulaops-v22-5-ai-engine:latest
     build:
       context: .
       dockerfile: ai-engine/Dockerfile
@@ -209,13 +209,13 @@ services:
     - 8095:8095
     environment:
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
     depends_on:
       keycloak:
         condition: service_started
   ai-ops-service:
-    image: nebulaops-v22-4-ai-ops-service:latest
+    image: nebulaops-v22-5-ai-ops-service:latest
     build:
       context: .
       dockerfile: backend/ai-ops-service/Dockerfile
@@ -223,7 +223,7 @@ services:
       AI_ENGINE_URL: http://ai-engine:8095
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -258,14 +258,14 @@ services:
     ports:
     - 8085:8085
   devsecops-service:
-    image: nebulaops-v22-4-devsecops-service:latest
+    image: nebulaops-v22-5-devsecops-service:latest
     build:
       context: .
       dockerfile: backend/devsecops-service/Dockerfile
     environment:
       REPO_PATH: /workspace
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -296,7 +296,7 @@ services:
       notification-service:
         condition: service_started
   pipeline-engine-service:
-    image: nebulaops-v22-4-pipeline-engine-service:latest
+    image: nebulaops-v22-5-pipeline-engine-service:latest
     build:
       context: .
       dockerfile: backend/pipeline-engine-service/Dockerfile
@@ -304,7 +304,7 @@ services:
       REPO_PATH: /workspace
       ARGOCD_APP: nebulaops
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -318,7 +318,7 @@ services:
       keycloak:
         condition: service_started
   observability-service:
-    image: nebulaops-v22-4-observability-service:latest
+    image: nebulaops-v22-5-observability-service:latest
     build:
       context: .
       dockerfile: backend/observability-service/Dockerfile
@@ -328,7 +328,7 @@ services:
       TEMPO_URL: http://tempo:3200
       GRAFANA_URL: http://grafana:3000
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -338,7 +338,7 @@ services:
       keycloak:
         condition: service_started
   gitops-control-service:
-    image: nebulaops-v22-4-gitops-control-service:latest
+    image: nebulaops-v22-5-gitops-control-service:latest
     build:
       context: .
       dockerfile: backend/gitops-control-service/Dockerfile
@@ -346,7 +346,7 @@ services:
       ARGOCD_APP: nebulaops
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -361,14 +361,14 @@ services:
       keycloak:
         condition: service_started
   environment-manager-service:
-    image: nebulaops-v22-4-environment-manager-service:latest
+    image: nebulaops-v22-5-environment-manager-service:latest
     build:
       context: .
       dockerfile: backend/environment-manager-service/Dockerfile
     environment:
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -383,7 +383,7 @@ services:
       keycloak:
         condition: service_started
   terraform-studio-service:
-    image: nebulaops-v22-4-terraform-studio-service:latest
+    image: nebulaops-v22-5-terraform-studio-service:latest
     build:
       context: .
       dockerfile: backend/terraform-studio-service/Dockerfile
@@ -392,7 +392,7 @@ services:
       COST_CURRENCY: EUR
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -405,13 +405,13 @@ services:
       keycloak:
         condition: service_started
   gateway-service:
-    image: nebulaops-v22-4-gateway-service:latest
+    image: nebulaops-v22-5-gateway-service:latest
     build:
       context: .
       dockerfile: backend/gateway-service/Dockerfile
     environment:
       AUTH_SERVICE_URL: http://auth-service:8081
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       TASK_SERVICE_URL: http://task-service:8082
       FILE_SERVICE_URL: http://file-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8083
@@ -423,7 +423,7 @@ services:
       ENVIRONMENT_MANAGER_SERVICE_URL: http://environment-manager-service:8094
       TERRAFORM_STUDIO_SERVICE_URL: http://terraform-studio-service:8096
       KUBECONFIG: /kube/config
-      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v22-4}
+      DOCKER_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-nebulaops-v22-5}
       TERRAFORM_WORKDIR: /app/infrastructure/terraform
       GRAFANA_URL: http://grafana:3000
       KEYCLOAK_URL: http://keycloak:8080
@@ -481,7 +481,7 @@ services:
     ports:
     - 8080:8080
   mfe-docker-desktop:
-    image: nebulaops-v22-4-mfe-docker-desktop:latest
+    image: nebulaops-v22-5-mfe-docker-desktop:latest
     build:
       context: ./frontend/remotes/docker-desktop
       dockerfile: Dockerfile
@@ -496,7 +496,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-openlens-kubernetes:
-    image: nebulaops-v22-4-mfe-openlens-kubernetes:latest
+    image: nebulaops-v22-5-mfe-openlens-kubernetes:latest
     build:
       context: ./frontend/remotes/openlens-kubernetes
       dockerfile: Dockerfile
@@ -511,7 +511,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-task-management:
-    image: nebulaops-v22-4-mfe-task-management:latest
+    image: nebulaops-v22-5-mfe-task-management:latest
     build:
       context: ./frontend/remotes/task-management
       dockerfile: Dockerfile
@@ -526,7 +526,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-observability:
-    image: nebulaops-v22-4-mfe-observability:latest
+    image: nebulaops-v22-5-mfe-observability:latest
     build:
       context: ./frontend/remotes/observability
       dockerfile: Dockerfile
@@ -541,7 +541,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-cicd-gitops:
-    image: nebulaops-v22-4-mfe-cicd-gitops:latest
+    image: nebulaops-v22-5-mfe-cicd-gitops:latest
     build:
       context: ./frontend/remotes/cicd-gitops
       dockerfile: Dockerfile
@@ -556,7 +556,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-terraform-studio:
-    image: nebulaops-v22-4-mfe-terraform-studio:latest
+    image: nebulaops-v22-5-mfe-terraform-studio:latest
     build:
       context: ./frontend/remotes/terraform-studio
       dockerfile: Dockerfile
@@ -571,7 +571,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-devsecops:
-    image: nebulaops-v22-4-mfe-devsecops:latest
+    image: nebulaops-v22-5-mfe-devsecops:latest
     build:
       context: ./frontend/remotes/devsecops
       dockerfile: Dockerfile
@@ -586,7 +586,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-ai-ops:
-    image: nebulaops-v22-4-mfe-ai-ops:latest
+    image: nebulaops-v22-5-mfe-ai-ops:latest
     build:
       context: ./frontend/remotes/ai-ops
       dockerfile: Dockerfile
@@ -601,7 +601,7 @@ services:
       retries: 12
       start_period: 10s
   mfe-finops-cost:
-    image: nebulaops-v22-4-mfe-finops-cost:latest
+    image: nebulaops-v22-5-mfe-finops-cost:latest
     build:
       context: ./frontend/remotes/finops-cost
       dockerfile: Dockerfile
@@ -616,7 +616,7 @@ services:
       retries: 12
       start_period: 10s
   frontend:
-    image: nebulaops-v22-4-frontend-shell:latest
+    image: nebulaops-v22-5-frontend-shell:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -757,7 +757,7 @@ services:
     volumes:
     - rabbitmq-data:/var/lib/rabbitmq
   go-cache-service:
-    image: nebulaops-v22-4-go-cache-service:latest
+    image: nebulaops-v22-5-go-cache-service:latest
     build:
       context: .
       dockerfile: go/cache-service/Dockerfile
@@ -769,7 +769,7 @@ services:
       RABBITMQ_PASSWORD: guest
       RABBITMQ_CACHE_QUEUE: nebula.cache.events
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
     depends_on:
       redis:
@@ -781,7 +781,7 @@ services:
     ports:
     - 8091:8091
   go-event-worker:
-    image: nebulaops-v22-4-go-event-worker:latest
+    image: nebulaops-v22-5-go-event-worker:latest
     build:
       context: .
       dockerfile: go/event-worker/Dockerfile
@@ -832,14 +832,14 @@ services:
     profiles:
     - gitlab
   cost-analytics-service:
-    image: nebulaops-v22-4-cost-analytics-service:latest
+    image: nebulaops-v22-5-cost-analytics-service:latest
     build:
       context: .
       dockerfile: backend/cost-analytics-service/Dockerfile
     environment:
       MONGODB_URI: mongodb://nebula:nebula@mongodb:27017/nebula_cost?authSource=admin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -1151,14 +1151,14 @@ services:
       retries: 20
       start_period: 20s
   release-orchestrator-service:
-    image: nebulaops-v22-4-release-orchestrator-service:latest
+    image: nebulaops-v22-5-release-orchestrator-service:latest
     build:
       context: .
       dockerfile: backend/release-orchestrator-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_release?authSource=admin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -1195,14 +1195,14 @@ services:
       retries: 20
       start_period: 40s
   policy-governance-service:
-    image: nebulaops-v22-4-policy-governance-service:latest
+    image: nebulaops-v22-5-policy-governance-service:latest
     build:
       context: .
       dockerfile: backend/policy-governance-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_policy?authSource=admin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -1243,14 +1243,14 @@ services:
       retries: 20
       start_period: 40s
   progressive-delivery-service:
-    image: nebulaops-v22-4-progressive-delivery-service:latest
+    image: nebulaops-v22-5-progressive-delivery-service:latest
     build:
       context: .
       dockerfile: backend/progressive-delivery-service/Dockerfile
     environment:
       PATH: /opt/java/openjdk/bin:/opt/nebula-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -1279,14 +1279,14 @@ services:
       retries: 20
       start_period: 40s
   audit-service:
-    image: nebulaops-v22-4-audit-service:latest
+    image: nebulaops-v22-5-audit-service:latest
     build:
       context: .
       dockerfile: backend/audit-service/Dockerfile
     environment:
       MONGO_URI: mongodb://nebula:nebula@mongodb:27017/nebula_audit?authSource=admin
       KEYCLOAK_AUTH_ENABLED: 'true'
-      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-4-dev-secret-key-min-32-chars!!}
+      JWT_SECRET: ${JWT_SECRET:-nebulaops-v22-5-dev-secret-key-min-32-chars!!}
       KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/nebulaops/protocol/openid-connect/certs
       KEYCLOAK_REALM: nebulaops
       KEYCLOAK_URL: http://keycloak:8080
@@ -1306,7 +1306,7 @@ services:
       retries: 20
       start_period: 40s
   mfe-infra-hub:
-    image: nebulaops-v22-4-mfe-infra-hub:latest
+    image: nebulaops-v22-5-mfe-infra-hub:latest
     build:
       context: ./frontend/remotes/infra-hub
       dockerfile: Dockerfile
@@ -1319,7 +1319,7 @@ services:
       retries: 20
       start_period: 20s
   mfe-release-center:
-    image: nebulaops-v22-4-mfe-release-center:latest
+    image: nebulaops-v22-5-mfe-release-center:latest
     build:
       context: ./frontend/remotes/release-center
       dockerfile: Dockerfile
@@ -1332,13 +1332,13 @@ services:
       retries: 20
       start_period: 20s
   mfe-progressive-delivery:
-    image: nebulaops-v22-4-mfe-progressive-delivery:latest
+    image: nebulaops-v22-5-mfe-progressive-delivery:latest
     build:
       context: ./frontend/remotes/progressive-delivery
       dockerfile: Dockerfile
     labels:
     - nebulaops.module=progressive-delivery
-    - nebulaops.version=22.4.0
+    - nebulaops.version=22.5.0
     depends_on:
     - gateway-service
     healthcheck:
@@ -1350,7 +1350,7 @@ services:
       retries: 20
       start_period: 20s
   mfe-policy-center:
-    image: nebulaops-v22-4-mfe-policy-center:latest
+    image: nebulaops-v22-5-mfe-policy-center:latest
     build:
       context: ./frontend/remotes/policy-center
       dockerfile: Dockerfile
@@ -1363,13 +1363,13 @@ services:
       retries: 20
       start_period: 20s
   mfe-notification-center:
-    image: nebulaops-v22-4-mfe-notification-center:latest
+    image: nebulaops-v22-5-mfe-notification-center:latest
     build:
       context: ./frontend/remotes/notification-center
       dockerfile: Dockerfile
     labels:
     - nebulaops.module=notification-center
-    - nebulaops.version=22.4.0
+    - nebulaops.version=22.5.0
     healthcheck:
       test:
       - CMD-SHELL
@@ -1379,13 +1379,13 @@ services:
       retries: 20
       start_period: 20s
   mfe-identity-admin:
-    image: nebulaops-v22-4-mfe-identity-admin:latest
+    image: nebulaops-v22-5-mfe-identity-admin:latest
     build:
       context: ./frontend/remotes/identity-admin
       dockerfile: Dockerfile
     labels:
     - nebulaops.module=identity-admin
-    - nebulaops.version=22.4.0
+    - nebulaops.version=22.5.0
     depends_on:
     - gateway-service
     healthcheck:

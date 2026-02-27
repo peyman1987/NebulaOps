@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: kubebridge
+server:
+  port: 8080
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+nebulaops:
+  extension:
+    slug: kubebridge
+    title: "KubeBridge"
+    category: "Kubernetes Control"
+    mode: kubernetes
+    node-port: 31111

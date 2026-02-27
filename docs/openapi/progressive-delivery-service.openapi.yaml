@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: NebulaOps Progressive Delivery Service API
-  version: 22.4.0
+  version: 22.5.0
 paths:
   /api/progressive-delivery/overview:
     get:

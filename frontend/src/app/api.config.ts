@@ -1,5 +1,5 @@
 /**
- * v22.4 — Centralized frontend API configuration.
+ * v22.5 — Centralized frontend API configuration.
  * Public browser access is served through the same reverse-proxy origin:
  *   http://nebulaops.localhost
  *
@@ -166,12 +166,21 @@ export const API = {
     index: `${API_BASE}/docs`,
     service: (name: string) => `${API_BASE}/docs/${encodeURIComponent(name)}`,
   },
+
+  extensions: {
+    list: `${API_BASE}/extensions`,
+    console: `${API_BASE}/extensions/console`,
+    status: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/status`,
+    start: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/start`,
+    stop: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/stop`,
+    restart: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/restart`,
+  },
 } as const;
 
-export const APP_VERSION = '22.4';
-export const APP_RELEASE = 'v22.4';
-export const JWT_KEY     = 'nebulaops.v22_4.jwt';
-export const USER_KEY    = 'nebulaops.v22_4.user';
+export const APP_VERSION = '22.5';
+export const APP_RELEASE = 'v22.5';
+export const JWT_KEY     = 'nebulaops.v22_5.jwt';
+export const USER_KEY    = 'nebulaops.v22_5.user';
 
 // ── Keycloak OIDC (Authorization Code + PKCE) ──────────────────
 export const KC_BASE         = '/keycloak';
@@ -182,3 +191,86 @@ export const KC_AUTH_URL     = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-co
 export const KC_TOKEN_URL    = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/token`;
 export const KC_LOGOUT_URL   = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/logout`;
 export const KC_USERINFO_URL = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/userinfo`;
+
+
+// ── Typed API client v22.5 ─────────────────────────────────────
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export interface ApiRequestOptions<TBody = unknown> {
+  method?: HttpMethod;
+  body?: TBody;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+}
+
+export interface ExtensionStatus {
+  id: 'apiforge' | 'kubebridge' | 'contract-hub' | string;
+  title: string;
+  state: 'RUNNING' | 'STOPPED' | 'DEGRADED' | 'UNKNOWN' | string;
+  deployment?: string;
+  service?: string;
+  readyReplicas?: number;
+  replicas?: number;
+  openUrl?: string;
+}
+
+export interface HealthResponse { status: string; service: string; version: string; timestamp?: string; }
+export interface PageResult<T> { items: T[]; total?: number; live?: boolean; generatedAt?: string; }
+
+export class NebulaApiClient {
+  constructor(private readonly base: string = API_BASE, private readonly tokenProvider: () => string | null = () => localStorage.getItem(JWT_KEY)) {}
+
+  async request<TResponse, TBody = unknown>(path: string, options: ApiRequestOptions<TBody> = {}): Promise<TResponse> {
+    const headers: Record<string, string> = { Accept: 'application/json', ...(options.headers || {}) };
+    const token = this.tokenProvider();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    let body: BodyInit | undefined;
+    if (options.body !== undefined) {
+      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+      body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+    }
+    const response = await fetch(path.startsWith('/api') ? path : `${this.base}${path}`, {
+      method: options.method || (body ? 'POST' : 'GET'),
+      headers,
+      body,
+      signal: options.signal,
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`NebulaOps API ${response.status} ${response.statusText}: ${text}`);
+    }
+    if (response.status === 204) return undefined as TResponse;
+    return response.json() as Promise<TResponse>;
+  }
+
+  health() { return this.request<HealthResponse>(API.health); }
+  login(body: { email: string; password: string }) { return this.request<{ accessToken: string; refreshToken: string; tokenType: string; user: unknown }>(API.auth.login, { method: 'POST', body }); }
+  me() { return this.request<{ user: unknown }>(API.auth.me); }
+
+  tasks(org: string) { return this.request<PageResult<unknown> | unknown[]>(API.tasks.list(org)); }
+  kubernetesSnapshot() { return this.request<Record<string, unknown>>(API.kubernetes.snapshot); }
+  dockerContainers() { return this.request<Record<string, unknown>>(API.runtime.dockerContainers); }
+  observability() { return this.request<Record<string, unknown>>(API.platform.observability); }
+  prometheus(query = 'up') { return this.request<Record<string, unknown>>(`${API_BASE}/platform/observability/prometheus?query=${encodeURIComponent(query)}`); }
+  loki(query = '{job=~".+"}') { return this.request<Record<string, unknown>>(`${API_BASE}/platform/observability/loki?query=${encodeURIComponent(query)}`); }
+  gitops() { return this.request<Record<string, unknown>>(API.platform.gitops); }
+  devsecops(path = '.') { return this.request<Record<string, unknown>>(`${API.platform.devsecops}?path=${encodeURIComponent(path)}`); }
+  environments() { return this.request<unknown[]>(API.platform.environments); }
+  aiAnalyze(body: Record<string, unknown>) { return this.request<Record<string, unknown>>(API.aiOps.analyze, { method: 'POST', body }); }
+  releases() { return this.request<Record<string, unknown>>(API.release.list); }
+  policies() { return this.request<Record<string, unknown>>(API.policy.list); }
+  progressiveOverview(namespace = 'all') { return this.request<Record<string, unknown>>(API.progressiveDelivery.overview(namespace)); }
+  auditEvents() { return this.request<Record<string, unknown>>(API.audit.events); }
+  notifications() { return this.request<Record<string, unknown>>(API.notifications.list); }
+  identityUsers(realm = 'nebulaops') { return this.request<unknown[]>(API.identity.users(realm)); }
+  costSummary() { return this.request<Record<string, unknown>>(API.cost.summary); }
+  docsIndex() { return this.request<Record<string, unknown>>(API.docs.index); }
+
+  extensions() { return this.request<{ live: boolean; items: ExtensionStatus[] }>(`${API_BASE}/extensions`); }
+  extensionStatus(id: string) { return this.request<ExtensionStatus>(`${API_BASE}/extensions/${encodeURIComponent(id)}/status`); }
+  startExtension(id: string) { return this.request<Record<string, unknown>>(`${API_BASE}/extensions/${encodeURIComponent(id)}/start`, { method: 'POST' }); }
+  stopExtension(id: string) { return this.request<Record<string, unknown>>(`${API_BASE}/extensions/${encodeURIComponent(id)}/stop`, { method: 'POST' }); }
+  restartExtension(id: string) { return this.request<Record<string, unknown>>(`${API_BASE}/extensions/${encodeURIComponent(id)}/restart`, { method: 'POST' }); }
+}
+
+export const nebulaApi = new NebulaApiClient();

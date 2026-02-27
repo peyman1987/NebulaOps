@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: contract-hub
+server:
+  port: 8080
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+nebulaops:
+  extension:
+    slug: contract-hub
+    title: "Contract Hub"
+    category: "API Contracts"
+    mode: httpTargets
+    node-port: 31114
