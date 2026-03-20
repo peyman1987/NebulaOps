@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 LIVE compile and runtime verification.
+# NebulaOps v23.1 LIVE compile and runtime verification.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-echo "[NebulaOps] v22.5 LIVE verification"
+echo "[NebulaOps] v23.1 LIVE verification"
 
 require() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -67,7 +67,7 @@ echo "7) Runtime start + health"
 ./scripts/wsl/stop.sh || true
 ./scripts/wsl/start.sh --with-sso-proxy
 ./scripts/wsl/health.sh
-./scripts/wsl/smoke-v22.5-live.sh
+./scripts/wsl/smoke-v23.1-live.sh
 
 echo
-echo "[NebulaOps] v22.5 LIVE verification completed successfully."
+echo "[NebulaOps] v23.1 LIVE verification completed successfully."

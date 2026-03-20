@@ -1,0 +1,9 @@
+{
+  "id": "platform-catalog",
+  "service": "mfe-platform-catalog",
+  "tag": "nebulaops-mfe-platform-catalog",
+  "port": 4220,
+  "title": "Platform Catalog & Service Registry",
+  "group": "Platform",
+  "navigation": "owned by shell side menu"
+}

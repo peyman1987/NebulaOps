@@ -1,6 +1,6 @@
 {
-  "name": "nebulaops-v22-5-task-management",
-  "version": "22.5.0",
+  "name": "nebulaops-v23-1-task-management",
+  "version": "23.1.0",
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4213",

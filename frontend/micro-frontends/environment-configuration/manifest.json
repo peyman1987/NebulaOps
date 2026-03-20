@@ -1,0 +1,9 @@
+{
+  "id": "environment-configuration",
+  "service": "mfe-environment-configuration",
+  "tag": "nebulaops-mfe-environment-configuration",
+  "port": 4230,
+  "title": "Environment & Configuration Center",
+  "group": "Platform",
+  "navigation": "owned by shell side menu"
+}

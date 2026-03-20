@@ -5,7 +5,135 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title th:text="${title} + ' · NebulaOps Extension'"></title>
   <style>
-    :root{--bg:#060b18;--panel:#101a2f;--panel2:#14223d;--line:#263b62;--text:#eef6ff;--muted:#93a9c9;--cyan:#68e8ff;--blue:#5c8dff;--green:#64d98b;--orange:#ffc267;--red:#ff7786;--violet:#b692ff;--shadow:0 22px 54px rgba(0,0,0,.38)}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 18% -5%,rgba(91,141,255,.24),transparent 34%),radial-gradient(circle at 88% 8%,rgba(104,232,255,.14),transparent 28%),linear-gradient(135deg,#061023,#090e1d 58%,#11182d);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Arial;letter-spacing:.01em}.app{max-width:1420px;margin:0 auto;padding:26px}.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:22px}.eyebrow{color:var(--cyan);font-size:12px;letter-spacing:.34em;font-weight:900;text-transform:uppercase}.title{font-size:40px;line-height:1.04;font-weight:950;margin:10px 0 8px}.subtitle{color:var(--muted);font-size:15px;max-width:900px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{background:#1a2946;color:var(--text);border:1px solid var(--line);border-radius:13px;padding:11px 14px;font-weight:900;text-decoration:none;cursor:pointer}.btn:hover{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(104,232,255,.1)}.btn.secondary{background:#0b1324}.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px}.card{background:rgba(16,26,47,.9);border:1px solid rgba(104,232,255,.15);border-radius:24px;padding:18px;box-shadow:var(--shadow)}.status{display:flex;align-items:center;gap:12px;font-weight:950;font-size:21px}.dot{width:13px;height:13px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 6px rgba(147,169,201,.12)}.CONNECTED .dot,.READY .dot{background:var(--green);box-shadow:0 0 0 6px rgba(100,217,139,.14)}.DEGRADED .dot{background:var(--orange);box-shadow:0 0 0 6px rgba(255,194,103,.15)}.UNAVAILABLE .dot,.REJECTED .dot{background:var(--red);box-shadow:0 0 0 6px rgba(255,119,134,.15)}.NOT_CONFIGURED .dot,.NOT_SUPPORTED .dot{background:var(--violet);box-shadow:0 0 0 6px rgba(182,146,255,.14)}.meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.metric{background:var(--panel2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:13px}.metric small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em}.metric b{font-size:18px}.sections{display:grid;gap:18px;margin-top:18px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.section-head h2{margin:0;font-size:18px}.pill{font-size:12px;color:var(--cyan);border:1px solid rgba(104,232,255,.26);border-radius:999px;padding:6px 10px;background:rgba(104,232,255,.08);font-weight:900}.pill.warn{color:var(--orange);border-color:rgba(255,194,103,.32);background:rgba(255,194,103,.08)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}.item{background:rgba(20,34,61,.92);border:1px solid rgba(255,255,255,.08);border-radius:17px;padding:14px;min-height:108px}.item b{display:block;margin-bottom:8px}.kv{display:grid;grid-template-columns:118px 1fr;gap:8px;font-size:12px;margin:6px 0}.kv span:first-child{color:var(--muted)}pre{white-space:pre-wrap;word-break:break-word;background:#070b14;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;max-height:360px;overflow:auto}.msg{color:var(--muted);line-height:1.55}.contract{display:grid;gap:10px}.contract code{color:var(--cyan);background:#0b1221;border:1px solid rgba(104,232,255,.2);padding:4px 7px;border-radius:8px}.source-list{display:grid;gap:8px}.source-row{background:#0b1427;border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:10px}.run{margin-top:10px}.run button{width:100%;margin-top:8px}.output{margin-top:12px}.empty{color:var(--muted);font-style:italic}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.json-drawer{display:none;margin-top:18px}.json-drawer.open{display:block}@media(max-width:980px){.layout{grid-template-columns:1fr}.meta{grid-template-columns:repeat(2,1fr)}.top{display:block}.actions{margin-top:16px}}
+    :root{--bg:#060b18;--panel:#101a2f;--panel2:#14223d;--line:#263b62;--text:#eef6ff;--muted:#93a9c9;--cyan:#68e8ff;--blue:#5c8dff;--green:#64d98b;--orange:#ffc267;--red:#ff7786;--violet:#b692ff;--shadow:0 22px 54px rgba(0,0,0,.38);--tr:.22s cubic-bezier(.2,0,0,1)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at 18% -5%,rgba(91,141,255,.22),transparent 34%),radial-gradient(circle at 88% 8%,rgba(104,232,255,.12),transparent 28%),linear-gradient(135deg,#061023,#090e1d 58%,#11182d);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Arial;letter-spacing:.01em}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;background-image:linear-gradient(rgba(104,232,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(104,232,255,.04) 1px,transparent 1px);background-size:64px 64px}
+    .app{max-width:1500px;margin:0 auto;padding:22px 26px}
+    /* Top bar */
+    .top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px}
+    .eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.36em;font-weight:900;text-transform:uppercase}
+    .title{font-size:36px;line-height:1.06;font-weight:950;margin:8px 0 6px;letter-spacing:-.02em}
+    .subtitle{color:var(--muted);font-size:14px;max-width:900px;line-height:1.5}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .btn{background:#1a2946;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-weight:800;font-size:13px;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color var(--tr),box-shadow var(--tr),background var(--tr);user-select:none}
+    .btn:hover{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(104,232,255,.1);background:#1f3257}
+    .btn.secondary{background:#0b1324}
+    .btn.primary{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#030712;border:0;box-shadow:0 4px 14px rgba(34,211,238,.28)}
+    .btn.danger{background:rgba(255,119,134,.1);border-color:rgba(255,119,134,.3);color:var(--red)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    /* Layout */
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start}
+    /* Cards */
+    .card{background:rgba(16,26,47,.92);border:1px solid rgba(104,232,255,.14);border-radius:22px;padding:18px;box-shadow:var(--shadow);backdrop-filter:blur(6px);animation:fadeIn .3s var(--tr)}
+    /* Status */
+    .status-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .status{display:flex;align-items:center;gap:10px;font-weight:950;font-size:20px}
+    .dot{width:12px;height:12px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 4px rgba(147,169,201,.12);flex-shrink:0;transition:background .3s,box-shadow .3s}
+    .CONNECTED .dot,.READY .dot{background:var(--green);box-shadow:0 0 0 5px rgba(100,217,139,.16),0 0 18px rgba(100,217,139,.3);animation:pulse-dot 2s infinite}
+    .DEGRADED .dot{background:var(--orange);box-shadow:0 0 0 5px rgba(255,194,103,.16)}
+    .UNAVAILABLE .dot,.REJECTED .dot{background:var(--red);box-shadow:0 0 0 5px rgba(255,119,134,.16)}
+    .NOT_CONFIGURED .dot,.NOT_SUPPORTED .dot{background:var(--violet);box-shadow:0 0 0 5px rgba(182,146,255,.16)}
+    @keyframes pulse-dot{0%,100%{box-shadow:0 0 0 5px rgba(100,217,139,.16),0 0 18px rgba(100,217,139,.3)}50%{box-shadow:0 0 0 7px rgba(100,217,139,.1),0 0 26px rgba(100,217,139,.2)}}
+    /* Metrics */
+    .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
+    .metric{background:var(--panel2);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:13px;cursor:default;transition:border-color var(--tr);position:relative;overflow:hidden}
+    .metric::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(104,232,255,.04),transparent 60%);pointer-events:none}
+    .metric:hover{border-color:rgba(104,232,255,.25)}
+    .metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.14em;font-weight:700;margin-bottom:6px}
+    .metric b{font-size:20px;font-weight:800;letter-spacing:-.01em;display:block}
+    .metric .trend{font-size:11px;margin-top:4px;display:flex;align-items:center;gap:4px}
+    .trend.up{color:var(--green)}.trend.down{color:var(--red)}.trend.neutral{color:var(--muted)}
+    /* Search bar */
+    .search-bar{display:flex;gap:10px;align-items:center;margin:16px 0}
+    .search-wrap{flex:1;position:relative;min-width:0}
+    .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none;z-index:1}
+    .search-wrap input{width:100%;background:rgba(16,26,47,.9);border:1px solid var(--line);border-radius:12px;padding:10px 12px 10px 36px;color:var(--text);font-size:13px;outline:none;transition:border-color .18s,box-shadow .18s}
+    .search-wrap input:focus{border-color:rgba(104,232,255,.6);box-shadow:0 0 0 3px rgba(104,232,255,.1)}
+    .search-count{color:var(--muted);font-size:12px;white-space:nowrap;flex-shrink:0}
+    .sort-select{background:rgba(16,26,47,.9);border:1px solid var(--line);border-radius:10px;padding:9px 10px;color:var(--text);font-size:12px;cursor:pointer;flex-shrink:0}
+    /* Sections */
+    .sections{display:grid;gap:14px}
+    .section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;user-select:none;padding:4px 0}
+    .section-head:hover h2{color:var(--cyan)}
+    .section-head h2{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;transition:color .16s}
+    .section-toggle{color:var(--muted);font-size:13px;transition:transform .2s;flex-shrink:0}
+    .section-body{overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1)}
+    .section-body.collapsed{max-height:0!important}
+    .pill{font-size:11px;color:var(--cyan);border:1px solid rgba(104,232,255,.26);border-radius:999px;padding:4px 9px;background:rgba(104,232,255,.08);font-weight:900;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+    .pill.warn{color:var(--orange);border-color:rgba(255,194,103,.32);background:rgba(255,194,103,.08)}
+    .pill.ok{color:var(--green);border-color:rgba(100,217,139,.32);background:rgba(100,217,139,.08)}
+    .pill.err{color:var(--red);border-color:rgba(255,119,134,.32);background:rgba(255,119,134,.08)}
+    .pill.muted{color:var(--muted);border-color:rgba(147,169,201,.2);background:rgba(147,169,201,.06)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:10px}
+    /* Item cards */
+    .item{background:rgba(20,34,61,.94);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px;transition:border-color var(--tr),box-shadow var(--tr),transform var(--tr);cursor:pointer;position:relative}
+    .item:hover{border-color:rgba(104,232,255,.3);box-shadow:0 8px 28px rgba(0,0,0,.35);transform:translateY(-1px)}
+    .item.expanded{border-color:rgba(104,232,255,.45);background:rgba(20,34,61,1)}
+    .item-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+    .item-name{font-weight:800;font-size:13px;word-break:break-word;line-height:1.4}
+    .item-actions{display:flex;gap:4px;flex-shrink:0;opacity:0;transition:opacity .14s}
+    .item:hover .item-actions{opacity:1}
+    .item-actions button{padding:4px 7px;border-radius:7px;font-size:11px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;color:var(--muted);transition:all .14s}
+    .item-actions button:hover{color:var(--text);background:rgba(104,232,255,.12);border-color:rgba(104,232,255,.3)}
+    .kv{display:grid;grid-template-columns:100px 1fr;gap:6px;font-size:12px;margin:4px 0;align-items:start}
+    .kv span:first-child{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.02em}
+    .kv span:last-child{word-break:break-all;color:#c8d8f0}
+    .item-preview{display:grid;gap:3px}
+    .item-full{display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);gap:4px}
+    .item.expanded .item-full{display:grid;gap:3px}
+    .expand-hint{color:var(--muted);font-size:11px;margin-top:6px;text-align:right}
+    pre{white-space:pre-wrap;word-break:break-word;background:#070b14;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px;max-height:320px;overflow:auto;font-size:11.5px;line-height:1.55;margin:0}
+    .msg{color:var(--muted);line-height:1.55;font-size:13px;min-height:18px}
+    /* Sidebar */
+    .sidebar-card{display:grid;gap:12px}
+    .sidebar-section{background:rgba(11,18,39,.7);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px}
+    .sidebar-section h3{margin:0 0 10px;font-size:14px;color:var(--cyan);display:flex;align-items:center;gap:7px}
+    .contract code{color:var(--cyan);background:#0b1221;border:1px solid rgba(104,232,255,.2);padding:3px 7px;border-radius:7px;font-size:12px}
+    .source-list{display:grid;gap:7px}
+    .source-row{background:#0b1427;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px;font-size:13px;transition:border-color .16s}
+    .source-row:hover{border-color:rgba(104,232,255,.25)}
+    .kv-inline{display:grid;grid-template-columns:100px 1fr;gap:6px;font-size:12px;margin:4px 0;align-items:center}
+    .kv-inline span:first-child{color:var(--muted);font-size:11px}
+    .kv-inline b,.kv-inline code{font-size:12px}
+    /* Run output */
+    .run-section{background:rgba(11,18,39,.9);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;margin-top:10px;display:none}
+    .run-section.open{display:block}
+    .run button{width:100%;background:#1a2946;border:1px solid var(--line);border-radius:10px;padding:9px;cursor:pointer;color:var(--text);font-weight:800;font-size:12px;transition:all .16s}
+    .run button:hover:not(:disabled){border-color:var(--cyan);background:#1f3257}
+    .run button:disabled{opacity:.5;cursor:not-allowed}
+    .empty{color:var(--muted);font-style:italic;font-size:13px}
+    .toolbar-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+    /* JSON drawer */
+    .json-drawer{display:none;margin-top:14px}
+    .json-drawer.open{display:block}
+    /* Refresh bar */
+    .refresh-bar{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:12px;color:var(--muted)}
+    .refresh-progress{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+    .refresh-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));border-radius:999px;transition:width 1s linear}
+    .refresh-paused{color:var(--orange);font-weight:700;font-size:11px}
+    /* Toast */
+    .toast{position:fixed;right:20px;bottom:24px;background:#1a2946;border:1px solid rgba(104,232,255,.3);border-radius:13px;padding:11px 16px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px) scale(.97);transition:.22s var(--tr);z-index:50;font-size:13px;font-weight:700;pointer-events:none;max-width:340px}
+    .toast.show{opacity:1;transform:none}
+    .toast.ok{border-color:rgba(100,217,139,.4);color:var(--green)}
+    .toast.err{border-color:rgba(255,119,134,.4);color:var(--red)}
+    /* Highlight match */
+    mark{background:rgba(104,232,255,.2);color:var(--cyan);border-radius:3px;padding:0 2px}
+    /* No-results */
+    .no-results{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+    .no-results-icon{font-size:32px;margin-bottom:10px}
+    /* Value types */
+    .val-bool{color:#c4b5fd}.val-num{color:#fde68a}.val-null{color:#6b7280}.val-arr{color:#7dd3fc}
+    /* Badges */
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+    .badge.running{background:rgba(100,217,139,.15);color:var(--green)}.badge.pending{background:rgba(255,194,103,.15);color:var(--orange)}.badge.failed{background:rgba(255,119,134,.15);color:var(--red)}.badge.unknown{background:rgba(147,169,201,.12);color:var(--muted)}
+    /* Animations */
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes counterUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    /* Responsive */
+    @media(max-width:1040px){.layout{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:640px){.top{display:block}.actions{margin-top:14px}.metrics{grid-template-columns:repeat(2,1fr)}}
   </style>
 </head>
 <body>
@@ -13,117 +141,359 @@
   <header class="top">
     <div>
       <div class="eyebrow">NebulaOps Extension Runtime</div>
-      <div class="title"><span th:text="${title}"></span></div>
-      <div class="subtitle"><span th:text="${category}"></span> · Spring Boot MVC · Kubernetes-ready · live integrations only.</div>
+      <div class="title" th:text="${title}"></div>
+      <div class="subtitle" th:text="${category}"></div>
     </div>
     <div class="actions">
-      <button class="btn" onclick="loadAll()">Refresh</button>
-      <button class="btn secondary" onclick="toggleJson()">Raw JSON</button>
-      <a class="btn secondary" href="/healthz">Health</a>
-      <a class="btn secondary" href="/readyz">Readiness</a>
+      <button class="btn primary" onclick="manualRefresh()">↻ Refresh</button>
+      <button class="btn secondary" onclick="exportData()">↓ Export JSON</button>
+      <button class="btn secondary" onclick="exportCsv()">↓ Export CSV</button>
+      <button class="btn secondary" onclick="toggleJson()">{ } Raw</button>
+      <button class="btn secondary" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+      <a class="btn secondary" href="./healthz">Health</a>
     </div>
   </header>
 
   <section class="layout">
     <main>
+      <!-- Status card -->
       <article class="card">
-        <div id="statusBox" class="status"><span class="dot"></span><span>Loading live status…</span></div>
-        <p id="message" class="msg"></p>
-        <div class="meta">
-          <div class="metric"><small>Runtime</small><b id="runtime">Spring Boot MVC</b></div>
-          <div class="metric"><small>Status</small><b id="statusText">-</b></div>
-          <div class="metric"><small>Records</small><b id="itemCount">0</b></div>
-          <div class="metric"><small>Updated</small><b id="updatedAt">-</b></div>
+        <div class="status-row">
+          <div id="statusBox" class="status"><span class="dot"></span><span>Loading…</span></div>
+          <div id="statusBadges" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
-        <div class="toolbar">
-          <span class="pill">Data policy: LIVE_ONLY</span>
-          <span class="pill warn">Absent integrations return NOT_CONFIGURED / UNAVAILABLE</span>
+        <p id="message" class="msg"></p>
+        <div class="metrics">
+          <div class="metric"><small>Runtime</small><b id="runtime">Spring Boot</b><div class="trend neutral">MVC</div></div>
+          <div class="metric"><small>Status</small><b id="statusText">—</b><div id="statusDetail" class="trend neutral"></div></div>
+          <div class="metric"><small>Records</small><b id="itemCount">0</b><div id="itemTrend" class="trend neutral">from 0 sections</div></div>
+          <div class="metric"><small>Last Updated</small><b id="updatedAt">—</b><div id="updateAgo" class="trend neutral"></div></div>
+        </div>
+        <div class="toolbar-bar" style="margin-top:12px">
+          <span class="pill muted">LIVE_ONLY</span>
+          <span class="pill">data · not stored</span>
+        </div>
+        <div class="refresh-bar">
+          <span id="refreshLabel">Next refresh in <b id="countdown">30</b>s</span>
+          <div class="refresh-progress"><div class="refresh-fill" id="refreshFill" style="width:100%"></div></div>
+          <span class="refresh-paused" id="pausedLabel" style="display:none">PAUSED</span>
         </div>
       </article>
-      <main id="sections" class="sections"></main>
-      <section id="runOutput" class="card output" style="display:none"><div class="section-head"><h2>Runbook output</h2><span id="exitCode" class="pill"></span></div><pre id="outputText"></pre></section>
-      <section id="jsonDrawer" class="card json-drawer"><div class="section-head"><h2>Raw live payload</h2><span class="pill">diagnostics</span></div><pre id="rawJson"></pre></section>
+
+      <!-- Search bar -->
+      <div class="search-bar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input id="searchInput" placeholder="Search records, keys, values…" oninput="applySearch()" autocomplete="off">
+        </div>
+        <span class="search-count" id="searchCount"></span>
+        <select class="sort-select" id="sortSelect" onchange="applySearch()">
+          <option value="">Sort: Default</option>
+          <option value="name-asc">Name A→Z</option>
+          <option value="name-desc">Name Z→A</option>
+        </select>
+        <button class="btn secondary" onclick="collapseAll()">⊟ Collapse</button>
+        <button class="btn secondary" onclick="expandAll()">⊞ Expand</button>
+      </div>
+
+      <div id="sections" class="sections"></div>
+
+      <section id="runOutput" class="card json-drawer" style="display:none;margin-top:14px">
+        <div class="section-head"><h2>Runbook output</h2><span class="pill" id="exitCode"></span></div>
+        <pre id="outputText"></pre>
+      </section>
+      <section id="jsonDrawer" class="card json-drawer">
+        <div class="section-head"><h2>Raw live payload</h2><span class="pill muted">diagnostics</span></div>
+        <pre id="rawJson"></pre>
+      </section>
     </main>
 
-    <aside class="card contract">
-      <div class="section-head"><h2>Runtime contract</h2><span class="pill" th:text="'NodePort ' + ${nodePort}"></span></div>
-      <div class="kv"><span>Slug</span><b th:text="${slug}"></b></div>
-      <div class="kv"><span>Live API</span><code id="apiPath"></code></div>
-      <div class="kv"><span>Capabilities</span><code id="capPath"></code></div>
-      <div class="kv"><span>Readiness</span><code>/readyz</code></div>
-      <div class="source-list" id="capabilitiesBox"><p class="empty">Loading runtime contract…</p></div>
+    <aside class="card sidebar-card">
+      <div class="sidebar-section contract">
+        <h3>📋 Runtime contract</h3>
+        <div class="kv-inline"><span>Slug</span><b th:text="${slug}"></b></div>
+        <div class="kv-inline"><span>Port</span><span class="pill" th:text="'NodePort ' + ${nodePort}"></span></div>
+        <div class="kv-inline"><span>Live API</span><code id="apiPath"></code></div>
+        <div class="kv-inline"><span>Capabilities</span><code id="capPath"></code></div>
+        <div class="kv-inline"><span>Health</span><code>/healthz</code></div>
+        <div class="kv-inline"><span>Readiness</span><code>/readyz</code></div>
+      </div>
+      <div class="sidebar-section" id="capabilitiesBox">
+        <h3>⚙ Integration state</h3>
+        <p class="empty">Loading…</p>
+      </div>
+      <div class="sidebar-section">
+        <h3>📊 Section overview</h3>
+        <div id="sectionOverview"><p class="empty">Loading…</p></div>
+      </div>
     </aside>
   </section>
 </div>
+
+<div class="toast" id="toast"></div>
+
 <script th:inline="javascript">
   const SLUG = /*[[${slug}]]*/ 'extension';
   const base = location.pathname.startsWith('/' + SLUG) ? '/' + SLUG : '';
   document.getElementById('apiPath').textContent = base + '/api/live';
   document.getElementById('capPath').textContent = base + '/api/capabilities';
-  const statusBox = document.getElementById('statusBox');
-  const sectionsEl = document.getElementById('sections');
-  let latestPayload = null;
-  function esc(v){return String(v ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function renderValue(v){
-    if(Array.isArray(v)) return v.map(esc).join(', ');
-    if(v && typeof v === 'object') return '<pre>'+esc(JSON.stringify(v,null,2))+'</pre>';
-    return esc(v);
+
+  let latestPayload = null, allSections = [], refreshTimer = null, countdown = 30, isPaused = false;
+  let lastItemCount = 0, lastUpdateTime = null;
+  const $ = id => document.getElementById(id);
+
+  // ── Helpers ───────────────────────────────────────────────────
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+  function renderValue(v, highlight=''){
+    if(v===null||v===undefined) return '<span class="val-null">null</span>';
+    if(typeof v==='boolean') return `<span class="val-bool">${v}</span>`;
+    if(typeof v==='number') return `<span class="val-num">${v}</span>`;
+    if(Array.isArray(v)){
+      if(!v.length) return '<span class="val-arr">[]</span>';
+      if(v.length<=3) return '<span class="val-arr">[' + v.map(x=>esc(String(x))).join(', ') + ']</span>';
+      return `<span class="val-arr">[${v.length} items]</span>`;
+    }
+    if(typeof v==='object') return `<span class="val-arr">{${Object.keys(v).length} keys}</span>`;
+    const s=esc(String(v));
+    if(highlight&&s.toLowerCase().includes(highlight.toLowerCase())){
+      const idx=s.toLowerCase().indexOf(highlight.toLowerCase());
+      return s.slice(0,idx)+'<mark>'+s.slice(idx,idx+highlight.length)+'</mark>'+s.slice(idx+highlight.length);
+    }
+    return s;
   }
+
+  function timeAgo(ts){
+    if(!ts) return '';
+    const d=Date.now()-new Date(ts).getTime(), s=Math.floor(d/1000);
+    if(s<5) return 'just now';
+    if(s<60) return s+'s ago';
+    if(s<3600) return Math.floor(s/60)+'m ago';
+    return Math.floor(s/3600)+'h ago';
+  }
+
+  function toast(msg,type=''){
+    const t=$('toast');
+    t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+    clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2400);
+  }
+
+  // ── Refresh ───────────────────────────────────────────────────
+  function togglePause(){
+    isPaused=!isPaused;
+    $('pauseBtn').textContent=isPaused?'▶ Resume':'⏸ Pause';
+    $('pausedLabel').style.display=isPaused?'':'none';
+    $('refreshLabel').style.opacity=isPaused?.4:1;
+    if(!isPaused){manualRefresh();}
+  }
+
   async function loadAll(){ await Promise.all([loadCapabilities(), loadLive()]); }
+
+  async function manualRefresh(){
+    if(refreshTimer){clearInterval(refreshTimer);}
+    countdown=30; updateCountdown();
+    await loadAll();
+    if(!isPaused) startRefreshTimer();
+    toast('Refreshed','ok');
+  }
+
+  function startRefreshTimer(){
+    clearInterval(refreshTimer);
+    countdown=30;
+    refreshTimer=setInterval(()=>{
+      if(isPaused) return;
+      countdown--;
+      updateCountdown();
+      if(countdown<=0){loadAll(); countdown=30;}
+    },1000);
+  }
+
+  function updateCountdown(){
+    $('countdown').textContent=countdown;
+    $('refreshFill').style.width=(countdown/30*100)+'%';
+  }
+
+  // ── Capabilities ──────────────────────────────────────────────
   async function loadCapabilities(){
     try{
-      const r = await fetch(base + '/api/capabilities', {headers:{Accept:'application/json'}});
-      const data = await r.json();
-      const box = document.getElementById('capabilitiesBox');
-      const req = (data.requiredConfiguration || []).map(x => `<div class="source-row"><b>${esc(x)}</b></div>`).join('') || '<p class="empty">No extra configuration required.</p>';
-      box.innerHTML = `<div class="source-row"><div class="kv"><span>Mode</span><b>${esc(data.mode)}</b></div><div class="kv"><span>Configured</span><b>${esc(data.integrationState?.configured)}</b></div><div class="kv"><span>Namespace</span><b>${esc(data.kubernetesNamespace || '-')}</b></div></div><h2 style="font-size:15px;margin:10px 0 0">Required configuration</h2>${req}`;
-    }catch(e){ document.getElementById('capabilitiesBox').innerHTML='<p class="empty">Capabilities endpoint is not reachable.</p>'; }
+      const r=await fetch(base+'/api/capabilities',{headers:{Accept:'application/json'}});
+      const data=await r.json();
+      const box=$('capabilitiesBox');
+      const state=data.integrationState||{};
+      const cfg=data.requiredConfiguration||[];
+      box.innerHTML=`<h3>⚙ Integration state</h3>
+        <div class="source-list">
+          <div class="source-row">
+            <div class="kv-inline"><span>Mode</span><span class="pill">${esc(data.mode||'—')}</span></div>
+            <div class="kv-inline"><span>Configured</span><span class="${state.configured?'pill ok':'pill warn'}">${state.configured?'yes':'no'}</span></div>
+            <div class="kv-inline"><span>Namespace</span><b>${esc(data.kubernetesNamespace||'—')}</b></div>
+          </div>
+          ${cfg.length?'<div class="source-row"><small style="color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Required config</small>'+cfg.map(x=>`<div style="font-size:12px;color:#c8d8f0;margin:3px 0">· ${esc(x)}</div>`).join('')+'</div>':''}
+        </div>`;
+    }catch(e){$('capabilitiesBox').innerHTML='<h3>⚙ Integration state</h3><p class="empty">Unreachable</p>';}
   }
+
+  // ── Live data ─────────────────────────────────────────────────
   async function loadLive(){
-    statusBox.className='status'; statusBox.innerHTML='<span class="dot"></span><span>Loading live status…</span>';
+    $('statusBox').className='status'; $('statusBox').innerHTML='<span class="dot"></span><span>Loading…</span>';
     try{
-      const r = await fetch(base + '/api/live', {headers:{Accept:'application/json'}});
-      const data = await r.json(); latestPayload = data;
-      document.getElementById('rawJson').textContent = JSON.stringify(data,null,2);
-      const status = data.status || 'UNAVAILABLE';
-      statusBox.className='status ' + status;
-      statusBox.innerHTML='<span class="dot"></span><span>'+esc(status)+'</span>';
-      document.getElementById('statusText').textContent=status;
-      document.getElementById('runtime').textContent=data.runtime || 'Spring Boot MVC';
-      document.getElementById('message').innerHTML=esc(data.message || '');
-      document.getElementById('itemCount').textContent=(data.items || []).length;
-      document.getElementById('updatedAt').textContent=new Date(data.generatedAt || Date.now()).toLocaleTimeString();
-      const sections = data.sections && data.sections.length ? data.sections : [{name:'Live data',count:(data.items||[]).length,items:data.items||[]}];
-      sectionsEl.innerHTML = sections.map(renderSection).join('');
+      const r=await fetch(base+'/api/live',{headers:{Accept:'application/json'}});
+      const data=await r.json(); latestPayload=data;
+      $('rawJson').textContent=JSON.stringify(data,null,2);
+      const status=data.status||'UNAVAILABLE';
+      $('statusBox').className='status '+status;
+      $('statusBox').innerHTML='<span class="dot"></span><span>'+esc(status)+'</span>';
+      $('statusText').textContent=status;
+      $('runtime').textContent=data.runtime||'Spring Boot MVC';
+      $('message').innerHTML=esc(data.message||'');
+      const now=new Date();
+      $('updatedAt').textContent=now.toLocaleTimeString();
+      $('updateAgo').textContent='just now'; $('updateAgo').className='trend neutral';
+      lastUpdateTime=now;
+      allSections=data.sections&&data.sections.length?data.sections:[{name:'Live data',count:(data.items||[]).length,items:data.items||[]}];
+      const total=allSections.reduce((a,s)=>a+(s.items||[]).length,0);
+      $('itemCount').textContent=total;
+      $('itemTrend').textContent=`across ${allSections.length} section${allSections.length!==1?'s':''}`;
+      $('itemTrend').className='trend '+(total>lastItemCount?'up':total<lastItemCount?'down':'neutral');
+      lastItemCount=total;
+      renderSectionOverview();
+      applySearch();
     }catch(e){
-      statusBox.className='status UNAVAILABLE';
-      statusBox.innerHTML='<span class="dot"></span><span>UNAVAILABLE</span>';
-      document.getElementById('message').textContent=e.message;
-      sectionsEl.innerHTML='<section class="card"><p class="empty">Live API is not reachable.</p></section>';
+      $('statusBox').className='status UNAVAILABLE';
+      $('statusBox').innerHTML='<span class="dot"></span><span>UNAVAILABLE</span>';
+      $('message').textContent=e.message;
+      $('sections').innerHTML='<section class="card"><p class="empty">Live API not reachable: '+esc(e.message)+'</p></section>';
     }
   }
-  function renderSection(s){
-    const items=s.items||[];
-    return `<section class="card"><div class="section-head"><h2>${esc(s.name)}</h2><span class="pill">${items.length}</span></div>` +
-      (items.length ? `<div class="grid">${items.map(renderItem).join('')}</div>` : `<p class="empty">No live records returned for this section.</p>`) + `</section>`;
+
+  function renderSectionOverview(){
+    $('sectionOverview').innerHTML=allSections.length?
+      allSections.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">
+        <span style="color:#c8d8f0">${esc(s.name)}</span>
+        <span class="pill">${(s.items||[]).length}</span>
+      </div>`).join(''):
+      '<p class="empty">No sections</p>';
   }
-  function renderItem(item){
-    const name=item.name || item.path || item.url || item.object || 'record';
-    const canRun = item.path && item.executable && item.executionEnabled;
-    const runButton = item.path ? `<div class="run"><button class="btn" ${canRun ? '' : 'disabled'} onclick="executeRunbook('${esc(item.path)}')">${canRun ? 'Execute runbook' : 'Execution disabled'}</button></div>` : '';
-    const rows = Object.entries(item).filter(([k])=>k!=='name').map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><span>${renderValue(v)}</span></div>`).join('');
-    return `<article class="item"><b>${esc(name)}</b>${rows}${runButton}</article>`;
+
+  // ── Search & render ───────────────────────────────────────────
+  function applySearch(){
+    const q=(($('searchInput').value)||'').toLowerCase().trim();
+    const sort=$('sortSelect').value;
+    let totalVisible=0;
+    const html=allSections.map(s=>{
+      let items=[...s.items||[]];
+      if(q) items=items.filter(it=>JSON.stringify(it).toLowerCase().includes(q));
+      if(sort==='name-asc') items.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+      if(sort==='name-desc') items.sort((a,b)=>String(b.name||'').localeCompare(String(a.name||'')));
+      totalVisible+=items.length;
+      return renderSection(s,items,q);
+    }).join('');
+    $('sections').innerHTML=html||'<div class="no-results"><div class="no-results-icon">🔍</div>No records found</div>';
+    $('searchCount').textContent=q?`${totalVisible} result${totalVisible!==1?'s':''}`:
+      `${totalVisible} record${totalVisible!==1?'s':''}`;
   }
+
+  function renderSection(s,items,q){
+    const id='sec-'+Math.random().toString(36).slice(2);
+    const count=items.length;
+    return `<section class="card">
+      <div class="section-head" onclick="toggleSection('${id}')">
+        <h2><span>${esc(s.name)}</span><span class="pill">${count}</span></h2>
+        <span class="section-toggle" id="tog-${id}">▾</span>
+      </div>
+      <div class="section-body" id="${id}" style="max-height:9999px">
+        ${count?`<div class="grid">${items.map(it=>renderItem(it,q)).join('')}</div>`:`<p class="empty">No records${q?' matching "'+esc(q)+'"':''}.</p>`}
+      </div>
+    </section>`;
+  }
+
+  function toggleSection(id){
+    const body=document.getElementById(id), tog=document.getElementById('tog-'+id);
+    if(!body) return;
+    if(body.classList.contains('collapsed')){
+      body.classList.remove('collapsed'); body.style.maxHeight='9999px';
+      if(tog) tog.textContent='▾';
+    } else {
+      body.style.maxHeight=body.scrollHeight+'px';
+      requestAnimationFrame(()=>{body.style.maxHeight='0';body.classList.add('collapsed');});
+      if(tog) tog.textContent='▸';
+    }
+  }
+
+  function collapseAll(){document.querySelectorAll('.section-body').forEach(b=>{b.style.maxHeight='0';b.classList.add('collapsed');});document.querySelectorAll('.section-toggle').forEach(t=>t.textContent='▸');}
+  function expandAll(){document.querySelectorAll('.section-body').forEach(b=>{b.classList.remove('collapsed');b.style.maxHeight='9999px';});document.querySelectorAll('.section-toggle').forEach(t=>t.textContent='▾');}
+
+  function renderItem(item,q){
+    const name=item.name||item.path||item.url||item.object||'record';
+    const canRun=item.path&&item.executable&&item.executionEnabled;
+    const entries=Object.entries(item).filter(([k])=>k!=='name');
+    const preview=entries.slice(0,3);
+    const rest=entries.slice(3);
+    const rid='r-'+Math.random().toString(36).slice(2);
+    const statusBadge=item.status?`<span class="badge ${String(item.status).toLowerCase()}">${esc(item.status)}</span>`:'';
+    const hasMore=rest.length>0;
+    return `<article class="item" id="${rid}" onclick="toggleItem('${rid}')">
+      <div class="item-header">
+        <div>
+          <div class="item-name">${renderValue(name,q)}</div>
+          ${statusBadge}
+        </div>
+        <div class="item-actions">
+          <button onclick="event.stopPropagation();copyItem(${JSON.stringify(JSON.stringify(item))})" title="Copy JSON">⎘</button>
+        </div>
+      </div>
+      <div class="item-preview">${preview.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><span>${renderValue(v,q)}</span></div>`).join('')}</div>
+      ${hasMore?`<div class="item-full">${rest.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><span>${renderValue(v,q)}</span></div>`).join('')}</div>`:''}
+      ${canRun?`<div class="run"><button onclick="event.stopPropagation();executeRunbook('${esc(item.path)}')">▶ Execute runbook</button></div>`:''}
+      ${hasMore?`<div class="expand-hint">click to ${'{id}'.includes(rid)?'collapse':'expand'} ${rest.length} more</div>`:''}
+    </article>`;
+  }
+
+  function toggleItem(id){document.getElementById(id)?.classList.toggle('expanded');}
+
+  function copyItem(json){
+    navigator.clipboard.writeText(json).then(()=>toast('Copied JSON','ok'));
+  }
+
+  // ── Runbook ───────────────────────────────────────────────────
   async function executeRunbook(path){
-    const out = document.getElementById('runOutput');
-    out.style.display='block'; document.getElementById('outputText').textContent='Executing ' + path + '…';
-    const r = await fetch(base + '/api/runbook/execute', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})});
-    const data = await r.json();
-    document.getElementById('exitCode').textContent = data.status + (data.exitCode !== undefined ? ' · exit ' + data.exitCode : '');
-    document.getElementById('outputText').textContent = data.output || data.message || '';
+    const out=$('runOutput'); out.style.display='block';
+    $('outputText').textContent='Executing '+path+'…';
+    const r=await fetch(base+'/api/runbook/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})});
+    const data=await r.json();
+    $('exitCode').textContent=data.status+(data.exitCode!==undefined?' · exit '+data.exitCode:'');
+    $('outputText').textContent=data.output||data.message||'';
   }
-  function toggleJson(){ document.getElementById('jsonDrawer').classList.toggle('open'); }
-  loadAll(); setInterval(loadAll, 30000);
+
+  // ── Export ────────────────────────────────────────────────────
+  function exportData(){
+    if(!latestPayload){toast('No data','err');return;}
+    const blob=new Blob([JSON.stringify(latestPayload,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=SLUG+'-live-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+    toast('JSON exported','ok');
+  }
+
+  function exportCsv(){
+    const allItems=allSections.flatMap(s=>s.items||[]);
+    if(!allItems.length){toast('No data to export','err');return;}
+    const keys=[...new Set(allItems.flatMap(i=>Object.keys(i)))];
+    const csv=[keys.join(','), ...allItems.map(i=>keys.map(k=>{const v=i[k]??'';return typeof v==='object'?JSON.stringify(v):String(v).includes(',')? '"'+String(v)+'"':String(v);}).join(','))].join('\n');
+    const blob=new Blob([csv],{type:'text/csv'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=SLUG+'-live-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+    toast('CSV exported','ok');
+  }
+
+  function toggleJson(){$('jsonDrawer').classList.toggle('open');}
+
+  // ── Update "ago" label ────────────────────────────────────────
+  setInterval(()=>{
+    if(lastUpdateTime) $('updateAgo').textContent=timeAgo(lastUpdateTime);
+  },10000);
+
+  loadAll();
+  startRefreshTimer();
 </script>
 </body>
 </html>

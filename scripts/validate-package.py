@@ -158,13 +158,17 @@ try:
         for action in ["start", "stop", "restart", "status", "open"]:
             if action not in ext_panel:
                 errors.append(f"EXTENSIONS panel missing action {action} for {slug}")
+        if item.get("enabledByDefault") is not False or item.get("defaultState") != "DISABLED":
+            errors.append(f"Extension {slug} must be disabled by default in extensions.manifest.json")
         k8s_path = ROOT / item["kubernetesManifest"]
         k8s = k8s_path.read_text(encoding="utf-8")
         if f"name: {slug}" not in k8s or f"nodePort: {item['nodePort']}" not in k8s:
             errors.append(f"Kubernetes manifest missing resource names or NodePort for extension: {slug}")
+        if "replicas: 0" not in k8s:
+            errors.append(f"Kubernetes manifest must keep extension disabled by default with replicas: 0: {slug}")
     if "server.servlet.context-path=/apiforge" not in apiprops:
         errors.append("APIForge must run with /apiforge context path")
-    if "NebulaOps v22.5 extension theme override" not in (ROOT / "extensions/apiforge/src/main/resources/static/css/app.css").read_text(encoding="utf-8"):
+    if "NebulaOps v23.1 extension theme override" not in (ROOT / "extensions/apiforge/src/main/resources/static/css/app.css").read_text(encoding="utf-8"):
         errors.append("APIForge is missing NebulaOps extension theme override")
 except Exception as exc:
     errors.append(f"NebulaOps extension validation failed: {exc}")

@@ -20,7 +20,7 @@ class AuthControllerTest {
         when(jwt.generateAccessToken(any(), any(), any(), any(), any())).thenReturn("access-token");
         when(jwt.generateRefreshToken(any())).thenReturn("refresh-token");
 
-        AuthController controller = new AuthController(users, jwt);
+        AuthController controller = new AuthController(users, jwt, true, "nebulaops");
         Object response = controller.login(new AuthController.LoginRequest("admin", "admin")).getBody();
 
         assertThat(response).asString().contains("access-token").contains("Bearer");

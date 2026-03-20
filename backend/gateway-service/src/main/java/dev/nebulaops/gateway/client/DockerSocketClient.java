@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.net.Socket;
 import java.net.UnixDomainSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +12,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v22.5-fixed — Talks directly to /var/run/docker.sock via Unix socket HTTP.
+ * v23.1 — Talks directly to /var/run/docker.sock via Unix socket HTTP.
  * Bypasses the docker CLI binary entirely, so it works regardless of which
  * docker binary is on PATH (snap, wrapper, etc.).
  */
@@ -54,6 +53,31 @@ public class DockerSocketClient {
     /** GET /info — docker system info */
     public Map<String, Object> info() {
         return getMap("/info");
+    }
+
+    /** GET /containers/{id}/stats?stream=false — live per-container stats. */
+    public Map<String, Object> containerStats(String id) {
+        return getMap("/containers/" + safeSegment(id) + "/stats?stream=false");
+    }
+
+    /** GET /events with a bounded window so the request does not stream forever. */
+    public List<Map<String, Object>> events(long sinceEpochSeconds, long untilEpochSeconds) {
+        try {
+            String body = get("/events?since=" + sinceEpochSeconds + "&until=" + untilEpochSeconds);
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (String line : body.split("\n")) {
+                if (line == null || line.isBlank()) continue;
+                rows.add(mapper.readValue(line, new TypeReference<Map<String, Object>>() {}));
+            }
+            return rows;
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    /** GET any Docker Engine object as a map. */
+    public Map<String, Object> object(String path) {
+        return getMap(path);
     }
 
     // ── internals ─────────────────────────────────────────────────────────────
@@ -100,14 +124,57 @@ public class DockerSocketClient {
             // Strip HTTP headers — body starts after blank line
             int bodyStart = raw.indexOf("\r\n\r\n");
             if (bodyStart == -1) bodyStart = raw.indexOf("\n\n");
-            return bodyStart >= 0 ? raw.substring(bodyStart + 4).trim() : raw;
+            return bodyStart >= 0 ? raw.substring(bodyStart + (raw.charAt(bodyStart) == '\r' ? 4 : 2)).trim() : raw;
+        }
+    }
+
+    public Map<String, Object> status() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("socket", SOCKET_PATH);
+        out.put("checkedAt", Instant.now().toString());
+        java.nio.file.Path socketPath = java.nio.file.Path.of(SOCKET_PATH);
+        if (!java.nio.file.Files.exists(socketPath)) {
+            out.put("ok", false);
+            out.put("state", "DOCKER_SOCKET_NOT_FOUND");
+            out.put("message", "Docker socket not reachable. Docker Desktop may be stopped or the socket is not mounted into the gateway container.");
+            return out;
+        }
+        if (!java.nio.file.Files.isReadable(socketPath)) {
+            out.put("ok", false);
+            out.put("state", "DOCKER_SOCKET_PERMISSION_DENIED");
+            out.put("message", "Docker socket exists but the gateway process cannot read it. Check Docker group membership or volume permissions.");
+            return out;
+        }
+        try {
+            Map<String, Object> info = info();
+            boolean ok = !info.containsKey("error");
+            out.put("ok", ok);
+            out.put("state", ok ? "DOCKER_ENGINE_AVAILABLE" : "DOCKER_ENGINE_ERROR");
+            out.put("message", ok ? "Docker Engine API is reachable through the Unix socket." : String.valueOf(info.get("error")));
+            out.put("engine", info);
+            return out;
+        } catch (Exception e) {
+            out.put("ok", false);
+            out.put("state", classify(e));
+            out.put("message", e.getClass().getSimpleName() + ": " + e.getMessage());
+            return out;
         }
     }
 
     public boolean isAvailable() {
-        try {
-            var address = UnixDomainSocketAddress.of(SOCKET_PATH);
-            try (var ch = SocketChannel.open(address)) { return ch.isConnected(); }
-        } catch (Exception e) { return false; }
+        Object ok = status().get("ok");
+        return Boolean.TRUE.equals(ok);
+    }
+
+    private String classify(Exception e) {
+        String msg = String.valueOf(e.getMessage()).toLowerCase(Locale.ROOT);
+        if (msg.contains("permission")) return "DOCKER_SOCKET_PERMISSION_DENIED";
+        if (msg.contains("no such file") || msg.contains("not found")) return "DOCKER_SOCKET_NOT_FOUND";
+        if (msg.contains("connection refused")) return "DOCKER_DESKTOP_STOPPED";
+        return "DOCKER_ENGINE_UNREACHABLE";
+    }
+
+    private String safeSegment(String value) {
+        return value == null ? "" : value.replaceAll("[^A-Za-z0-9_.:@-]", "");
     }
 }

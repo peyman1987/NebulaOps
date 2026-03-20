@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Repair only the v22.5 endpoints that can appear red after an upgrade from an earlier package:
+# Repair only the v23.1 endpoints that can appear red after an upgrade from an earlier package:
 # - MFE INFRA, Release, Policy, Notifications
 # - Cost analytics service
 set -euo pipefail
@@ -29,9 +29,9 @@ release_port_if_nebulaops() {
 log_step "Validating frontend runtime artifacts"
 "$ROOT_DIR/scripts/wsl/ensure-frontend-dist.sh"
 
-log_step "Releasing v22.5 red endpoint ports"
+log_step "Releasing v23.1 red endpoint ports"
 for port in 8097; do
-  release_port_if_nebulaops "$port" "v22.5 red endpoint repair"
+  release_port_if_nebulaops "$port" "v23.1 red endpoint repair"
 done
 
 log_step "Ensuring backend JARs for Cost analytics"
@@ -42,7 +42,7 @@ dc rm -sf cost-analytics-service >/dev/null 2>&1 || true
 dc build cost-analytics-service
 dc up -d cost-analytics-service
 
-log_step "Recreating v22.5 extended micro frontends"
+log_step "Recreating v23.1 extended micro frontends"
 dc build \
   mfe-infra-hub \
   mfe-release-center \
@@ -71,5 +71,5 @@ wait_http "http://localhost:8097/actuator/health" 120 "Cost analytics" || { log_
 log_step "Checking MFE runtime bundles through reverse proxy"
 "$ROOT_DIR/scripts/wsl/health.sh" || true
 
-log_ok "v22.5 red endpoints repaired"
+log_ok "v23.1 red endpoints repaired"
 echo "Run: ./scripts/wsl/health.sh"

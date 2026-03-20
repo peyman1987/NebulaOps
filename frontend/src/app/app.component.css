@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   NebulaOps v22.5 · Shell Host · Global Styles
+   NebulaOps v23.1 · Shell Host · Global Styles
 ══════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ───────────────────────────────────────── */
@@ -644,7 +644,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .launcher-close { font-size: 24px; line-height: 1; }
 @media (max-width: 900px) { .command-results { grid-template-columns: 1fr; } }
 
-/* v22.5 FE hardening: live status banner */
+/* v23.1 FE hardening: live status banner */
 .shell-live-banner {
   margin: 14px 16px 0;
   padding: 12px 14px;
@@ -685,7 +685,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 }
 
 
-/* v22.5 shell layout: persistent left sidebar behavior. */
+/* v23.1 shell layout: persistent left sidebar behavior. */
 .shell-layout {
   grid-template-columns: 280px minmax(0, 1fr);
   grid-template-rows: 1fr;
@@ -717,7 +717,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
   .shell-main { grid-column: 1; grid-row: 1; }
 }
 
-/* v22.5 APP BAR / EXTENSIONS split */
+/* v23.1 APP BAR / EXTENSIONS split */
 .sidebar-footer.neb-footer-split,
 .sidebar-footer:has(.neb-footer-actions) {
   align-items: stretch;
@@ -745,3 +745,30 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 @media (max-width: 920px) {
   .neb-footer-actions { grid-template-columns: 1fr; }
 }
+
+
+/* v23.1 compact presentation density */
+:root { --nebula-density-scale: .88; }
+@media (min-width: 1200px) {
+  html { font-size: 13px; }
+}
+@media (min-width: 1500px) {
+  html { font-size: 12.5px; }
+}
+
+.shell-layout { grid-template-columns: 252px minmax(0,1fr); }
+.sidebar-brand { padding: 14px 14px 12px; }
+.logo-cube-sm { width: 34px; height: 34px; }
+.logo-cube-sm .cube-top { transform: rotateX(90deg) translateZ(17px); }
+.logo-cube-sm .cube-right { transform: rotateY(90deg) translateZ(17px); }
+.sidebar-search-wrap { margin: 8px 10px; padding: 6px 9px; }
+.nav-group-label { padding: 10px 12px 4px 12px; }
+.nav-item, .remote-nav button { min-height: 34px; }
+.shell-main { min-width: 0; }
+.shell-header, .content-header { padding-top: 12px; padding-bottom: 12px; }
+.remote-host, .remote-frame { min-height: calc(100vh - 120px); }
+.app-launcher-modal { width: min(1320px, 100%); max-height: min(900px, calc(100vh - 32px)); }
+.launcher-grid { grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
+.launcher-card { min-height: 112px; padding: 13px 12px 30px; }
+@media (max-width: 1280px) { .launcher-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+@media (max-width: 920px) { .shell-layout { grid-template-columns: 232px minmax(0,1fr); } }

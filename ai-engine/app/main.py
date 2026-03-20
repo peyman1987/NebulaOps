@@ -10,7 +10,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from jwt import PyJWKClient
 from pydantic import BaseModel, Field
 
-APP_VERSION = "22.5"
+APP_VERSION = "23.1"
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = os.getenv("ANTHROPIC_VERSION", "2023-06-01")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
@@ -105,7 +105,7 @@ def call_anthropic(req: AnalyzeRequest, api_key: str) -> dict[str, Any]:
         "max_tokens": ANTHROPIC_MAX_TOKENS,
         "temperature": 0.1,
         "system": (
-            "You are NebulaOps v22.5 AI Engine. Analyze only the runtime evidence supplied by the caller. "
+            "You are NebulaOps v23.1 AI Engine. Analyze only the runtime evidence supplied by the caller. "
             "Do not invent services, pods, metrics, dates, users or incidents. Return strict JSON only with keys: "
             "incidentId, summary, rootCause, confidence, severity, blastRadius, fix, yaml, events, nodes, evidence, recommendations. "
             "If evidence is insufficient, say that explicitly and set confidence below 0.5."

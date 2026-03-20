@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Rebuild the v22.5 dual-JWT authentication bridge.
+# Rebuild the v23.1 dual-JWT authentication bridge.
 # Use this when standalone MFE pages return 401 with "Another algorithm expected"
 # or when Chrome keeps an old Bearer token in localStorage.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"
 
-PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v22-5}"
+PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v23-1}"
 COMPOSE=(docker compose -p "$PROJECT_NAME" -f docker-compose.yml)
 
 backend_services=(
@@ -30,6 +30,8 @@ backend_services=(
 
 frontend_services=(
   frontend
+  mfe-platform-catalog
+  mfe-incident-command-center
   mfe-docker-desktop
   mfe-openlens-kubernetes
   mfe-task-management
@@ -57,6 +59,6 @@ log_step "Rebuilding shell and MFE static images with refreshed auth bridge"
 log_step "Recreating affected containers"
 "${COMPOSE[@]}" up -d "${backend_services[@]}" "${frontend_services[@]}"
 
-log_ok "v22.5 auth token bridge repaired"
-echo "Open http://nebulaops.localhost/?v=v22.5.8-dual-jwt-auth-bridge and run Ctrl+Shift+R."
+log_ok "v23.1 auth token bridge repaired"
+echo "Open http://nebulaops.localhost/?v=v23.1.8-dual-jwt-auth-bridge and run Ctrl+Shift+R."
 echo "If Chrome still sends an old token, clear site data for localhost or run an Incognito window."

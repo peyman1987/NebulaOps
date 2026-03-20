@@ -19,7 +19,7 @@ resource "local_file" "kind_config" {
 
 resource "local_file" "namespace" {
   filename = "${path.root}/../infrastructure/kubernetes/namespace.generated.yaml"
-  content  = "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: ${var.namespace}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v22-5\n"
+  content  = "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: ${var.namespace}\n  labels:\n    app.kubernetes.io/part-of: nebulaops-v23-1\n"
 }
 
 output "kind_config_path" { value = local_file.kind_config.filename }

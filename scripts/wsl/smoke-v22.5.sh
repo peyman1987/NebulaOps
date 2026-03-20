@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 smoke test: validates the new v22.5 API surface through the gateway.
+# NebulaOps v23.1 smoke test: validates the new v23.1 API surface through the gateway.
 set -uo pipefail
 
 BASE="${NEBULAOPS_GATEWAY_URL:-http://localhost:8080}"
@@ -43,7 +43,7 @@ check_post() {
   fi
 }
 
-echo "[NebulaOps] v22.5 gateway smoke test"
+echo "[NebulaOps] v23.1 gateway smoke test"
 echo "Gateway: $BASE"
 [ -z "$TOKEN" ] && echo "[WARN] NEBULAOPS_TOKEN not set. Protected deployments may return 401/403."
 
@@ -56,7 +56,7 @@ check_post "Policy evaluate"           "/api/policies/evaluate" '{"target":"nebu
 check_get  "Platform events"           "/api/events"
 check_get  "Notification live"        "/api/notifications/live"
 check_get  "Notification preferences" "/api/notifications/preferences"
-check_post "Platform event record"     "/api/events" '{"type":"SMOKE_TEST","source":"smoke-v22.5","actor":"local","correlationId":"smoke-v22.5"}'
+check_post "Platform event record"     "/api/events" '{"type":"SMOKE_TEST","source":"smoke-v23.1","actor":"local","correlationId":"smoke-v23.1"}'
 check_post "AI incident analysis"      "/api/ai-ops/incidents/analyze" '{"source":"smoke","affectedService":"gateway-service"}'
 check_get  "DevSecOps vulnerabilities" "/api/devsecops/vulnerabilities"
 check_get  "Cost services"             "/api/cost/services"

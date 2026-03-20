@@ -42,7 +42,10 @@ public class DevSecOpsController {
 
     @PostMapping("/scan/image")
     public Map<String, Object> scanImageV23(@RequestBody(required = false) Map<String, Object> body) {
-        String image = body == null ? "nebulaops-v22-5-gateway-service:latest" : String.valueOf(body.getOrDefault("image", "nebulaops-v22-5-gateway-service:latest"));
+        if (body == null || body.get("image") == null || String.valueOf(body.get("image")).isBlank()) {
+            return Map.of("live", false, "realDataOnly", true, "toolStatus", "No image was provided. Pass { image: '<registry/image:tag>' } to scan a real image.");
+        }
+        String image = String.valueOf(body.get("image"));
         Map<String, Object> raw = service.imageScan(image);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("image", image);
@@ -95,14 +98,26 @@ public class DevSecOpsController {
 
     @GetMapping("/sbom/{image}")
     public Map<String, Object> sbom(@PathVariable String image) {
-        return Map.of("image", image, "format", "CycloneDX",
-            "components", List.of("spring-boot", "eclipse-temurin", "nginx", "angular"),
-            "generatedAt", Instant.now().toString(), "live", true);
+        Map<String, Object> raw = service.sbom(image);
+        Map<String, Object> result = new LinkedHashMap<>(raw);
+        result.put("image", image);
+        result.put("format", "CycloneDX");
+        result.put("realDataOnly", true);
+        result.put("generatedAt", Instant.now().toString());
+        return result;
+    }
+
+
+    @GetMapping("/sbom")
+    public Map<String, Object> sbomByQuery(@RequestParam String image) {
+        return sbom(image);
     }
 
     @GetMapping("/reports/{id}")
     public Map<String, Object> report(@PathVariable String id) {
-        return Map.of("id", id, "format", "json/pdf-ready", "status", "READY", "generatedAt", Instant.now().toString());
+        return Map.of("id", id, "live", false, "realDataOnly", true,
+                "toolStatus", "No persisted DevSecOps report repository is configured. Generate reports from scan endpoints using real scan IDs/results.",
+                "generatedAt", Instant.now().toString());
     }
 
     private void publish(String type, String severity, Map<String, Object> payload) {

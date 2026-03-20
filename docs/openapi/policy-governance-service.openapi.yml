@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: NebulaOps Policy Governance API
-  version: 22.5.0
+  version: 23.1.0
 servers:
 - url: http://localhost:8100
 paths:

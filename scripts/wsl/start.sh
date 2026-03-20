@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.5 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
+# v23.1 — NebulaOps startup script with custom Keycloak OIDC login auto-check.
 # Usage: ./scripts/wsl/start.sh [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--skip-preflight] [--with-extensions-k8s]
 # Default: NebulaOps core starts first; installed extensions can be started from the UI.
 set -euo pipefail
@@ -31,7 +31,7 @@ Usage: $0 [--rebuild] [--rebuild-gateway] [--with-gitlab] [--with-sso-proxy] [--
   --with-sso-proxy     Also start OAuth2 Proxy wrappers for RabbitMQ, Mongo Express
                        and Redis Commander. Prometheus SSO remains optional
                        via COMPOSE_PROFILES=sso-prometheus.
-  --skip-preflight      Skip the full static v22.5 preflight. Use only after a
+  --skip-preflight      Skip the full static v23.1 preflight. Use only after a
                        successful preflight in the same workspace.
   --with-extensions-k8s Build/load/apply installed extensions to Kubernetes during startup.
                        Default is UI-controlled startup from the APP BAR.
@@ -47,12 +47,12 @@ cd "$ROOT_DIR"
 
 run_integrated_preflight() {
   if [ "$RUN_PREFLIGHT" != "true" ]; then
-    log_warn "Full v22.5 preflight skipped by --skip-preflight"
+    log_warn "Full v23.1 preflight skipped by --skip-preflight"
     return 0
   fi
 
-  log_step "Running integrated v22.5 preflight"
-  "$ROOT_DIR/scripts/wsl/preflight-v22.5.sh"
+  log_step "Running integrated v23.1 preflight"
+  "$ROOT_DIR/scripts/wsl/preflight-v23.1.sh"
 }
 
 run_integrated_preflight
@@ -79,7 +79,7 @@ locales=en,it
 THEME
 
   cat > "$theme_dir/login.ftl" <<'FTL'
-<#-- NebulaOps v22.5 standalone Keycloak login page. No template.ftl import. -->
+<#-- NebulaOps v23.1 standalone Keycloak login page. No template.ftl import. -->
 <#assign nbLoginAction="">
 <#assign nbUsername="">
 <#assign nbRemember=false>
@@ -103,7 +103,7 @@ THEME
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>NebulaOps v22.5 Login</title>
+  <title>NebulaOps v23.1 Login</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
@@ -183,7 +183,7 @@ THEME
       <div class="nb-logo">N22.5</div>
       <div class="nb-brand-text">
         <p>Terraform enabled SaaS cockpit</p>
-        <h1>NebulaOps v22.5</h1>
+        <h1>NebulaOps v23.1</h1>
       </div>
     </div>
     <p class="nb-lead">DevOps portfolio platform - Docker · Kubernetes · Helm · Terraform · GitOps</p>
@@ -224,7 +224,7 @@ THEME
       <input type="hidden" id="id-hidden-input" name="credentialId" value="${nbSelectedCredential?html}">
       <button tabindex="4" class="nb-submit-btn" name="login" id="kc-login" type="submit">Login</button>
     </form>
-    <div class="nb-footer">DevOps Enterprise Cockpit · v22.5 · Local-first</div>
+    <div class="nb-footer">DevOps Enterprise Cockpit · v23.1 · Local-first</div>
   </main>
 </body>
 </html>
@@ -435,14 +435,14 @@ release_tool_ui_ports_for_mode() {
 
 release_frontend_mfe_ports() {
   log_step "Checking shell and micro frontend ports"
-  for port in ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223 4224 4225; do
-    release_nebulaops_port "$port" "NebulaOps v22.5 frontend/micro frontend"
+  for port in ${NEBULAOPS_HTTP_PORT:-80} 4200 4211 4212 4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223 4224 4225 4227; do
+    release_nebulaops_port "$port" "NebulaOps v23.1 frontend/micro frontend"
   done
 }
 
 release_v223_extended_service_ports() {
-  log_step "Checking v22.5 extended service ports"
-  release_nebulaops_port 8097 "NebulaOps v22.5 cost analytics service"
+  log_step "Checking v23.1 extended service ports"
+  release_nebulaops_port 8097 "NebulaOps v23.1 cost analytics service"
 }
 
 running_service() {
@@ -452,6 +452,13 @@ running_service() {
 ensure_v223_extended_modules() {
   local services=(
     cost-analytics-service
+    mfe-platform-catalog
+    mfe-incident-command-center
+    mfe-test-quality-dashboard
+    mfe-dependency-impact
+    mfe-environment-configuration
+    mfe-docker-storage-cleanup
+    mfe-runtime-readiness
     mfe-infra-hub
     mfe-release-center
     mfe-policy-center
@@ -460,11 +467,11 @@ ensure_v223_extended_modules() {
     mfe-progressive-delivery
   )
 
-  log_step "Ensuring v22.5 extended modules"
-  # These modules are part of the standard v22.5 cockpit and must be started
+  log_step "Ensuring v23.1 extended modules"
+  # These modules are part of the standard v23.1 cockpit and must be started
   # even when the shell is launched with optional SSO profiles. Running this
   # targeted up after the main compose up also repairs workspaces that were
-  # started from an earlier v22.5 package where these endpoints were not active.
+  # started from an earlier v23.1 package where these endpoints were not active.
   dc up -d "${services[@]}"
 
   local service
@@ -478,6 +485,15 @@ ensure_v223_extended_modules() {
 
   wait_http "http://localhost:8097/actuator/health" 90 "cost-analytics-service" || \
     log_warn "Cost service is still warming up. Inspect: ./scripts/wsl/logs.sh cost-analytics-service"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/platform-catalog/remoteEntry.js" 60 "mfe-platform-catalog" || \
+    log_warn "MFE Platform Catalog is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-platform-catalog"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/incident-command-center/remoteEntry.js" 60 "mfe-incident-command-center" || \
+    log_warn "MFE Incident Command Center is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-incident-command-center"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/runtime-readiness/remoteEntry.js" 60 "mfe-runtime-readiness" ||     log_warn "MFE Runtime Readiness is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-runtime-readiness"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/docker-storage-cleanup/remoteEntry.js" 60 "mfe-docker-storage-cleanup" ||     log_warn "MFE Docker Storage Cleanup is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-docker-storage-cleanup"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/environment-configuration/remoteEntry.js" 60 "mfe-environment-configuration" ||     log_warn "MFE Environment Configuration is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-environment-configuration"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/dependency-impact/remoteEntry.js" 60 "mfe-dependency-impact" ||     log_warn "MFE Dependency Impact is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-dependency-impact"
+  wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/test-quality-dashboard/remoteEntry.js" 60 "mfe-test-quality-dashboard" ||     log_warn "MFE Test Quality Dashboard is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-test-quality-dashboard"
   wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/infra-hub/remoteEntry.js" 60 "mfe-infra-hub" || \
     log_warn "MFE INFRA is still warming up. Inspect: ./scripts/wsl/logs.sh mfe-infra-hub"
   wait_http "${NEBULAOPS_PUBLIC_URL}/remotes/release-center/remoteEntry.js" 60 "mfe-release-center" || \
@@ -501,14 +517,14 @@ served_mfe_remote_is_classic() {
   if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
     return 1
   fi
-  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v22.5 auth bridge|nebulaopsAuthBridge'; then
+  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v23.1 auth bridge|nebulaopsAuthBridge'; then
     return 1
   fi
   printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'
 }
 
 ensure_v223_live_mfe_remote_entries() {
-  local remotes=(docker-desktop openlens-kubernetes task-management observability cicd-gitops terraform-studio devsecops ai-ops finops-cost infra-hub release-center policy-center notification-center identity-admin progressive-delivery)
+  local remotes=(platform-catalog incident-command-center runtime-readiness docker-storage-cleanup environment-configuration dependency-impact test-quality-dashboard docker-desktop openlens-kubernetes task-management observability cicd-gitops terraform-studio devsecops ai-ops finops-cost infra-hub release-center policy-center notification-center identity-admin progressive-delivery)
   local slug invalid=0
   log_step "Verifying live MFE runtime bundles as same-origin static bundles"
   for slug in "${remotes[@]}"; do
@@ -521,10 +537,27 @@ ensure_v223_live_mfe_remote_entries() {
   done
 
   if [ "$invalid" -ne 0 ]; then
-    log_warn "Blank MFE body risk detected. Run ./scripts/wsl/repair-v22.5-frontend-remotes.sh if the browser still shows empty MFE pages."
-    if [ "${NEBULAOPS_AUTO_REPAIR_MFE:-false}" = "true" ]; then
-      "$ROOT_DIR/scripts/wsl/repair-v22.5-frontend-remotes.sh"
+    log_warn "Blank MFE body risk detected: one or more served remoteEntry.js files are stale, missing, or ESM."
+    if [ "${NEBULAOPS_AUTO_REPAIR_MFE:-true}" = "true" ]; then
+      log_step "Auto-repairing frontend/MFE runtime bundles"
+      "$ROOT_DIR/scripts/wsl/repair-v23.1-frontend-remotes.sh"
+      invalid=0
+      for slug in "${remotes[@]}"; do
+        if served_mfe_remote_is_classic "$slug"; then
+          log_ok "MFE ${slug} remoteEntry.js is shell-compatible after repair"
+        else
+          log_err "MFE ${slug} is still invalid after automatic repair"
+          invalid=1
+        fi
+      done
+    else
+      log_warn "Automatic MFE repair is disabled. Run: ./scripts/wsl/repair-v23.1-frontend-remotes.sh"
     fi
+  fi
+
+  if [ "$invalid" -ne 0 ]; then
+    log_err "MFE runtime bundle verification failed. Stop here to avoid blank pages in the browser."
+    exit 1
   fi
 }
 
@@ -562,14 +595,18 @@ fi
 
 # Root docker-compose builds backend runtime images from context '.'.
 # The backend target/*.jar files must remain visible in Docker build context.
-"$ROOT_DIR/scripts/wsl/repair-v22.5-docker-context.sh"
+if [ -x "$ROOT_DIR/scripts/wsl/repair-v23.1-docker-context.sh" ]; then
+  "$ROOT_DIR/scripts/wsl/repair-v23.1-docker-context.sh"
+else
+  log_warn "Docker build context repair script not found; continuing because backend JAR build already completed."
+fi
 
 if [ "$REBUILD_GATEWAY" = "true" ]; then
   log_step "Force-rebuilding gateway-service"
   dc build gateway-service
 fi
 
-log_step "Starting NebulaOps v22.5"
+log_step "Starting NebulaOps v23.1"
 # Ensure shared Docker network exists (external: true in docker-compose.yml)
 if ! docker network inspect nebulaops-network &>/dev/null; then
   log_info "Creating shared network: nebulaops-network"
@@ -657,7 +694,7 @@ wait_http "http://localhost:8080/actuator/health" 120 "gateway-service" || \
 
 cat <<INFO
 
-${C_BOLD}NebulaOps v22.5 is running.${C_RESET}
+${C_BOLD}NebulaOps v23.1 is running.${C_RESET}
 
   ${C_CYAN}Frontend${C_RESET}    ${NEBULAOPS_PUBLIC_URL}
   ${C_CYAN}Gateway${C_RESET}     ${NEBULAOPS_PUBLIC_URL}/actuator/health

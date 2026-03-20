@@ -1,19 +1,9 @@
 {
   "endpoints": [
-    {
-      "label": "Users",
-      "url": "/api/identity/realms/nebulaops/users",
-      "kind": "identity-user"
-    },
-    {
-      "label": "Groups",
-      "url": "/api/identity/realms/nebulaops/groups",
-      "kind": "identity-group"
-    },
-    {
-      "label": "Roles",
-      "url": "/api/identity/realms/nebulaops/roles",
-      "kind": "identity-role"
-    }
+    { "label": "Realm status", "url": "/api/identity/realms/nebulaops/status", "kind": "realm-status" },
+    { "label": "Users", "url": "/api/identity/realms/nebulaops/users", "kind": "identity-user" },
+    { "label": "Groups", "url": "/api/identity/realms/nebulaops/groups", "kind": "identity-group" },
+    { "label": "Roles", "url": "/api/identity/realms/nebulaops/roles", "kind": "identity-role" },
+    { "label": "Redis identity cache", "url": "/api/identity/cache/status", "kind": "cache-status" }
   ]
 }

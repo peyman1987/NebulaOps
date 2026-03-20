@@ -1,0 +1,46 @@
+{
+  "endpoints": [
+    {
+      "label": "Docker storage usage",
+      "url": "/api/platform/docker/storage",
+      "kind": "docker-storage",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Prune preview",
+      "url": "/api/platform/docker/storage/prune-preview",
+      "kind": "docker-prune-preview",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Docker system df",
+      "url": "/api/runtime/docker/system/df",
+      "kind": "docker-system-df",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Containers",
+      "url": "/api/platform/docker/containers",
+      "kind": "docker-container",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Images",
+      "url": "/api/platform/docker/images",
+      "kind": "docker-image",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Volumes",
+      "url": "/api/platform/docker/volumes",
+      "kind": "docker-volume",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Networks",
+      "url": "/api/platform/docker/networks",
+      "kind": "docker-network",
+      "itemsPath": "items"
+    }
+  ]
+}

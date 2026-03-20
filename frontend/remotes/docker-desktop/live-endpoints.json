@@ -1,24 +1,44 @@
 {
   "endpoints": [
     {
-      "label": "Docker containers",
+      "label": "Docker engine status",
+      "url": "/api/runtime/docker/status",
+      "kind": "docker-status"
+    },
+    {
+      "label": "Containers",
       "url": "/api/runtime/docker/containers",
       "kind": "container"
     },
     {
-      "label": "Docker images",
+      "label": "Images",
       "url": "/api/runtime/docker/images",
       "kind": "image"
     },
     {
-      "label": "Docker volumes",
+      "label": "Volumes",
       "url": "/api/runtime/docker/volumes",
       "kind": "volume"
     },
     {
-      "label": "Docker networks",
+      "label": "Networks",
       "url": "/api/runtime/docker/networks",
       "kind": "network"
+    },
+    {
+      "label": "Runtime stats",
+      "url": "/api/runtime/docker/stats",
+      "kind": "stats"
+    },
+    {
+      "label": "Docker events",
+      "url": "/api/runtime/docker/events",
+      "kind": "event"
+    },
+    {
+      "label": "System disk usage",
+      "url": "/api/runtime/docker/system/df",
+      "kind": "system-df"
     }
   ]
 }

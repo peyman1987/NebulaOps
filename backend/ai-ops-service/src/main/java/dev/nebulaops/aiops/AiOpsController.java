@@ -55,7 +55,7 @@ public class AiOpsController {
         Map<String, Object> signals = collectSignals(namespace, affected);
         Map<String, Object> ai = analyzeThroughEngine(input, signals);
         Map<String, Object> local = service.analyze(enrichedInput(input, signals));
-        return Map.of("ai", ai, "fallback", local, "signals", signals, "live", true, "generatedAt", Instant.now().toString());
+        return Map.of("ai", ai, "localAnalysis", local, "signals", signals, "live", true, "generatedAt", Instant.now().toString());
     }
 
     @PostMapping("/autofix")

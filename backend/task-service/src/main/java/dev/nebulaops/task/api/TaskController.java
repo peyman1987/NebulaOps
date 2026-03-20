@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.*;
 
 import dev.nebulaops.task.config.RabbitMqConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,15 +16,19 @@ import org.springframework.web.bind.annotation.*;
 public class TaskController {
     private final TaskRepository repo;
     private final RabbitTemplate rabbit;
+    private final String defaultOrganizationId;
 
-    public TaskController(TaskRepository repo, RabbitTemplate rabbit) {
+    public TaskController(TaskRepository repo,
+                          RabbitTemplate rabbit,
+                          @Value("${nebulaops.default-organization-id:nebulaops}") String defaultOrganizationId) {
         this.repo = repo;
         this.rabbit = rabbit;
+        this.defaultOrganizationId = defaultOrganizationId == null || defaultOrganizationId.isBlank() ? "nebulaops" : defaultOrganizationId.trim();
     }
 
     @GetMapping
-    public List<TaskDocument> list(@RequestParam(defaultValue = "default-org") String organizationId) {
-        return repo.findByOrganizationIdOrderByStatusAscSortOrderAscUpdatedAtDesc(organizationId);
+    public List<TaskDocument> list(@RequestParam(required = false) String organizationId) {
+        return repo.findByOrganizationIdOrderByStatusAscSortOrderAscUpdatedAtDesc(normalizeOrganization(organizationId));
     }
 
     @PostMapping
@@ -32,12 +37,12 @@ public class TaskController {
             throw new IllegalArgumentException("title is required");
         }
         var now = Instant.now();
-        var organizationId = r.organizationId() == null || r.organizationId().isBlank() ? "default-org" : r.organizationId();
+        var organizationId = normalizeOrganization(r.organizationId());
         var status = r.status() == null ? TaskStatus.TODO : r.status();
         var saved = repo.save(new TaskDocument(
                 null,
                 organizationId,
-                r.projectId() == null || r.projectId().isBlank() ? "portfolio" : r.projectId(),
+                normalizeOptional(r.projectId()),
                 r.title(),
                 r.description(),
                 status,
@@ -121,6 +126,15 @@ public class TaskController {
                 .max(Integer::compareTo)
                 .map(value -> value + 100)
                 .orElse(100);
+    }
+
+
+    private String normalizeOrganization(String organizationId) {
+        return organizationId == null || organizationId.isBlank() ? defaultOrganizationId : organizationId.trim();
+    }
+
+    private String normalizeOptional(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private String normalizeAssignee(String assigneeId) {

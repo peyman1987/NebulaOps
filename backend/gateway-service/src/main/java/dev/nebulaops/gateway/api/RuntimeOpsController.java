@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * v22.5 — Runtime endpoints.
+ * v23.1 — Runtime endpoints.
  * Normalizes Docker Engine API fields so Angular normalizeDockerContainer() works:
  *   Docker API: Id (64-char), Names (["/name"]), Image, State, Ports ([{PublicPort,PrivatePort}])
  *   Angular expects: id, name, image, status, ports (string)
@@ -30,6 +30,9 @@ public class RuntimeOpsController {
         this.observability = observability;
         this.terraform = terraform;
     }
+
+    @GetMapping("/docker/status")
+    public Map<String,Object> dockerStatus() { return docker.status(); }
 
     @GetMapping("/docker/containers")
     public List<Map<String,Object>> containers() {
@@ -58,9 +61,10 @@ public class RuntimeOpsController {
         return result;
     }
 
-    @GetMapping("/docker/stats")   public List stats()    { return List.of(); }
+    @GetMapping("/docker/stats")   public Map<String,Object> stats()    { return docker.stats(); }
     @GetMapping("/docker/networks")public List networks() { return items(docker.networks()); }
-    @GetMapping("/docker/builds")  public List builds()   { return List.of(); }
+    @GetMapping("/docker/builds")  public Map<String,Object> builds()   { return docker.builds(); }
+    @GetMapping("/docker/events")  public Map<String,Object> events()   { return docker.events(); }
 
     @GetMapping("/helm/releases")
     public List helm(@RequestParam(required = false) String namespace) {
@@ -145,11 +149,11 @@ public class RuntimeOpsController {
         out.put("name",    name);
         out.put("image",   str(raw.getOrDefault("Image", "-")));
         out.put("status",  state);    // Angular normalizeDockerContainer maps state to status
-        out.put("cpu",     0);
-        out.put("memory",  0);
+        out.put("cpu",     null);
+        out.put("memory",  null);
         out.put("ports",   ports.isEmpty() ? "-" : ports);
         out.put("network", network.isEmpty() ? "-" : network);
-        out.put("logs",    List.of(name + " — " + status));
+        // Logs are available through /api/runtime/docker/containers/{id}/logs.
         // Keep raw Docker API fields too — Angular reads x.Status for display
         out.put("Status",  status);
         out.put("State",   state);
@@ -179,7 +183,7 @@ public class RuntimeOpsController {
         out.put("repository",      parts[0]);
         out.put("tag",             parts[1]);
         out.put("size",            sizeStr);
-        out.put("vulnerabilities", 0);
+        out.put("securityScan",    "NOT_CONFIGURED");
         out.put("created",         created);
         return out;
     }

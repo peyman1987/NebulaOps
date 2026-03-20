@@ -4,14 +4,18 @@ import dev.nebulaops.gateway.client.DockerSocketClient;
 import dev.nebulaops.gateway.client.ToolCommandClient;
 import dev.nebulaops.gateway.client.ToolResult;
 import dev.nebulaops.gateway.service.KubernetesPlatformService;
+import dev.nebulaops.gateway.kubernetes.KubeConfigRecord;
+import dev.nebulaops.gateway.kubernetes.KubeConfigRegistryService;
 import dev.nebulaops.gateway.service.PlatformEventPublisher;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.Instant;
 import java.util.*;
 
 /**
- * v22.5 — Kubernetes controller: live snapshot + all OpenLens actions.
+ * v23.1 — Kubernetes controller: live snapshot + all OpenLens actions.
  *
  * READ endpoints (no conflict with actions):
  *   GET /api/kubernetes/snapshot
@@ -61,27 +65,93 @@ public class KubernetesOpsController {
     private final DockerSocketClient        dockerSocket;
     private final ToolCommandClient         tools;
     private final PlatformEventPublisher   events;
+    private final KubeConfigRegistryService kubeConfigRegistry;
 
     public KubernetesOpsController(KubernetesPlatformService service,
                                    DockerSocketClient dockerSocket,
                                    ToolCommandClient tools,
-                                   PlatformEventPublisher events) {
+                                   PlatformEventPublisher events,
+                                   KubeConfigRegistryService kubeConfigRegistry) {
         this.service      = service;
         this.dockerSocket = dockerSocket;
         this.tools        = tools;
         this.events       = events;
+        this.kubeConfigRegistry = kubeConfigRegistry;
+    }
+
+    @GetMapping("/kubeconfigs")
+    public Map<String, Object> kubeconfigs() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        try {
+            out.put("live", true);
+            out.put("currentContext", service.currentContextSummary());
+            out.put("items", kubeConfigRegistry.listSummaries());
+            out.put("source", "mongodb:kubernetes_kubeconfigs");
+        } catch (Exception e) {
+            out.put("live", false);
+            out.put("items", List.of());
+            out.put("currentContext", service.currentContextSummary());
+            out.put("error", "KUBECONFIG_REGISTRY_UNAVAILABLE: " + e.getMessage());
+            out.put("source", "mongodb:kubernetes_kubeconfigs");
+        }
+        return out;
+    }
+
+    @PostMapping("/kubeconfigs")
+    public Map<String, Object> saveKubeconfig(@RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        try {
+            KubeConfigRecord saved = kubeConfigRegistry.save(body == null ? Collections.emptyMap() : body);
+            out.put("ok", true);
+            out.put("live", true);
+            out.put("item", kubeConfigRegistry.summary(saved));
+            out.put("source", "mongodb:kubernetes_kubeconfigs");
+            out.put("correlationId", events.mutation("KUBECONFIG_SAVED", saved.getName(), true, out));
+        } catch (Exception e) {
+            out.put("ok", false);
+            out.put("live", false);
+            out.put("error", e.getMessage());
+            out.put("correlationId", events.mutation("KUBECONFIG_SAVE_FAILED", "kubeconfig", false, out));
+        }
+        return out;
+    }
+
+    @DeleteMapping("/kubeconfigs/{id}")
+    public Map<String, Object> deleteKubeconfig(@PathVariable String id) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        try {
+            kubeConfigRegistry.delete(id);
+            out.put("ok", true);
+            out.put("live", true);
+            out.put("id", id);
+            out.put("correlationId", events.mutation("KUBECONFIG_DELETED", id, true, out));
+        } catch (Exception e) {
+            out.put("ok", false);
+            out.put("live", false);
+            out.put("id", id);
+            out.put("error", e.getMessage());
+            out.put("correlationId", events.mutation("KUBECONFIG_DELETE_FAILED", id, false, out));
+        }
+        return out;
+    }
+
+    @PostMapping("/kubeconfigs/{id}/probe")
+    public Map<String, Object> probeKubeconfig(@PathVariable String id) {
+        return service.cluster(id);
     }
 
     @GetMapping("/events")
-    public Map<String, Object> eventsV23(@RequestParam(defaultValue = "all") String namespace) {
-        return service.events(namespace);
+    public Map<String, Object> eventsV23(@RequestParam(defaultValue = "all") String namespace,
+                                         @RequestParam(required = false) String clusterId) {
+        return service.events(namespace, clusterId);
     }
 
     @GetMapping("/namespaces/{ns}/graph")
-    public Map<String, Object> namespaceGraphV23(@PathVariable String ns) {
-        Map<String, Object> pods = service.resource("pods", ns);
-        Map<String, Object> deployments = service.resource("deployments", ns);
-        Map<String, Object> services = service.resource("services", ns);
+    public Map<String, Object> namespaceGraphV23(@PathVariable String ns,
+                                                 @RequestParam(required = false) String clusterId) {
+        Map<String, Object> pods = service.resource("pods", ns, clusterId);
+        Map<String, Object> deployments = service.resource("deployments", ns, clusterId);
+        Map<String, Object> services = service.resource("services", ns, clusterId);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("namespace", ns);
         out.put("live", Boolean.TRUE.equals(pods.get("live")) || Boolean.TRUE.equals(deployments.get("live")) || Boolean.TRUE.equals(services.get("live")));
@@ -93,13 +163,14 @@ public class KubernetesOpsController {
     }
 
     @PostMapping("/resources/diff")
-    public Map<String, Object> resourceDiffV23(@RequestBody(required = false) Map<String,Object> body) {
+    public Map<String, Object> resourceDiffV23(@RequestBody(required = false) Map<String,Object> body,
+                                               @RequestParam(required = false) String clusterId) {
         String yaml = body == null ? null : String.valueOf(body.getOrDefault("yaml", ""));
         if (yaml == null || yaml.isBlank()) return Map.of("ok", false, "live", false, "error", "yaml required");
         try {
             java.nio.file.Path tmp = java.nio.file.Files.createTempFile("nebula-diff-", ".yaml");
             java.nio.file.Files.writeString(tmp, yaml);
-            ToolResult r = tools.shell("kubectl diff -f " + tmp.toAbsolutePath(), 30);
+            ToolResult r = service.runKubectl("kubectl diff -f " + tmp.toAbsolutePath(), clusterId, 30);
             java.nio.file.Files.deleteIfExists(tmp);
             return Map.of("ok", r.ok(), "live", true, "stdout", r.stdout(), "stderr", r.stderr(), "exitCode", r.exitCode(), "toolStatus", r.asMap());
         } catch (Exception e) {
@@ -108,27 +179,34 @@ public class KubernetesOpsController {
     }
 
     @PostMapping("/resources/apply")
-    public Map<String, Object> resourceApplyV23(@RequestBody(required = false) Map<String,Object> body) {
+    public Map<String, Object> resourceApplyV23(@RequestBody(required = false) Map<String,Object> body,
+                                                @RequestParam(required = false) String clusterId) {
         String yaml = body == null ? null : String.valueOf(body.getOrDefault("yaml", ""));
-        return applyYaml(yaml, "apply-resource", "manifest");
+        return applyYaml(yaml, "apply-resource", "manifest", clusterId);
     }
 
     @GetMapping("/pods/{ns}/{name}/logs/stream")
-    public Map<String, Object> podLogsStreamHintV23(@PathVariable String ns, @PathVariable String name) {
-        return run("kubectl logs " + safe(name) + " -n " + safe(ns) + " --tail=100", "pod-logs", ns + "/" + name, 15);
+    public Map<String, Object> podLogsStreamHintV23(@PathVariable String ns, @PathVariable String name,
+                                                    @RequestParam(required = false) String clusterId) {
+        return run("kubectl logs " + safe(name) + " -n " + safe(ns) + " --tail=100", "pod-logs", ns + "/" + name, 15, clusterId);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
     // READ / SNAPSHOT ENDPOINTS
     // ═══════════════════════════════════════════════════════════════════════
 
+    @GetMapping("/cluster")
+    public Map<String, Object> clusterV23(@RequestParam(required = false) String clusterId) {
+        return service.cluster(clusterId);
+    }
+
     @GetMapping("/snapshot")
-    public Map<String, Object> snapshot() {
-        Map<String, Object> nodes = service.nodes();
-        Map<String, Object> pods = service.resource("pods", "all");
-        Map<String, Object> deployments = service.resource("deployments", "all");
-        Map<String, Object> services = service.resource("services", "all");
-        Map<String, Object> eventsRaw = service.events("all");
+    public Map<String, Object> snapshot(@RequestParam(required = false) String clusterId) {
+        Map<String, Object> nodes = service.nodes(clusterId);
+        Map<String, Object> pods = service.resource("pods", "all", clusterId);
+        Map<String, Object> deployments = service.resource("deployments", "all", clusterId);
+        Map<String, Object> services = service.resource("services", "all", clusterId);
+        Map<String, Object> eventsRaw = service.events("all", clusterId);
         boolean live = Boolean.TRUE.equals(nodes.get("live")) || Boolean.TRUE.equals(pods.get("live"));
         Map<String, Object> cluster = new LinkedHashMap<>();
         cluster.put("name", live ? "kubectl-current-context" : "unavailable");
@@ -146,8 +224,9 @@ public class KubernetesOpsController {
     }
 
     @GetMapping("/logs")
-    public List<Map<String, Object>> logs(@RequestParam(required = false) String namespace) {
-        Map raw = service.events(namespace);
+    public List<Map<String, Object>> logs(@RequestParam(required = false) String namespace,
+                                          @RequestParam(required = false) String clusterId) {
+        Map raw = service.events(namespace, clusterId);
         List<Map<String, Object>> result = new ArrayList<>();
         if (Boolean.TRUE.equals(raw.get("live"))) {
             Object data = raw.get("data");
@@ -172,30 +251,39 @@ public class KubernetesOpsController {
     }
 
     @GetMapping("/health")
-    public Map<String, Object> health() { return service.nodes(); }
+    public Map<String, Object> health(@RequestParam(required = false) String clusterId) { return service.nodes(clusterId); }
 
     @GetMapping("/nodes")
-    public Map<String, Object> nodes() { return service.nodes(); }
+    public Map<String, Object> nodes(@RequestParam(required = false) String clusterId) { return service.nodes(clusterId); }
 
     @GetMapping("/namespaces")
-    public Map<String, Object> namespaces() { return service.namespaces(); }
+    public Map<String, Object> namespaces(@RequestParam(required = false) String clusterId) { return service.namespaces(clusterId); }
+
+    @GetMapping("/helm/releases")
+    public Map<String, Object> helmReleases(@RequestParam(defaultValue = "all") String namespace,
+                                            @RequestParam(required = false) String clusterId) {
+        return service.helmReleases(namespace, clusterId);
+    }
 
     @GetMapping("/resources")
     public Map<String, Object> list(@RequestParam(defaultValue = "pods") String kind,
-                                    @RequestParam(required = false) String namespace) {
-        return service.resource(kind, namespace);
+                                    @RequestParam(required = false) String namespace,
+                                    @RequestParam(required = false) String clusterId) {
+        return service.resource(kind, namespace, clusterId);
     }
 
     @GetMapping("/resources/{resourceId}")
-    public Map<String, Object> getResource(@PathVariable String resourceId) {
-        return service.resource(resourceId, null);
+    public Map<String, Object> getResource(@PathVariable String resourceId,
+                                           @RequestParam(required = false) String clusterId) {
+        return service.resource(resourceId, null, clusterId);
     }
 
     /** Renamed from /{kind} to /kind/{kind} to avoid ambiguity with action paths */
     @GetMapping("/kind/{kind}")
     public Map<String, Object> resource(@PathVariable String kind,
-                                        @RequestParam(required = false) String namespace) {
-        return service.resource(kind, namespace);
+                                        @RequestParam(required = false) String namespace,
+                                        @RequestParam(required = false) String clusterId) {
+        return service.resource(kind, namespace, clusterId);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -213,16 +301,17 @@ public class KubernetesOpsController {
 
     @PostMapping("/pods/{ns}/{name}/restart")
     public Map<String, Object> restartPod(@PathVariable String ns, @PathVariable String name) {
-        ToolResult r = tools.shell(
+        String clusterId = requestClusterId();
+        ToolResult r = service.runKubectl(
             "kubectl get pod " + safe(name) + " -n " + safe(ns)
-            + " -o jsonpath='{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}'", 10);
+            + " -o jsonpath='{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}'", clusterId, 10);
         if (r.ok() && !r.stdout().isBlank()) {
             String owner = r.stdout().trim().replace("'", "");
             if (owner.startsWith("ReplicaSet/")) {
                 String rsName = owner.substring("ReplicaSet/".length());
-                ToolResult rd = tools.shell(
+                ToolResult rd = service.runKubectl(
                     "kubectl get replicaset " + rsName + " -n " + safe(ns)
-                    + " -o jsonpath='{.metadata.ownerReferences[0].name}'", 8);
+                    + " -o jsonpath='{.metadata.ownerReferences[0].name}'", clusterId, 8);
                 if (rd.ok() && !rd.stdout().isBlank()) {
                     return run("kubectl rollout restart deployment/" + rd.stdout().trim().replace("'","")
                                + " -n " + safe(ns), "restart-pod", ns + "/" + name, 30);
@@ -344,6 +433,22 @@ public class KubernetesOpsController {
                    "restart-statefulset", ns + "/" + name, 30);
     }
 
+    @GetMapping("/statefulsets/{ns}/{name}/yaml")
+    public Map<String, Object> statefulSetYaml(@PathVariable String ns, @PathVariable String name) {
+        return run("kubectl get statefulset " + safe(name) + " -n " + safe(ns) + " -o yaml", "get-yaml", ns + "/" + name, 10);
+    }
+
+    @PostMapping("/statefulsets/{ns}/{name}/yaml")
+    public Map<String, Object> applyStatefulSetYaml(@PathVariable String ns, @PathVariable String name,
+            @RequestBody Map<String, Object> body) {
+        return applyYaml((String) body.get("yaml"), "apply-statefulset", ns + "/" + name);
+    }
+
+    @GetMapping("/statefulsets/{ns}/{name}/describe")
+    public Map<String, Object> describeStatefulSet(@PathVariable String ns, @PathVariable String name) {
+        return run("kubectl describe statefulset " + safe(name) + " -n " + safe(ns), "describe-statefulset", ns + "/" + name, 15);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════
     // CONFIGMAP ACTIONS
     // ═══════════════════════════════════════════════════════════════════════
@@ -357,6 +462,11 @@ public class KubernetesOpsController {
     public Map<String, Object> applyConfigMapYaml(@PathVariable String ns, @PathVariable String name,
             @RequestBody Map<String, Object> body) {
         return applyYaml((String) body.get("yaml"), "apply-configmap", ns + "/" + name);
+    }
+
+    @GetMapping("/configmaps/{ns}/{name}/describe")
+    public Map<String, Object> describeConfigMap(@PathVariable String ns, @PathVariable String name) {
+        return run("kubectl describe configmap " + safe(name) + " -n " + safe(ns), "describe-configmap", ns + "/" + name, 15);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -497,7 +607,11 @@ public class KubernetesOpsController {
     // ═══════════════════════════════════════════════════════════════════════
 
     private Map<String, Object> run(String cmd, String action, String target, int timeout) {
-        ToolResult r = tools.shell(cmd, timeout);
+        return run(cmd, action, target, timeout, requestClusterId());
+    }
+
+    private Map<String, Object> run(String cmd, String action, String target, int timeout, String clusterId) {
+        ToolResult r = service.runKubectl(cmd, clusterId, timeout);
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("ok", r.ok());
         payload.put("action", action);
@@ -506,12 +620,17 @@ public class KubernetesOpsController {
         payload.put("stderr", r.stderr());
         payload.put("exitCode", r.exitCode());
         payload.put("durationMs", r.durationMs());
+        payload.put("clusterId", clusterId == null || clusterId.isBlank() ? "current-context" : clusterId);
         String correlationId = events.mutation("KUBERNETES_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, r.ok(), payload);
         payload.put("correlationId", correlationId);
         return payload;
     }
 
     private Map<String, Object> applyYaml(String yaml, String action, String target) {
+        return applyYaml(yaml, action, target, requestClusterId());
+    }
+
+    private Map<String, Object> applyYaml(String yaml, String action, String target, String clusterId) {
         if (yaml == null || yaml.isBlank()) {
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("ok", false);
@@ -525,7 +644,7 @@ public class KubernetesOpsController {
             java.nio.file.Path tmp = java.nio.file.Files.createTempFile("nebula-", ".yaml");
             java.nio.file.Files.writeString(tmp, yaml);
             String verb = action.contains("delete") ? "delete" : "apply";
-            ToolResult r = tools.shell("kubectl " + verb + " -f " + tmp.toAbsolutePath(), 30);
+            ToolResult r = service.runKubectl("kubectl " + verb + " -f " + tmp.toAbsolutePath(), clusterId, 30);
             java.nio.file.Files.deleteIfExists(tmp);
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("ok", r.ok());
@@ -534,6 +653,7 @@ public class KubernetesOpsController {
             payload.put("stdout", r.stdout());
             payload.put("stderr", r.stderr());
             payload.put("exitCode", r.exitCode());
+            payload.put("clusterId", clusterId == null || clusterId.isBlank() ? "current-context" : clusterId);
             payload.put("correlationId", events.mutation("KUBERNETES_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, r.ok(), payload));
             return payload;
         } catch (Exception e) {
@@ -545,6 +665,16 @@ public class KubernetesOpsController {
             payload.put("correlationId", events.mutation("KUBERNETES_" + action.toUpperCase(Locale.ROOT).replace('-', '_'), target, false, payload));
             return payload;
         }
+    }
+
+    private String requestClusterId() {
+        try {
+            if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs) {
+                String value = attrs.getRequest().getParameter("clusterId");
+                return value == null ? null : value.trim();
+            }
+        } catch (Exception ignored) { }
+        return null;
     }
 
     private Map asMap(Object o) { return o instanceof Map ? (Map) o : Collections.emptyMap(); }

@@ -1,5 +1,5 @@
 <#--
-  NebulaOps v22.5 — Keycloak Custom Login Template
+  NebulaOps v23.1 — Keycloak Custom Login Template
   Target : Keycloak 24.0.4 — FreeMarker with HTMLOutputFormat (auto-escaping ON)
   
   CRITICAL: In KC 24, FreeMarker runs with HTMLOutputFormat enabled.
@@ -50,7 +50,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>NebulaOps v22.5 · Sign In</title>
+  <title>NebulaOps v23.1 · Sign In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -281,7 +281,7 @@
       <div class="nb-logo" aria-hidden="true">N22.5</div>
       <div>
         <div class="nb-brand-eyebrow">Terraform-enabled SaaS cockpit</div>
-        <div class="nb-brand-name">NebulaOps v22.5</div>
+        <div class="nb-brand-name">NebulaOps v23.1</div>
       </div>
     </div>
     <p class="nb-lead">Docker &middot; Kubernetes &middot; Helm &middot; Terraform &middot; GitOps &middot; Observability</p>
@@ -363,7 +363,7 @@
               type="submit">Sign in</button>
     </form>
 
-    <div class="nb-footer">DevOps Enterprise Cockpit &middot; v22.5 &middot; Local-first</div>
+    <div class="nb-footer">DevOps Enterprise Cockpit &middot; v23.1 &middot; Local-first</div>
   </main>
 </body>
 </html>

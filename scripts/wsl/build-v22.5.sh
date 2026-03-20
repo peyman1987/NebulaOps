@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Controlled full build for NebulaOps v22.5.
+# Controlled full build for NebulaOps v23.1.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"
@@ -10,7 +10,7 @@ for arg in "$@"; do
     --clean) CLEAN=true ;;
     -h|--help)
       cat <<'USAGE'
-Usage: ./scripts/wsl/build-v22.5.sh [--clean]
+Usage: ./scripts/wsl/build-v23.1.sh [--clean]
 
 Runs the deterministic build path:
   1. validate frontend dist/remoteEntry artifacts

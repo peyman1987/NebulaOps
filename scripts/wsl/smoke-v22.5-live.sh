@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 live integration smoke test.
+# NebulaOps v23.1 live integration smoke test.
 set -uo pipefail
 
 BASE="${NEBULAOPS_GATEWAY_URL:-http://localhost:8080}"
@@ -31,16 +31,16 @@ check_post() {
   fi
 }
 
-echo "[NebulaOps] v22.5 LIVE integration smoke test"
+echo "[NebulaOps] v23.1 LIVE integration smoke test"
 echo "Gateway: $BASE"
 [ -z "$TOKEN" ] && echo "[WARN] NEBULAOPS_TOKEN not set. Protected deployments may return 401/403."
 
 check_get  "Release list + live signals"       "/api/releases"
 check_post "Release promotion policy gate"     "/api/releases/rel-22.5-001/promote" '{"targetEnvironment":"local","budgetThreshold":75}'
 check_post "Release rollback audit event"      "/api/releases/rel-22.5-001/rollback" '{"revision":"previous"}'
-check_post "Policy evaluation live"            "/api/policies/evaluate" '{"target":"gateway-service","image":"nebulaops-v22-5-gateway-service:22.5.0","budgetThreshold":75}'
+check_post "Policy evaluation live"            "/api/policies/evaluate" '{"target":"gateway-service","image":"nebulaops-v23-1-gateway-service:23.1.0","budgetThreshold":75}'
 check_post "AI Ops live RCA"                   "/api/ai-ops/incidents/analyze" '{"affectedService":"gateway-service","namespace":"default"}'
-check_post "DevSecOps image scan + audit"      "/api/devsecops/scan/image" '{"image":"nebulaops-v22-5-gateway-service:22.5.0"}'
+check_post "DevSecOps image scan + audit"      "/api/devsecops/scan/image" '{"image":"nebulaops-v23-1-gateway-service:23.1.0"}'
 check_get  "Cost forecast threshold"           "/api/cost/forecast?threshold=75"
 check_get  "Kubernetes events"                 "/api/kubernetes/events?namespace=default"
 check_get  "Notification list"                 "/api/notifications/live"

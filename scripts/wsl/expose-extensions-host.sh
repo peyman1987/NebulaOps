@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.5 — Expose Kubernetes extensions to the Windows/WSL host loopback.
+# v23.1 — Expose Kubernetes extensions to the Windows/WSL host loopback.
 #
 # Why this exists:
 #   k3s NodePort works from inside WSL, but Windows Chrome can still see

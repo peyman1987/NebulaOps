@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Component
 public class RedisIdentityCache {
@@ -43,5 +45,23 @@ public class RedisIdentityCache {
             if (keys != null && !keys.isEmpty()) redis.delete(keys);
         } catch (Exception ignored) {
         }
+    }
+
+    public Map<String, Object> status() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("realDataOnly", true);
+        try {
+            String key = "identity:cache:health";
+            redis.opsForValue().set(key, "ok", Duration.ofSeconds(10));
+            String value = redis.opsForValue().get(key);
+            out.put("live", "ok".equals(value));
+            out.put("state", "ok".equals(value) ? "REDIS_CACHE_AVAILABLE" : "REDIS_CACHE_WRITE_READ_MISMATCH");
+            out.put("message", "ok".equals(value) ? "Redis identity cache is reachable." : "Redis responded but health value was not read back correctly.");
+        } catch (Exception e) {
+            out.put("live", false);
+            out.put("state", "REDIS_CACHE_UNAVAILABLE");
+            out.put("message", e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+        return out;
     }
 }

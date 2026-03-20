@@ -1,0 +1,9 @@
+{
+  "id": "test-quality-dashboard",
+  "service": "mfe-test-quality-dashboard",
+  "tag": "nebulaops-mfe-test-quality-dashboard",
+  "port": 4232,
+  "title": "Test & Quality Dashboard",
+  "group": "Platform",
+  "navigation": "owned by shell side menu"
+}

@@ -1,6 +1,6 @@
 package nebulaops.governance
 
-# NebulaOps v22.5 Policy, Approval & Governance Center
+# NebulaOps v23.1 Policy, Approval & Governance Center
 # Runtime policy rules evaluated by OPA. These are configuration rules, not UI mock data.
 
 default allow = false

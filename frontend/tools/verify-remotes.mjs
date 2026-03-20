@@ -6,6 +6,13 @@ const toolDir = dirname(fileURLToPath(import.meta.url));
 const frontendRoot = join(toolDir, '..');
 
 const remotes = [
+  ['platform-catalog', 'nebulaops-mfe-platform-catalog'],
+  ['incident-command-center', 'nebulaops-mfe-incident-command-center'],
+  ['runtime-readiness', 'nebulaops-mfe-runtime-readiness'],
+  ['docker-storage-cleanup', 'nebulaops-mfe-docker-storage-cleanup'],
+  ['environment-configuration', 'nebulaops-mfe-environment-configuration'],
+  ['dependency-impact', 'nebulaops-mfe-dependency-impact'],
+  ['test-quality-dashboard', 'nebulaops-mfe-test-quality-dashboard'],
   ['docker-desktop', 'nebulaops-mfe-docker-desktop'],
   ['openlens-kubernetes', 'nebulaops-mfe-openlens-kubernetes'],
   ['task-management', 'nebulaops-mfe-task-management'],
@@ -51,7 +58,7 @@ for (const [name, tag] of remotes) {
       console.error(`Remote ${name} does not register expected custom element ${tag}`);
       failures += 1;
     }
-    if (!content.includes('nebulaops.v22_5.jwt')) {
+    if (!content.includes('nebulaops.v23_1.jwt')) {
       console.error(`Remote ${name} does not read the shared NebulaOps JWT key`);
       failures += 1;
     }
@@ -79,8 +86,8 @@ for (const [name, tag] of remotes) {
 
   if (existsSync(manifest)) {
     const manifestJson = JSON.parse(readFileSync(manifest, 'utf8'));
-    if (manifestJson.version !== '22.5.0') {
-      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 22.5.0`);
+    if (manifestJson.version !== '23.1.0') {
+      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 23.1.0`);
       failures += 1;
     }
   }
@@ -88,8 +95,8 @@ for (const [name, tag] of remotes) {
 }
 
 if (failures > 0) {
-  console.error(`NebulaOps v22.5 remote verification failed: ${failures} issue(s)`);
+  console.error(`NebulaOps v23.1 remote verification failed: ${failures} issue(s)`);
   process.exit(1);
 }
 
-console.log('NebulaOps v22.5 classic micro frontends verified. Shell owns side navigation; each remote renders standalone content.');
+console.log('NebulaOps v23.1 classic micro frontends verified. Shell owns side navigation; each remote renders standalone content.');

@@ -1,4 +1,4 @@
-/* NebulaOps v22.5 auth bridge
+/* NebulaOps v23.1 auth bridge
  * Makes shell-loaded and standalone MFE requests share a valid Bearer token.
  * - Shell origin: reuses localStorage token or bootstraps dev admin token.
  * - Standalone MFE route (/remotes/<mfe>/): uses the same nebulaops.localhost origin and the shared shell token.
@@ -7,9 +7,9 @@
  */
 (function nebulaopsAuthBridge() {
   'use strict';
-  var VERSION = 'v22.5.9-restore-ui-live-api';
-  var JWT_KEY = 'nebulaops.v22_5.jwt';
-  var USER_KEY = 'nebulaops.v22_5.user';
+  var VERSION = 'v23.1.9-restore-ui-live-api';
+  var JWT_KEY = 'nebulaops.v23_1.jwt';
+  var USER_KEY = 'nebulaops.v23_1.user';
   var LOGIN_URL = '/api/auth/login';
   var DEV_LOGIN_BODY = JSON.stringify({ email: 'admin', password: 'admin' });
 
@@ -112,7 +112,7 @@
       'docker/networks': '/api/runtime/docker/networks',
       'kubernetes/snapshot': '/api/kubernetes/snapshot',
       'helm/releases': '/api/runtime/helm/releases?namespace=all',
-      'tasks': '/api/tasks?organizationId=default-org',
+      'tasks': '/api/tasks',
       'notifications': '/api/notifications/live',
       'events': '/api/events',
       'releases': '/api/releases',

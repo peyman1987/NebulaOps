@@ -15,9 +15,8 @@ public class WorkItemService {
     private final ConcurrentMap<String, WorkItem> items = new ConcurrentHashMap<>();
 
     public WorkItemService() {
-        seed("Verificare manifest Kubernetes", "Controllo readiness/liveness probe e service discovery nel namespace nebulaops.", "platform-team");
-        seed("Preparare demo Spring MVC", "Pagina Thymeleaf, API REST e metriche Prometheus esposte su /actuator/prometheus.", "app-team");
-        seed("Aggiornare runbook deploy", "Documentare docker compose overlay, manifest Kubernetes e Helm chart add-on.", "devops-team");
+        // v23.1 live-only mode: no seeded/demo work items are created at startup.
+        // Items are created only through the REST API during the current runtime.
     }
 
     public List<WorkItem> findAll() {
@@ -57,10 +56,5 @@ public class WorkItemService {
         if (items.remove(id) == null) {
             throw new NoSuchElementException("Work item non trovato: " + id);
         }
-    }
-
-    private void seed(String title, String description, String owner) {
-        WorkItem item = WorkItem.create(title, description, owner);
-        items.put(item.id(), item);
     }
 }

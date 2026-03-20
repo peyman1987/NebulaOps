@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TOKEN_KEYS = ['nebulaops.v22_5.jwt', 'nebulaops.jwt', 'nebulaops.token'];
+  const TOKEN_KEYS = ['nebulaops.v23_1.jwt', 'nebulaops.jwt', 'nebulaops.token'];
   const ACTIONS = ['start', 'stop', 'restart', 'status', 'open'];
   const FORBIDDEN_EXTENSION_TITLES = new Set([
     'Runbook Center',
@@ -247,7 +247,7 @@
           <div>
             <p class="neb-ext-kicker">NEBULAOPS EXTENSIONS</p>
             <h2>Extension Control Center</h2>
-            <small>Visualizza lo stato reale delle extensions installate e gestisci Start, Stop, Restart, Status e Open dal gateway. Nessun dato mock: lo stato arriva da Kubernetes/gateway.</small>
+            <small>View live status for installed extensions. All extensions are disabled by default and start only through an explicit Start/Deploy action. No mock data is rendered: status comes from Kubernetes and the gateway.</small>
           </div>
           <button class="neb-ext-close" type="button" aria-label="Close">×</button>
         </header>

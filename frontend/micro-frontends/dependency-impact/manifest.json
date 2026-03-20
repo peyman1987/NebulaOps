@@ -1,0 +1,9 @@
+{
+  "id": "dependency-impact",
+  "service": "mfe-dependency-impact",
+  "tag": "nebulaops-mfe-dependency-impact",
+  "port": 4231,
+  "title": "Dependency & Impact Graph",
+  "group": "Platform",
+  "navigation": "owned by shell side menu"
+}

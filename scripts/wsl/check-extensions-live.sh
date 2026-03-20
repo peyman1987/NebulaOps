@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 — verify extension pods, services and live endpoints after deployment.
+# NebulaOps v23.1 — verify extension pods, services and live endpoints after deployment.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

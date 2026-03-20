@@ -1,6 +1,7 @@
 package dev.nebulaops.observability.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -20,6 +21,11 @@ import java.util.Map;
 public class ObservabilityService {
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
     private final ObjectMapper mapper = new ObjectMapper();
+    private final String defaultOrganizationId;
+
+    public ObservabilityService(@Value("${nebulaops.default-organization-id:nebulaops}") String defaultOrganizationId) {
+        this.defaultOrganizationId = defaultOrganizationId == null || defaultOrganizationId.isBlank() ? "nebulaops" : defaultOrganizationId.trim();
+    }
 
     public Map<String, Object> stack() {
         List<Map<String, Object>> items = new ArrayList<>();
@@ -43,7 +49,7 @@ public class ObservabilityService {
         Map<String, Object> rabbit = rabbitmq();
 
         Map<String, Object> out = base("observability-overview");
-        out.put("organizationId", organizationId == null || organizationId.isBlank() ? "default-org" : organizationId);
+        out.put("organizationId", resolvedOrganization(organizationId));
         out.put("services", summarizeCollection(services));
         out.put("tasks", summarizeCollection(tasks));
         out.put("audit", summarizeCollection(audit));
@@ -105,8 +111,44 @@ public class ObservabilityService {
     }
 
     public Map<String, Object> taskEvents(String organizationId) {
-        String org = organizationId == null || organizationId.isBlank() ? "default-org" : organizationId;
-        return runtimeCollection("task-events", get(env("TASK_SERVICE_URL", "http://task-service:8082") + "/api/tasks?organizationId=" + enc(org)), "items");
+        String base = env("RABBITMQ_HTTP_URL", "http://rabbitmq:15672").replaceAll("/+$", "");
+        String vhost = enc(env("RABBITMQ_VHOST", "/"));
+        String queue = enc(env("RABBITMQ_TASK_EVENTS_QUEUE", "nebula.task.events"));
+        String user = env("RABBITMQ_USER", "guest");
+        String pass = env("RABBITMQ_PASSWORD", "guest");
+        String basic = java.util.Base64.getEncoder().encodeToString((user + ":" + pass).getBytes(StandardCharsets.UTF_8));
+        String body = "{\"count\":100,\"ackmode\":\"ack_requeue_true\",\"encoding\":\"auto\"}";
+        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/queues/" + vhost + "/" + queue + "/get"))
+                .timeout(Duration.ofSeconds(4))
+                .header("Authorization", "Basic " + basic)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        Map<String, Object> response = send(request, base + "/api/queues/" + vhost + "/" + queue + "/get");
+        Map<String, Object> out = runtimeCollection("rabbitmq-task-events", response, "");
+        out.put("queue", env("RABBITMQ_TASK_EVENTS_QUEUE", "nebula.task.events"));
+        out.put("organizationId", resolvedOrganization(organizationId));
+        out.put("toolStatus", Boolean.TRUE.equals(out.get("live"))
+                ? "Task events read from RabbitMQ management API with ack_requeue_true; messages are not consumed."
+                : "RabbitMQ task event queue unavailable or credentials missing.");
+        return out;
+    }
+
+    public Map<String, Object> incidentTimeline(int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 500));
+        List<Object> items = new ArrayList<>();
+        appendTimeline(items, "audit", auditEvents(safeLimit));
+        appendTimeline(items, "notification", notificationEvents(safeLimit));
+        appendTimeline(items, "task", taskEvents(defaultOrganizationId));
+        appendTimeline(items, "loki", loki("{job=~\".+\"}"));
+        appendTimeline(items, "tempo", tempo(Math.min(safeLimit, 100)));
+        items.sort((a, b) -> timestampOf(b).compareTo(timestampOf(a)));
+        if (items.size() > safeLimit) items = new ArrayList<>(items.subList(0, safeLimit));
+        Map<String, Object> out = base("incident-timeline");
+        out.put("items", items);
+        out.put("count", items.size());
+        out.put("toolStatus", items.isEmpty() ? "No incident timeline rows returned by live sources." : "Timeline correlated from live audit, notification, task, Loki and Tempo sources.");
+        return out;
     }
 
     public Map<String, Object> rabbitmq() {
@@ -207,6 +249,38 @@ public class ObservabilityService {
         return List.of();
     }
 
+    private String timestampOf(Object row) {
+        if (row instanceof Map<?, ?> map) {
+            Object ts = map.get("timestamp");
+            return ts == null ? "" : String.valueOf(ts);
+        }
+        return "";
+    }
+
+    @SuppressWarnings("unchecked")
+    private void appendTimeline(List<Object> target, String source, Map<String, Object> payload) {
+        Object rows = payload.get("items");
+        if (!(rows instanceof List<?> list)) return;
+        for (Object row : list) {
+            Map<String, Object> event = new LinkedHashMap<>();
+            event.put("source", source);
+            event.put("live", payload.get("live"));
+            event.put("correlationId", extractValue(row, "correlationId", "traceID", "traceId", "id"));
+            event.put("timestamp", extractValue(row, "timestamp", "time", "createdAt", "executedAt", "startTime"));
+            event.put("status", extractValue(row, "status", "level", "severity", "type"));
+            event.put("name", extractValue(row, "name", "title", "message", "eventType", "key"));
+            event.put("details", row);
+            target.add(event);
+        }
+    }
+
+    private Object extractValue(Object row, String... keys) {
+        if (row instanceof Map<?, ?> map) {
+            for (String key : keys) if (map.containsKey(key)) return map.get(key);
+        }
+        return "";
+    }
+
     private Map<String, Object> summarizeCollection(Map<String, Object> source) {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("source", source.getOrDefault("source", source.getOrDefault("name", "runtime")));
@@ -232,6 +306,10 @@ public class ObservabilityService {
 
     private String enc(String value) {
         return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
+    }
+
+    private String resolvedOrganization(String organizationId) {
+        return organizationId == null || organizationId.isBlank() ? defaultOrganizationId : organizationId.trim();
     }
 
     private String env(String key, String fallback) {

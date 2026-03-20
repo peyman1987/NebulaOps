@@ -1,10 +1,10 @@
 {
   "id": "release-center",
   "title": "Release Center",
-  "version": "22.5.0",
+  "version": "23.1.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-release-center",
-  "port": 4221,
-  "scope": "Release \u00b7 Promotion/Rollback",
+  "port": 4222,
+  "scope": "Release · Promotion/Rollback",
   "shellOwnedNavigation": true
 }

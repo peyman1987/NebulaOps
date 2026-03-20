@@ -1,4 +1,4 @@
-name: nebulaops-v22-5
+name: nebulaops-v23-1
 services:
   rabbitmq:
     ports:

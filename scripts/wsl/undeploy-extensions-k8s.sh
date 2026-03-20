@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 — Remove platform extension runtime resources from Kubernetes.
+# NebulaOps v23.1 — Remove platform extension runtime resources from Kubernetes.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

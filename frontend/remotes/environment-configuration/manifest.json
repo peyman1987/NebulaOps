@@ -1,0 +1,10 @@
+{
+  "id": "environment-configuration",
+  "title": "Environment & Configuration Center",
+  "version": "23.1.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-environment-configuration",
+  "port": 4230,
+  "scope": "Platform \u00b7 Environment \u00b7 Configuration",
+  "shellOwnedNavigation": true
+}
