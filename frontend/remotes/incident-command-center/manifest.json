@@ -1,0 +1,10 @@
+{
+  "id": "incident-command-center",
+  "title": "Incident Command Center",
+  "version": "23.1.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-incident-command-center",
+  "port": 4227,
+  "scope": "SRE · Incident Command · RCA · Runbooks",
+  "shellOwnedNavigation": true
+}

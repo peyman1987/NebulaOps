@@ -1,4 +1,4 @@
-# NebulaOps v22.5 — Extension 502 Proxy Guard Fix
+# NebulaOps v23.1 — Extension 502 Proxy Guard Fix
 
 ## Scope
 

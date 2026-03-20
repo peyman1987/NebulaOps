@@ -16,9 +16,9 @@ metadata:
     app.kubernetes.io/name: contract-hub
     app.kubernetes.io/component: extension
     app.kubernetes.io/part-of: nebulaops
-    app.kubernetes.io/version: "22.5.0"
+    app.kubernetes.io/version: "23.1.0"
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: contract-hub
@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: contract-hub
-          image: nebulaops-v22-5-contract-hub:latest
+          image: nebulaops-v23-1-contract-hub:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -1,26 +1,79 @@
 {
   "endpoints": [
     {
-      "label": "Environments",
-      "url": "/api/platform/environments",
-      "kind": "environment"
+      "label": "Platform services",
+      "url": "/api/platform/infra/services",
+      "kind": "platform-service",
+      "itemsPath": "items"
     },
     {
-      "label": "Docker containers",
-      "url": "/api/runtime/docker/containers",
-      "kind": "container"
+      "label": "Runtime ports",
+      "url": "/api/platform/infra/ports",
+      "kind": "port",
+      "itemsPath": "items"
     },
     {
-      "label": "Kubernetes nodes",
-      "url": "/api/platform/k8s/nodes",
-      "kind": "node",
-      "itemsPath": "data.items"
+      "label": "Reverse proxy routes",
+      "url": "/api/platform/infra/reverse-proxy",
+      "kind": "proxy-route",
+      "itemsPath": "items"
     },
     {
-      "label": "Terraform modules",
-      "url": "/api/platform/terraform/modules",
-      "kind": "module",
-      "itemsPath": "data"
+      "label": "Keycloak",
+      "url": "/api/platform/infra/keycloak",
+      "kind": "identity-runtime"
+    },
+    {
+      "label": "RabbitMQ",
+      "url": "/api/platform/infra/rabbitmq",
+      "kind": "broker-runtime"
+    },
+    {
+      "label": "Redis",
+      "url": "/api/platform/infra/redis",
+      "kind": "cache-runtime"
+    },
+    {
+      "label": "MongoDB",
+      "url": "/api/platform/infra/mongodb",
+      "kind": "database-runtime"
+    },
+    {
+      "label": "Observability stack",
+      "url": "/api/observability/stack",
+      "kind": "observability",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Prometheus",
+      "url": "/api/platform/infra/prometheus",
+      "kind": "metrics-runtime"
+    },
+    {
+      "label": "Grafana",
+      "url": "/api/platform/infra/grafana",
+      "kind": "dashboard-runtime"
+    },
+    {
+      "label": "OPA",
+      "url": "/api/platform/infra/opa",
+      "kind": "policy-runtime"
+    },
+    {
+      "label": "GitLab",
+      "url": "/api/platform/infra/gitlab",
+      "kind": "scm-runtime"
+    },
+    {
+      "label": "Argo CD",
+      "url": "/api/platform/infra/argocd",
+      "kind": "gitops-runtime"
+    },
+    {
+      "label": "Installed extensions",
+      "url": "/api/extensions/status",
+      "kind": "extension",
+      "itemsPath": "items"
     }
   ]
 }

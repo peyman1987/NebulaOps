@@ -15,7 +15,7 @@ class AiOpsControllerTest {
     @Test
     void analyzeFallsBackWhenAiEngineUnavailable() {
         AiOpsService service = mock(AiOpsService.class);
-        when(service.analyze(anyMap())).thenReturn(Map.of("live", false, "rootCause", "fallback"));
+        when(service.analyze(anyMap())).thenReturn(Map.of("live", false, "rootCause", "local-analysis"));
         RestTemplate rest = new RestTemplate();
         AiOpsController controller = new AiOpsController(service, rest,
                 "http://127.0.0.1:9", "http://127.0.0.1:9", "http://127.0.0.1:9",
@@ -23,6 +23,6 @@ class AiOpsControllerTest {
 
         Map<String, Object> result = controller.analyze(Map.of("affectedService", "gateway-service"));
 
-        assertThat(result).containsKey("ai").containsKey("fallback").containsEntry("live", true);
+        assertThat(result).containsKey("ai").containsKey("localAnalysis").containsEntry("live", true);
     }
 }

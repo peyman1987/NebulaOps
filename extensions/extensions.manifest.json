@@ -9,7 +9,15 @@
     "openUrl": "/apiforge/",
     "sourcePath": "extensions/apiforge",
     "kubernetesManifest": "extensions/apiforge/k8s/deployment.yml",
-    "actions": ["start", "stop", "restart", "status", "open"]
+    "actions": [
+      "start",
+      "stop",
+      "restart",
+      "status",
+      "open"
+    ],
+    "enabledByDefault": false,
+    "defaultState": "DISABLED"
   },
   {
     "slug": "kubebridge",
@@ -21,7 +29,15 @@
     "openUrl": "/kubebridge/",
     "sourcePath": "extensions/kubebridge",
     "kubernetesManifest": "extensions/kubebridge/k8s/deployment.yml",
-    "actions": ["start", "stop", "restart", "status", "open"]
+    "actions": [
+      "start",
+      "stop",
+      "restart",
+      "status",
+      "open"
+    ],
+    "enabledByDefault": false,
+    "defaultState": "DISABLED"
   },
   {
     "slug": "contract-hub",
@@ -33,6 +49,14 @@
     "openUrl": "/contract-hub/",
     "sourcePath": "extensions/contract-hub",
     "kubernetesManifest": "extensions/contract-hub/k8s/deployment.yml",
-    "actions": ["start", "stop", "restart", "status", "open"]
+    "actions": [
+      "start",
+      "stop",
+      "restart",
+      "status",
+      "open"
+    ],
+    "enabledByDefault": false,
+    "defaultState": "DISABLED"
   }
 ]

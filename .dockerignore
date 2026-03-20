@@ -14,6 +14,6 @@ node_modules
 
 # Frontend/MFE images have their own build contexts and .dockerignore files.
 # Backend runtime images use the repository root as build context and must be
-# able to COPY backend/<service>/target/*.jar. Do not exclude **/target here.
+# able to COPY backend/<service>/target/*.jar. Do not exclude backend target JARs here.
 dist
 **/dist

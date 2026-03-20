@@ -17,13 +17,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * v22.5 — Gateway proxy for endpoints not directly served by the gateway.
+ * v23.1 — Gateway proxy for endpoints not directly served by the gateway.
  *
- * Improvements over v22.5:
+ * Improvements over v23.1:
  *  - Added proxy routes for: /cost/**, /notifications/**, /audit/**, /secrets/**, /registry/**
  *  - Added pipeline/runs forward with pagination support
  *  - All proxy targets wired from application.yml (single source of truth)
- *  - Consistent graceful fallback: empty lists / error maps, never 500
+ *  - Consistent degraded responses: empty lists / error maps, never synthetic rows or 500
  *  - PATCH forwarding uses HttpEntity to respect Content-Type
  */
 @RestController
@@ -50,6 +50,7 @@ public class ProxyController {
     @Value("${proxy.policy}")         private String policyUrl;
     @Value("${proxy.progressive-delivery}") private String progressiveDeliveryUrl;
     @Value("${proxy.audit}")          private String auditUrl;
+    @Value("${nebulaops.default-organization-id:nebulaops}") private String defaultOrganizationId;
 
 
     // ── Auth proxy ────────────────────────────────────────────────────────────
@@ -67,6 +68,25 @@ public class ProxyController {
     }
 
     // ── Identity / Keycloak admin proxy ───────────────────────────────────────
+
+    @GetMapping("/identity/realms/{realm}/status")
+    public ResponseEntity<Object> identityRealmStatus(@PathVariable String realm) {
+        return forward(() -> rest.getForObject(authUrl + "/api/identity/realms/" + realm + "/status", Object.class),
+                Map.of("live", false, "state", "KEYCLOAK_REALM_UNAVAILABLE", "realm", realm));
+    }
+
+    @GetMapping("/identity/realms/{realm}/cache/status")
+    public ResponseEntity<Object> identityRealmCacheStatus(@PathVariable String realm) {
+        return forward(() -> rest.getForObject(authUrl + "/api/identity/realms/" + realm + "/cache/status", Object.class),
+                Map.of("live", false, "state", "REDIS_IDENTITY_CACHE_UNAVAILABLE", "realm", realm));
+    }
+
+    @GetMapping("/identity/cache/status")
+    public ResponseEntity<Object> identityDefaultCacheStatus() {
+        String realm = System.getenv().getOrDefault("KEYCLOAK_REALM", "nebulaops");
+        return forward(() -> rest.getForObject(authUrl + "/api/identity/realms/" + realm + "/cache/status", Object.class),
+                Map.of("live", false, "state", "REDIS_IDENTITY_CACHE_UNAVAILABLE", "realm", realm));
+    }
 
     @GetMapping("/identity/realms/{realm}/users")
     public ResponseEntity<Object> identityUsers(@PathVariable String realm,
@@ -146,7 +166,7 @@ public class ProxyController {
     public ResponseEntity<Object> listTasks(
             @RequestParam(required = false) String organizationId) {
         String url = taskUrl + "/api/tasks"
-                   + (organizationId != null ? "?organizationId=" + enc(organizationId) : "");
+                   + (organizationId != null ? "?organizationId=" + enc(resolveOrganization(organizationId)) : "");
         return forward(() -> rest.getForObject(url, Object.class), List.of());
     }
 
@@ -203,8 +223,8 @@ public class ProxyController {
     }
 
     @GetMapping("/observability/overview")
-    public ResponseEntity<Object> observabilityOverview(@RequestParam(defaultValue = "default-org") String organizationId) {
-        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/overview?organizationId=" + enc(organizationId), Object.class),
+    public ResponseEntity<Object> observabilityOverview(@RequestParam(required = false) String organizationId) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/overview?organizationId=" + enc(resolveOrganization(organizationId)), Object.class),
                 Map.of("live", false, "items", List.of(), "error", "observability-service unavailable"));
     }
 
@@ -239,8 +259,8 @@ public class ProxyController {
     }
 
     @GetMapping("/observability/events/tasks")
-    public ResponseEntity<Object> observabilityTasks(@RequestParam(defaultValue = "default-org") String organizationId) {
-        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/events/tasks?organizationId=" + enc(organizationId), Object.class), List.of());
+    public ResponseEntity<Object> observabilityTasks(@RequestParam(required = false) String organizationId) {
+        return forward(() -> rest.getForObject(observabilityUrl + "/api/observability/events/tasks?organizationId=" + enc(resolveOrganization(organizationId)), Object.class), List.of());
     }
 
     @GetMapping("/observability/events/rabbitmq")
@@ -648,6 +668,12 @@ public class ProxyController {
                        Map.of("live", false, "realDataOnly", true, "error", "progressive-delivery-service unavailable"));
     }
 
+    @GetMapping("/progressive-delivery/rollouts/{namespace}/{name}/history")
+    public ResponseEntity<Object> progressiveHistory(@PathVariable String namespace, @PathVariable String name) {
+        return forward(() -> rest.getForObject(progressiveDeliveryUrl + "/api/progressive-delivery/rollouts/" + enc(namespace) + "/" + enc(name) + "/history", Object.class),
+                       Map.of("live", false, "realDataOnly", true, "error", "progressive-delivery-service unavailable"));
+    }
+
     // ── Platform events proxy ─────────────────────────────────────────────────
 
     @GetMapping("/events")
@@ -672,6 +698,12 @@ public class ProxyController {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
         return new HttpEntity<>(body == null ? Map.of() : body, h);
+    }
+
+    private String resolveOrganization(String organizationId) {
+        return organizationId == null || organizationId.isBlank()
+                ? (defaultOrganizationId == null || defaultOrganizationId.isBlank() ? "nebulaops" : defaultOrganizationId.trim())
+                : organizationId.trim();
     }
 
     private String enc(String value) {

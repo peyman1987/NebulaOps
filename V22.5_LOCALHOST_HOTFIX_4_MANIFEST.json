@@ -1,5 +1,5 @@
 {
-  "package": "nebulaops-v22.5-nebulaops-localhost-hotfix4",
+  "package": "nebulaops-v23.1-nebulaops-localhost-hotfix4",
   "entrypoint": "http://nebulaops.localhost",
   "standaloneMfePattern": "/remotes/<mfe>/",
   "remoteEntryPattern": "/remotes/<mfe>/remoteEntry.js",
@@ -27,7 +27,7 @@
     "docs/DEPLOYMENT_GUIDE.md",
     "docs/TROUBLESHOOTING.md",
     "docs/API_EXAMPLES.md",
-    "docs/diagrams/nebulaops-v22-5-reverse-proxy-runtime.svg"
+    "docs/diagrams/nebulaops-v23-1-reverse-proxy-runtime.svg"
   ],
   "notes": [
     "Standalone buttons no longer open localhost 42xx ports.",

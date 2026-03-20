@@ -23,7 +23,7 @@ public class ObservabilityServiceController {
     }
 
     @GetMapping("/overview")
-    public Map<String, Object> overview(@RequestParam(defaultValue = "default-org") String organizationId) {
+    public Map<String, Object> overview(@RequestParam(required = false) String organizationId) {
         return service.overview(organizationId);
     }
 
@@ -63,12 +63,17 @@ public class ObservabilityServiceController {
     }
 
     @GetMapping("/events/tasks")
-    public Map<String, Object> taskEvents(@RequestParam(defaultValue = "default-org") String organizationId) {
+    public Map<String, Object> taskEvents(@RequestParam(required = false) String organizationId) {
         return service.taskEvents(organizationId);
     }
 
     @GetMapping("/events/rabbitmq")
     public Map<String, Object> rabbitmq() {
         return service.rabbitmq();
+    }
+
+    @GetMapping("/incidents/timeline")
+    public Map<String, Object> incidentTimeline(@RequestParam(defaultValue = "150") int limit) {
+        return service.incidentTimeline(limit);
     }
 }

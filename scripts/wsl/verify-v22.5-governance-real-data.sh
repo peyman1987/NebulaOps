@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.5 Governance real-data verification: no seeded policy/approval/decision records.
+# v23.1 Governance real-data verification: no seeded policy/approval/decision records.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

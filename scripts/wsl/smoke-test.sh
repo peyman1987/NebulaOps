@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.5 — Authenticated smoke test through gateway using Keycloak token.
+# v23.1 — Authenticated smoke test through gateway using Keycloak token.
 set -euo pipefail
 BASE=${BASE:-http://nebulaops.localhost}
 KEYCLOAK_URL=${KEYCLOAK_URL:-http://nebulaops.localhost/keycloak}
@@ -24,12 +24,12 @@ curl -fsS "$BASE/actuator/health" >/dev/null
 
 echo "Creating task through gateway with Keycloak token..."
 curl -fsS "${AUTH[@]}" -H 'Content-Type: application/json' \
-  -d '{"organizationId":"demo-org","projectId":"portfolio","title":"WSL smoke test task","description":"Created from scripts/wsl/smoke-test.sh","priority":"HIGH","labels":["wsl","rabbitmq","mongodb","keycloak"]}' \
+  -d '{"organizationId":"nebulaops","projectId":"runtime-validation","title":"WSL smoke test task","description":"Created from scripts/wsl/smoke-test.sh","priority":"HIGH","labels":["wsl","rabbitmq","mongodb","keycloak"]}' \
   "$BASE/api/tasks"
 
 echo
 echo "Tasks:"
-curl -fsS "${AUTH[@]}" "$BASE/api/tasks?organizationId=demo-org"
+curl -fsS "${AUTH[@]}" "$BASE/api/tasks?organizationId=nebulaops"
 
 echo
 echo "Notifications:"

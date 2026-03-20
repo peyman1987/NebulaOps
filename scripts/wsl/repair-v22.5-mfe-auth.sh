@@ -6,17 +6,17 @@ cd "$ROOT_DIR"
 
 ports=(4211 4212 4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223)
 
-log_step "Rebuilding all frontend/MFE runtime containers with the v22.5 auth bridge"
-"$ROOT_DIR/scripts/wsl/repair-v22.5-frontend-remotes.sh"
+log_step "Rebuilding all frontend/MFE runtime containers with the v23.1 auth bridge"
+"$ROOT_DIR/scripts/wsl/repair-v23.1-frontend-remotes.sh"
 
 check_auth_bridge_on_port() {
   local port="$1" body token
-  body="$(curl -fsS --max-time 8 "http://localhost:${port}/remoteEntry.js?v=v22.5.6-live-real-data" 2>/dev/null || true)"
+  body="$(curl -fsS --max-time 8 "http://localhost:${port}/remoteEntry.js?v=v23.1.0-live-real-data" 2>/dev/null || true)"
   if [ -z "$body" ]; then
     log_err "MFE ${port} did not serve remoteEntry.js"
     return 1
   fi
-  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v22.5 auth bridge|nebulaopsAuthBridge'; then
+  if ! printf '%s' "$body" | grep -Eq 'NebulaOps v23.1 auth bridge|nebulaopsAuthBridge'; then
     log_err "MFE ${port} is still serving a remoteEntry.js without auth bridge"
     return 1
   fi
@@ -46,12 +46,12 @@ cat <<'MSG'
 
 Standalone MFE auth is repaired.
 Open the browser in a fresh tab or incognito and use:
-  http://nebulaops.localhost/?v=v22.5.6-live-real-data
+  http://nebulaops.localhost/?v=v23.1.0-live-real-data
 
 In DevTools > Network, requests to /api/** from nebulaops.localhost/remotes/<module> should include:
   Authorization: Bearer ...
-  X-NebulaOps-Auth-Bridge: v22.5.6-live-real-data
+  X-NebulaOps-Auth-Bridge: v23.1.0-live-real-data
 
 If Chrome still shows old requests, clear site data for localhost or run:
-  ./scripts/wsl/clear-v22.5-browser-cache-note.sh
+  ./scripts/wsl/clear-v23.1-browser-cache-note.sh
 MSG

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 frontend runtime guard.
+# NebulaOps v23.1 frontend runtime guard.
 # Docker frontend/MFE images are nginx runtime images and therefore require prebuilt dist folders.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
@@ -22,7 +22,7 @@ for remote_dir in frontend/remotes/*; do
   check_file "$remote_dir/dist/browser/remoteEntry.js"
   check_file "$remote_dir/dist/browser/index.html"
   check_file "$remote_dir/dist/browser/nebulaops-auth-bridge.js"
-  if ! grep -Eq 'NebulaOps v22.5 auth bridge|nebulaopsAuthBridge' "$remote_dir/dist/browser/remoteEntry.js" 2>/dev/null; then
+  if ! grep -Eq 'NebulaOps v23.1 auth bridge|nebulaopsAuthBridge' "$remote_dir/dist/browser/remoteEntry.js" 2>/dev/null; then
     log_err "Missing auth bridge in $remote_dir/dist/browser/remoteEntry.js. Standalone MFE API calls will not receive Authorization Bearer tokens."
     missing=1
   fi
@@ -37,7 +37,7 @@ for remote_dir in frontend/remotes/*; do
 done
 
 if [ "$missing" -ne 0 ]; then
-  log_err "Frontend dist artifacts are incomplete or shell-incompatible. Run: ./scripts/wsl/repair-v22.5-frontend-remotes.sh"
+  log_err "Frontend dist artifacts are incomplete or shell-incompatible. Run: ./scripts/wsl/repair-v23.1-frontend-remotes.sh"
   exit 1
 fi
 

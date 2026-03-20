@@ -26,8 +26,8 @@ grep -q "/var/lib/apiforge" extensions/apiforge/k8s/deployment.yml || fail "APIF
 grep -q "Trivy" .github/workflows/ci.yml || fail "GitHub Trivy scan missing"
 grep -q "security:trivy-fs" .gitlab-ci.yml || fail "GitLab Trivy stage missing"
 grep -q "ANTHROPIC_API_KEY" .env.example || fail ".env.example missing ANTHROPIC_API_KEY"
-grep -R "NebulaOps v22.5 SECURITY WARNING" backend/*/src/main/resources/application.yml >/dev/null || fail "security warnings missing in application.yml"
+grep -R "NebulaOps v23.1 SECURITY WARNING" backend/*/src/main/resources/application.yml >/dev/null || fail "security warnings missing in application.yml"
 grep -q "class NebulaApiClient" frontend/src/app/api.config.ts || fail "typed NebulaApiClient missing"
 python3 -m py_compile ai-engine/app/main.py
 (cd go/cache-service && timeout 90s go test ./...)
-ok "v22.5 Fix 1-13 guard passed"
+ok "v23.1 Fix 1-13 guard passed"

@@ -5,6 +5,7 @@ import dev.nebulaops.auth.repo.UserAccountRepository;
 import dev.nebulaops.auth.service.JwtService;
 import io.jsonwebtoken.Claims;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v22.5 — Auth REST API with real JWT tokens (JJWT 0.12).
+ * v23.1 — Auth REST API with real JWT tokens (JJWT 0.12).
  *
  * POST /api/auth/login    → { accessToken, refreshToken, tokenType, expiresIn, user }
  * POST /api/auth/register → { user }
@@ -28,10 +29,17 @@ public class AuthController {
 
     private final UserAccountRepository users;
     private final JwtService            jwt;
+    private final boolean localAdminEnabled;
+    private final String defaultOrganizationId;
 
-    public AuthController(UserAccountRepository users, JwtService jwt) {
+    public AuthController(UserAccountRepository users,
+                          JwtService jwt,
+                          @Value("${nebulaops.auth.local-admin.enabled:false}") boolean localAdminEnabled,
+                          @Value("${nebulaops.default-organization-id:nebulaops}") String defaultOrganizationId) {
         this.users = users;
         this.jwt   = jwt;
+        this.localAdminEnabled = localAdminEnabled;
+        this.defaultOrganizationId = defaultOrganizationId == null || defaultOrganizationId.isBlank() ? "nebulaops" : defaultOrganizationId.trim();
     }
 
     @PostMapping("/register")
@@ -44,7 +52,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error","password must be at least 6 characters"));
 
         String orgId = (req.organizationId() == null || req.organizationId().isBlank())
-                       ? "default-org" : req.organizationId();
+                       ? defaultOrganizationId : req.organizationId();
         // In production: BCrypt hash. Dev mode: plain prefix.
         String pwdStored = "plain-dev-only-" + req.password();
         var user = new UserAccount(null, req.email(),
@@ -61,8 +69,8 @@ public class AuthController {
 
         var userOpt = users.findByEmail(req.email());
 
-        // Dev-mode admin shortcut (no MongoDB needed for admin/admin)
-        if (userOpt.isEmpty() && isDevAdmin(req)) {
+        // Optional local admin shortcut is disabled by default to avoid static users in runtime mode.
+        if (userOpt.isEmpty() && localAdminEnabled && isDevAdmin(req)) {
             return ResponseEntity.ok(devAdminTokenResponse(req.email()));
         }
 
@@ -115,12 +123,6 @@ public class AuthController {
         String token = extractToken(authHeader);
         if (token == null || !jwt.isValid(token))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error","Token required"));
-        // Dev admin token
-        if (token.startsWith("dev-jwt-admin-")) {
-            return ResponseEntity.ok(Map.of("user", Map.of(
-                "id","dev-admin","email","admin@nebulaops.dev",
-                "displayName","Admin","roles",Set.of("ADMIN","USER"),"orgId","default-org")));
-        }
         Claims claims = jwt.validateAndParse(token);
         return ResponseEntity.ok(Map.of("user", Map.of(
                 "id",          claims.getSubject(),
@@ -139,7 +141,7 @@ public class AuthController {
     }
 
     @GetMapping("/healthz")
-    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","22.5"); }
+    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","23.1"); }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
@@ -154,16 +156,16 @@ public class AuthController {
         // This lets standalone MFE modules bootstrap Authorization Bearer headers through
         // /api/auth/login and then call the gateway/API consistently in local development.
         String accessToken = jwt.generateAccessToken(
-                "dev-admin", email, "Admin", Set.of("ADMIN", "USER"), "default-org");
-        String refreshToken = jwt.generateRefreshToken("dev-admin");
+                "local-admin", email, "Local Admin", Set.of("ADMIN", "USER"), defaultOrganizationId);
+        String refreshToken = jwt.generateRefreshToken("local-admin");
         return Map.of(
                 "accessToken",  accessToken,
                 "refreshToken", refreshToken,
                 "tokenType",    "Bearer",
                 "expiresIn",    86400,
-                "user", Map.of("id","dev-admin","email",email,
-                               "displayName","Admin","roles",Set.of("ADMIN","USER"),
-                               "organizationId","default-org")
+                "user", Map.of("id","local-admin","email",email,
+                               "displayName","Local Admin","roles",Set.of("ADMIN","USER"),
+                               "organizationId", defaultOrganizationId)
         );
     }
 

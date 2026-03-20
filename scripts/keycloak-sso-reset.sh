@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# v22.5 — Reset Keycloak realm state and start the platform with OAuth2 Proxy protected tool UIs.
+# v23.1 — Reset Keycloak realm state and start the platform with OAuth2 Proxy protected tool UIs.
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v22-5}"
+PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v23-1}"
 
 echo "[nebulaops] Stopping stack and removing old Keycloak/OAuth2 session state..."
 docker compose -p "$PROJECT_NAME" -f docker-compose.yml down --remove-orphans || true
@@ -12,7 +12,7 @@ docker compose -p "$PROJECT_NAME" -f docker-compose.yml down --remove-orphans ||
 echo "[nebulaops] Removing Keycloak DB volume so realm/theme/client redirects are reimported..."
 for volume in \
   "${PROJECT_NAME}_keycloak-db-data" \
-  "nebulaops-v22-5_keycloak-db-data" \
+  "nebulaops-v23-1_keycloak-db-data" \
   "nebulaops_keycloak-db-data" \
   "keycloak-db-data"; do
   docker volume rm "$volume" 2>/dev/null || true

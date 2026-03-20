@@ -14,7 +14,7 @@ for remote_dir in frontend/remotes/*; do
     log_err "ESM export syntax found in $remote_dir/dist/browser/remoteEntry.js"
     bad=1
   fi
-  if ! grep -q 'v22.5.6-live-real-data' "$remote_dir/dist/browser/remoteEntry.js" 2>/dev/null; then
+  if ! grep -q 'v23.1.0-live-real-data' "$remote_dir/dist/browser/remoteEntry.js" 2>/dev/null; then
     log_err "Live real-data runtime marker missing in $remote_dir/dist/browser/remoteEntry.js"
     bad=1
   fi

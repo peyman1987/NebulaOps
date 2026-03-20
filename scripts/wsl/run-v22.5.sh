@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 one-command launcher.
+# NebulaOps v23.1 one-command launcher.
 # Builds frontend dist locally, packages frontend runtime images, builds backend/images,
 # starts the stack with SSO proxy, then runs health and smoke checks.
 set -euo pipefail
@@ -18,14 +18,14 @@ COMPOSE_ARGS=()
 usage() {
   cat <<'USAGE'
 Usage:
-  ./scripts/wsl/run-v22.5.sh [options]
+  ./scripts/wsl/run-v23.1.sh [options]
 
 Default behavior:
   1. build Angular shell and all MFE dist folders on WSL/host
   2. build frontend runtime nginx images
   3. docker compose build backend/remaining images
   4. start with ./scripts/wsl/start.sh --with-sso-proxy
-  5. run health and v22.5 live smoke checks
+  5. run health and v23.1 live smoke checks
 
 Options:
   --with-gitlab          Also start optional GitLab service.
@@ -37,9 +37,9 @@ Options:
   -h, --help             Show this help.
 
 Examples:
-  ./scripts/wsl/run-v22.5.sh
-  ./scripts/wsl/run-v22.5.sh --with-gitlab
-  ./scripts/wsl/run-v22.5.sh --skip-build
+  ./scripts/wsl/run-v23.1.sh
+  ./scripts/wsl/run-v23.1.sh --with-gitlab
+  ./scripts/wsl/run-v23.1.sh --skip-build
 USAGE
 }
 
@@ -70,7 +70,7 @@ banner() {
   echo "══════════════════════════════════════════════════════════════════"
 }
 
-banner "NebulaOps v22.5 one-command startup"
+banner "NebulaOps v23.1 one-command startup"
 echo "Workspace: $ROOT_DIR"
 
 need_cmd docker
@@ -121,18 +121,18 @@ banner "6) Health check"
 
 if [ "$SKIP_SMOKE" = false ]; then
   banner "7) Smoke test"
-  if [ -x ./scripts/wsl/smoke-v22.5-live.sh ]; then
-    ./scripts/wsl/smoke-v22.5-live.sh || {
-      echo "[WARN] v22.5 live smoke reported failures. Check logs with ./scripts/wsl/logs.sh"
+  if [ -x ./scripts/wsl/smoke-v23.1-live.sh ]; then
+    ./scripts/wsl/smoke-v23.1-live.sh || {
+      echo "[WARN] v23.1 live smoke reported failures. Check logs with ./scripts/wsl/logs.sh"
     }
-  elif [ -x ./scripts/wsl/smoke-v22.5.sh ]; then
-    ./scripts/wsl/smoke-v22.5.sh || {
-      echo "[WARN] v22.5 smoke reported failures. Check logs with ./scripts/wsl/logs.sh"
+  elif [ -x ./scripts/wsl/smoke-v23.1.sh ]; then
+    ./scripts/wsl/smoke-v23.1.sh || {
+      echo "[WARN] v23.1 smoke reported failures. Check logs with ./scripts/wsl/logs.sh"
     }
   fi
 fi
 
-banner "NebulaOps v22.5 is started"
+banner "NebulaOps v23.1 is started"
 cat <<NEXT
 Useful URLs:
   Shell:        http://nebulaops.localhost

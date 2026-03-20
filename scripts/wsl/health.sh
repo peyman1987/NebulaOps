@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v22.5 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
+# v23.1 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
@@ -52,7 +52,7 @@ check_required_service_endpoint() {
   elif running_service "$service"; then
     print_bad "$label" "service running but endpoint not reachable yet: $url"
   else
-    print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.5-red-endpoints.sh"
+    print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v23.1-red-endpoints.sh"
   fi
 }
 
@@ -61,14 +61,14 @@ check_mfe_remote() {
   body="$(curl -fsS --max-time 5 "$url" 2>/dev/null || true)"
   if [ -z "$body" ]; then
     if [ -n "$service" ] && ! running_service "$service"; then
-      print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v22.5-frontend-remotes.sh"
+      print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v23.1-frontend-remotes.sh"
     else
       print_bad "$label" "remoteEntry.js not reachable: $url"
     fi
     return 0
   fi
   if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
-    print_bad "$label" "ESM remoteEntry served; run ./scripts/wsl/repair-v22.5-frontend-remotes.sh"
+    print_bad "$label" "ESM remoteEntry served; run ./scripts/wsl/repair-v23.1-frontend-remotes.sh"
     return 0
   fi
   if printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'; then
@@ -199,6 +199,13 @@ else
 fi
 
 check_endpoint "Frontend shell" "${NEBULAOPS_PUBLIC_URL}/"
+check_mfe_remote "MFE Platform Catalog" "mfe-platform-catalog" "${NEBULAOPS_PUBLIC_URL}/remotes/platform-catalog/remoteEntry.js"
+check_mfe_remote "MFE Incident Command" "mfe-incident-command-center" "${NEBULAOPS_PUBLIC_URL}/remotes/incident-command-center/remoteEntry.js"
+check_mfe_remote "MFE Runtime Readiness" "mfe-runtime-readiness" "${NEBULAOPS_PUBLIC_URL}/remotes/runtime-readiness/remoteEntry.js"
+check_mfe_remote "MFE Docker Storage" "mfe-docker-storage-cleanup" "${NEBULAOPS_PUBLIC_URL}/remotes/docker-storage-cleanup/remoteEntry.js"
+check_mfe_remote "MFE Environment Config" "mfe-environment-configuration" "${NEBULAOPS_PUBLIC_URL}/remotes/environment-configuration/remoteEntry.js"
+check_mfe_remote "MFE Dependency Impact" "mfe-dependency-impact" "${NEBULAOPS_PUBLIC_URL}/remotes/dependency-impact/remoteEntry.js"
+check_mfe_remote "MFE Test Quality" "mfe-test-quality-dashboard" "${NEBULAOPS_PUBLIC_URL}/remotes/test-quality-dashboard/remoteEntry.js"
 check_mfe_remote "MFE Docker" "mfe-docker-desktop" "${NEBULAOPS_PUBLIC_URL}/remotes/docker-desktop/remoteEntry.js"
 check_mfe_remote "MFE OpenLens" "mfe-openlens-kubernetes" "${NEBULAOPS_PUBLIC_URL}/remotes/openlens-kubernetes/remoteEntry.js"
 check_mfe_remote "MFE Tasks" "mfe-task-management" "${NEBULAOPS_PUBLIC_URL}/remotes/task-management/remoteEntry.js"
@@ -267,7 +274,7 @@ check_optional_endpoint "GitLab" "gitlab" "http://localhost:8929/-/health"
 check_keycloak_login
 
 log_step "Sample API smoke test (gateway → microservices, Keycloak token)"
-check_authed_endpoint "Tasks list"        "${NEBULAOPS_PUBLIC_URL}/api/tasks?organizationId=default-org"
+check_authed_endpoint "Tasks list"        "${NEBULAOPS_PUBLIC_URL}/api/tasks"
 check_authed_endpoint "K8s snapshot"      "${NEBULAOPS_PUBLIC_URL}/api/kubernetes/snapshot"
 check_authed_endpoint "Docker containers" "${NEBULAOPS_PUBLIC_URL}/api/runtime/docker/containers"
 check_authed_endpoint "Helm releases"     "${NEBULAOPS_PUBLIC_URL}/api/runtime/helm/releases?namespace=all"

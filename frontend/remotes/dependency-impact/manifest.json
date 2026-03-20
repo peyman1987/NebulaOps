@@ -1,0 +1,10 @@
+{
+  "id": "dependency-impact",
+  "title": "Dependency & Impact Graph",
+  "version": "23.1.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-dependency-impact",
+  "port": 4231,
+  "scope": "Platform \u00b7 Dependency Graph \u00b7 Impact",
+  "shellOwnedNavigation": true
+}

@@ -1,4 +1,4 @@
-# NebulaOps v22.5 frontend shell + reverse proxy runtime image.
+# NebulaOps v23.1 frontend shell + reverse proxy runtime image.
 # IMPORTANT: npm install/build is intentionally NOT executed inside Docker.
 # Build dist locally first with: ./scripts/wsl/build-frontend-local.sh
 FROM nginx:1.27-alpine
@@ -9,7 +9,14 @@ COPY dist/nebulaops/browser/ /usr/share/nginx/html/
 
 # Serve shell-loaded MFE remoteEntry bundles as static same-origin assets.
 # This avoids runtime 404/502 failures caused by proxying each remoteEntry.js
-# through thirteen separate MFE containers during local startup.
+# through sixteen separate MFE containers during local startup.
+COPY remotes/platform-catalog/dist/browser/ /usr/share/nginx/html/remotes/platform-catalog/
+COPY remotes/incident-command-center/dist/browser/ /usr/share/nginx/html/remotes/incident-command-center/
+COPY remotes/runtime-readiness/dist/browser/ /usr/share/nginx/html/remotes/runtime-readiness/
+COPY remotes/docker-storage-cleanup/dist/browser/ /usr/share/nginx/html/remotes/docker-storage-cleanup/
+COPY remotes/environment-configuration/dist/browser/ /usr/share/nginx/html/remotes/environment-configuration/
+COPY remotes/dependency-impact/dist/browser/ /usr/share/nginx/html/remotes/dependency-impact/
+COPY remotes/test-quality-dashboard/dist/browser/ /usr/share/nginx/html/remotes/test-quality-dashboard/
 COPY remotes/docker-desktop/dist/browser/ /usr/share/nginx/html/remotes/docker-desktop/
 COPY remotes/openlens-kubernetes/dist/browser/ /usr/share/nginx/html/remotes/openlens-kubernetes/
 COPY remotes/task-management/dist/browser/ /usr/share/nginx/html/remotes/task-management/

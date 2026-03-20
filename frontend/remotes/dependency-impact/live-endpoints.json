@@ -1,0 +1,28 @@
+{
+  "endpoints": [
+    {
+      "label": "Dependency impact",
+      "url": "/api/platform/dependency-impact",
+      "kind": "dependency",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Runtime graph",
+      "url": "/api/platform/dependency-impact/graph",
+      "kind": "dependency-graph",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Unavailable dependencies",
+      "url": "/api/platform/dependency-impact/unavailable",
+      "kind": "dependency-unavailable",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Platform catalog dependencies",
+      "url": "/api/platform/catalog/dependencies",
+      "kind": "catalog-dependency",
+      "itemsPath": "items"
+    }
+  ]
+}

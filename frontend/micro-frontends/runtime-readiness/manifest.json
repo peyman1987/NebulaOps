@@ -1,0 +1,9 @@
+{
+  "id": "runtime-readiness",
+  "service": "mfe-runtime-readiness",
+  "tag": "nebulaops-mfe-runtime-readiness",
+  "port": 4228,
+  "title": "Runtime Readiness Dashboard",
+  "group": "Platform",
+  "navigation": "owned by shell side menu"
+}

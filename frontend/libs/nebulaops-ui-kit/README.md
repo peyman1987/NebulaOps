@@ -1,6 +1,6 @@
 # NebulaOps UI Kit
 
-Shared frontend primitives for NebulaOps v22.5 micro frontends.
+Shared frontend primitives for NebulaOps v23.1 micro frontends.
 
 This package is intentionally lightweight and framework-aligned with the existing Angular 18 remotes. It defines reusable UI contracts and CSS tokens for:
 

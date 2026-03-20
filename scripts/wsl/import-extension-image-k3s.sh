@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v22.5 — compatibility helper for k3s/containerd extension images.
+# NebulaOps v23.1 — compatibility helper for k3s/containerd extension images.
 # k3s/containerd is safer with a local registry than with ctr tar imports, so this
 # delegates to the normal extension deployer in registry mode.
 set -euo pipefail

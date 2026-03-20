@@ -1,131 +1,377 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width,initial-scale=1" name="viewport">
-    <title>APIForge · NebulaOps Extension</title>
-    <link href="/apiforge/css/app.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>APIForge · NebulaOps Extension</title>
+  <link href="/apiforge/css/app.css" rel="stylesheet">
 </head>
 <body>
-<div class="drop-overlay" id="dropOverlay">
-    <div>Drop a Postman JSON collection here</div>
+
+<!-- Drop overlay -->
+<div class="drop-overlay" id="dropOverlay"><div>⇩ Drop a Postman / OpenAPI JSON to import</div></div>
+
+<!-- Environment editor modal -->
+<div class="modal-overlay" id="envModal" onclick="if(event.target===this)closeEnvEditor()">
+  <div class="modal">
+    <div class="modal-head"><h2 id="envEditorTitle">Edit Environment</h2><button class="modal-close" onclick="closeEnvEditor()">×</button></div>
+    <div class="env-name-row"><label>Name</label><input id="envNameInput" placeholder="Environment name"></div>
+    <div class="env-table-wrap">
+      <table class="env-table">
+        <thead><tr><th>Variable</th><th>Initial Value</th><th>Current Value</th><th></th></tr></thead>
+        <tbody id="envVarRows"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="addEnvRow()">+ Variable</button>
+      <div class="modal-right">
+        <button class="danger-btn" onclick="deleteEnv()">Delete</button>
+        <button class="primary" onclick="saveEnvEditor()">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Keyboard shortcuts modal -->
+<div class="modal-overlay" id="shortcutsModal" onclick="if(event.target===this)$('#shortcutsModal').classList.remove('open')">
+  <div class="modal shortcuts-modal">
+    <div class="modal-head"><h2>Keyboard Shortcuts</h2><button class="modal-close" onclick="$('#shortcutsModal').classList.remove('open')">×</button></div>
+    <div class="shortcuts-grid">
+      <div class="shortcut-row"><kbd>Ctrl/⌘ Enter</kbd><span>Send request</span></div>
+      <div class="shortcut-row"><kbd>Ctrl/⌘ S</kbd><span>Save request</span></div>
+      <div class="shortcut-row"><kbd>Ctrl/⌘ T</kbd><span>New tab</span></div>
+      <div class="shortcut-row"><kbd>Ctrl/⌘ W</kbd><span>Close tab</span></div>
+      <div class="shortcut-row"><kbd>Ctrl/⌘ D</kbd><span>Duplicate tab</span></div>
+      <div class="shortcut-row"><kbd>Ctrl/⌘ /</kbd><span>Focus URL bar</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Collection Runner modal -->
+<div class="modal-overlay" id="runnerModal" onclick="if(event.target===this)closeRunner()">
+  <div class="modal runner-modal">
+    <div class="modal-head">
+      <h2>Collection Runner</h2>
+      <button class="modal-close" onclick="closeRunner()">×</button>
+    </div>
+    <div class="runner-config">
+      <div class="runner-config-row">
+        <label>Collection</label>
+        <select id="runnerColSelect"></select>
+      </div>
+      <div class="runner-config-row">
+        <label>Delay between requests (ms)</label>
+        <input type="number" id="runnerDelay" value="300" min="0" max="10000" style="width:120px">
+      </div>
+      <div class="runner-config-row">
+        <label><input type="checkbox" id="runnerStopOnError"> Stop on first error</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeRunner()">Cancel</button>
+      <button class="primary" id="runnerRunBtn" onclick="startRunner()">▶ Run Collection</button>
+    </div>
+    <div id="runnerResults" class="runner-results" style="display:none">
+      <div class="runner-summary" id="runnerSummary"></div>
+      <div id="runnerRows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Code snippet modal -->
+<div class="modal-overlay" id="codeModal" onclick="if(event.target===this)closeCodeModal()">
+  <div class="modal code-modal">
+    <div class="modal-head">
+      <h2>Generate Code Snippet</h2>
+      <button class="modal-close" onclick="closeCodeModal()">×</button>
+    </div>
+    <div class="code-lang-tabs">
+      <button class="active" data-lang="curl" onclick="selectCodeLang(this)">cURL</button>
+      <button data-lang="javascript" onclick="selectCodeLang(this)">JS Fetch</button>
+      <button data-lang="python" onclick="selectCodeLang(this)">Python</button>
+      <button data-lang="php" onclick="selectCodeLang(this)">PHP</button>
+      <button data-lang="go" onclick="selectCodeLang(this)">Go</button>
+      <button data-lang="java" onclick="selectCodeLang(this)">Java</button>
+    </div>
+    <pre id="codeSnippet" class="code-snippet"></pre>
+    <div class="modal-actions">
+      <button class="ghost" onclick="copyCodeSnippet()">⎘ Copy</button>
+      <button class="primary" onclick="closeCodeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import cURL modal -->
+<div class="modal-overlay" id="curlImportModal" onclick="if(event.target===this)closeCurlImport()">
+  <div class="modal">
+    <div class="modal-head"><h2>Import from cURL</h2><button class="modal-close" onclick="closeCurlImport()">×</button></div>
+    <textarea id="curlInput" style="min-height:120px;width:100%" placeholder='curl -X POST "https://<your-api-host>/users" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Alice\"}"'></textarea>
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeCurlImport()">Cancel</button>
+      <button class="primary" onclick="importFromCurl()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main app -->
 <div class="app shell-enter">
-    <aside class="sidebar">
-        <div class="brand"><span class="logo">⚒</span>
-            <div><b>APIForge</b><small>NebulaOps Extension · REST · GraphQL · WS</small></div>
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">⚒</span>
+      <div><b>APIForge</b><small>REST · GraphQL · WebSocket · Runner</small></div>
+    </div>
+
+    <!-- Environment row -->
+    <div class="env card">
+      <label>Environment</label>
+      <div class="env-controls">
+        <select id="envSelect"></select>
+        <button id="editEnvBtn" title="Edit variables" class="icon-btn">⚙</button>
+        <button id="newEnvBtn" title="New environment" class="icon-btn">+</button>
+      </div>
+    </div>
+
+    <!-- Sidebar tabs -->
+    <div class="side-tabs segmented">
+      <button class="active" data-side="collections">Collections</button>
+      <button data-side="history">History</button>
+    </div>
+
+    <!-- Collections search -->
+    <div class="sidebar-search" id="collectionsSearch">
+      <input id="collectionSearchInput" placeholder="Search requests…" oninput="filterCollections()">
+    </div>
+
+    <div class="side-panel" id="collections"></div>
+
+    <!-- History search -->
+    <div class="sidebar-search hidden" id="historySearch">
+      <input id="historySearchInput" placeholder="Search history…" oninput="filterHistory()">
+    </div>
+
+    <div class="side-panel hidden" id="history"></div>
+
+    <div class="sidebar-footer">
+      <div style="display:flex;gap:6px">
+        <button class="flex1 primary ghost" id="newCollection">+ New Collection</button>
+        <button class="icon-btn" id="runnerBtn" title="Collection Runner" onclick="openRunner()">▶</button>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="flex1 ghost" id="importBtn">↑ Import</button>
+        <button class="flex1 ghost" id="curlImportBtn" title="Import cURL" onclick="openCurlImport()">cURL</button>
+      </div>
+      <input type="file" id="importInput" accept=".json,.yaml,.yml" style="display:none">
+    </div>
+  </aside>
+
+  <main>
+    <!-- Tabs bar -->
+    <div class="topbar">
+      <div class="tabs" id="tabs"></div>
+      <div class="toolbar">
+        <button id="themePulse" title="Focus mode">✨</button>
+        <button id="shortcutsBtn" title="Shortcuts">⌨</button>
+        <button id="clearUi" title="New tab">⊕</button>
+      </div>
+    </div>
+
+    <!-- Request panel -->
+    <section class="request glass">
+      <div class="urlbar hero-bar">
+        <select id="method">
+          <option>GET</option><option>POST</option><option>PUT</option>
+          <option>PATCH</option><option>DELETE</option><option>HEAD</option>
+          <option>OPTIONS</option><option>GRAPHQL</option><option>WEBSOCKET</option>
+        </select>
+        <div class="url-wrap">
+          <input id="url" placeholder="https://<your-api-host>/endpoint {{BASE_URL}}/path" autocomplete="off" spellcheck="false">
+          <div class="url-vars-hint" id="urlVarsHint"></div>
         </div>
-        <div class="env card"><label>Environment</label><select id="envSelect"></select></div>
-        <div class="side-tabs segmented">
-            <button class="active" data-side="collections">Collections</button>
-            <button data-side="history">History</button>
+        <div class="send-group">
+          <button class="primary" id="send">Send</button>
+          <button class="primary dropdown-arrow" id="sendDropBtn" title="Options">▾</button>
         </div>
-        <div class="sidebar-hint">Drag & drop to reorder requests or import a Postman JSON collection.</div>
-        <div class="side-panel" id="collections"></div>
-        <div class="side-panel hidden" id="history"></div>
-        <button class="wide primary ghost" id="newCollection">+ Collection</button>
-    </aside>
-    <main>
-        <div class="topbar">
-            <div class="tabs" id="tabs"></div>
-            <div class="toolbar">
-                <button id="themePulse">✨ Focus</button>
-                <button id="clearUi">Reset UI</button>
-            </div>
+        <button id="saveReq" title="Save (Ctrl+S)">Save</button>
+        <button id="codeGenBtn" title="Generate code snippet">＜/＞</button>
+        <button id="copyCurl" title="Copy as cURL">cURL</button>
+      </div>
+
+      <!-- Timeout -->
+      <div class="timeout-row">
+        <label>Timeout</label>
+        <input type="number" id="timeout" value="30" min="1" max="300" style="width:65px">
+        <span>s</span>
+      </div>
+
+      <div class="subtabs">
+        <button class="active" data-tab="params">Params</button>
+        <button data-tab="auth">Auth</button>
+        <button data-tab="headers">Headers</button>
+        <button data-tab="body">Body</button>
+        <button data-tab="scripts">Scripts</button>
+        <button data-tab="graphql">GraphQL</button>
+        <button data-tab="ws">WebSocket</button>
+      </div>
+
+      <!-- Params -->
+      <div class="panel active" id="params">
+        <div class="panel-header"><h3>Query Params</h3><button class="add-btn" onclick="addKV('paramsRows')">+ Add</button></div>
+        <div class="kv-list" id="paramsRows"></div>
+      </div>
+
+      <!-- Auth -->
+      <div class="panel" id="auth">
+        <h3>Authentication</h3>
+        <div class="auth-row">
+          <select id="authType">
+            <option value="none">No Auth</option>
+            <option value="bearer">Bearer Token</option>
+            <option value="basic">Basic Auth</option>
+            <option value="apiKeyHeader">API Key – Header</option>
+            <option value="apiKeyQuery">API Key – Query Param</option>
+            <option value="jwt">JWT Token</option>
+            <option value="oauth2">OAuth 2.0</option>
+            <option value="digest">Digest Auth</option>
+            <option value="aws">AWS Signature v4</option>
+          </select>
         </div>
-        <section class="request glass">
-            <div class="urlbar hero-bar">
-                <select id="method">
-                    <option>GET</option>
-                    <option>POST</option>
-                    <option>PUT</option>
-                    <option>PATCH</option>
-                    <option>DELETE</option>
-                    <option>HEAD</option>
-                    <option>OPTIONS</option>
-                    <option>GRAPHQL</option>
-                    <option>WEBSOCKET</option>
-                </select>
-                <input id="url" placeholder="https://service.namespace.svc.cluster.local/api">
-                <button class="primary" id="send">Send</button>
-                <button id="saveReq">Save</button>
-                <button id="copyCurl">cURL</button>
-            </div>
-            <div class="subtabs">
-                <button class="active" data-tab="params">Params</button>
-                <button data-tab="auth">Auth</button>
-                <button data-tab="headers">Headers</button>
-                <button data-tab="body">Body</button>
-                <button data-tab="scripts">Scripts</button>
-                <button data-tab="graphql">GraphQL</button>
-                <button data-tab="ws">WebSocket</button>
-            </div>
-            <div class="panel active" id="params"><h3>Query Params</h3>
-                <div class="kv-list" id="paramsRows"></div>
-                <button onclick="addKV('paramsRows')">+ Param</button>
-            </div>
-            <div class="panel" id="auth"><h3>Authentication</h3><select id="authType">
-                <option value="none">No Auth</option>
-                <option value="bearer">Bearer Token</option>
-                <option value="basic">Basic Auth</option>
-                <option value="apiKeyHeader">API Key Header</option>
-                <option value="apiKeyQuery">API Key Query</option>
-                <option value="jwt">JWT</option>
-                <option value="oauth2">OAuth 2.0 Token</option>
-                <option value="digest">Digest Auth</option>
-                <option value="aws">AWS Signature</option>
+        <div class="auth-grid" id="authFields"></div>
+      </div>
+
+      <!-- Headers -->
+      <div class="panel" id="headers">
+        <div class="panel-header"><h3>Headers</h3><button class="add-btn" onclick="addKV('headerRows')">+ Add</button></div>
+        <div class="kv-list" id="headerRows"></div>
+        <div class="preset-headers">
+          <span class="preset-label">Presets:</span>
+          <button class="preset-btn" onclick="addPresetHeader('Content-Type','application/json')">JSON</button>
+          <button class="preset-btn" onclick="addPresetHeader('Accept','application/json')">Accept JSON</button>
+          <button class="preset-btn" onclick="addPresetHeader('Content-Type','application/xml')">XML</button>
+          <button class="preset-btn" onclick="addPresetHeader('Cache-Control','no-cache')">No-Cache</button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="panel" id="body">
+        <div class="panel-header">
+          <h3>Body</h3>
+          <div class="body-controls">
+            <select id="bodyType" onchange="onBodyTypeChange()">
+              <option value="none">none</option>
+              <option value="json">JSON</option>
+              <option value="xml">XML</option>
+              <option value="text">Text</option>
+              <option value="form">x-www-form-urlencoded</option>
+              <option value="multipart">Form-data (multipart)</option>
+              <option value="binary">Binary (file)</option>
             </select>
-                <div class="auth-grid" id="authFields"></div>
-            </div>
-            <div class="panel" id="headers"><h3>Headers</h3>
-                <div class="kv-list" id="headerRows"></div>
-                <button onclick="addKV('headerRows')">+ Header</button>
-            </div>
-            <div class="panel" id="body"><h3>Body</h3><select id="bodyType">
-                <option value="none">none</option>
-                <option value="json">JSON</option>
-                <option value="xml">XML</option>
-                <option value="text">Text</option>
-                <option value="form">x-www-form-urlencoded</option>
-                <option value="multipart">Form-data</option>
-                <option value="binary">Binary body</option>
-            </select>
-                <button id="beautify">Beautify</button>
-                <textarea id="bodyText" placeholder='{"field":"value"}' spellcheck="false"></textarea></div>
-            <div class="panel" id="scripts"><h3>Pre-request Script</h3><textarea id="preScript">pm.environment.set('LAST_RUN', new Date().toISOString())</textarea>
-                <h3>Tests</h3><textarea id="testScript">pm.test('status is 2xx', () => pm.response.status >= 200 && pm.response.status < 300)</textarea>
-            </div>
-            <div class="panel" id="graphql"><h3>GraphQL</h3>
-                <button id="prettifyGql">Prettify</button>
-                <textarea id="gqlQuery">query { __typename }</textarea><input id="gqlOperation"
-                                                                                           placeholder="operationName"><textarea
-                        id="gqlVars" placeholder='{"var":"value"}'></textarea></div>
-            <div class="panel" id="ws"><h3>WebSocket</h3>
-                <button id="wsConnect">Connect</button>
-                <button id="wsClose">Close</button>
-                <textarea id="wsLog" readonly></textarea>
-                <div class="urlbar"><input id="wsMsg" placeholder="message">
-                    <button id="wsSend">Send WS</button>
-                </div>
-            </div>
-        </section>
-        <div class="splitter" id="splitter" title="Trascina per ridimensionare"></div>
-        <section class="response glass">
-            <div class="meta" id="meta">Ready</div>
-            <div class="subtabs">
-                <button class="active" data-rtab="resBody">Body</button>
-                <button id="copyResponse">Copy Body</button>
-                <button data-rtab="resHeaders">Headers</button>
-                <button data-rtab="resCookies">Cookies</button>
-                <button data-rtab="resTests">Tests</button>
-            </div>
-            <pre class="rpanel active" id="resBody"></pre>
-            <pre class="rpanel" id="resHeaders"></pre>
-            <pre class="rpanel" id="resCookies"></pre>
-            <pre class="rpanel" id="resTests"></pre>
-        </section>
-    </main>
+            <button id="beautify">Beautify</button>
+          </div>
+        </div>
+        <textarea id="bodyText" placeholder='{"key": "value"}' spellcheck="false"></textarea>
+        <div id="multipartForm" style="display:none">
+          <div class="panel-header" style="margin-top:8px"><h3>Form Fields</h3><button class="add-btn" onclick="addMultipartRow()">+ Field</button></div>
+          <div id="multipartRows" class="kv-list"></div>
+        </div>
+        <div id="binaryUpload" style="display:none">
+          <input type="file" id="binaryFile" style="margin-top:8px">
+          <span id="binaryInfo" class="muted" style="font-size:11px;display:block;margin-top:4px"></span>
+        </div>
+      </div>
+
+      <!-- Scripts -->
+      <div class="panel" id="scripts">
+        <div class="scripts-split">
+          <div>
+            <h3>Pre-request Script <span class="hint-badge">pm.environment.set / pm.variables.set / console.log</span></h3>
+            <textarea id="preScript" spellcheck="false">// pm.environment.set('TOKEN', 'my-token');
+// pm.variables.set('KEY', 'value');
+</textarea>
+          </div>
+          <div>
+            <h3>Tests <span class="hint-badge">pm.test / pm.expect / pm.response</span></h3>
+            <textarea id="testScript" spellcheck="false">pm.test('Status is 2xx', () => {
+  pm.expect(pm.response.code).to.be.above(199).and.below(300);
+});
+pm.test('Response time < 2s', () => {
+  pm.expect(pm.response.responseTime).to.be.below(2000);
+});
+</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- GraphQL -->
+      <div class="panel" id="graphql">
+        <div class="panel-header"><h3>GraphQL</h3><button id="prettifyGql">Prettify</button></div>
+        <div class="gql-split">
+          <div>
+            <label class="field-label">Query</label>
+            <textarea id="gqlQuery" spellcheck="false">query {
+  __typename
+}</textarea>
+          </div>
+          <div>
+            <label class="field-label">Variables</label>
+            <textarea id="gqlVars" placeholder='{"var": "value"}' spellcheck="false"></textarea>
+            <label class="field-label" style="margin-top:8px">Operation Name</label>
+            <input id="gqlOperation" placeholder="operationName">
+          </div>
+        </div>
+      </div>
+
+      <!-- WebSocket -->
+      <div class="panel" id="ws">
+        <h3>WebSocket</h3>
+        <div class="ws-controls">
+          <button id="wsConnect" class="primary">Connect</button>
+          <button id="wsClose">Disconnect</button>
+          <span id="wsStatus" class="ws-status">●</span>
+        </div>
+        <textarea id="wsLog" readonly placeholder="Connection log will appear here…"></textarea>
+        <div class="urlbar ws-send-row">
+          <input id="wsMsg" placeholder="Message to send…">
+          <select id="wsMsgType" style="width:90px"><option value="text">Text</option><option value="json">JSON</option></select>
+          <button id="wsSend">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Splitter -->
+    <div class="splitter" id="splitter" title="Drag to resize"></div>
+
+    <!-- Response panel -->
+    <section class="response glass">
+      <div class="meta" id="meta">Ready · press Send or Ctrl+Enter</div>
+      <div class="subtabs res-subtabs">
+        <button class="active" data-rtab="resBody">Body</button>
+        <button data-rtab="resHeaders">Headers</button>
+        <button data-rtab="resCookies">Cookies</button>
+        <button data-rtab="resTests">Tests</button>
+        <button data-rtab="resConsole">Console</button>
+        <div class="res-toolbar">
+          <button id="copyResponse" title="Copy body">Copy</button>
+          <button id="saveResBtn" title="Save response as file">↓</button>
+          <button id="searchResBtn" title="Search in response">⌕</button>
+          <button id="wrapBtn" title="Toggle word wrap">⇔</button>
+        </div>
+      </div>
+      <div class="res-search" id="resSearch" style="display:none">
+        <input id="resSearchInput" placeholder="Search in response…">
+        <span id="resSearchCount"></span>
+        <button onclick="$('#resSearch').style.display='none'">×</button>
+      </div>
+      <pre class="rpanel active" id="resBody"></pre>
+      <div class="rpanel headers-panel" id="resHeaders"></div>
+      <pre class="rpanel" id="resCookies"></pre>
+      <div class="rpanel tests-panel" id="resTests"></div>
+      <div class="rpanel console-panel" id="resConsole"><div class="empty-state">No console output. Use <code>console.log()</code> in scripts.</div></div>
+    </section>
+  </main>
 </div>
+
 <div class="toast" id="toast"></div>
 <script src="/apiforge/js/app.js"></script>
 </body>

@@ -76,13 +76,13 @@ public class ReleaseOrchestratorController {
     @PostMapping
     public ResponseEntity<Object> create(@RequestBody Map<String,Object> body) {
         String app = String.valueOf(body.getOrDefault("application", "nebulaops-service"));
-        String version = String.valueOf(body.getOrDefault("version", "22.5.0"));
+        String version = String.valueOf(body.getOrDefault("version", "23.1.0"));
         Map<String,Object> r = new LinkedHashMap<>();
         r.put("id", "rel-" + UUID.randomUUID());
         r.put("application", app);
         r.put("version", version);
         r.put("status", "CREATED");
-        r.put("image", body.getOrDefault("image", "nebulaops-v22-5-" + app + ":" + version));
+        r.put("image", body.getOrDefault("image", app + ":" + version));
         r.put("environment", body.getOrDefault("environment", "local"));
         r.put("createdAt", Instant.now().toString());
         createdReleases.add(0, r);

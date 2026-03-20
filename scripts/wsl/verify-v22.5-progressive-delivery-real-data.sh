@@ -10,7 +10,7 @@ for file in "$remote/remoteEntry.js" "$remote/dist/browser/remoteEntry.js"; do
     bad=1
     continue
   fi
-  if ! grep -q 'v22.5.6-live-real-data-progressive-delivery' "$file"; then
+  if ! grep -q 'v23.1.0-live-real-data-progressive-delivery' "$file"; then
     log_err "Progressive Delivery live runtime marker missing in $file"
     bad=1
   fi

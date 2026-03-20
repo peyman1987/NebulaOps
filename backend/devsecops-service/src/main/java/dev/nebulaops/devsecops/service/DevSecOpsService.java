@@ -30,6 +30,19 @@ public class DevSecOpsService {
         return Map.of("live", r.ok(), "tool", "grep", "items", r.ok() && !r.stdout().isBlank() ? java.util.Arrays.asList(r.stdout().split("\\R")) : List.of(), "toolStatus", r.status());
     }
 
+    public Map<String, Object> sbom(String image) {
+        String safe = safeImage(image);
+        if (safe == null || safe.isBlank()) {
+            return Map.of(
+                    "live", false,
+                    "tool", "trivy",
+                    "data", Map.of(),
+                    "toolStatus", Map.of("ok", false, "message", "No image was provided. Pass a real image reference to generate a live CycloneDX SBOM.")
+            );
+        }
+        return jsonTool("trivy", "trivy image --format cyclonedx --quiet " + safe, 180);
+    }
+
     private Map<String, Object> jsonTool(String tool, String cmd, int timeout) {
         var r = exec.shell(cmd, timeout);
         Object data = List.of();

@@ -37,6 +37,25 @@ public class KeycloakIdentityAdminService {
         this.auditClient = auditClient;
     }
 
+    public Map<String, Object> realmStatus(String realm) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("realm", realm);
+        out.put("baseUrl", baseUrl);
+        out.put("realDataOnly", true);
+        try {
+            Map<String, Object> realmInfo = getMap(adminUrl(realm, ""));
+            out.put("live", true);
+            out.put("state", "KEYCLOAK_REALM_AVAILABLE");
+            out.put("message", "Keycloak realm is reachable through the admin API.");
+            out.put("realmInfo", realmInfo);
+        } catch (Exception e) {
+            out.put("live", false);
+            out.put("state", classifyKeycloak(e));
+            out.put("message", e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+        return out;
+    }
+
     public List<Object> users(String realm, String search) {
         String cacheKey = "identity:" + realm + ":users:" + (search == null ? "" : search.trim().toLowerCase(Locale.ROOT));
         var cached = cache.getList(cacheKey);
@@ -190,6 +209,14 @@ public class KeycloakIdentityAdminService {
         Object token = response.getBody() == null ? null : response.getBody().get("access_token");
         if (token == null) throw new IllegalStateException("Keycloak admin token unavailable");
         return String.valueOf(token);
+    }
+
+    private String classifyKeycloak(Exception e) {
+        String msg = String.valueOf(e.getMessage()).toLowerCase(Locale.ROOT);
+        if (msg.contains("401") || msg.contains("403")) return "KEYCLOAK_ADMIN_CREDENTIALS_INVALID";
+        if (msg.contains("404")) return "KEYCLOAK_REALM_NOT_FOUND";
+        if (msg.contains("connection refused") || msg.contains("i/o error")) return "KEYCLOAK_UNREACHABLE";
+        return "KEYCLOAK_REALM_UNAVAILABLE";
     }
 
     private String adminUrl(String realm, String path) {

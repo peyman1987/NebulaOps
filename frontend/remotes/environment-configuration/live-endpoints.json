@@ -1,0 +1,28 @@
+{
+  "endpoints": [
+    {
+      "label": "Configuration overview",
+      "url": "/api/platform/environment",
+      "kind": "configuration",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Variables",
+      "url": "/api/platform/environment/variables",
+      "kind": "configuration-variable",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Feature flags",
+      "url": "/api/platform/environment/feature-flags",
+      "kind": "feature-flag",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Configuration risks",
+      "url": "/api/platform/environment/risks",
+      "kind": "configuration-risk",
+      "itemsPath": "items"
+    }
+  ]
+}

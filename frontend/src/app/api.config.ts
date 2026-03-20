@@ -1,5 +1,5 @@
 /**
- * v22.5 — Centralized frontend API configuration.
+ * v23.1 — Centralized frontend API configuration.
  * Public browser access is served through the same reverse-proxy origin:
  *   http://nebulaops.localhost
  *
@@ -177,10 +177,10 @@ export const API = {
   },
 } as const;
 
-export const APP_VERSION = '22.5';
-export const APP_RELEASE = 'v22.5';
-export const JWT_KEY     = 'nebulaops.v22_5.jwt';
-export const USER_KEY    = 'nebulaops.v22_5.user';
+export const APP_VERSION = '23.1';
+export const APP_RELEASE = 'v23.1';
+export const JWT_KEY     = 'nebulaops.v23_1.jwt';
+export const USER_KEY    = 'nebulaops.v23_1.user';
 
 // ── Keycloak OIDC (Authorization Code + PKCE) ──────────────────
 export const KC_BASE         = '/keycloak';
@@ -193,7 +193,7 @@ export const KC_LOGOUT_URL   = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-co
 export const KC_USERINFO_URL = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/userinfo`;
 
 
-// ── Typed API client v22.5 ─────────────────────────────────────
+// ── Typed API client v23.1 ─────────────────────────────────────
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiRequestOptions<TBody = unknown> {

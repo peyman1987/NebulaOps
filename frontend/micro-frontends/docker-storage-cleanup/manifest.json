@@ -1,0 +1,9 @@
+{
+  "id": "docker-storage-cleanup",
+  "service": "mfe-docker-storage-cleanup",
+  "tag": "nebulaops-mfe-docker-storage-cleanup",
+  "port": 4229,
+  "title": "Docker Storage & Cleanup Center",
+  "group": "Runtime",
+  "navigation": "owned by shell side menu"
+}

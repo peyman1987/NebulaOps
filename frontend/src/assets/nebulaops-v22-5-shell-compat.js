@@ -1,5 +1,5 @@
 (() => {
-  const styleId = 'nebulaops-v22-5-shell-compat-style';
+  const styleId = 'nebulaops-v23-1-shell-compat-style';
   if (!document.getElementById(styleId)) {
     const style = document.createElement('style');
     style.id = styleId;

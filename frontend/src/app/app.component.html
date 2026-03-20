@@ -1,5 +1,5 @@
 <!-- ══════════════════════════════════════════════════════════
-     NebulaOps v22.5 · Shell Host · Login
+     NebulaOps v23.1 · Shell Host · Login
 ══════════════════════════════════════════════════════════ -->
 <section *ngIf="!authenticated()" class="login-scene">
   <div class="grid-horizon"></div>
@@ -16,11 +16,11 @@
       </div>
       <div class="brand-text">
         <p class="kicker">NEBULAOPS ENTERPRISE PLATFORM</p>
-        <h1>Micro Frontend<br>Shell <span class="version-glow">v22.5</span></h1>
+        <h1>Micro Frontend<br>Shell <span class="version-glow">v23.1</span></h1>
       </div>
     </div>
 
-    <p class="login-lead">Shell Angular con sidebar persistente, tredici micro frontend remoti indipendenti e command palette operativa. Ogni remote è deployabile separatamente; la navigazione globale resta nella shell.</p>
+    <p class="login-lead">Shell Angular con sidebar persistente, sedici micro frontend remoti indipendenti e command palette operativa. Ogni remote è deployabile separatamente; la navigazione globale resta nella shell.</p>
 
     <div class="login-mfe-tags">
       <span class="mfe-tag cyan">🐳 Docker</span>
@@ -78,7 +78,7 @@
       </div>
       <div class="sidebar-brand-text">
         <b>NebulaOps</b>
-        <small>Enterprise Platform v22.5</small>
+        <small>Enterprise Platform v23.1</small>
       </div>
     </div>
 
@@ -129,7 +129,7 @@
     <div class="sidebar-footer">
       <div class="sidebar-status-row">
         <span class="status-dot status-green"></span>
-        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v22.5</span>
+        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v23.1</span>
       </div>
       <div class="neb-footer-actions">
         <button class="launcher-trigger" type="button" (click)="openLauncher()">
@@ -194,7 +194,7 @@
         </div>
         <div class="session-user">{{ currentUser() }}</div>
         <div class="session-info">JWT token shared with all remotes through localStorage and the Authorization Bearer header.</div>
-        <code class="session-code">nebulaops.v22_5.jwt</code>
+        <code class="session-code">nebulaops.v23_1.jwt</code>
       </div>
     </header>
 
@@ -223,6 +223,13 @@
         </a>
       </div>
 
+      <nebulaops-mfe-platform-catalog    *ngIf="activeRemote() === 'platform-catalog'"></nebulaops-mfe-platform-catalog>
+      <nebulaops-mfe-incident-command-center *ngIf="activeRemote() === 'incident-command-center'"></nebulaops-mfe-incident-command-center>
+      <nebulaops-mfe-runtime-readiness *ngIf="activeRemote() === 'runtime-readiness'"></nebulaops-mfe-runtime-readiness>
+      <nebulaops-mfe-docker-storage-cleanup *ngIf="activeRemote() === 'docker-storage-cleanup'"></nebulaops-mfe-docker-storage-cleanup>
+      <nebulaops-mfe-environment-configuration *ngIf="activeRemote() === 'environment-configuration'"></nebulaops-mfe-environment-configuration>
+      <nebulaops-mfe-dependency-impact *ngIf="activeRemote() === 'dependency-impact'"></nebulaops-mfe-dependency-impact>
+      <nebulaops-mfe-test-quality-dashboard *ngIf="activeRemote() === 'test-quality-dashboard'"></nebulaops-mfe-test-quality-dashboard>
       <nebulaops-mfe-docker-desktop      *ngIf="activeRemote() === 'docker-desktop'"></nebulaops-mfe-docker-desktop>
       <nebulaops-mfe-openlens-kubernetes *ngIf="activeRemote() === 'openlens-kubernetes'"></nebulaops-mfe-openlens-kubernetes>
       <nebulaops-mfe-task-management     *ngIf="activeRemote() === 'task-management'"></nebulaops-mfe-task-management>
@@ -249,9 +256,9 @@
         <div>
           <p class="kicker">NEBULAOPS COMMAND PALETTE</p>
           <h2>Global Search · MFE, services, routes</h2>
-          <small>Ricerca operativa centralizzata per navigare rapidamente la piattaforma v22.5.</small>
+          <small>Ricerca operativa centralizzata per navigare rapidamente la piattaforma v23.1.</small>
         </div>
-        <button type="button" class="launcher-close" (click)="closeCommandPalette()" aria-label="Chiudi">×</button>
+        <button type="button" class="launcher-close" (click)="closeCommandPalette()" aria-label="Close">×</button>
       </header>
       <label class="launcher-search-row">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -282,10 +289,10 @@
       <header class="launcher-header">
         <div>
           <p class="kicker">NEBULAOPS APP BAR</p>
-          <h2>Launcher · Servizi &amp; Porte</h2>
-          <small>Accesso diretto a tutti i servizi della piattaforma. Il menu laterale resta attivo.</small>
+          <h2>Launcher · Services &amp; Ports</h2>
+          <small>Direct access to platform services. The sidebar remains active.</small>
         </div>
-        <button type="button" class="launcher-close" (click)="closeLauncher()" aria-label="Chiudi">
+        <button type="button" class="launcher-close" (click)="closeLauncher()" aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </header>

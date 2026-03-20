@@ -1,70 +1,12 @@
 {
   "endpoints": [
-    {
-      "label": "Platform overview",
-      "url": "/api/observability/overview?organizationId=default-org",
-      "kind": "overview",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Service health",
-      "url": "/api/observability/services",
-      "kind": "health",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Observability stack",
-      "url": "/api/observability/stack",
-      "kind": "probe",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Prometheus up",
-      "url": "/api/observability/metrics/prometheus?query=up",
-      "kind": "metric",
-      "itemsPath": "items"
-    },
-    {
-      "label": "HTTP request rate",
-      "url": "/api/observability/metrics/prometheus?query=sum(rate(http_server_requests_seconds_count%5B5m%5D))",
-      "kind": "metric",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Loki logs",
-      "url": "/api/observability/logs/loki?query=%7Bjob%3D~%22.%2B%22%7D",
-      "kind": "log",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Tempo traces",
-      "url": "/api/observability/traces/tempo?limit=20",
-      "kind": "trace",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Audit trail",
-      "url": "/api/observability/audit/events?limit=100",
-      "kind": "audit",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Task events",
-      "url": "/api/observability/events/tasks?organizationId=default-org",
-      "kind": "task",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Notification events",
-      "url": "/api/observability/events/notifications?limit=100",
-      "kind": "notification",
-      "itemsPath": "items"
-    },
-    {
-      "label": "RabbitMQ overview",
-      "url": "/api/observability/events/rabbitmq",
-      "kind": "broker",
-      "itemsPath": "items"
-    }
+    { "label": "Incident timeline", "url": "/api/observability/incidents/timeline?limit=150", "kind": "incident", "itemsPath": "items" },
+    { "label": "Service health", "url": "/api/observability/services", "kind": "health", "itemsPath": "items" },
+    { "label": "Prometheus up", "url": "/api/observability/metrics/prometheus?query=up", "kind": "metric", "itemsPath": "items" },
+    { "label": "Loki logs", "url": "/api/observability/logs/loki?query=%7Bjob%3D~%22.%2B%22%7D", "kind": "log", "itemsPath": "items" },
+    { "label": "Tempo traces", "url": "/api/observability/traces/tempo?limit=20", "kind": "trace", "itemsPath": "items" },
+    { "label": "RabbitMQ overview", "url": "/api/observability/events/rabbitmq", "kind": "broker", "itemsPath": "items" },
+    { "label": "Audit trail", "url": "/api/observability/audit/events?limit=100", "kind": "audit", "itemsPath": "items" },
+    { "label": "Notifications", "url": "/api/observability/events/notifications?limit=100", "kind": "notification", "itemsPath": "items" }
   ]
 }

@@ -1,0 +1,76 @@
+{
+  "endpoints": [
+    {
+      "label": "Incident overview",
+      "url": "/api/incidents/command-center?limit=150",
+      "kind": "incident-overview",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Incident list",
+      "url": "/api/incidents/command-center/incidents?limit=150",
+      "kind": "incident",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Incident timeline",
+      "url": "/api/incidents/command-center/timeline?limit=150",
+      "kind": "timeline-event",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Impacted services",
+      "url": "/api/incidents/command-center/services",
+      "kind": "service-health",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Correlated logs",
+      "url": "/api/incidents/command-center/logs",
+      "kind": "log-event",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Linked metrics",
+      "url": "/api/incidents/command-center/metrics",
+      "kind": "metric",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Linked traces",
+      "url": "/api/incidents/command-center/traces?limit=50",
+      "kind": "trace",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Notifications",
+      "url": "/api/incidents/command-center/notifications?limit=100",
+      "kind": "notification",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Generated tasks",
+      "url": "/api/incidents/command-center/tasks",
+      "kind": "task",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Release rollback context",
+      "url": "/api/incidents/command-center/releases",
+      "kind": "release",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Kubernetes pods and logs",
+      "url": "/api/incidents/command-center/kubernetes?namespace=default",
+      "kind": "kubernetes-context",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Suggested actions",
+      "url": "/api/incidents/command-center/suggestions?namespace=default",
+      "kind": "suggestion",
+      "itemsPath": "items"
+    }
+  ]
+}

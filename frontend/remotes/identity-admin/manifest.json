@@ -1,10 +1,10 @@
 {
   "id": "identity-admin",
   "title": "Identity Admin",
-  "version": "22.5.0",
+  "version": "23.1.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-identity-admin",
-  "port": 4214,
-  "scope": "Identity \u00b7 Keycloak Realm",
+  "port": 4226,
+  "scope": "Identity · Keycloak Realm",
   "shellOwnedNavigation": true
 }

@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * NebulaOps v22.5 — UI-controlled extension control plane.
+ * NebulaOps v23.1 — UI-controlled extension control plane.
  *
  * Installed extensions are explicit and limited to APIForge, KubeBridge and Contract Hub.
  * The controller never creates mock data: status is read from kubectl, Docker/local-registry
@@ -56,9 +56,9 @@ public class ExtensionControlController {
         this.tools = tools;
         this.rest = rest;
         this.extensions = Map.of(
-                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v22-5-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
-                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v22-5-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
-                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v22-5-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
+                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-1-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
+                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-1-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
+                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-1-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
         );
     }
 
@@ -66,9 +66,16 @@ public class ExtensionControlController {
     public Map<String, Object> listExtensions() {
         List<Map<String, Object>> items = new ArrayList<>();
         for (ExtensionSpec spec : installedExtensions()) {
-            items.add(statusBody(spec));
+            items.add(lightweightStatusBody(spec));
         }
-        return Map.of("live", true, "items", items, "generatedAt", Instant.now().toString());
+        return Map.of(
+                "live", true,
+                "realDataOnly", true,
+                "mode", "FAST_EXTENSION_REGISTRY",
+                "message", "Installed extension registry returned without blocking kubectl probes. Use /api/extensions/{slug}/status for deep runtime status.",
+                "items", items,
+                "generatedAt", Instant.now().toString()
+        );
     }
 
     @GetMapping("/api/extensions/{slug}/status")
@@ -121,7 +128,7 @@ public class ExtensionControlController {
 <body>
   <div class=\"wrap\">
     <div class=\"hero\">
-      <div><p class=\"kicker\">NEBULAOPS EXTENSION CONTROL</p><h1>Installed Extensions</h1><p>Start, stop, restart, inspect and open installed NebulaOps extensions. The control plane uses Docker, the local registry and kubectl; no mock data is generated.</p></div>
+      <div><p class=\"kicker\">NEBULAOPS EXTENSION CONTROL</p><h1>Installed Extensions</h1><p>Installed extensions are disabled by default. Start, stop, restart, inspect and open them explicitly. The control plane uses Docker, the local registry and kubectl; no mock data is generated.</p></div>
       <span class=\"pill\"><span id=\"dot\" class=\"dot\"></span><span id=\"state\">CHECKING</span></span>
     </div>
     <section class=\"grid\">
@@ -144,7 +151,7 @@ public class ExtensionControlController {
     </section>
   </div>
 <script>
-const token=localStorage.getItem('nebulaops.v22_5.jwt')||'';
+const token=localStorage.getItem('nebulaops.v23_1.jwt')||'';
 const headers=token?{Authorization:'Bearer '+token}:{};
 const log=document.getElementById('log');
 let items=[]; let selected=new URLSearchParams(location.search).get('extension') || 'apiforge';
@@ -262,6 +269,10 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
         out.put("apply", resultMap(apply));
         if (!apply.ok()) return failed(out, "KUBERNETES_APPLY_FAILED", apply, spec);
 
+        ToolResult scale = run("kubectl -n " + q(NAMESPACE) + " scale deployment/" + q(spec.slug()) + " --replicas=1", 90);
+        out.put("scale", resultMap(scale));
+        if (!scale.ok()) return failed(out, "KUBERNETES_SCALE_FAILED", scale, spec);
+
         String restartCommand = restartOnly
                 ? "kubectl -n " + q(NAMESPACE) + " rollout restart deployment/" + q(spec.slug())
                 : "kubectl -n " + q(NAMESPACE) + " rollout restart deployment/" + q(spec.slug()) + " >/dev/null 2>&1 || true";
@@ -279,12 +290,38 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
         return out;
     }
 
+
+    private Map<String, Object> lightweightStatusBody(ExtensionSpec spec) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", spec.slug());
+        out.put("title", spec.title());
+        out.put("icon", spec.icon());
+        out.put("category", spec.category());
+        out.put("enabledByDefault", false);
+        out.put("defaultState", "DISABLED");
+        out.put("state", "DISABLED_BY_DEFAULT");
+        out.put("deployment", "NOT_PROBED");
+        out.put("service", "NOT_PROBED");
+        out.put("pods", "NOT_PROBED");
+        out.put("readyReplicas", 0);
+        out.put("replicas", 0);
+        out.put("gatewayProxy", "NOT_PROBED");
+        out.put("openUrl", spec.openUrl());
+        out.put("healthPath", spec.healthPath());
+        out.put("statusUrl", "/api/extensions/" + spec.slug() + "/status");
+        out.put("message", "Extension is installed and disabled by default. Deep status is loaded on demand to avoid gateway timeouts.");
+        out.put("generatedAt", Instant.now().toString());
+        return out;
+    }
+
     private Map<String, Object> statusBody(ExtensionSpec spec) {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", spec.slug());
         out.put("title", spec.title());
         out.put("icon", spec.icon());
         out.put("category", spec.category());
+        out.put("enabledByDefault", false);
+        out.put("defaultState", "DISABLED");
         ToolResult deploy = run("kubectl -n " + q(NAMESPACE) + " get deploy " + q(spec.slug()) + " -o jsonpath='{.status.readyReplicas}:{.spec.replicas}'", 12);
         ToolResult svc = run("kubectl -n " + q(NAMESPACE) + " get svc " + q(spec.slug()) + " -o jsonpath='{.spec.type}:{.spec.ports[0].nodePort}'", 12);
         ToolResult pods = run("kubectl -n " + q(NAMESPACE) + " get pods -l app=" + q(spec.slug()) + " --no-headers 2>/dev/null | awk '{print $3}' | paste -sd, -", 12);
@@ -310,9 +347,9 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
     }
 
     private ToolResult ensureRegistry() {
-        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v22-5-registry || "
-                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v22-5-registry && docker start nebulaops-v22-5-registry >/dev/null) || "
-                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v22-5-registry registry:2 >/dev/null", 60);
+        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-1-registry || "
+                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-1-registry && docker start nebulaops-v23-1-registry >/dev/null) || "
+                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-1-registry registry:2 >/dev/null", 60);
     }
 
     private ToolResult applyManifest(ExtensionSpec spec, String deployedImage) {

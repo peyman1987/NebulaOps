@@ -1,45 +1,12 @@
 {
   "endpoints": [
-    {
-      "label": "Governance summary",
-      "url": "/api/governance",
-      "kind": "summary"
-    },
-    {
-      "label": "OPA policies",
-      "url": "/api/governance/policies",
-      "kind": "policy",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Decisions",
-      "url": "/api/governance/decisions",
-      "kind": "decision",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Approval requests",
-      "url": "/api/governance/approvals",
-      "kind": "approval",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Violations",
-      "url": "/api/governance/violations",
-      "kind": "violation",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Governance audit events",
-      "url": "/api/audit/events?type=GOVERNANCE_APPROVAL_REQUESTED&limit=100",
-      "kind": "audit",
-      "itemsPath": "items"
-    },
-    {
-      "label": "Notifications",
-      "url": "/api/notifications?limit=100",
-      "kind": "notification",
-      "itemsPath": "items"
-    }
+    { "label": "Governance summary", "url": "/api/governance", "kind": "summary" },
+    { "label": "OPA policies", "url": "/api/governance/policies", "kind": "policy", "itemsPath": "items" },
+    { "label": "Policy decisions", "url": "/api/governance/decisions", "kind": "decision", "itemsPath": "items" },
+    { "label": "Approval workflow", "url": "/api/governance/approvals", "kind": "approval", "itemsPath": "items" },
+    { "label": "Violations", "url": "/api/governance/violations", "kind": "violation", "itemsPath": "items" },
+    { "label": "Release gates", "url": "/api/releases", "kind": "release" },
+    { "label": "DevSecOps findings", "url": "/api/platform/devsecops", "kind": "finding", "itemsPath": "cves" },
+    { "label": "Governance audit", "url": "/api/audit/events?type=GOVERNANCE&limit=100", "kind": "audit", "itemsPath": "items" }
   ]
 }

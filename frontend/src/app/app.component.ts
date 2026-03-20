@@ -15,9 +15,9 @@ import {
   PUBLIC_ORIGIN
 } from './api.config';
 
-const REMOTE_ENTRY_BUILD = 'v22.5.10-localhost-final';
+const REMOTE_ENTRY_BUILD = 'v23.1.40-operational-excellence';
 
-type RemoteId = 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'progressive-delivery' | 'notification-center' | 'identity-admin';
+type RemoteId = 'platform-catalog' | 'incident-command-center' | 'runtime-readiness' | 'docker-storage-cleanup' | 'environment-configuration' | 'dependency-impact' | 'test-quality-dashboard' | 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'progressive-delivery' | 'notification-center' | 'identity-admin';
 type ServiceGroup = 'Identity' | 'Runtime' | 'Observability' | 'Data' | 'DevOps' | 'Micro Frontend' | 'Release' | 'Governance' | 'Notifications' | 'Extensions';
 
 interface RemoteDefinition {
@@ -59,8 +59,8 @@ export class AppComponent implements OnInit {
   readonly release = APP_RELEASE;
   readonly loginError = signal('');
   readonly authenticated = signal(Boolean(localStorage.getItem(JWT_KEY)));
-  readonly currentUser = signal(localStorage.getItem(USER_KEY) || 'peyman@nebulaops.local');
-  readonly activeRemote = signal<RemoteId>('docker-desktop');
+  readonly currentUser = signal(localStorage.getItem(USER_KEY) || 'Unauthenticated operator');
+  readonly activeRemote = signal<RemoteId>('platform-catalog');
   readonly loadingRemote = signal(false);
   readonly remoteError = signal('');
   readonly appLauncherOpen = signal(false);
@@ -70,6 +70,7 @@ export class AppComponent implements OnInit {
     gateway: 'CHECKING',
     releases: 'CHECKING',
     policies: 'CHECKING',
+    catalog: 'CHECKING',
     notifications: 'CHECKING',
   });
   readonly commandPaletteOpen = signal(false);
@@ -78,6 +79,104 @@ export class AppComponent implements OnInit {
   readonly loadedRemotes = new Set<RemoteId>();
 
   readonly remotes: RemoteDefinition[] = [
+    {
+      id: 'platform-catalog',
+      tag: 'nebulaops-mfe-platform-catalog',
+      title: 'Platform Catalog & Service Registry',
+      subtitle: 'Central runtime catalog for MFE, backend services, ports, endpoints, owners, health, OpenAPI, logs, metrics, traces, releases and policies.',
+      icon: '📚',
+      route: '/remotes/platform-catalog/',
+      color: 'blue',
+      scope: 'Platform · Catalog/Registry',
+      group: 'Platform',
+      service: 'mfe-platform-catalog',
+      path: '/remotes/platform-catalog/remoteEntry.js',
+      status: 'remote app · live service registry'
+    },
+    {
+      id: 'incident-command-center',
+      tag: 'nebulaops-mfe-incident-command-center',
+      title: 'Incident Command Center',
+      subtitle: 'SRE incident command workspace joining real incidents, timeline, impacted services, logs, metrics, traces, notifications, tasks, runbooks, releases and Kubernetes pod/log context.',
+      icon: '🚨',
+      route: '/remotes/incident-command-center/',
+      color: 'red',
+      scope: 'SRE · Incident Command/RCA/Runbooks',
+      group: 'SRE',
+      service: 'mfe-incident-command-center',
+      path: '/remotes/incident-command-center/remoteEntry.js',
+      status: 'remote app · live incident command center'
+    },
+    {
+      id: 'runtime-readiness',
+      tag: 'nebulaops-mfe-runtime-readiness',
+      title: 'Runtime Readiness Dashboard',
+      subtitle: 'Single readiness view for Docker, Kubernetes, backend services, observability tools, identity, messaging, data stores and MFE bundles.',
+      icon: '🟢',
+      route: '/remotes/runtime-readiness/',
+      color: 'green',
+      scope: 'Platform · Readiness',
+      group: 'Platform',
+      service: 'mfe-runtime-readiness',
+      path: '/remotes/runtime-readiness/remoteEntry.js',
+      status: 'remote app · live readiness probes'
+    },
+    {
+      id: 'docker-storage-cleanup',
+      tag: 'nebulaops-mfe-docker-storage-cleanup',
+      title: 'Docker Storage & Cleanup Center',
+      subtitle: 'Docker disk usage, prune preview, stopped containers, dangling images, unused volumes, custom networks and guarded cleanup actions.',
+      icon: '🧹',
+      route: '/remotes/docker-storage-cleanup/',
+      color: 'cyan',
+      scope: 'Runtime · Docker Storage',
+      group: 'Runtime',
+      service: 'mfe-docker-storage-cleanup',
+      path: '/remotes/docker-storage-cleanup/remoteEntry.js',
+      status: 'remote app · live Docker storage'
+    },
+    {
+      id: 'environment-configuration',
+      tag: 'nebulaops-mfe-environment-configuration',
+      title: 'Environment & Configuration Center',
+      subtitle: 'Runtime configuration inventory with masked secrets, required variables, optional integrations, feature flags and explicit configuration risks.',
+      icon: '🔧',
+      route: '/remotes/environment-configuration/',
+      color: 'purple',
+      scope: 'Platform · Configuration',
+      group: 'Platform',
+      service: 'mfe-environment-configuration',
+      path: '/remotes/environment-configuration/remoteEntry.js',
+      status: 'remote app · live configuration checks'
+    },
+    {
+      id: 'dependency-impact',
+      tag: 'nebulaops-mfe-dependency-impact',
+      title: 'Dependency & Impact Graph',
+      subtitle: 'Runtime dependency graph showing which MFE and platform capabilities are degraded when backend services or tools are unavailable.',
+      icon: '🕸️',
+      route: '/remotes/dependency-impact/',
+      color: 'blue',
+      scope: 'Platform · Dependency Impact',
+      group: 'Platform',
+      service: 'mfe-dependency-impact',
+      path: '/remotes/dependency-impact/remoteEntry.js',
+      status: 'remote app · live dependency graph'
+    },
+    {
+      id: 'test-quality-dashboard',
+      tag: 'nebulaops-mfe-test-quality-dashboard',
+      title: 'Test & Quality Dashboard',
+      subtitle: 'Build, remote verification, package validation, YAML validation, smoke test and generated report visibility from real project files.',
+      icon: '🧪',
+      route: '/remotes/test-quality-dashboard/',
+      color: 'violet',
+      scope: 'Quality · Build/Preflight',
+      group: 'Platform',
+      service: 'mfe-test-quality-dashboard',
+      path: '/remotes/test-quality-dashboard/remoteEntry.js',
+      status: 'remote app · live quality evidence'
+    },
     {
       id: 'docker-desktop',
       tag: 'nebulaops-mfe-docker-desktop',
@@ -292,6 +391,122 @@ export class AppComponent implements OnInit {
 
   readonly serviceLinks: ServiceLink[] = [
 
+{
+        "title": "Platform Catalog & Service Registry",
+        "subtitle": "Runtime catalog for MFE, MBE, endpoints, dependencies, health, OpenAPI and ownership",
+        "url": "/remotes/platform-catalog/",
+        "icon": "📚",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Platform Catalog API",
+        "subtitle": "Central service registry generated by gateway runtime probes",
+        "url": "/api/platform/catalog",
+        "icon": "📚",
+        "port": "8080",
+        "group": "Runtime"
+},
+
+{
+        "title": "Incident Command Center MFE",
+        "subtitle": "SRE · Incident Command · RCA · Runbooks",
+        "url": "/remotes/incident-command-center/",
+        "icon": "🚨",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Incident Command Center API",
+        "subtitle": "Live SRE aggregation across Observability, AI Ops, Audit, Tasks, Release and Kubernetes",
+        "url": "/api/incidents/command-center",
+        "icon": "🚨",
+        "port": "8080",
+        "group": "Observability"
+},
+
+
+
+{
+        "title": "Runtime Readiness Dashboard MFE",
+        "subtitle": "Platform readiness across Docker, Kubernetes, tools, services and remotes",
+        "url": "/remotes/runtime-readiness/",
+        "icon": "🟢",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Runtime Readiness API",
+        "subtitle": "Live readiness probes and explicit degraded states",
+        "url": "/api/platform/readiness",
+        "icon": "🟢",
+        "port": "8080",
+        "group": "Runtime"
+},
+{
+        "title": "Docker Storage & Cleanup MFE",
+        "subtitle": "Docker disk usage, prune preview and guarded cleanup actions",
+        "url": "/remotes/docker-storage-cleanup/",
+        "icon": "🧹",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Docker Storage API",
+        "subtitle": "Docker Engine /system/df and live prune-preview candidates",
+        "url": "/api/platform/docker/storage",
+        "icon": "🧹",
+        "port": "8080",
+        "group": "Runtime"
+},
+{
+        "title": "Environment Configuration MFE",
+        "subtitle": "Masked configuration inventory, feature flags and required variable risks",
+        "url": "/remotes/environment-configuration/",
+        "icon": "🔧",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Environment Configuration API",
+        "subtitle": "Runtime configuration validation without exposing secrets",
+        "url": "/api/platform/environment",
+        "icon": "🔧",
+        "port": "8080",
+        "group": "Runtime"
+},
+{
+        "title": "Dependency & Impact Graph MFE",
+        "subtitle": "Runtime graph between MFE, backend services and external tools",
+        "url": "/remotes/dependency-impact/",
+        "icon": "🕸️",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Dependency & Impact API",
+        "subtitle": "Live dependency impact from readiness probes",
+        "url": "/api/platform/dependency-impact",
+        "icon": "🕸️",
+        "port": "8080",
+        "group": "Runtime"
+},
+{
+        "title": "Test & Quality Dashboard MFE",
+        "subtitle": "Preflight, build, validation and report evidence",
+        "url": "/remotes/test-quality-dashboard/",
+        "icon": "🧪",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Test & Quality API",
+        "subtitle": "Validation inputs and generated quality reports",
+        "url": "/api/platform/quality",
+        "icon": "🧪",
+        "port": "8080",
+        "group": "Runtime"
+},
 
 
 {
@@ -532,6 +747,7 @@ export class AppComponent implements OnInit {
   readonly shellStatusClass = computed(() => this.shellStatus());
 
   sidebarGroups = [
+    { label: 'Platform',       icon: '📚',  groups: ['Platform'] },
     { label: 'Identity',       icon: '👥',  groups: ['Identity'] },
     { label: 'Runtime',        icon: '⚙️',  groups: ['Runtime'] },
     { label: 'Platform Ops',   icon: '🔔',  groups: ['Notifications'] },
@@ -575,8 +791,11 @@ export class AppComponent implements OnInit {
   async refreshShellHealth(): Promise<void> {
     const checks: Array<[string, string]> = [
       ['gateway', '/actuator/health'],
+      ['readiness', '/api/platform/readiness'],
+      ['quality', '/api/platform/quality'],
       ['releases', '/api/releases'],
       ['policies', '/api/policies'],
+      ['catalog', '/api/platform/catalog'],
       ['notifications', '/api/notifications/live'],
     ];
     const result: Record<string, string> = {};
@@ -594,7 +813,7 @@ export class AppComponent implements OnInit {
     this.quickHealth.set(result);
     this.shellStatus.set(failures === 0 ? 'online' : 'degraded');
     this.shellStatusMessage.set(failures === 0
-      ? 'Gateway, release, policy and notification endpoints are reachable.'
+      ? 'Gateway, release, policy, catalog and notification endpoints are reachable.'
       : `${failures} live endpoint(s) are degraded. Open INFRA Hub for details.`);
   }
 
@@ -603,9 +822,9 @@ export class AppComponent implements OnInit {
     try {
       const verifier = this.randomString(96);
       const challenge = await this.sha256Base64Url(verifier);
-      sessionStorage.setItem('nebulaops.v22_5.pkce', verifier);
+      sessionStorage.setItem('nebulaops.v23_1.pkce', verifier);
       const state = this.randomString(24);
-      sessionStorage.setItem('nebulaops.v22_5.state', state);
+      sessionStorage.setItem('nebulaops.v23_1.state', state);
       const params = new URLSearchParams({
         client_id: KC_CLIENT_ID,
         redirect_uri: KC_REDIRECT_URI,
@@ -625,8 +844,8 @@ export class AppComponent implements OnInit {
   logout(): void {
     localStorage.removeItem(JWT_KEY);
     localStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem('nebulaops.v22_5.pkce');
-    sessionStorage.removeItem('nebulaops.v22_5.state');
+    sessionStorage.removeItem('nebulaops.v23_1.pkce');
+    sessionStorage.removeItem('nebulaops.v23_1.state');
     this.authenticated.set(false);
     const params = new URLSearchParams({
       client_id: KC_CLIENT_ID,
@@ -691,12 +910,12 @@ export class AppComponent implements OnInit {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     if (!code) return;
-    const expectedState = sessionStorage.getItem('nebulaops.v22_5.state');
+    const expectedState = sessionStorage.getItem('nebulaops.v23_1.state');
     if (expectedState && state !== expectedState) {
       this.loginError.set('Invalid Keycloak response: state mismatch.');
       return;
     }
-    const verifier = sessionStorage.getItem('nebulaops.v22_5.pkce') || '';
+    const verifier = sessionStorage.getItem('nebulaops.v23_1.pkce') || '';
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: KC_CLIENT_ID,
