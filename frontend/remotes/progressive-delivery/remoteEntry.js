@@ -1,4 +1,4 @@
-/* NebulaOps v23.1 auth bridge
+/* NebulaOps v23.2 auth bridge
  * Makes shell-loaded and standalone MFE requests share a valid Bearer token.
  * - Shell origin: reuses localStorage token or bootstraps dev admin token.
  * - Standalone MFE route (/remotes/<mfe>/): uses the same nebulaops.localhost origin and the shared shell token.
@@ -7,9 +7,9 @@
  */
 (function nebulaopsAuthBridge() {
   'use strict';
-  var VERSION = 'v23.1.9-restore-ui-live-api';
-  var JWT_KEY = 'nebulaops.v23_1.jwt';
-  var USER_KEY = 'nebulaops.v23_1.user';
+  var VERSION = 'v23.2.9-restore-ui-live-api';
+  var JWT_KEY = 'nebulaops.v23_2.jwt';
+  var USER_KEY = 'nebulaops.v23_2.user';
   var LOGIN_URL = '/api/auth/login';
   var DEV_LOGIN_BODY = JSON.stringify({ email: 'admin', password: 'admin' });
 
@@ -249,14 +249,14 @@
 })();
 
 
-/* NebulaOps v23.1.0-live-real-data-progressive-delivery · live progressive delivery runtime. It renders only responses returned by NebulaOps APIs. */
+/* NebulaOps v23.2.0-live-real-data-progressive-delivery · live progressive delivery runtime. It renders only responses returned by NebulaOps APIs. */
 (function(){
   'use strict';
   const TAG="nebulaops-mfe-progressive-delivery";
   const TITLE="Progressive Delivery Center";
   const SCOPE="Release · Argo Rollouts · Canary/Blue-Green";
   const ENDPOINTS=[{"label":"Rollouts","url":"/api/progressive-delivery/rollouts?namespace=all","kind":"rollout","itemsPath":"items"},{"label":"Argo CD applications","url":"/api/progressive-delivery/applications","kind":"application","itemsPath":"items"},{"label":"Canary / Blue-Green overview","url":"/api/progressive-delivery/overview?namespace=all","kind":"overview","itemsPath":"items"},{"label":"Analysis runs","url":"/api/progressive-delivery/analysis-runs?namespace=all","kind":"analysisRun","itemsPath":"items"},{"label":"Experiments","url":"/api/progressive-delivery/experiments?namespace=all","kind":"experiment","itemsPath":"items"},{"label":"Progressive delivery audit","url":"/api/audit/events?type=PROGRESSIVE&limit=100","kind":"audit","itemsPath":"items"}];
-  const TOKEN_KEY='nebulaops.v23_1.jwt';
+  const TOKEN_KEY='nebulaops.v23_2.jwt';
   const css=':host{display:block;color:#eaf4ff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.mfe{min-height:640px;padding:28px;background:radial-gradient(circle at 0 0,rgba(56,189,248,.18),transparent 34%),linear-gradient(135deg,#07111f,#0b1026 62%,#11152d)}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:18px}.icon{width:70px;height:70px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,#38bdf8,#8b5cf6);font-size:34px;box-shadow:0 20px 50px rgba(0,0,0,.35)}.hero-left{display:flex;gap:16px;align-items:center}.eyebrow{text-transform:uppercase;letter-spacing:.2em;color:#67e8f9;font-weight:900;font-size:12px}.title{font-size:34px;font-weight:950;line-height:1;margin:5px 0}.subtitle{color:#a8b7d8;max-width:760px}.btn{border:1px solid rgba(125,211,252,.28);background:rgba(14,24,48,.82);color:#eaf4ff;border-radius:12px;padding:10px 14px;font-weight:850;cursor:pointer}.btn.primary{border:0;background:linear-gradient(135deg,#0ea5e9,#7c3aed)}.btn.warn{border-color:rgba(245,158,11,.45);color:#fde68a}.btn.danger{border-color:rgba(248,113,113,.45);color:#fecaca}.actions{display:flex;gap:10px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}.card{border:1px solid rgba(148,163,184,.18);background:linear-gradient(180deg,rgba(16,26,55,.88),rgba(9,16,36,.82));border-radius:20px;padding:16px}.metric-label{font-size:12px;color:#9fb0d4}.metric-value{font-size:28px;font-weight:950;margin-top:6px}.layout{display:grid;grid-template-columns:270px 1fr;gap:18px}.side{border:1px solid rgba(148,163,184,.18);background:rgba(8,15,34,.72);border-radius:22px;padding:14px;align-self:start;position:sticky;top:12px}.side h3{font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:#78e0ff;margin:4px 8px 12px}.navbtn{width:100%;text-align:left;display:flex;justify-content:space-between;gap:10px;margin:6px 0;border:1px solid transparent;background:transparent;color:#b7c6e6;border-radius:14px;padding:11px 12px;cursor:pointer;font-weight:850}.navbtn.active,.navbtn:hover{background:rgba(14,165,233,.13);border-color:rgba(14,165,233,.35);color:#fff}.panel{border:1px solid rgba(56,189,248,.24);background:rgba(4,10,24,.72);border-radius:22px;overflow:hidden}.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px 18px;border-bottom:1px solid rgba(148,163,184,.16);background:rgba(15,23,42,.65)}.panel-title{font-size:15px;font-weight:900}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.input{background:rgba(15,23,42,.8);border:1px solid rgba(148,163,184,.2);border-radius:12px;color:#eaf4ff;padding:10px 12px;min-width:180px}.status{font-size:12px;border:1px solid rgba(148,163,184,.24);border-radius:999px;padding:5px 9px;color:#b7c6e6}.status.ok{color:#bbf7d0;border-color:rgba(34,197,94,.45);background:rgba(22,163,74,.12)}.status.err{color:#fecaca;border-color:rgba(248,113,113,.45);background:rgba(239,68,68,.12)}.table-wrap{overflow:auto}.table{width:100%;min-width:900px;border-collapse:collapse}.table th{text-align:left;color:#7dd3fc;text-transform:uppercase;letter-spacing:.14em;font-size:11px;background:rgba(15,23,42,.55)}.table th,.table td{padding:13px 14px;border-bottom:1px solid rgba(148,163,184,.12);vertical-align:top}.table td{font-size:13px;color:#dce7ff}.mono{font-family:SFMono-Regular,Consolas,monospace;font-size:12px;color:#a7f3d0}.pill{display:inline-flex;align-items:center;border:1px solid rgba(148,163,184,.22);border-radius:999px;padding:4px 8px;font-size:11px;color:#b7c6e6}.pill.ok{color:#bbf7d0;border-color:rgba(34,197,94,.4)}.pill.warn{color:#fde68a;border-color:rgba(245,158,11,.45)}.pill.err{color:#fecaca;border-color:rgba(248,113,113,.45)}.empty{padding:32px;color:#a8b7d8;text-align:center}.json{max-height:430px;overflow:auto;white-space:pre-wrap;font-family:SFMono-Regular,Consolas,monospace;font-size:12px;color:#c7d2fe;background:rgba(2,6,23,.6);border-radius:16px;padding:14px}.toast{position:fixed;right:24px;bottom:24px;background:#0f172a;border:1px solid rgba(125,211,252,.35);border-radius:14px;padding:12px 16px;box-shadow:0 18px 40px rgba(0,0,0,.35);z-index:50}.muted{color:#8ea2c9}.small{font-size:12px}@media(max-width:980px){.layout{grid-template-columns:1fr}.side{position:static}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.cards{grid-template-columns:1fr}.title{font-size:28px}}';
   function token(){try{return window.__NEBULAOPS_ACCESS_TOKEN__ || localStorage.getItem(TOKEN_KEY) || '';}catch(_){return window.__NEBULAOPS_ACCESS_TOKEN__ || '';}}
   function esc(v){return String(v ?? '').replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}

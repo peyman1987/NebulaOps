@@ -15,36 +15,36 @@ NEBULA_ROOT_ARG=""
 
 log() { printf '\033[1;34m[deploy]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[warning]\033[0m %s\n' "$*"; }
-fail() { printf '\033[1;31m[errore]\033[0m %s\n' "$*" >&2; exit 1; }
+fail() { printf '\033[1;31m[error]\033[0m %s\n' "$*" >&2; exit 1; }
 
 usage() {
   cat <<EOF
-Uso:
-  ./scripts/deploy.sh [path-nebulaops-v23.1] [opzioni]
-  ./deploy.sh [opzioni]
+Usage:
+  ./scripts/deploy.sh [path-nebulaops-v23.2] [options]
+  ./deploy.sh [options]
 
-Dalla cartella add-on:
+From the add-on directory:
   ./scripts/deploy.sh
-  ./scripts/deploy.sh ../nebulaops-v23.1
+  ./scripts/deploy.sh ../nebulaops-v23.2
   ./scripts/deploy.sh --logs
   ./scripts/deploy.sh --build-only
   ./scripts/deploy.sh --install-only
 
-Dalla cartella app demo già installata:
+From the installed demo app directory:
   ./deploy.sh
   ./deploy.sh --logs
   ./deploy.sh --down
 
-Opzioni:
-  --logs          mostra i log dopo l'avvio
-  --build-only    esegue solo docker compose build
-  --down, --stop  ferma il servizio
-  --install-only  installa/copia soltanto l'add-on, senza avviare Docker
-  --no-install    salta install-into-nebulaops.sh
-  -h, --help      mostra questo aiuto
+Options:
+  --logs          show logs after startup
+  --build-only    run docker compose build only
+  --down, --stop  stop the service
+  --install-only  install/copy the add-on only, without starting Docker
+  --no-install    skip install-into-nebulaops.sh
+  -h, --help      show this help
 
-Variabili:
-  NEBULA_ROOT=/path/to/nebulaops-v23.1
+Variables:
+  NEBULA_ROOT=/path/to/nebulaops-v23.2
   SERVICE_PORT=8099
   SERVICE_NAME=spring-mvc-service
   SPRING_MVC_IMAGE=registry.example.com/spring-mvc-service:tag
@@ -59,13 +59,13 @@ while [[ $# -gt 0 ]]; do
     --install-only) INSTALL_ONLY=true; shift ;;
     --no-install) NO_INSTALL=true; shift ;;
     -h|--help) usage; exit 0 ;;
-    -*) fail "Opzione sconosciuta: $1" ;;
+    -*) fail "Unknown option: $1" ;;
     *)
       if [[ -z "$NEBULA_ROOT_ARG" ]]; then
         NEBULA_ROOT_ARG="$1"
         shift
       else
-        fail "Argomento extra non riconosciuto: $1"
+        fail "Unrecognized extra argument: $1"
       fi
       ;;
   esac
@@ -134,15 +134,15 @@ resolve_nebula_root() {
   local parent
 
   if [[ -n "$NEBULA_ROOT_ARG" ]]; then
-    c="$(cd "$NEBULA_ROOT_ARG" 2>/dev/null && pwd)" || fail "Path NebulaOps non trovato: $NEBULA_ROOT_ARG"
-    is_nebula_root "$c" || fail "Path NebulaOps non valido: $c"
+    c="$(cd "$NEBULA_ROOT_ARG" 2>/dev/null && pwd)" || fail "NebulaOps path not found: $NEBULA_ROOT_ARG"
+    is_nebula_root "$c" || fail "Invalid NebulaOps path: $c"
     echo "$c"
     return 0
   fi
 
   if [[ -n "${NEBULA_ROOT:-}" ]]; then
-    c="$(cd "$NEBULA_ROOT" 2>/dev/null && pwd)" || fail "NEBULA_ROOT non trovato: $NEBULA_ROOT"
-    is_nebula_root "$c" || fail "NEBULA_ROOT non valido: $c"
+    c="$(cd "$NEBULA_ROOT" 2>/dev/null && pwd)" || fail "NEBULA_ROOT not found: $NEBULA_ROOT"
+    is_nebula_root "$c" || fail "Invalid NEBULA_ROOT: $c"
     echo "$c"
     return 0
   fi
@@ -156,7 +156,7 @@ resolve_nebula_root() {
   fi
 
   if [[ -n "$addon_root" ]]; then
-    c="$(cd "$addon_root/../nebulaops-v23.1" 2>/dev/null && pwd || true)"
+    c="$(cd "$addon_root/../nebulaops-v23.2" 2>/dev/null && pwd || true)"
     if [[ -n "$c" ]] && is_nebula_root "$c"; then
       echo "$c"
       return 0
@@ -169,11 +169,11 @@ resolve_nebula_root() {
           echo "$c"
           return 0
         fi
-      done < <(find "$parent" -maxdepth 1 -type d \( -iname 'nebulaops-v23.1' -o -iname 'nebulaops-v*' \) 2>/dev/null | sort)
+      done < <(find "$parent" -maxdepth 1 -type d \( -iname 'nebulaops-v23.2' -o -iname 'nebulaops-v*' \) 2>/dev/null | sort)
     fi
   fi
 
-  fail "Non riesco a trovare nebulaops-v23.1. Usa: ./scripts/deploy.sh ../nebulaops-v23.1"
+  fail "Cannot find nebulaops-v23.2. Use: ./scripts/deploy.sh ../nebulaops-v23.2"
 }
 
 docker_compose() {
@@ -182,50 +182,50 @@ docker_compose() {
   elif command -v docker-compose >/dev/null 2>&1; then
     docker-compose "$@"
   else
-    fail "Docker Compose non trovato. Installa Docker Compose v2 oppure docker-compose."
+    fail "Docker Compose was not found. Install Docker Compose v2 or docker-compose."
   fi
 }
 
 run_docker_deploy() {
   local nebula_root="$1"
 
-  command -v docker >/dev/null 2>&1 || fail "Docker non trovato nel PATH."
-  [[ -f "$nebula_root/$COMPOSE_BASE_FILE" ]] || fail "Manca $nebula_root/$COMPOSE_BASE_FILE"
-  [[ -f "$nebula_root/$COMPOSE_ADDON_FILE" ]] || fail "Manca $nebula_root/$COMPOSE_ADDON_FILE"
+  command -v docker >/dev/null 2>&1 || fail "Docker was not found in PATH."
+  [[ -f "$nebula_root/$COMPOSE_BASE_FILE" ]] || fail "Missing $nebula_root/$COMPOSE_BASE_FILE"
+  [[ -f "$nebula_root/$COMPOSE_ADDON_FILE" ]] || fail "Missing $nebula_root/$COMPOSE_ADDON_FILE"
 
   cd "$nebula_root"
 
-  log "Root NebulaOps: $nebula_root"
-  log "Servizio: $SERVICE_NAME"
+  log "NebulaOps root: $nebula_root"
+  log "Service: $SERVICE_NAME"
   [[ -n "${SPRING_MVC_IMAGE:-}" ]] && log "Image override: $SPRING_MVC_IMAGE"
 
-  log "Creo rete Docker nebulaops-network se non esiste."
+  log "Creating Docker network nebulaops-network if it does not exist."
   docker network create nebulaops-network >/dev/null 2>&1 || true
 
-  log "Valido Docker Compose."
+  log "Validating Docker Compose."
   docker_compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_ADDON_FILE" config >/dev/null
 
   if [[ "$DOWN_ONLY" == true ]]; then
-    log "Fermo $SERVICE_NAME."
+    log "Stopping $SERVICE_NAME."
     docker_compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_ADDON_FILE" stop "$SERVICE_NAME"
     exit 0
   fi
 
   if [[ "$BUILD_ONLY" == true ]]; then
-    log "Build Docker di $SERVICE_NAME."
+    log "Docker build for $SERVICE_NAME."
     docker_compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_ADDON_FILE" build "$SERVICE_NAME"
     exit 0
   fi
 
-  log "Build e avvio di $SERVICE_NAME."
+  log "Building and starting $SERVICE_NAME."
   docker_compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_ADDON_FILE" up -d --build "$SERVICE_NAME"
 
-  log "Stato container."
+  log "Container status."
   docker_compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_ADDON_FILE" ps "$SERVICE_NAME"
 
   cat <<EOF
 
-Endpoint utili:
+Useful endpoints:
   Home MVC:        http://localhost:${SERVICE_PORT}
   API info:        http://localhost:${SERVICE_PORT}/api/spring-mvc/info
   Health:          http://localhost:${SERVICE_PORT}/actuator/health
@@ -239,7 +239,7 @@ Log:
 EOF
 
   if [[ "$SHOW_LOGS" == true ]]; then
-    log "Log di $SERVICE_NAME. Premi CTRL+C per uscire."
+    log "Logs for $SERVICE_NAME. Press CTRL+C to exit."
     docker_compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_ADDON_FILE" logs -f "$SERVICE_NAME"
   fi
 }
@@ -250,29 +250,29 @@ APP_ROOT="$(detect_app_root || true)"
 if [[ -n "$ADDON_ROOT" ]]; then
   NEBULA_ROOT_RESOLVED="$(resolve_nebula_root "$ADDON_ROOT" "")"
 
-  log "Modalità: add-on"
+  log "Mode: add-on"
   log "Add-on root: $ADDON_ROOT"
   log "NebulaOps root: $NEBULA_ROOT_RESOLVED"
 
   if [[ "$NO_INSTALL" == false ]]; then
     INSTALL_SCRIPT="$ADDON_ROOT/scripts/install-into-nebulaops.sh"
-    [[ -f "$INSTALL_SCRIPT" ]] || fail "Manca $INSTALL_SCRIPT"
+    [[ -f "$INSTALL_SCRIPT" ]] || fail "Missing $INSTALL_SCRIPT"
     chmod +x "$INSTALL_SCRIPT"
-    log "Installo/aggiorno add-on dentro NebulaOps."
+    log "Installing/updating add-on inside NebulaOps."
     "$INSTALL_SCRIPT" "$NEBULA_ROOT_RESOLVED"
   else
-    log "Installazione saltata (--no-install)."
+    log "Installation skipped (--no-install)."
   fi
 
   TARGET_APP_DIR="$NEBULA_ROOT_RESOLVED/backend/$SERVICE_NAME"
-  [[ -d "$TARGET_APP_DIR" ]] || fail "App demo non trovata: $TARGET_APP_DIR"
+  [[ -d "$TARGET_APP_DIR" ]] || fail "Demo app not found: $TARGET_APP_DIR"
 
-  log "Copio deploy.sh dentro app demo."
+  log "Copying deploy.sh into the demo app."
   cp "${BASH_SOURCE[0]}" "$TARGET_APP_DIR/deploy.sh"
   chmod +x "$TARGET_APP_DIR/deploy.sh"
 
   if [[ "$INSTALL_ONLY" == true ]]; then
-    log "Installazione completata."
+    log "Installation completed."
     exit 0
   fi
 
@@ -283,11 +283,11 @@ fi
 if [[ -n "$APP_ROOT" ]]; then
   NEBULA_ROOT_RESOLVED="$(resolve_nebula_root "" "$APP_ROOT")"
 
-  log "Modalità: app demo"
+  log "Mode: demo app"
   log "App root: $APP_ROOT"
 
   run_docker_deploy "$NEBULA_ROOT_RESOLVED"
   exit 0
 fi
 
-fail "Percorso non riconosciuto. Esegui da nebulaops-spring-mvc-addon con ./scripts/deploy.sh oppure da backend/spring-mvc-service con ./deploy.sh"
+fail "Unrecognized path. Run from nebulaops-spring-mvc-addon with ./scripts/deploy.sh or from backend/spring-mvc-service with ./deploy.sh"

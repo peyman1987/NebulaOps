@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * v23.1 — Gateway proxy for endpoints not directly served by the gateway.
+ * v23.2 — Gateway proxy for endpoints not directly served by the gateway.
  *
- * Improvements over v23.1:
+ * Improvements over v23.2:
  *  - Added proxy routes for: /cost/**, /notifications/**, /audit/**, /secrets/**, /registry/**
  *  - Added pipeline/runs forward with pagination support
  *  - All proxy targets wired from application.yml (single source of truth)

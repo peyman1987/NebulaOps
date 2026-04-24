@@ -1,7 +1,7 @@
 {
   "id": "devsecops",
   "title": "DevSecOps",
-  "version": "23.1.0",
+  "version": "23.2.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-devsecops",
   "port": 4217,

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * v23.1 — Runtime endpoints.
+ * v23.2 — Runtime endpoints.
  * Normalizes Docker Engine API fields so Angular normalizeDockerContainer() works:
  *   Docker API: Id (64-char), Names (["/name"]), Image, State, Ports ([{PublicPort,PrivatePort}])
  *   Angular expects: id, name, image, status, ports (string)

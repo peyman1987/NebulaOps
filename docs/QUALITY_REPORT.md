@@ -26,7 +26,7 @@ find scripts -name "*.sh" -print0 | xargs -0 -I{} bash -n {}
 
 ## Known limitations
 
-- Authentication is a portfolio foundation and should be hardened before production use.
+- Authentication is a platform foundation and should be hardened before production use.
 - RabbitMQ retry and dead-letter policies should be expanded for production workflows.
 - Grafana dashboards should be provisioned as JSON for repeatable deployments.
 - OpenTelemetry tracing is recommended for deeper request correlation.

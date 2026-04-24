@@ -13,15 +13,15 @@ import static org.mockito.Mockito.when;
 
 class AuthControllerTest {
     @Test
-    void devAdminLoginReturnsBearerTokenShape() {
+    void configuredLocalAdminLoginReturnsBearerTokenShape() {
         UserAccountRepository users = mock(UserAccountRepository.class);
         JwtService jwt = mock(JwtService.class);
-        when(users.findByEmail("admin")).thenReturn(Optional.empty());
+        when(users.findByEmail("ops-admin@example.local")).thenReturn(Optional.empty());
         when(jwt.generateAccessToken(any(), any(), any(), any(), any())).thenReturn("access-token");
         when(jwt.generateRefreshToken(any())).thenReturn("refresh-token");
 
-        AuthController controller = new AuthController(users, jwt, true, "nebulaops");
-        Object response = controller.login(new AuthController.LoginRequest("admin", "admin")).getBody();
+        AuthController controller = new AuthController(users, jwt, true, "ops-admin@example.local", "external-password", "nebulaops");
+        Object response = controller.login(new AuthController.LoginRequest("ops-admin@example.local", "external-password")).getBody();
 
         assertThat(response).asString().contains("access-token").contains("Bearer");
     }

@@ -17,7 +17,7 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         RestTemplate template = builder
                 .setConnectTimeout(Duration.ofMillis(timeout("NEBULAOPS_HTTP_CONNECT_TIMEOUT_MS", 2500)))
-                .setReadTimeout(Duration.ofMillis(timeout("NEBULAOPS_HTTP_READ_TIMEOUT_MS", 15000)))
+                .setReadTimeout(Duration.ofMillis(timeout("NEBULAOPS_HTTP_READ_TIMEOUT_MS", 5000)))
                 .build();
         template.getInterceptors().add((request, body, execution) -> {
             ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();

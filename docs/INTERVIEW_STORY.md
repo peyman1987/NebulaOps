@@ -2,7 +2,7 @@
 
 ## 60-second pitch
 
-NebulaOps is a cloud-native microservice platform built as a senior portfolio project. It uses Angular, Spring Boot, Go,
+NebulaOps is a cloud-native microservice platform built as a senior engineering project. It uses Angular, Spring Boot, Go,
 MongoDB, RabbitMQ, Redis, Docker, Prometheus, Grafana, Helm, GitLab CI and Argo CD. The design focuses on clear service
 boundaries, a stable event-driven architecture, local developer productivity and deployment readiness.
 

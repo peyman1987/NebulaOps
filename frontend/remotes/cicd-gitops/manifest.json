@@ -1,7 +1,7 @@
 {
   "id": "cicd-gitops",
   "title": "CI/CD + GitOps",
-  "version": "23.1.0",
+  "version": "23.2.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-cicd-gitops",
   "port": 4215,

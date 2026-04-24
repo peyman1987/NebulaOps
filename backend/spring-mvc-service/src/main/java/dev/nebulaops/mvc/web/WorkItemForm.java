@@ -4,15 +4,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class WorkItemForm {
-    @NotBlank(message = "Il titolo è obbligatorio")
-    @Size(max = 120, message = "Il titolo non può superare 120 caratteri")
+    @NotBlank(message = "Title is required")
+    @Size(max = 120, message = "Title cannot exceed 120 characters")
     private String title;
 
-    @Size(max = 1000, message = "La descrizione non può superare 1000 caratteri")
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
     private String description;
 
-    @NotBlank(message = "Il proprietario è obbligatorio")
-    @Size(max = 80, message = "Il proprietario non può superare 80 caratteri")
+    @NotBlank(message = "Owner is required")
+    @Size(max = 80, message = "Owner cannot exceed 80 characters")
     private String owner;
 
     public String getTitle() {

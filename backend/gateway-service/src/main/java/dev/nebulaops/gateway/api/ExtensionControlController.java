@@ -15,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,9 +25,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * NebulaOps v23.1 — UI-controlled extension control plane.
+ * NebulaOps v23.2 — UI-controlled extension control plane.
  *
  * Installed extensions are explicit and limited to APIForge, KubeBridge and Contract Hub.
  * The controller never creates mock data: status is read from kubectl, Docker/local-registry
@@ -39,6 +42,7 @@ public class ExtensionControlController {
     private final ToolCommandClient tools;
     private final RestTemplate rest;
     private final Map<String, ExtensionSpec> extensions;
+    private final Map<String, CachedExtensionStatus> statusCache = new ConcurrentHashMap<>();
 
     @Value("${nebulaops.extensions.workspace:/workspace}")
     private String workspace;
@@ -52,13 +56,19 @@ public class ExtensionControlController {
     @Value("${nebulaops.extensions.control.enabled:true}")
     private boolean controlEnabled;
 
+    @Value("${nebulaops.extensions.status-cache-ttl-ms:5000}")
+    private long statusCacheTtlMs;
+
+    @Value("${nebulaops.extensions.probe-timeout-seconds:3}")
+    private int probeTimeoutSeconds;
+
     public ExtensionControlController(ToolCommandClient tools, RestTemplate rest) {
         this.tools = tools;
         this.rest = rest;
         this.extensions = Map.of(
-                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-1-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
-                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-1-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
-                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-1-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
+                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-2-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
+                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-2-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
+                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-2-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
         );
     }
 
@@ -78,9 +88,47 @@ public class ExtensionControlController {
         );
     }
 
+    @GetMapping("/api/extensions/summary")
+    public Map<String, Object> extensionSummary() {
+        List<Map<String, Object>> items = new ArrayList<>();
+        int running = 0;
+        for (ExtensionSpec spec : installedExtensions()) {
+            Map<String, Object> status = cachedStatusBody(spec, false);
+            items.add(status);
+            if ("RUNNING".equals(status.get("state"))) running++;
+        }
+        return Map.of(
+                "live", true,
+                "realDataOnly", true,
+                "mode", "CACHED_EXTENSION_SUMMARY",
+                "installed", items.size(),
+                "running", running,
+                "stopped", items.size() - running,
+                "items", items,
+                "generatedAt", Instant.now().toString()
+        );
+    }
+
     @GetMapping("/api/extensions/{slug}/status")
-    public Map<String, Object> extensionStatus(@PathVariable String slug) {
-        return statusBody(spec(slug));
+    public Map<String, Object> extensionStatus(@PathVariable String slug, @RequestParam(defaultValue = "false") boolean refresh) {
+        return cachedStatusBody(spec(slug), refresh);
+    }
+
+    @GetMapping("/api/extensions/{slug}/diagnostics")
+    public Map<String, Object> extensionDiagnostics(@PathVariable String slug) {
+        ExtensionSpec spec = spec(slug);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", spec.slug());
+        out.put("title", spec.title());
+        out.put("realDataOnly", true);
+        out.put("docker", resultMap(run("command -v docker >/dev/null 2>&1 && docker info --format '{{.ServerVersion}}'", 4)));
+        out.put("kubectl", resultMap(run("command -v kubectl >/dev/null 2>&1 && kubectl version --client=true --output=json >/dev/null 2>&1", 4)));
+        out.put("deployment", resultMap(run("kubectl -n " + q(NAMESPACE) + " get deploy " + q(spec.slug()) + " -o wide", 4)));
+        out.put("service", resultMap(run("kubectl -n " + q(NAMESPACE) + " get svc " + q(spec.slug()) + " -o wide", 4)));
+        out.put("pods", resultMap(run("kubectl -n " + q(NAMESPACE) + " get pods -l app=" + q(spec.slug()) + " -o wide", 4)));
+        out.put("status", cachedStatusBody(spec, true));
+        out.put("generatedAt", Instant.now().toString());
+        return out;
     }
 
     @PostMapping("/api/extensions/{slug}/start")
@@ -108,7 +156,7 @@ public class ExtensionControlController {
             out.put("pvc", resultMap(run("kubectl -n " + q(NAMESPACE) + " delete pvc apiforge-data --ignore-not-found=true", 90)));
         }
         out.put("ok", true);
-        out.put("status", statusBody(spec));
+        out.put("status", cachedStatusBody(spec, true));
         return out;
     }
 
@@ -151,7 +199,7 @@ public class ExtensionControlController {
     </section>
   </div>
 <script>
-const token=localStorage.getItem('nebulaops.v23_1.jwt')||'';
+const token=localStorage.getItem('nebulaops.v23_2.jwt')||'';
 const headers=token?{Authorization:'Bearer '+token}:{};
 const log=document.getElementById('log');
 let items=[]; let selected=new URLSearchParams(location.search).get('extension') || 'apiforge';
@@ -285,7 +333,7 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
         if (!portForward.ok()) return failed(out, "GATEWAY_PROXY_UNAVAILABLE", portForward, spec);
 
         out.put("ok", true);
-        out.put("status", statusBody(spec));
+        out.put("status", cachedStatusBody(spec, true));
         out.put("openUrl", spec.openUrl());
         return out;
     }
@@ -314,6 +362,21 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
         return out;
     }
 
+    private Map<String, Object> cachedStatusBody(ExtensionSpec spec, boolean refresh) {
+        long now = System.currentTimeMillis();
+        CachedExtensionStatus cached = statusCache.get(spec.slug());
+        if (!refresh && cached != null && now - cached.cachedAt() < Math.max(1000L, statusCacheTtlMs)) {
+            Map<String, Object> hit = new LinkedHashMap<>(cached.payload());
+            hit.put("cache", "HIT");
+            hit.put("cacheAgeMs", now - cached.cachedAt());
+            return hit;
+        }
+        Map<String, Object> fresh = statusBody(spec);
+        statusCache.put(spec.slug(), new CachedExtensionStatus(now, new LinkedHashMap<>(fresh)));
+        fresh.put("cache", "MISS");
+        return fresh;
+    }
+
     private Map<String, Object> statusBody(ExtensionSpec spec) {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", spec.slug());
@@ -322,9 +385,26 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
         out.put("category", spec.category());
         out.put("enabledByDefault", false);
         out.put("defaultState", "DISABLED");
-        ToolResult deploy = run("kubectl -n " + q(NAMESPACE) + " get deploy " + q(spec.slug()) + " -o jsonpath='{.status.readyReplicas}:{.spec.replicas}'", 12);
-        ToolResult svc = run("kubectl -n " + q(NAMESPACE) + " get svc " + q(spec.slug()) + " -o jsonpath='{.spec.type}:{.spec.ports[0].nodePort}'", 12);
-        ToolResult pods = run("kubectl -n " + q(NAMESPACE) + " get pods -l app=" + q(spec.slug()) + " --no-headers 2>/dev/null | awk '{print $3}' | paste -sd, -", 12);
+        int probeTimeout = Math.max(1, Math.min(8, probeTimeoutSeconds));
+        ToolResult kubectl = run("command -v kubectl >/dev/null 2>&1 && kubectl version --client=true --output=json >/dev/null 2>&1", probeTimeout);
+        if (!kubectl.ok()) {
+            out.put("deployment", "KUBERNETES_UNAVAILABLE");
+            out.put("service", "KUBERNETES_UNAVAILABLE");
+            out.put("pods", "KUBERNETES_UNAVAILABLE");
+            out.put("readyReplicas", 0);
+            out.put("replicas", 0);
+            out.put("gatewayProxy", "NOT_PROBED");
+            out.put("state", "KUBERNETES_UNAVAILABLE");
+            out.put("openUrl", spec.openUrl());
+            out.put("healthPath", spec.healthPath());
+            out.put("toolStatus", resultMap(kubectl));
+            out.put("message", "kubectl is not available or not executable inside the gateway runtime. No mock extension status was generated.");
+            out.put("generatedAt", Instant.now().toString());
+            return out;
+        }
+        ToolResult deploy = run("kubectl -n " + q(NAMESPACE) + " get deploy " + q(spec.slug()) + " -o jsonpath='{.status.readyReplicas}:{.spec.replicas}'", probeTimeout);
+        ToolResult svc = run("kubectl -n " + q(NAMESPACE) + " get svc " + q(spec.slug()) + " -o jsonpath='{.spec.type}:{.spec.ports[0].nodePort}'", probeTimeout);
+        ToolResult pods = run("kubectl -n " + q(NAMESPACE) + " get pods -l app=" + q(spec.slug()) + " --no-headers 2>/dev/null | awk '{print $3}' | paste -sd, -", probeTimeout);
         boolean proxyUp = isProxyHealthy(spec);
         int ready = 0;
         int replicas = 0;
@@ -347,9 +427,9 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
     }
 
     private ToolResult ensureRegistry() {
-        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-1-registry || "
-                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-1-registry && docker start nebulaops-v23-1-registry >/dev/null) || "
-                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-1-registry registry:2 >/dev/null", 60);
+        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-2-registry || "
+                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-2-registry && docker start nebulaops-v23-2-registry >/dev/null) || "
+                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-2-registry registry:2 >/dev/null", 60);
     }
 
     private ToolResult applyManifest(ExtensionSpec spec, String deployedImage) {
@@ -392,11 +472,19 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
     }
 
     private boolean isProxyHealthy(ExtensionSpec spec) {
+        HttpURLConnection connection = null;
         try {
-            ResponseEntity<String> response = rest.getForEntity("http://127.0.0.1:" + spec.localProxyPort() + spec.healthPath(), String.class);
-            return response.getStatusCode().is2xxSuccessful();
+            URL url = URI.create("http://127.0.0.1:" + spec.localProxyPort() + spec.healthPath()).toURL();
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(1000);
+            connection.setReadTimeout(1000);
+            connection.setRequestMethod("GET");
+            int code = connection.getResponseCode();
+            return code >= 200 && code < 300;
         } catch (Exception ignored) {
             return false;
+        } finally {
+            if (connection != null) connection.disconnect();
         }
     }
 
@@ -408,7 +496,7 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
         out.put("ok", false);
         out.put("state", code);
         out.put("error", result.message());
-        out.put("status", statusBody(spec));
+        out.put("status", cachedStatusBody(spec, true));
         return out;
     }
 
@@ -475,4 +563,7 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
     }
 
     private record ExtensionSpec(String slug, String title, String icon, String category, String image, int localProxyPort, String healthPath, String openUrl) {}
+
+    private record CachedExtensionStatus(long cachedAt, Map<String, Object> payload) {}
 }
+

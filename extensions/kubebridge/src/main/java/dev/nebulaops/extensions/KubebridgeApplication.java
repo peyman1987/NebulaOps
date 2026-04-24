@@ -41,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -202,9 +203,13 @@ class LiveDataService {
             }
             long timeoutSeconds = Long.parseLong(env.getProperty("RUNBOOK_TIMEOUT_SECONDS", "120"));
             Process process = new ProcessBuilder("bash", requested.toString()).redirectErrorStream(true).start();
+            CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(() -> readProcessOutput(process));
             boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
-            if (!finished) process.destroyForcibly();
-            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            if (!finished) {
+                process.destroyForcibly();
+                outputFuture.cancel(true);
+            }
+            String output = finished ? outputFuture.get(3, TimeUnit.SECONDS) : "";
             out.put("status", finished && process.exitValue() == 0 ? "CONNECTED" : "DEGRADED");
             out.put("exitCode", finished ? process.exitValue() : -1);
             out.put("output", limit(output, 12000));
@@ -214,6 +219,14 @@ class LiveDataService {
             out.put("status", "UNAVAILABLE");
             out.put("message", e.getMessage());
             return out;
+        }
+    }
+
+    private String readProcessOutput(Process process) {
+        try {
+            return new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return "";
         }
     }
 

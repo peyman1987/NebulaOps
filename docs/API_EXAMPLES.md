@@ -15,7 +15,7 @@ curl -i http://nebulaops.localhost/actuator/health
 ## Tasks
 
 ```bash
-curl -i "http://nebulaops.localhost/api/tasks?organizationId=default-org" \
+curl -i "http://nebulaops.localhost/api/tasks?organizationId=nebulaops" \
   -H "Authorization: Bearer $TOKEN"
 ```
 

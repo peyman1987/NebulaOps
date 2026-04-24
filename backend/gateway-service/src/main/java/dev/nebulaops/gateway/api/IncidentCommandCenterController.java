@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * v23.1 — Incident Command Center.
+ * v23.2 — Incident Command Center.
  *
  * Aggregates only live operational signals already produced by the platform:
  * Observability, AI Ops, Notifications, Audit, Task, Kubernetes and Release Center.
