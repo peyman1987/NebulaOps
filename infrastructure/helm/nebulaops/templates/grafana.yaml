@@ -1,0 +1,89 @@
+{ { - if .Values.observability.grafana.enabled } }
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nebulaops-grafana-datasource
+  namespace: { { .Values.global.namespace } }
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://nebulaops-prometheus:9090
+        isDefault: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nebulaops-grafana-dashboard-provider
+  namespace: { { .Values.global.namespace } }
+data:
+  dashboard.yml: |
+    apiVersion: 1
+    providers:
+      - name: NebulaOps
+        folder: NebulaOps
+        type: file
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nebulaops-grafana-dashboard
+  namespace: { { .Values.global.namespace } }
+data:
+  nebulaops-overview.json: |
+  { { .Files.Get "files/dashboards/nebulaops-overview.json" | indent 4 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nebulaops-grafana
+  namespace: { { .Values.global.namespace } }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: nebulaops-grafana }
+  template:
+    metadata:
+      labels: { app: nebulaops-grafana }
+    spec:
+      containers:
+        - name: grafana
+          image: { { .Values.observability.grafana.image } }
+          ports:
+            - containerPort: { { .Values.observability.grafana.port } }
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom: { secretKeyRef: { name: nebulaops-secrets, key: GRAFANA_ADMIN_USER } }
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom: { secretKeyRef: { name: nebulaops-secrets, key: GRAFANA_ADMIN_PASSWORD } }
+          volumeMounts:
+            - name: datasource
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: datasource
+          configMap: { name: nebulaops-grafana-datasource }
+        - name: dashboard-provider
+          configMap: { name: nebulaops-grafana-dashboard-provider }
+        - name: dashboards
+          configMap: { name: nebulaops-grafana-dashboard }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nebulaops-grafana
+  namespace: { { .Values.global.namespace } }
+spec:
+  selector: { app: nebulaops-grafana }
+  ports:
+    - port: { { .Values.observability.grafana.port } }
+      targetPort: { { .Values.observability.grafana.port } }
+  { { - end } }

@@ -1,0 +1,324 @@
+<!-- ══════════════════════════════════════════════════════════
+     NebulaOps v23.2 · Shell Host · Login
+══════════════════════════════════════════════════════════ -->
+<section *ngIf="!authenticated()" class="login-scene">
+  <div class="grid-horizon"></div>
+  <div class="aurora aurora-a"></div>
+  <div class="aurora aurora-b"></div>
+  <div class="aurora aurora-c"></div>
+
+  <article class="login-card glass-depth">
+    <div class="brand-row">
+      <div class="logo-cube" aria-hidden="true">
+        <div class="cube-face cube-front">N</div>
+        <div class="cube-face cube-top"></div>
+        <div class="cube-face cube-right"></div>
+      </div>
+      <div class="brand-text">
+        <p class="kicker">NEBULAOPS ENTERPRISE PLATFORM</p>
+        <h1>Micro Frontend<br>Shell <span class="version-glow">v23.2</span></h1>
+      </div>
+    </div>
+
+    <p class="login-lead">Angular shell with a persistent sidebar, independently deployable micro frontends and an operational command palette. Each remote is shipped separately while global navigation remains in the shell.</p>
+
+    <div class="login-mfe-tags">
+      <span class="mfe-tag cyan">🐳 Docker</span>
+      <span class="mfe-tag blue">☸️ OpenLens</span>
+      <span class="mfe-tag violet">✅ Tasks</span>
+      <span class="mfe-tag green">📈 Observe</span>
+      <span class="mfe-tag orange">🚀 CI/CD</span>
+      <span class="mfe-tag purple">🧱 Terraform</span>
+      <span class="mfe-tag red">🛡️ DevSecOps</span>
+      <span class="mfe-tag pink">🤖 AI Ops</span>
+      <span class="mfe-tag amber">💸 FinOps</span>
+      <span class="mfe-tag cyan">🛰️ INFRA</span>
+      <span class="mfe-tag orange">🚢 Release</span>
+      <span class="mfe-tag purple">⚖️ Policy</span>
+      <span class="mfe-tag green">🔔 Notify</span>
+    </div>
+
+    <button type="button" class="primary-action" (click)="login()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Sign in with Keycloak
+    </button>
+    <p *ngIf="loginError()" class="error-box">{{ loginError() }}</p>
+  </article>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     Authenticated Shell
+══════════════════════════════════════════════════════════ -->
+<main *ngIf="authenticated()" class="shell-layout" (window:keydown)="handleGlobalShortcut($event)">
+  <section class="shell-live-banner" [ngClass]="shellStatusClass()">
+    <div>
+      <span class="live-dot"></span>
+      <b>Live control plane</b>
+      <small>{{ shellStatusMessage() }}</small>
+    </div>
+    <div class="shell-live-metrics">
+      <span>Remotes <b>{{ remoteCount() }}</b></span>
+      <span>Release/Gov <b>{{ releaseAndGovCount() }}</b></span>
+      <span>Gateway <b>{{ quickHealth()['gateway'] }}</b></span>
+      <span>Diagnostics <b>{{ quickHealth()['diagnostics'] }}</b></span>
+      <button type="button" (click)="refreshShellHealth()">Refresh</button>
+    </div>
+  </section>
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="shell-sidebar glass-depth">
+
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">
+        <div class="logo-cube-sm">
+          <div class="cube-face cube-front">N</div>
+          <div class="cube-face cube-top"></div>
+          <div class="cube-face cube-right"></div>
+        </div>
+      </div>
+      <div class="sidebar-brand-text">
+        <b>NebulaOps</b>
+        <small>Enterprise Platform v23.2</small>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <label class="sidebar-search-wrap" for="sidebar-mfe-search">
+      <svg class="sidebar-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="sidebar-mfe-search" type="search" class="sidebar-search-input"
+             [ngModel]="search()" (ngModelChange)="search.set($event)"
+             placeholder="Search MFE, group or route…" autocomplete="off" />
+      <button *ngIf="search()" type="button" class="sidebar-search-clear"
+              (click)="search.set('')" aria-label="Clear MFE search">×</button>
+      <kbd *ngIf="!search()" class="sidebar-search-kbd">⌘K</kbd>
+    </label>
+
+    <!-- Nav groups — driven by sidebarGroups + remotesByGroup() -->
+    <nav class="remote-nav" aria-label="Micro frontend navigation">
+      <div class="nav-group" *ngFor="let group of sidebarGroups">
+        <div class="nav-group-label">
+          <span class="nav-group-icon">{{ group.icon }}</span>
+          <span>{{ group.label }}</span>
+          <span class="nav-group-count">{{ remotesByGroup(group.groups).length }}</span>
+        </div>
+        <button
+          *ngFor="let remote of remotesByGroup(group.groups); trackBy: trackByRemote"
+          type="button"
+          class="remote-pill"
+          [ngClass]="[remote.color, activeRemote() === remote.id ? 'active' : '']"
+          (click)="activateRemote(remote.id)"
+          [title]="remote.subtitle">
+          <span class="pill-icon">{{ remote.icon }}</span>
+          <div class="pill-body">
+            <b>{{ remote.title }}</b>
+            <small>{{ remote.scope }}</small>
+          </div>
+          <div class="pill-meta">
+            <span class="pill-port">/remotes/{{ remote.id }}/</span>
+            <span class="pill-dot" [class.dot-live]="activeRemote() === remote.id"></span>
+          </div>
+        </button>
+      </div>
+
+      <div *ngIf="search().trim() && filteredRemotes().length === 0" class="nav-empty">
+        No micro frontend found for “{{ search() }}”.
+      </div>
+    </nav>
+
+    <!-- Sidebar footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-status-row">
+        <span class="status-dot status-green"></span>
+        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v23.2</span>
+      </div>
+      <div class="neb-footer-actions">
+        <button class="launcher-trigger" type="button" (click)="openLauncher()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          App Bar
+          <kbd>⌘</kbd>
+        </button>
+        <button class="launcher-trigger neb-extensions-trigger" type="button" data-neb-ext-trigger>
+          <span aria-hidden="true">🧩</span>
+          Extensions
+          <kbd>UI</kbd>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ────────────────────────────────────── -->
+  <section class="shell-main">
+
+    <!-- ── HEADER ──────────────────────────────────────── -->
+    <header class="shell-header glass-depth">
+      <div class="header-left">
+        <!-- Active MFE identity -->
+        <div class="header-mfe-icon" [ngClass]="activeRemoteConfig().color">
+          {{ activeRemoteConfig().icon }}
+        </div>
+        <div class="header-copy">
+          <div class="header-breadcrumb">
+            <span class="breadcrumb-root">NebulaOps</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+            <span class="breadcrumb-group">{{ activeRemoteConfig().group }}</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+            <span class="breadcrumb-current">{{ activeRemoteConfig().title }}</span>
+          </div>
+          <h2 class="header-title-text">{{ activeRemoteConfig().title }}</h2>
+          <p class="header-subtitle">{{ activeRemoteConfig().subtitle }}</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="header-badge-group">
+          <span class="header-badge badge-scope">{{ activeRemoteConfig().scope }}</span>
+          <span class="header-badge badge-port">/remotes/{{ activeRemoteConfig().id }}/</span>
+        </div>
+        <div class="header-actions">
+          <button class="hdr-btn" type="button" (click)="toggleSessionPanel()">
+            <span class="hdr-avatar">{{ currentUser().charAt(0).toUpperCase() }}</span>
+            <span class="hdr-user-name">{{ currentUser() }}</span>
+          </button>
+          <button class="hdr-btn hdr-btn-danger" type="button" (click)="logout()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Session popover -->
+      <div *ngIf="sessionPanelOpen()" class="session-popover glass-depth">
+        <div class="session-popover-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7adfff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Keycloak session
+        </div>
+        <div class="session-user">{{ currentUser() }}</div>
+        <div class="session-info">JWT token shared with all remotes through localStorage and the Authorization Bearer header.</div>
+        <code class="session-code">nebulaops.v23_2.jwt</code>
+      </div>
+    </header>
+
+    <!-- ── LOADING / ERROR ─────────────────────────────── -->
+    <p *ngIf="loadingRemote()" class="loading-strip">
+      <span class="loading-dot"></span>
+      Loading remote entry from {{ activeRemoteConfig().path }}…
+    </p>
+    <p *ngIf="remoteError()" class="error-box">{{ remoteError() }}</p>
+
+    <!-- ── REMOTE FRAME ────────────────────────────────── -->
+    <section class="remote-frame glass-depth" [ngClass]="activeRemoteConfig().color">
+      <div class="remote-frame-bar">
+        <div class="frame-bar-left">
+          <div class="frame-bar-dots">
+            <span class="fbd fbd-r"></span>
+            <span class="fbd fbd-y"></span>
+            <span class="fbd fbd-g"></span>
+          </div>
+          <span class="frame-bar-tag">{{ activeRemoteConfig().icon }} {{ activeRemoteConfig().title }}</span>
+          <span class="frame-bar-url">nebulaops.localhost/remotes/{{ activeRemoteConfig().id }}/</span>
+        </div>
+        <a [href]="'/remotes/' + activeRemoteConfig().id + '/'" target="_blank" rel="noopener" class="frame-bar-open">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open standalone
+        </a>
+      </div>
+
+      <nebulaops-mfe-platform-catalog    *ngIf="activeRemote() === 'platform-catalog'"></nebulaops-mfe-platform-catalog>
+      <nebulaops-mfe-incident-command-center *ngIf="activeRemote() === 'incident-command-center'"></nebulaops-mfe-incident-command-center>
+      <nebulaops-mfe-runtime-readiness *ngIf="activeRemote() === 'runtime-readiness'"></nebulaops-mfe-runtime-readiness>
+      <nebulaops-mfe-docker-storage-cleanup *ngIf="activeRemote() === 'docker-storage-cleanup'"></nebulaops-mfe-docker-storage-cleanup>
+      <nebulaops-mfe-environment-configuration *ngIf="activeRemote() === 'environment-configuration'"></nebulaops-mfe-environment-configuration>
+      <nebulaops-mfe-dependency-impact *ngIf="activeRemote() === 'dependency-impact'"></nebulaops-mfe-dependency-impact>
+      <nebulaops-mfe-test-quality-dashboard *ngIf="activeRemote() === 'test-quality-dashboard'"></nebulaops-mfe-test-quality-dashboard>
+      <nebulaops-mfe-docker-desktop      *ngIf="activeRemote() === 'docker-desktop'"></nebulaops-mfe-docker-desktop>
+      <nebulaops-mfe-openlens-kubernetes *ngIf="activeRemote() === 'openlens-kubernetes'"></nebulaops-mfe-openlens-kubernetes>
+      <nebulaops-mfe-task-management     *ngIf="activeRemote() === 'task-management'"></nebulaops-mfe-task-management>
+      <nebulaops-mfe-observability       *ngIf="activeRemote() === 'observability'"></nebulaops-mfe-observability>
+      <nebulaops-mfe-cicd-gitops         *ngIf="activeRemote() === 'cicd-gitops'"></nebulaops-mfe-cicd-gitops>
+      <nebulaops-mfe-terraform-studio    *ngIf="activeRemote() === 'terraform-studio'"></nebulaops-mfe-terraform-studio>
+      <nebulaops-mfe-devsecops           *ngIf="activeRemote() === 'devsecops'"></nebulaops-mfe-devsecops>
+      <nebulaops-mfe-ai-ops              *ngIf="activeRemote() === 'ai-ops'"></nebulaops-mfe-ai-ops>
+      <nebulaops-mfe-finops-cost         *ngIf="activeRemote() === 'finops-cost'"></nebulaops-mfe-finops-cost>
+      <nebulaops-mfe-infra-hub           *ngIf="activeRemote() === 'infra-hub'"></nebulaops-mfe-infra-hub>
+      <nebulaops-mfe-release-center      *ngIf="activeRemote() === 'release-center'"></nebulaops-mfe-release-center>
+      <nebulaops-mfe-progressive-delivery *ngIf="activeRemote() === 'progressive-delivery'"></nebulaops-mfe-progressive-delivery>
+      <nebulaops-mfe-policy-center       *ngIf="activeRemote() === 'policy-center'"></nebulaops-mfe-policy-center>
+      <nebulaops-mfe-notification-center *ngIf="activeRemote() === 'notification-center'"></nebulaops-mfe-notification-center>
+      <nebulaops-mfe-identity-admin    *ngIf="activeRemote() === 'identity-admin'"></nebulaops-mfe-identity-admin>
+    </section>
+  </section>
+
+
+  <!-- ══ COMMAND PALETTE ══════════════════════════════════ -->
+  <section *ngIf="commandPaletteOpen()" class="modal-backdrop" (click)="closeCommandPalette()">
+    <article class="app-launcher-modal command-palette glass-depth" (click)="$event.stopPropagation()">
+      <header class="launcher-header">
+        <div>
+          <p class="kicker">NEBULAOPS COMMAND PALETTE</p>
+          <h2>Global Search · MFE, services, routes</h2>
+          <small>Centralized operational search for fast navigation across the v23.2 platform.</small>
+        </div>
+        <button type="button" class="launcher-close" (click)="closeCommandPalette()" aria-label="Close">×</button>
+      </header>
+      <label class="launcher-search-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input [ngModel]="search()" (ngModelChange)="search.set($event)"
+               autofocus placeholder="Search release, policy, Docker, Kubernetes, endpoint or route…" class="launcher-search-input" />
+        <kbd class="launcher-kbd">ESC</kbd>
+      </label>
+      <div class="launcher-grid command-results">
+        <button *ngFor="let remote of filteredRemotes(); trackBy: trackByRemote"
+                type="button" class="launcher-card" (click)="runCommand(remote)">
+          <span class="launcher-card-icon">{{ remote.icon }}</span>
+          <div class="launcher-card-body">
+            <b>{{ remote.title }}</b>
+            <small>{{ remote.scope }} · /remotes/{{ remote.id }}/</small>
+          </div>
+          <div class="launcher-card-footer">
+            <span class="launcher-group-tag">{{ remote.group }}</span>
+            <span class="launcher-port">open</span>
+          </div>
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <!-- ══ APP LAUNCHER MODAL ═══════════════════════════════ -->
+  <section *ngIf="appLauncherOpen()" class="modal-backdrop" (click)="closeLauncher()">
+    <article class="app-launcher-modal glass-depth" (click)="$event.stopPropagation()">
+      <header class="launcher-header">
+        <div>
+          <p class="kicker">NEBULAOPS APP BAR</p>
+          <h2>Launcher · Services &amp; Ports</h2>
+          <small>Direct access to platform services. The sidebar remains active.</small>
+        </div>
+        <button type="button" class="launcher-close" (click)="closeLauncher()" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+
+      <label class="launcher-search-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input [ngModel]="search()" (ngModelChange)="search.set($event)"
+               placeholder="Search service, route or group…" class="launcher-search-input" />
+        <kbd class="launcher-kbd">ESC</kbd>
+      </label>
+
+      <div class="launcher-grid">
+        <button *ngFor="let link of filteredLinks(); trackBy: trackByLink"
+                type="button" class="launcher-card" (click)="openService(link)">
+          <span class="launcher-card-icon">{{ link.icon }}</span>
+          <div class="launcher-card-body">
+            <b>{{ link.title }}</b>
+            <small>{{ link.subtitle }}</small>
+          </div>
+          <div class="launcher-card-footer">
+            <span class="launcher-group-tag">{{ link.group }}</span>
+            <span class="launcher-port">:{{ link.port }}</span>
+          </div>
+        </button>
+      </div>
+    </article>
+  </section>
+</main>

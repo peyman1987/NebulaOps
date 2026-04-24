@@ -1,0 +1,10 @@
+{
+  "id": "runtime-readiness",
+  "title": "Runtime Readiness Dashboard",
+  "version": "23.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-runtime-readiness",
+  "port": 4228,
+  "scope": "Platform \u00b7 Readiness \u00b7 Runtime Checks",
+  "shellOwnedNavigation": true
+}

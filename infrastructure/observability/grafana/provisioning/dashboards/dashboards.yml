@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: NebulaOps v23.2
+    orgId: 1
+    folder: NebulaOps v23.2
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 20
+    options:
+      path: /etc/grafana/dashboards

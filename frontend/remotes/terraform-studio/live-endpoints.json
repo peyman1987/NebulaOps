@@ -1,0 +1,20 @@
+{
+  "endpoints": [
+    {
+      "label": "Terraform modules",
+      "url": "/api/platform/terraform/modules",
+      "kind": "module",
+      "itemsPath": "data"
+    },
+    {
+      "label": "Terraform plan",
+      "url": "/api/platform/terraform/plan",
+      "kind": "plan"
+    },
+    {
+      "label": "Terraform graph",
+      "url": "/api/platform/terraform/graph",
+      "kind": "graph"
+    }
+  ]
+}

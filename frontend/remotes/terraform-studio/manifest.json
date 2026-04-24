@@ -1,0 +1,10 @@
+{
+  "id": "terraform-studio",
+  "title": "Terraform Studio",
+  "version": "23.2.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-terraform-studio",
+  "port": 4216,
+  "scope": "IaC \u00b7 Environments",
+  "shellOwnedNavigation": true
+}

@@ -1,0 +1,84 @@
+global:
+  imageRegistry: ""
+  imagePullPolicy: IfNotPresent
+  namespace: nebulaops
+
+frontend:
+  enabled: true
+  image: nebulaops/frontend:local
+  replicas: 1
+  port: 80
+  servicePort: 4200
+
+services:
+  gateway:
+    image: nebulaops/gateway-service:local
+    replicas: 1
+    port: 8080
+  auth:
+    image: nebulaops/auth-service:local
+    replicas: 1
+    port: 8081
+    mongoDatabase: nebula_auth
+  task:
+    image: nebulaops/task-service:local
+    replicas: 1
+    port: 8082
+    mongoDatabase: nebula_task
+  notification:
+    image: nebulaops/notification-service:local
+    replicas: 1
+    port: 8083
+    mongoDatabase: nebula_notification
+  file:
+    image: nebulaops/file-service:local
+    replicas: 1
+    port: 8084
+    mongoDatabase: nebula_file
+
+mongodb:
+  enabled: true
+  image: mongo:7
+  username: nebula
+  password: nebula
+  port: 27017
+  storage: 1Gi
+
+observability:
+  prometheus:
+    enabled: true
+    image: prom/prometheus:v2.53.0
+    port: 9090
+  grafana:
+    enabled: true
+    image: grafana/grafana:11.1.0
+    port: 3000
+    adminUser: admin
+    adminPassword: admin
+
+ingress:
+  enabled: false
+  className: nginx
+  host: nebulaops.local
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+  port: 6379
+
+rabbitmq:
+  enabled: true
+  image: rabbitmq:3.13-management-alpine
+  port: 5672
+  managementPort: 15672
+  username: guest
+  password: guest
+
+goServices:
+  cache:
+    image: nebulaops/go-cache-service:local
+    replicas: 1
+    port: 8091
+  eventWorker:
+    image: nebulaops/go-event-worker:local
+    replicas: 1

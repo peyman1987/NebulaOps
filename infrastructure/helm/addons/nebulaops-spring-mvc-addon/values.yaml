@@ -1,0 +1,29 @@
+namespace: nebulaops
+
+image:
+  repository: nebulaops-v23-2-spring-mvc-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 8099
+
+app:
+  displayName: NebulaOps Spring MVC Service
+  environment: kubernetes
+  gatewayUrl: http://gateway-service:8080
+
+ingress:
+  enabled: false
+  className: nginx
+  host: spring-mvc.nebulaops.local
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi

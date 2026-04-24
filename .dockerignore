@@ -1,0 +1,19 @@
+.git
+node_modules
+**/node_modules
+.angular
+**/.angular
+.cache
+**/.cache
+.idea
+.vscode
+*.log
+.env
+.m2
+.build
+
+# Frontend/MFE images have their own build contexts and .dockerignore files.
+# Backend runtime images use the repository root as build context and must be
+# able to COPY backend/<service>/target/*.jar. Do not exclude backend target JARs here.
+dist
+**/dist

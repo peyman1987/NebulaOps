@@ -1,0 +1,15 @@
+name: nebulaops-v23-2
+services:
+  rabbitmq:
+    ports:
+    - 5672:5672
+    - 15672:15672
+  prometheus:
+    ports:
+    - 9090:9090
+  mongo-express:
+    ports:
+    - 8088:8081
+  redis-commander:
+    ports:
+    - 8089:8081
