@@ -1,72 +1,71 @@
 # APIForge
 
-Clone Postman in Spring MVC + HTML/CSS/JS, con UI dark moderna, pannelli ridimensionabili, animazioni e drag & drop.
+Postman-style Spring MVC + HTML/CSS/JS tool with a modern dark UI, resizable panels, animations and drag and drop.
 
-## Avvio rapido
+## Quick start
 
 ```bash
 docker compose up --build
 ```
 
-Apri `http://localhost:8080`.
+Open `http://localhost:8080`.
 
-## Funzionalità incluse
+## Included capabilities
 
-- Richieste REST: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS.
-- GraphQL: editor query, variabili, operation name e prettify.
-- WebSocket: connessione, invio messaggi e log live.
-- Auth reale lato backend: Bearer/JWT, Basic, API Key Header, OAuth2 access token.
-- UI per Digest e AWS Signature pronta da estendere.
-- Body: none, JSON, XML, Text, form urlencoded, multipart form-data and binary body.
-- Collections CRUD con export `.postman_collection.json`.
-- Drag & drop:
-    - trascina request tra collections;
-    - trascina file JSON/Postman collection nella finestra per importarlo;
-    - trascina lo splitter tra request/response per ridimensionare i pannelli.
-- Environments con variabili `{{BASE_URL}}`, `{{TOKEN}}`, `{{API_KEY}}`.
-- Pre-request scripts e test scripts stile `pm.*` lato browser.
-- History persistente delle richieste.
-- UI dark glassmorphism, animazioni, toast, tema Focus.
+- REST requests: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS.
+- GraphQL: query editor, variables, operation name and prettify.
+- WebSocket: connection, message sending and live log.
+- Real backend-side auth options: Bearer/JWT, Basic, API Key Header and OAuth2 access token.
+- Digest and AWS Signature UI/configuration ready for provider-specific signing extensions.
+- Body modes: none, JSON, XML, text, form URL encoded, multipart form-data and binary body.
+- Collections CRUD with `.postman_collection.json` export.
+- Drag and drop:
+  - move requests across collections;
+  - drop JSON/Postman collection files into the window for import;
+  - drag the request/response splitter to resize panels.
+- Environments with `{{BASE_URL}}`, `{{TOKEN}}`, `{{API_KEY}}` variables.
+- Browser-side pre-request scripts and `pm.*` style test scripts.
+- Persistent request history.
+- Dark glassmorphism UI, animations, toasts and focus theme.
 
-## Struttura
+## Structure
 
 ```text
 src/main/java/com/apiforge
-  controller/       REST API e pagina MVC
-  service/          storage JSON e proxy HTTP
-  websocket/        handler WebSocket
+  controller/       REST API and MVC page
+  service/          JSON storage and HTTP proxy
+  websocket/        WebSocket handler
 src/main/resources
   templates/index.html
   static/css/app.css
   static/js/app.js
 ```
 
-## Persistenza dati
+## Data persistence
 
-I dati vengono salvati in `./data` tramite volume Docker:
+Data is saved in `./data` through a Docker volume:
 
 ```yaml
 volumes:
   - ./data:/data
 ```
 
-## Note tecniche
+## Technical notes
 
-Digest Auth e AWS Signature sono presenti come UI/configurazione ma non firmano ancora realmente la richiesta:
-richiedono algoritmi specifici per server/provider.
+Digest Auth and AWS Signature are present as UI/configuration options but do not sign the request yet; they require provider/server-specific algorithms.
 
-## Migliorie v2
+## Improvements v2
 
-- UI dark più spaziosa con animazioni, focus mode e splitter verticale.
-- Drag & drop migliorato: spostamento tra collection e riordino dentro la stessa collection.
-- Import drag & drop di collection Postman JSON con parsing di header, query e body raw.
-- API Key supportata sia come header sia come query parameter.
-- Content-Type automatico per JSON, XML, text e x-www-form-urlencoded.
-- Pulsante cURL per copiare la request corrente.
-- Pulsante Copy Body per copiare la risposta.
-- Shortcut `Ctrl/Cmd + Enter` per inviare la request.
+- More spacious dark UI with animations, focus mode and vertical splitter.
+- Improved drag and drop: move across collections and reorder inside the same collection.
+- Drag-and-drop import of Postman collection JSON with header, query and raw body parsing.
+- API Key supported both as header and as query parameter.
+- Automatic Content-Type for JSON, XML, text and x-www-form-urlencoded.
+- cURL copy button for the current request.
+- Copy Body button for the response.
+- `Ctrl/Cmd + Enter` shortcut to send the request.
 
-Vedi `TEST_REPORT.md` per i controlli eseguiti.
+See `TEST_REPORT.md` for executed checks.
 
 ## Data policy
 

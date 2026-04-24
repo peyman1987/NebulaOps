@@ -1,33 +1,31 @@
 # APIForge v3 - Test report
 
-## Correzioni richieste
+## Requested fixes
 
-- Corretta la selezione della collection: ora cliccando sulla card della collection questa diventa attiva/selected.
-- Il salvataggio di una request ora usa la collection selezionata, non più automaticamente la prima.
-- Dopo creazione, duplicazione o import via drag & drop, la nuova collection viene selezionata automaticamente.
-- Aggiunto stato visivo selected per capire subito dove verrà salvata la request.
-- Rifatto tema dark in stile Angular Material: superfici `surface`, elevation/shadow, pill tabs, bottoni Material-like,
-  input puliti e palette blu/viola più sobria.
+- Fixed collection selection: clicking a collection card now makes it active/selected.
+- Saving a request now uses the selected collection instead of automatically using the first one.
+- After create, duplicate or drag-and-drop import, the new collection is selected automatically.
+- Added a selected visual state to make the request target clear.
+- Reworked the dark theme with an Angular Material-inspired style: surface layers, elevation/shadow, pill tabs, Material-like buttons, clean inputs and a more restrained blue/purple palette.
 
-## Controlli eseguiti
+## Checks executed
 
 - `node --check src/main/resources/static/js/app.js` OK.
-- Parsing HTML base con `html.parser` OK.
-- Controllo manuale del flusso
-  JS: `selectedCollectionId`, `selectCollection`, `saveReq`, `newCollection`, `dupCol`, `wireDropImport`, `moveRequest`.
+- Base HTML parsing with `html.parser` OK.
+- Manual flow review for `selectedCollectionId`, `selectCollection`, `saveReq`, `newCollection`, `dupCol`, `wireDropImport`, `moveRequest`.
 
-## Non eseguiti in questo ambiente
+## Not executed in this environment
 
-- Build Maven: comando `mvn` non disponibile.
-- Build Docker: comando `docker` non disponibile.
+- Maven build: `mvn` command not available.
+- Docker build: `docker` command not available.
 
-## Avvio consigliato
+## Recommended start
 
 ```bash
 unzip apiforge_v3_material_fixed.zip
 cd apiforge
-# oppure nella cartella estratta, se il nome è diverso
+# or use the extracted directory if the name is different
 docker compose up --build
 ```
 
-Poi aprire `http://localhost:8080`.
+Then open `http://localhost:8080`.

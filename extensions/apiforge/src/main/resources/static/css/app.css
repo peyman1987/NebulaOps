@@ -1,4 +1,4 @@
-/* NebulaOps v23.1 extension theme override */
+/* NebulaOps v23.2 extension theme override */
 /* ── View transitions ─────────────────────────────────────── */
 ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation-duration:.22s;animation-timing-function:cubic-bezier(.2,0,0,1)}
 

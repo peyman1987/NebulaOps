@@ -1,6 +1,6 @@
 # OpenLens-like Kubernetes Console
 
-This module provides a portfolio-grade Kubernetes operations console integrated into the NebulaOps frontend.
+This module provides a operations-grade Kubernetes operations console integrated into the NebulaOps frontend.
 
 ## Current implementation
 
@@ -42,7 +42,7 @@ docker compose -f infrastructure/docker-compose.yml up -d
 The gateway service must have access to a valid kubeconfig mounted at `/kube/config`.
 
 
-## v23.1 multi-cluster kubeconfig registry
+## v23.2 multi-cluster kubeconfig registry
 
 OpenLens Kubernetes now supports additional clusters through a MongoDB-backed kubeconfig registry. Operators can paste a kubeconfig in the OpenLens UI; the gateway stores it in MongoDB and creates a dedicated cluster tab. All live operations use the selected `clusterId` and run against that kubeconfig: pods, deployments, services, ingress, configmaps, statefulsets, nodes, namespaces, logs, describe, YAML diff/apply/delete, restart, scale, cordon, uncordon and drain.
 

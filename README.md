@@ -1,8 +1,8 @@
-# NebulaOps v23.1
+# NebulaOps v23.2
 
 NebulaOps is a local cloud-operations platform composed of an Angular shell, same-origin micro frontend bundles, Spring Boot services, Go runtime helpers, an AI engine, Keycloak, RabbitMQ, MongoDB, Redis, Prometheus, Grafana, Loki and Tempo.
 
-The v23.1 local runtime uses a single browser-facing origin:
+The v23.2 local runtime uses a single browser-facing origin:
 
 ```text
 http://nebulaops.localhost
@@ -13,7 +13,7 @@ The frontend Nginx image is the public entry point. It serves the shell, serves 
 ## Start
 
 ```bash
-cd nebulaops-v23.1
+cd nebulaops-v23.2
 chmod +x scripts/wsl/*.sh scripts/*.sh
 ./scripts/wsl/start.sh --rebuild
 ./scripts/wsl/health.sh
@@ -53,7 +53,7 @@ Optional GitLab CE can be started separately when CI/CD integration testing is n
 
 ## Platform Catalog & Service Registry
 
-NebulaOps v23.1 now includes a dedicated **Platform Catalog & Service Registry** section at:
+NebulaOps v23.2 now includes a dedicated **Platform Catalog & Service Registry** section at:
 
 ```text
 /remotes/platform-catalog/
@@ -65,7 +65,7 @@ The catalog centralizes MFE, backend service, endpoint, port, owner, dependency,
 
 ## Incident Command Center
 
-NebulaOps v23.1 now includes **Incident Command Center** at:
+NebulaOps v23.2 now includes **Incident Command Center** at:
 
 ```text
 /remotes/incident-command-center/
@@ -102,7 +102,7 @@ The maintained SVG set is intentionally aligned with the current reverse-proxy r
 
 ## Documentation
 
-Current documentation is aligned with the v23.1 same-origin runtime:
+Current documentation is aligned with the v23.2 same-origin runtime:
 
 - `ARCHITECTURE.md`
 - `docs/TECHNICAL_DOCUMENTATION.md`
@@ -117,16 +117,16 @@ Legacy local URLs are not used for MFE standalone buttons or shell remote loadin
 
 ## Observability & Audit Center
 
-The v23.1 observability console is live-only. It reads service health, Prometheus, Loki, Tempo, RabbitMQ, task, notification and audit endpoints through `/api/observability/**`. It does not render seeded, sample or mock records; empty tables mean the runtime source returned no rows or was unavailable.
+The v23.2 observability console is live-only. It reads service health, Prometheus, Loki, Tempo, RabbitMQ, task, notification and audit endpoints through `/api/observability/**`. It does not render seeded, sample or mock records; empty tables mean the runtime source returned no rows or was unavailable.
 
 
 ## Progressive Delivery Center
 
-NebulaOps v23.1 includes a Progressive Delivery Center for live Argo Rollouts and Argo CD operations. It reads only runtime data from Kubernetes, Argo Rollouts and Argo CD through `/api/progressive-delivery/**`; empty states indicate no live records or an unreachable runtime source.
+NebulaOps v23.2 includes a Progressive Delivery Center for live Argo Rollouts and Argo CD operations. It reads only runtime data from Kubernetes, Argo Rollouts and Argo CD through `/api/progressive-delivery/**`; empty states indicate no live records or an unreachable runtime source.
 
 ### APIForge on Kubernetes
 
-NebulaOps v23.1 includes APIForge in the App Bar. The source is packaged as an extension under `extensions/apiforge/`. APIForge is deployed directly to Kubernetes and exposed on the local NodePort `31110`:
+NebulaOps v23.2 includes APIForge in the App Bar. The source is packaged as an extension under `extensions/apiforge/`. APIForge is deployed directly to Kubernetes and exposed on the local NodePort `31110`:
 
 ```bash
 ./scripts/wsl/deploy-apiforge-k8s.sh
@@ -136,9 +136,9 @@ NebulaOps v23.1 includes APIForge in the App Bar. The source is packaged as an e
 The deployment manifest is `extensions/apiforge/k8s/deployment.yml`; it creates the APIForge deployment, service, persistent volume claim and optional ingress path `/apiforge`.
 
 
-## NebulaOps v23.1 Extensions
+## NebulaOps v23.2 Extensions
 
-NebulaOps v23.1 now keeps only APIForge as Kubernetes-hosted extension under `extensions/`, styled with the same NebulaOps dark/glass UI language and exposed in the App Bar:
+NebulaOps v23.2 now keeps only APIForge as Kubernetes-hosted extension under `extensions/`, styled with the same NebulaOps dark/glass UI language and exposed in the App Bar:
 
 | Extension | Source | NodePort | Purpose |
 |---|---:|---:|---|
@@ -151,14 +151,14 @@ Deploy APIForge:
 ```
 
 
-## v23.1 real-extension policy
+## v23.2 real-extension policy
 
-The v23.1 extensions do not ship operational records as artificial seed data. Runtime screens call Spring Boot MVC endpoints and render only live responses from Kubernetes, mounted runbook/SLO files or configured service APIs. Missing integrations are reported as `NOT_CONFIGURED`, `DEGRADED` or `UNAVAILABLE`.
+The v23.2 extensions do not ship operational records as artificial seed data. Runtime screens call Spring Boot MVC endpoints and render only live responses from Kubernetes, mounted runbook/SLO files or configured service APIs. Missing integrations are reported as `NOT_CONFIGURED`, `DEGRADED` or `UNAVAILABLE`.
 
 
 ## APIForge UI-controlled extension
 
-NebulaOps v23.1 keeps only APIForge under `extensions/`. The core platform starts first; APIForge can then be started from the UI:
+NebulaOps v23.2 keeps only APIForge under `extensions/`. The core platform starts first; APIForge can then be started from the UI:
 
 ```bash
 ./scripts/wsl/start.sh --rebuild
@@ -179,7 +179,7 @@ Optional legacy auto-start remains available:
 ```
 
 
-## v23.1 UI-controlled extensions
+## v23.2 UI-controlled extensions
 
 This package installs only the selected extension set:
 
@@ -217,6 +217,6 @@ Optional CLI auto-deploy remains available:
 The extensions must not generate mock records or static operational data. Missing integrations are surfaced through explicit runtime states.
 
 
-## AI Engine v23.1
+## AI Engine v23.2
 
 The AI Engine uses Anthropic Messages API when `ANTHROPIC_API_KEY` is configured. When the key is absent or the provider is unreachable, the service returns an explicit `LLM_UNAVAILABLE` fallback response and does not fabricate RCA data.

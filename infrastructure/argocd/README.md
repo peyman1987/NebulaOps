@@ -1,7 +1,3 @@
-> Enterprise Cloud-Native Portfolio Project  
-> Developed by Peyman Eshghi Malayeri (2024)  
-> Contact: peyman_em@yahoo.com
-
 # Argo CD GitOps
 
 This directory contains GitOps manifests for deploying NebulaOps with Argo CD.

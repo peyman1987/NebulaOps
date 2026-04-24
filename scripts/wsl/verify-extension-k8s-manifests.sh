@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v23.1 — verify installed extensions own local Kubernetes manifests.
+# NebulaOps v23.2 — verify installed extensions own local Kubernetes manifests.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

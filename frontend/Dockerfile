@@ -1,10 +1,11 @@
-# NebulaOps v23.1 frontend shell + reverse proxy runtime image.
+# NebulaOps v23.2 frontend shell + reverse proxy runtime image.
 # IMPORTANT: npm install/build is intentionally NOT executed inside Docker.
 # Build dist locally first with: ./scripts/wsl/build-frontend-local.sh
 FROM nginx:1.27-alpine
+ARG NEBULAOPS_CACHE_BUSTER=static
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-RUN rm -rf /usr/share/nginx/html/* && mkdir -p /usr/share/nginx/html/remotes
+RUN rm -rf /usr/share/nginx/html/* && mkdir -p /usr/share/nginx/html/remotes && echo "$NEBULAOPS_CACHE_BUSTER" > /usr/share/nginx/html/.nebulaops-cache-buster
 COPY dist/nebulaops/browser/ /usr/share/nginx/html/
 
 # Serve shell-loaded MFE remoteEntry bundles as static same-origin assets.

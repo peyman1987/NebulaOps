@@ -1,5 +1,5 @@
 /**
- * v23.1 — Centralized frontend API configuration.
+ * v23.2 — Centralized frontend API configuration.
  * Public browser access is served through the same reverse-proxy origin:
  *   http://nebulaops.localhost
  *
@@ -62,6 +62,7 @@ export const API = {
     dockerImages:     `${API_BASE}/runtime/docker/images`,
     dockerVolumes:    `${API_BASE}/runtime/docker/volumes`,
     dockerNetworks:   `${API_BASE}/runtime/docker/networks`,
+    diagnostics:      `${API_BASE}/runtime/diagnostics`,
     helmReleases:     `${API_BASE}/runtime/helm/releases?namespace=all`,
     containerStart:   (id: string) => `${API_BASE}/runtime/docker/containers/${id}/start`,
     containerStop:    (id: string) => `${API_BASE}/runtime/docker/containers/${id}/stop`,
@@ -170,17 +171,19 @@ export const API = {
   extensions: {
     list: `${API_BASE}/extensions`,
     console: `${API_BASE}/extensions/console`,
+    summary: `${API_BASE}/extensions/summary`,
     status: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/status`,
     start: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/start`,
     stop: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/stop`,
     restart: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/restart`,
+    diagnostics: (id: string) => `${API_BASE}/extensions/${encodeURIComponent(id)}/diagnostics`,
   },
 } as const;
 
-export const APP_VERSION = '23.1';
-export const APP_RELEASE = 'v23.1';
-export const JWT_KEY     = 'nebulaops.v23_1.jwt';
-export const USER_KEY    = 'nebulaops.v23_1.user';
+export const APP_VERSION = '23.2';
+export const APP_RELEASE = 'v23.2';
+export const JWT_KEY     = 'nebulaops.v23_2.jwt';
+export const USER_KEY    = 'nebulaops.v23_2.user';
 
 // ── Keycloak OIDC (Authorization Code + PKCE) ──────────────────
 export const KC_BASE         = '/keycloak';
@@ -193,7 +196,7 @@ export const KC_LOGOUT_URL   = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-co
 export const KC_USERINFO_URL = `${KC_BASE}/realms/${KC_REALM}/protocol/openid-connect/userinfo`;
 
 
-// ── Typed API client v23.1 ─────────────────────────────────────
+// ── Typed API client v23.2 ─────────────────────────────────────
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiRequestOptions<TBody = unknown> {
@@ -250,6 +253,7 @@ export class NebulaApiClient {
   tasks(org: string) { return this.request<PageResult<unknown> | unknown[]>(API.tasks.list(org)); }
   kubernetesSnapshot() { return this.request<Record<string, unknown>>(API.kubernetes.snapshot); }
   dockerContainers() { return this.request<Record<string, unknown>>(API.runtime.dockerContainers); }
+  runtimeDiagnostics() { return this.request<Record<string, unknown>>(API.runtime.diagnostics); }
   observability() { return this.request<Record<string, unknown>>(API.platform.observability); }
   prometheus(query = 'up') { return this.request<Record<string, unknown>>(`${API_BASE}/platform/observability/prometheus?query=${encodeURIComponent(query)}`); }
   loki(query = '{job=~".+"}') { return this.request<Record<string, unknown>>(`${API_BASE}/platform/observability/loki?query=${encodeURIComponent(query)}`); }
@@ -267,10 +271,12 @@ export class NebulaApiClient {
   docsIndex() { return this.request<Record<string, unknown>>(API.docs.index); }
 
   extensions() { return this.request<{ live: boolean; items: ExtensionStatus[] }>(`${API_BASE}/extensions`); }
+  extensionSummary() { return this.request<Record<string, unknown>>(API.extensions.summary); }
   extensionStatus(id: string) { return this.request<ExtensionStatus>(`${API_BASE}/extensions/${encodeURIComponent(id)}/status`); }
   startExtension(id: string) { return this.request<Record<string, unknown>>(`${API_BASE}/extensions/${encodeURIComponent(id)}/start`, { method: 'POST' }); }
   stopExtension(id: string) { return this.request<Record<string, unknown>>(`${API_BASE}/extensions/${encodeURIComponent(id)}/stop`, { method: 'POST' }); }
   restartExtension(id: string) { return this.request<Record<string, unknown>>(`${API_BASE}/extensions/${encodeURIComponent(id)}/restart`, { method: 'POST' }); }
+  extensionDiagnostics(id: string) { return this.request<Record<string, unknown>>(API.extensions.diagnostics(id)); }
 }
 
 export const nebulaApi = new NebulaApiClient();

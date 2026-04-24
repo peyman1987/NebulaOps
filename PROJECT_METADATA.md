@@ -3,7 +3,7 @@
 | Key             | Value                                       |
 | --------------- | ------------------------------------------- |
 | name            | NebulaOps                                   |
-| version         | v23.1.0                                     |
+| version         | v23.2.0                                     |
 | release_date    | 2026-05                                     |
 | repo_layout     | monorepo (frontend + backend + infra)       |
 | maintainer      | Peyman Eshghi Malayeri                      |
@@ -40,7 +40,7 @@
 | `backend/gateway-service/.../application.yml` | Proxy targets                        |
 | `docker-compose.yml`                          | Stack composition                    |
 
-## API surface (v23.1)
+## API surface (v23.2)
 
 | Route group             | Endpoints                                      |
 | ----------------------- | ---------------------------------------------- |
@@ -50,12 +50,12 @@
 | `/api/runtime/**`       | docker containers/images/volumes, helm         |
 | `/api/platform/**`      | observability, gitops, devsecops, environments |
 | `/api/ai-ops/**`        | analyze, autofix                               |
-| `/api/pipeline/**`      | runs list, trigger (v23.1)                     |
-| `/api/cost/**`          | summary, breakdown, entries (v23.1)            |
-| `/api/notifications/**` | live, mark-read (v23.1)                        |
-| `/api/audit/**`         | events (v23.1)                                 |
-| `/api/secrets/**`       | list (v23.1)                                   |
-| `/api/registry/**`      | images (v23.1)                                 |
+| `/api/pipeline/**`      | runs list, trigger (v23.2)                     |
+| `/api/cost/**`          | summary, breakdown, entries (v23.2)            |
+| `/api/notifications/**` | live, mark-read (v23.2)                        |
+| `/api/audit/**`         | events (v23.2)                                 |
+| `/api/secrets/**`       | list (v23.2)                                   |
+| `/api/registry/**`      | images (v23.2)                                 |
 
 ## Entry points
 
@@ -64,11 +64,11 @@
 - `./scripts/wsl/restart-gateway.sh` — fast gateway restart
 
 
-## v23.1 Extension Set
+## v23.2 Extension Set
 
 - APIForge — `extensions/apiforge` — NodePort `31110`
 
-## v23.1 Extension Selection
+## v23.2 Extension Selection
 
 Installed UI-controlled extensions: APIForge, KubeBridge and Contract Hub.
 

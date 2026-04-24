@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   NebulaOps v23.1 · Shell Host · Global Styles
+   NebulaOps v23.2 · Shell Host · Global Styles
 ══════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ───────────────────────────────────────── */
@@ -644,7 +644,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .launcher-close { font-size: 24px; line-height: 1; }
 @media (max-width: 900px) { .command-results { grid-template-columns: 1fr; } }
 
-/* v23.1 FE hardening: live status banner */
+/* v23.2 FE hardening: live status banner */
 .shell-live-banner {
   margin: 14px 16px 0;
   padding: 12px 14px;
@@ -685,7 +685,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 }
 
 
-/* v23.1 shell layout: persistent left sidebar behavior. */
+/* v23.2 shell layout: persistent left sidebar behavior. */
 .shell-layout {
   grid-template-columns: 280px minmax(0, 1fr);
   grid-template-rows: 1fr;
@@ -717,7 +717,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
   .shell-main { grid-column: 1; grid-row: 1; }
 }
 
-/* v23.1 APP BAR / EXTENSIONS split */
+/* v23.2 APP BAR / EXTENSIONS split */
 .sidebar-footer.neb-footer-split,
 .sidebar-footer:has(.neb-footer-actions) {
   align-items: stretch;
@@ -747,7 +747,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 }
 
 
-/* v23.1 compact presentation density */
+/* v23.2 compact presentation density */
 :root { --nebula-density-scale: .88; }
 @media (min-width: 1200px) {
   html { font-size: 13px; }
@@ -772,3 +772,27 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .launcher-card { min-height: 112px; padding: 13px 12px 30px; }
 @media (max-width: 1280px) { .launcher-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
 @media (max-width: 920px) { .shell-layout { grid-template-columns: 232px minmax(0,1fr); } }
+
+
+/* v23.2 compact operations density: improves information visibility without forcing browser zoom. */
+:host { --nebula-compact-sidebar: 256px; --nebula-compact-gap: 10px; }
+.shell-layout { grid-template-columns: var(--nebula-compact-sidebar) minmax(0, 1fr); }
+.sidebar-brand { padding: 14px 14px 12px; }
+.logo-cube-sm { width: 34px; height: 34px; }
+.logo-cube-sm .cube-top { transform: rotateX(90deg) translateZ(17px); }
+.logo-cube-sm .cube-right { transform: rotateY(90deg) translateZ(17px); }
+.sidebar-search-wrap { margin: 8px 10px; padding: 7px 10px; }
+.nav-group-label { padding: 10px 12px 4px 12px; }
+.remote-pill { padding: 6px 10px 6px 28px; gap: 8px; }
+.pill-body b { font-size: 11.5px; }
+.pill-body small, .pill-port { font-size: 9.5px; }
+.sidebar-footer { padding: 10px; }
+.shell-main { padding: 64px 14px 14px; }
+.shell-header { padding: 14px 16px; margin-bottom: 12px; }
+.header-title-text { font-size: 20px; }
+.header-subtitle { font-size: 12.5px; line-height: 1.45; }
+.header-mfe-icon { width: 44px; height: 44px; font-size: 22px; }
+.remote-frame { min-height: calc(100vh - 170px); }
+.remote-frame-bar { padding: 9px 12px; }
+.shell-live-banner { padding: 8px 14px 8px calc(var(--nebula-compact-sidebar) + 14px); }
+.shell-live-metrics span { padding: 4px 7px; font-size: 11px; }

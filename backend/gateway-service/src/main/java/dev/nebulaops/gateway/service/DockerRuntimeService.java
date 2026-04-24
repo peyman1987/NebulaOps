@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 /**
- * v23.1 — Docker runtime data via Docker Engine Unix socket.
+ * v23.2 — Docker runtime data via Docker Engine Unix socket.
  * The service returns live Docker API responses only. Empty collections mean the
  * engine returned no rows or the socket is unavailable; no seed/mock records are generated.
  */

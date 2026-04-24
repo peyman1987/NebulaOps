@@ -15,7 +15,7 @@ import {
   PUBLIC_ORIGIN
 } from './api.config';
 
-const REMOTE_ENTRY_BUILD = 'v23.1.40-operational-excellence';
+const REMOTE_ENTRY_BUILD = 'v23.2.40-operational-excellence';
 
 type RemoteId = 'platform-catalog' | 'incident-command-center' | 'runtime-readiness' | 'docker-storage-cleanup' | 'environment-configuration' | 'dependency-impact' | 'test-quality-dashboard' | 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'progressive-delivery' | 'notification-center' | 'identity-admin';
 type ServiceGroup = 'Identity' | 'Runtime' | 'Observability' | 'Data' | 'DevOps' | 'Micro Frontend' | 'Release' | 'Governance' | 'Notifications' | 'Extensions';
@@ -72,6 +72,7 @@ export class AppComponent implements OnInit {
     policies: 'CHECKING',
     catalog: 'CHECKING',
     notifications: 'CHECKING',
+    diagnostics: 'CHECKING',
   });
   readonly commandPaletteOpen = signal(false);
   readonly sessionPanelOpen = signal(false);
@@ -617,6 +618,14 @@ export class AppComponent implements OnInit {
         "group": "Runtime"
     },
     {
+        "title": "Runtime Diagnostics",
+        "subtitle": "Docker, Kubernetes, gateway and extension-control checks",
+        "url": "/api/runtime/diagnostics",
+        "icon": "🩺",
+        "port": "8080/api",
+        "group": "Runtime"
+    },
+    {
         "title": "FinOps Cost MFE",
         "subtitle": "Cost · Analytics",
         "url": "/remotes/finops-cost/",
@@ -797,6 +806,7 @@ export class AppComponent implements OnInit {
       ['policies', '/api/policies'],
       ['catalog', '/api/platform/catalog'],
       ['notifications', '/api/notifications/live'],
+      ['diagnostics', '/api/runtime/diagnostics'],
     ];
     const result: Record<string, string> = {};
     let failures = 0;
@@ -813,8 +823,8 @@ export class AppComponent implements OnInit {
     this.quickHealth.set(result);
     this.shellStatus.set(failures === 0 ? 'online' : 'degraded');
     this.shellStatusMessage.set(failures === 0
-      ? 'Gateway, release, policy, catalog and notification endpoints are reachable.'
-      : `${failures} live endpoint(s) are degraded. Open INFRA Hub for details.`);
+      ? 'Gateway, release, policy, catalog, notification and runtime diagnostics endpoints are reachable.'
+      : `${failures} live endpoint(s) are degraded. Open Runtime Readiness or INFRA Hub for details.`);
   }
 
   async login(): Promise<void> {
@@ -822,9 +832,9 @@ export class AppComponent implements OnInit {
     try {
       const verifier = this.randomString(96);
       const challenge = await this.sha256Base64Url(verifier);
-      sessionStorage.setItem('nebulaops.v23_1.pkce', verifier);
+      sessionStorage.setItem('nebulaops.v23_2.pkce', verifier);
       const state = this.randomString(24);
-      sessionStorage.setItem('nebulaops.v23_1.state', state);
+      sessionStorage.setItem('nebulaops.v23_2.state', state);
       const params = new URLSearchParams({
         client_id: KC_CLIENT_ID,
         redirect_uri: KC_REDIRECT_URI,
@@ -844,8 +854,8 @@ export class AppComponent implements OnInit {
   logout(): void {
     localStorage.removeItem(JWT_KEY);
     localStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem('nebulaops.v23_1.pkce');
-    sessionStorage.removeItem('nebulaops.v23_1.state');
+    sessionStorage.removeItem('nebulaops.v23_2.pkce');
+    sessionStorage.removeItem('nebulaops.v23_2.state');
     this.authenticated.set(false);
     const params = new URLSearchParams({
       client_id: KC_CLIENT_ID,
@@ -910,12 +920,12 @@ export class AppComponent implements OnInit {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     if (!code) return;
-    const expectedState = sessionStorage.getItem('nebulaops.v23_1.state');
+    const expectedState = sessionStorage.getItem('nebulaops.v23_2.state');
     if (expectedState && state !== expectedState) {
       this.loginError.set('Invalid Keycloak response: state mismatch.');
       return;
     }
-    const verifier = sessionStorage.getItem('nebulaops.v23_1.pkce') || '';
+    const verifier = sessionStorage.getItem('nebulaops.v23_2.pkce') || '';
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: KC_CLIENT_ID,

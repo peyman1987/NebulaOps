@@ -2,16 +2,16 @@
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
-PROJECT_NAME="nebulaops-v23-1"
+PROJECT_NAME="nebulaops-v23-2"
 export COMPOSE_PARALLEL_LIMIT=${COMPOSE_PARALLEL_LIMIT:-2}
 cd "$ROOT_DIR"
 
 # Ensure shared network exists (external: true in docker-compose requires it)
 if ! docker network inspect nebulaops-network &>/dev/null; then
-  echo "[v23.1] Creating shared network: nebulaops-network"
+  echo "[v23.2] Creating shared network: nebulaops-network"
   docker network create nebulaops-network
 else
-  echo "[v23.1] Network nebulaops-network already exists — skipping"
+  echo "[v23.2] Network nebulaops-network already exists — skipping"
 fi
 
 ./scripts/wsl/prepare-kubeconfig-for-docker.sh 2>/dev/null || true

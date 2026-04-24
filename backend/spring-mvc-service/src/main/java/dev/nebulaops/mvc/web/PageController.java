@@ -48,7 +48,7 @@ public class PageController {
             return "index";
         }
         var created = service.create(form.getTitle(), form.getDescription(), form.getOwner());
-        redirectAttributes.addFlashAttribute("message", "Elemento creato: " + created.title());
+        redirectAttributes.addFlashAttribute("message", "Item created: " + created.title());
         return "redirect:/work-items";
     }
 
@@ -64,14 +64,14 @@ public class PageController {
                                @RequestParam WorkItemStatus status,
                                RedirectAttributes redirectAttributes) {
         var updated = service.changeStatus(id, status);
-        redirectAttributes.addFlashAttribute("message", "Stato aggiornato: " + updated.status());
+        redirectAttributes.addFlashAttribute("message", "Status updated: " + updated.status());
         return "redirect:/work-items/" + id;
     }
 
     @PostMapping("/work-items/{id}/delete")
     public String delete(@PathVariable String id, RedirectAttributes redirectAttributes) {
         service.delete(id);
-        redirectAttributes.addFlashAttribute("message", "Elemento eliminato");
+        redirectAttributes.addFlashAttribute("message", "Item deleted");
         return "redirect:/work-items";
     }
 }

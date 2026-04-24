@@ -1,4 +1,4 @@
-/* v23.1 — Global design tokens. Single source of truth for colors,
+/* v23.2 — Global design tokens. Single source of truth for colors,
    spacing, radii, shadows and motion. Loaded before app.component.css. */
 
 :root {
@@ -291,7 +291,7 @@ code, pre, .mono { font-family: var(--font-mono); }
 }
 
 
-/* v23.1 compact presentation density */
+/* v23.2 compact presentation density */
 :root { --nebula-density-scale: .88; }
 @media (min-width: 1200px) {
   html { font-size: 13px; }

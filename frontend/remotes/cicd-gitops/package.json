@@ -1,6 +1,6 @@
 {
-  "name": "nebulaops-v23-1-cicd-gitops",
-  "version": "23.1.0",
+  "name": "nebulaops-v23-2-cicd-gitops",
+  "version": "23.2.0",
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4215",

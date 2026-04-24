@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v23.1 — Auth REST API with real JWT tokens (JJWT 0.12).
+ * v23.2 — Auth REST API with real JWT tokens (JJWT 0.12).
  *
  * POST /api/auth/login    → { accessToken, refreshToken, tokenType, expiresIn, user }
  * POST /api/auth/register → { user }
@@ -30,15 +30,21 @@ public class AuthController {
     private final UserAccountRepository users;
     private final JwtService            jwt;
     private final boolean localAdminEnabled;
+    private final String localAdminEmail;
+    private final String localAdminPassword;
     private final String defaultOrganizationId;
 
     public AuthController(UserAccountRepository users,
                           JwtService jwt,
                           @Value("${nebulaops.auth.local-admin.enabled:false}") boolean localAdminEnabled,
+                          @Value("${nebulaops.auth.local-admin.email:}") String localAdminEmail,
+                          @Value("${nebulaops.auth.local-admin.password:}") String localAdminPassword,
                           @Value("${nebulaops.default-organization-id:nebulaops}") String defaultOrganizationId) {
         this.users = users;
         this.jwt   = jwt;
         this.localAdminEnabled = localAdminEnabled;
+        this.localAdminEmail = localAdminEmail == null ? "" : localAdminEmail.trim();
+        this.localAdminPassword = localAdminPassword == null ? "" : localAdminPassword;
         this.defaultOrganizationId = defaultOrganizationId == null || defaultOrganizationId.isBlank() ? "nebulaops" : defaultOrganizationId.trim();
     }
 
@@ -69,9 +75,11 @@ public class AuthController {
 
         var userOpt = users.findByEmail(req.email());
 
-        // Optional local admin shortcut is disabled by default to avoid static users in runtime mode.
-        if (userOpt.isEmpty() && localAdminEnabled && isDevAdmin(req)) {
-            return ResponseEntity.ok(devAdminTokenResponse(req.email()));
+        // Optional local admin shortcut is disabled by default and only works when
+        // both email/password are supplied through external configuration. No static
+        // account or bundled credential is accepted at runtime.
+        if (userOpt.isEmpty() && localAdminEnabled && matchesConfiguredLocalAdmin(req)) {
+            return ResponseEntity.ok(configuredLocalAdminTokenResponse(req.email()));
         }
 
         if (userOpt.isEmpty())
@@ -141,30 +149,30 @@ public class AuthController {
     }
 
     @GetMapping("/healthz")
-    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","23.1"); }
+    public Map<String, String> health() { return Map.of("status","AUTH_OK","version","23.2"); }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
-    private boolean isDevAdmin(LoginRequest req) {
-        return ("admin".equals(req.email()) || "admin@nebulaops.dev".equals(req.email())
-                || "peyman".equals(req.email()))
-               && "admin".equals(req.password());
+    private boolean matchesConfiguredLocalAdmin(LoginRequest req) {
+        return !localAdminEmail.isBlank()
+                && !localAdminPassword.isBlank()
+                && localAdminEmail.equals(req.email())
+                && localAdminPassword.equals(req.password());
     }
 
-    private Map<String, Object> devAdminTokenResponse(String email) {
-        // Return a normal NebulaOps signed access token instead of an opaque placeholder.
-        // This lets standalone MFE modules bootstrap Authorization Bearer headers through
-        // /api/auth/login and then call the gateway/API consistently in local development.
+    private Map<String, Object> configuredLocalAdminTokenResponse(String email) {
+        // Return a normal NebulaOps signed access token for the externally configured
+        // local admin. The package does not ship hard-coded fallback users.
         String accessToken = jwt.generateAccessToken(
-                "local-admin", email, "Local Admin", Set.of("ADMIN", "USER"), defaultOrganizationId);
-        String refreshToken = jwt.generateRefreshToken("local-admin");
+                "configured-local-admin", email, "Configured Local Admin", Set.of("ADMIN", "USER"), defaultOrganizationId);
+        String refreshToken = jwt.generateRefreshToken("configured-local-admin");
         return Map.of(
                 "accessToken",  accessToken,
                 "refreshToken", refreshToken,
                 "tokenType",    "Bearer",
                 "expiresIn",    86400,
-                "user", Map.of("id","local-admin","email",email,
-                               "displayName","Local Admin","roles",Set.of("ADMIN","USER"),
+                "user", Map.of("id","configured-local-admin","email",email,
+                               "displayName","Configured Local Admin","roles",Set.of("ADMIN","USER"),
                                "organizationId", defaultOrganizationId)
         );
     }

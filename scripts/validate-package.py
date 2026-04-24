@@ -45,6 +45,7 @@ required_files = [
     "scripts/wsl/deploy-apiforge-k8s.sh",
     "scripts/wsl/deploy-extensions-k8s.sh",
     "scripts/wsl/undeploy-extensions-k8s.sh",
+    "scripts/verify-live-only-runtime.py",
     "extensions/extensions.manifest.json",
 ]
 
@@ -168,7 +169,7 @@ try:
             errors.append(f"Kubernetes manifest must keep extension disabled by default with replicas: 0: {slug}")
     if "server.servlet.context-path=/apiforge" not in apiprops:
         errors.append("APIForge must run with /apiforge context path")
-    if "NebulaOps v23.1 extension theme override" not in (ROOT / "extensions/apiforge/src/main/resources/static/css/app.css").read_text(encoding="utf-8"):
+    if "NebulaOps v23.2 extension theme override" not in (ROOT / "extensions/apiforge/src/main/resources/static/css/app.css").read_text(encoding="utf-8"):
         errors.append("APIForge is missing NebulaOps extension theme override")
 except Exception as exc:
     errors.append(f"NebulaOps extension validation failed: {exc}")
@@ -201,6 +202,60 @@ try:
 except Exception as exc:
     errors.append(f"frontend remote copy/template validation failed: {exc}")
 
+# v23.2 release hygiene: visible/runtime version identifiers must be aligned.
+try:
+    ignored = {
+        "frontend/package-lock.json",  # dependency versions can legitimately contain 22.x.
+        "scripts/wsl/stop.sh",         # intentionally removes legacy compose projects.
+        "scripts/validate-package.py", # contains stale-pattern literals for this validation itself.
+        "scripts/wsl/purge-stale-release-assets.sh", # contains the known stale filenames it removes.
+    }
+    ignored_suffixes = ("package-lock.json",)
+    stale_text_patterns = ["v23.1", "V23.1", "23_1", "v23-1", "nebulaops-v23-1", "N22.5", "N22.2", "v22-5", "v22-3"]
+    stale_path_patterns = ["NebulaOps_v22", "docker-compose.v22", "v22-", "V22-", "v22.", "V22.", "N22"]
+    internal_registry_patterns = ["packages.applied-caas-gateway", "internal.api.openai.org", "artifactory/api/npm/npm-public"]
+    for path in ROOT.rglob("*"):
+        if not path.is_file() or any(part in {".git", "target", "dist"} for part in path.parts):
+            continue
+        rel = path.relative_to(ROOT).as_posix()
+        if rel in ignored:
+            continue
+        for stale in stale_path_patterns:
+            if stale in rel:
+                errors.append(f"stale release artifact path {stale} found in {rel}")
+        try:
+            file_text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for marker in internal_registry_patterns:
+            if marker in file_text:
+                errors.append(f"internal build registry reference found in {rel}: {marker}")
+        if rel.endswith(ignored_suffixes):
+            continue
+        for stale in stale_text_patterns:
+            if stale in file_text:
+                errors.append(f"stale release identifier {stale} found in {rel}")
+except Exception as exc:
+    errors.append(f"v23.2 release hygiene validation failed: {exc}")
+
+# v23.2 release manifest checks: prevent add-on manifests from keeping old application versions.
+try:
+    release_manifest_checks = {
+        "infrastructure/helm/addons/nebulaops-spring-mvc-addon/Chart.yaml": ["appVersion: \"23.2.0\""],
+        "infrastructure/kubernetes/addons/spring-mvc-service.yaml": ["app.kubernetes.io/version: \"23.2.0\""],
+    }
+    for rel, expected_terms in release_manifest_checks.items():
+        target = ROOT / rel
+        if not target.exists():
+            errors.append(f"missing release manifest: {rel}")
+            continue
+        text = target.read_text(encoding="utf-8")
+        for term in expected_terms:
+            if term not in text:
+                errors.append(f"release manifest {rel} missing expected term: {term}")
+except Exception as exc:
+    errors.append(f"v23.2 release manifest validation failed: {exc}")
+
 if errors:
     print("Package validation FAILED")
     for err in errors:
@@ -210,4 +265,4 @@ if errors:
 print("Package validation OK")
 print("v9 Go/Redis/RabbitMQ files present")
 print("v10 GitLab/Argo CD files present")
-print("v11 docs and SVG diagrams aligned")
+print("v23.2 runtime stability and release hygiene checks aligned")

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,30 +8,30 @@
 </head>
 <body>
 <main class="shell narrow">
-    <a class="back" th:href="@{/work-items}">← Torna alla lista</a>
+    <a class="back" th:href="@{/work-items}">← Back to list</a>
 
     <div th:if="${message}" class="alert" th:text="${message}"></div>
 
     <article class="panel detail">
         <span class="badge" th:text="${item.status()}">TODO</span>
-        <h1 th:text="${item.title()}">Titolo</h1>
-        <p th:text="${item.description()}">Descrizione</p>
+        <h1 th:text="${item.title()}">Title</h1>
+        <p th:text="${item.description()}">Description</p>
 
         <dl>
             <div><dt>Owner</dt><dd th:text="${item.owner()}">owner</dd></div>
-            <div><dt>Creato</dt><dd th:text="${item.createdAt()}">date</dd></div>
-            <div><dt>Aggiornato</dt><dd th:text="${item.updatedAt()}">date</dd></div>
+            <div><dt>Created</dt><dd th:text="${item.createdAt()}">date</dd></div>
+            <div><dt>Updated</dt><dd th:text="${item.updatedAt()}">date</dd></div>
         </dl>
 
         <form th:action="@{/work-items/{id}/status(id=${item.id()})}" method="post" class="inline-form">
             <select name="status">
                 <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}" th:selected="${status == item.status()}">TODO</option>
             </select>
-            <button type="submit">Aggiorna stato</button>
+            <button type="submit">Update status</button>
         </form>
 
         <form th:action="@{/work-items/{id}/delete(id=${item.id()})}" method="post" class="danger-form">
-            <button type="submit">Elimina</button>
+            <button type="submit">Delete</button>
         </form>
     </article>
 </main>

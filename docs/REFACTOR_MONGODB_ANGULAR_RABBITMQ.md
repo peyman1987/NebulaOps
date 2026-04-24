@@ -19,4 +19,4 @@ operational noise while keeping a clear event-driven architecture through Rabbit
 
 ## Result
 
-The architecture is easier to run, easier to explain and better suited for a professional portfolio demonstration.
+The architecture is easier to run, easier to explain and better suited for a professional operations demonstration.

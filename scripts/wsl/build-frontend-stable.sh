@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v23.1 stable frontend build.
+# NebulaOps v23.2 stable frontend build.
 # npm runs on host/WSL only; Docker only packages prebuilt dist into nginx.
 set -euo pipefail
 

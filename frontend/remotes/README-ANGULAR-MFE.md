@@ -1,9 +1,8 @@
-# NebulaOps v23.1 — Angular Micro Frontends
+# NebulaOps v23.2 — Angular Micro Frontends
 
-Ogni remote è un progetto Angular 18 standalone, compilato con `@angular/elements`
-per esporre un Web Component registrato nella shell host.
+Each remote is a standalone Angular 18 project compiled with `@angular/elements` to expose a Web Component registered in the shell host.
 
-## Struttura di ogni remote
+## Structure of each remote
 
 ```
 remotes/<name>/
@@ -13,17 +12,17 @@ remotes/<name>/
     styles.css            # Global styles
     app/
       app.component.ts    # Component Angular standalone
-      app.component.html  # Template Angular con @for, @if (nuovo control flow)
+      app.component.html  # Angular template with @for, @if (new control flow)
       app.component.css   # Component styles
   angular.json            # Angular CLI config
   tsconfig.json           # TypeScript config
   tsconfig.app.json       # App-specific TS config
   package.json            # Dependencies (Angular 18 + @angular/elements)
   Dockerfile              # Multi-stage: node:20-alpine build + nginx:1.27-alpine serve
-  nginx.conf              # nginx con proxy → gateway-service:8080
+  nginx.conf              # nginx with proxy → gateway-service:8080
 ```
 
-## Come sviluppare in locale
+## Local development
 
 ```bash
 cd frontend/remotes/<name>
@@ -31,31 +30,30 @@ npm install --legacy-peer-deps
 npm start   # ng serve --host 0.0.0.0 --port <port>
 ```
 
-## Come fare il build production
+## Production build
 
 ```bash
 npm run build
 # Output: dist/browser/
 ```
 
-## Come eseguire con Docker
+## Docker execution
 
 ```bash
-docker build -t nebulaops-mfe-<name>:23.1 .
-docker run -p <port>:80 nebulaops-mfe-<name>:23.1
+docker build -t nebulaops-mfe-<name>:23.2 .
+docker run -p <port>:80 nebulaops-mfe-<name>:23.2
 ```
 
-## Come funziona con la Shell Angular
+## How it works with the Angular shell
 
-La shell host in `frontend/src/app/app.component.html` usa tag custom come:
+The host shell in `frontend/src/app/app.component.html` uses custom tags such as:
 ```html
 <nebulaops-mfe-openlens-kubernetes></nebulaops-mfe-openlens-kubernetes>
 ```
 
-Questi tag vengono caricati dinamicamente dalla shell tramite `loadRemote()` che
-inietta lo script `remoteEntry.js` (output Angular build) dal remote.
+These tags are loaded dynamically by the shell through `loadRemote()`, which injects the remote `remoteEntry.js` script.
 
-## Remotes disponibili
+## Available remotes
 
 | Remote               | Tag custom element                    | Port | Scope                   |
 |----------------------|---------------------------------------|------|-------------------------|
@@ -70,11 +68,11 @@ inietta lo script `remoteEntry.js` (output Angular build) dal remote.
 | ai-ops               | nebulaops-mfe-ai-ops                  | 4218 | AI · RCA/Assist         |
 | finops-cost          | nebulaops-mfe-finops-cost             | 4219 | Cost · Analytics        |
 
-## Note tecniche
+## Technical notes
 
 - **Angular 18** con `@angular/elements` per Web Component
-- **Standalone Components** — nessun NgModule
-- **Nuovo Control Flow** — `@for`, `@if`, `@let` (Angular 17+)
-- **Signals** — `signal()`, `computed()` per state management
-- **JWT condiviso** — `localStorage.getItem('nebulaops.v23_1.jwt')` letto da ogni MFE
-- **CORS** — nginx restituisce `Access-Control-Allow-Origin: *` per cross-origin embedding
+- **Standalone Components** — no NgModule
+- **New Control Flow** — `@for`, `@if`, `@let` (Angular 17+)
+- **Signals** — `signal()`, `computed()` for state management
+- **Shared JWT** — `localStorage.getItem('nebulaops.v23_2.jwt')` read by each MFE
+- **CORS** — nginx returns `Access-Control-Allow-Origin: *` for cross-origin embedding

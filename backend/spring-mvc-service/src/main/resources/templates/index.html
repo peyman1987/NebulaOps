@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,12 +10,12 @@
 <main class="shell">
     <section class="hero">
         <div>
-            <p class="eyebrow">NebulaOps v23.1 add-on</p>
+            <p class="eyebrow">NebulaOps v23.2 add-on</p>
             <h1 th:text="${app.displayName()}">NebulaOps Spring MVC Service</h1>
-            <p class="subtitle">Applicazione Spring Boot MVC con pagine Thymeleaf, API REST, actuator e metriche Prometheus.</p>
+            <p class="subtitle">Spring Boot MVC service with Thymeleaf pages, REST APIs, Actuator endpoints and Prometheus metrics.</p>
         </div>
         <div class="hero-card">
-            <span>Ambiente</span>
+            <span>Environment</span>
             <strong th:text="${app.environment()}">local</strong>
             <small>Gateway: <span th:text="${app.gatewayUrl()}">http://localhost:8080</span></small>
         </div>
@@ -25,24 +25,24 @@
 
     <section class="grid">
         <article class="panel">
-            <h2>Nuovo work item</h2>
+            <h2>New work item</h2>
             <form th:action="@{/work-items}" th:object="${form}" method="post" class="form">
                 <label>
-                    Titolo
-                    <input th:field="*{title}" placeholder="Es. Preparare deploy" required>
+                    Title
+                    <input th:field="*{title}" placeholder="Example: Prepare deployment" required>
                     <small class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></small>
                 </label>
                 <label>
                     Owner
-                    <input th:field="*{owner}" placeholder="team o persona" required>
+                    <input th:field="*{owner}" placeholder="Team or person" required>
                     <small class="error" th:if="${#fields.hasErrors('owner')}" th:errors="*{owner}"></small>
                 </label>
                 <label>
-                    Descrizione
-                    <textarea th:field="*{description}" rows="5" placeholder="Note operative"></textarea>
+                    Description
+                    <textarea th:field="*{description}" rows="5" placeholder="Operational notes"></textarea>
                     <small class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
                 </label>
-                <button type="submit">Crea elemento</button>
+                <button type="submit">Create item</button>
             </form>
         </article>
 
@@ -54,10 +54,10 @@
             <div class="items">
                 <a class="item" th:each="item : ${items}" th:href="@{/work-items/{id}(id=${item.id()})}">
                     <span class="badge" th:text="${item.status()}">TODO</span>
-                    <strong th:text="${item.title()}">Titolo</strong>
+                    <strong th:text="${item.title()}">Title</strong>
                     <small>Owner: <span th:text="${item.owner()}">owner</span></small>
                 </a>
-                <p th:if="${#lists.isEmpty(items)}" class="empty">Nessun elemento disponibile.</p>
+                <p th:if="${#lists.isEmpty(items)}" class="empty">No items available.</p>
             </div>
         </article>
     </section>

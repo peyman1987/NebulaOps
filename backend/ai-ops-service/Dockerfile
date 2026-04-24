@@ -1,4 +1,4 @@
-# NebulaOps v23.1 runtime image for ai-ops-service.
+# NebulaOps v23.2 runtime image for ai-ops-service.
 # Java compilation is intentionally executed once before Docker image build by:
 #   ./scripts/wsl/build-backend-jars.sh
 # This avoids downloading Maven dependencies separately in every service image.

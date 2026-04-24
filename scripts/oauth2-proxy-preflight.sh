@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.1 — Check/pull the images required by OAuth2 Proxy protected tool UIs.
+# v23.2 — Check/pull the images required by OAuth2 Proxy protected tool UIs.
 set -euo pipefail
 
 OAUTH2_IMAGE="${OAUTH2_PROXY_IMAGE:-quay.io/oauth2-proxy/oauth2-proxy:v7.6.0}"
@@ -23,13 +23,13 @@ fi
 
 cat >&2 <<TIP
 
-[errore] Impossibile scaricare una delle immagini SSO.
+[error] Unable to pull one of the SSO images.
 
 Immagini richieste:
   - $OAUTH2_IMAGE
   - $NGINX_IMAGE
 
-Nel tuo WSL/Docker l'errore più probabile è DNS verso quay.io.
+The most likely WSL/Docker issue is DNS resolution toward quay.io.
 Puoi provare una registry alternativa per OAuth2 Proxy:
 
   export OAUTH2_PROXY_IMAGE=docker.io/bitnami/oauth2-proxy:7.6.0

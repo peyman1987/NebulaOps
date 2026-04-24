@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: NebulaOps Observability & Audit Center API
-  version: 23.1.0
+  version: 23.2.0
   description: Live-only operational API. Responses are aggregated from runtime services and external observability tools; no seeded or mock records are generated.
 servers:
   - url: /api/observability
@@ -17,7 +17,7 @@ paths:
       parameters:
         - in: query
           name: organizationId
-          schema: { type: string, default: default-org }
+          schema: { type: string, default: nebulaops }
       responses:
         '200': { description: Live overview }
   /services:
@@ -67,7 +67,7 @@ paths:
       parameters:
         - in: query
           name: organizationId
-          schema: { type: string, default: default-org }
+          schema: { type: string, default: nebulaops }
       responses:
         '200': { description: Task records }
   /events/notifications:

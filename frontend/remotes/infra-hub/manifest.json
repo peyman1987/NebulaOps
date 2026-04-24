@@ -1,7 +1,7 @@
 {
   "id": "infra-hub",
   "title": "INFRA Hub",
-  "version": "23.1.0",
+  "version": "23.2.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-infra-hub",
   "port": 4221,

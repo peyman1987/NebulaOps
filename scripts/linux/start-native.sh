@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-nebulaops-v23-1}
+export COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-nebulaops-v23-2}
 mkdir -p .kube
 if [[ -f "$HOME/.kube/config" ]]; then cp "$HOME/.kube/config" .kube/config; chmod 600 .kube/config; fi
 docker compose up -d --build

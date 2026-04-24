@@ -6,9 +6,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class HealthControllerTest {
     @Test
-    void healthReportsVersion225() {
+    void healthReportsVersion232() {
         HealthController controller = new HealthController();
-        assertThat(controller.health()).containsEntry("version", "23.1");
-        assertThat(controller.ping()).containsEntry("release", "NebulaOps v23.1");
+        assertThat(controller.health()).containsEntry("version", "23.2");
+        assertThat(controller.ping()).containsEntry("release", "NebulaOps v23.2");
     }
 }

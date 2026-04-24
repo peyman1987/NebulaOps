@@ -12,7 +12,7 @@ public class DocsController {
     @GetMapping
     public Map<String, Object> index() {
         return Map.of(
-            "version", "23.1.0",
+            "version", "23.2.0",
             "services", List.of(
                 service("gateway-service", "/v3/api-docs", "API edge and runtime proxy"),
                 service("release-orchestrator-service", "/api/docs/release-orchestrator-service", "Release Center API"),
@@ -29,7 +29,7 @@ public class DocsController {
     public Map<String, Object> service(@PathVariable String service) {
         return Map.of(
             "service", service,
-            "version", "23.1.0",
+            "version", "23.2.0",
             "openapi", "docs/openapi/" + service + ".openapi.yml",
             "gatewayBase", "/api",
             "status", "documented"

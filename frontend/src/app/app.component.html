@@ -1,5 +1,5 @@
 <!-- ══════════════════════════════════════════════════════════
-     NebulaOps v23.1 · Shell Host · Login
+     NebulaOps v23.2 · Shell Host · Login
 ══════════════════════════════════════════════════════════ -->
 <section *ngIf="!authenticated()" class="login-scene">
   <div class="grid-horizon"></div>
@@ -16,11 +16,11 @@
       </div>
       <div class="brand-text">
         <p class="kicker">NEBULAOPS ENTERPRISE PLATFORM</p>
-        <h1>Micro Frontend<br>Shell <span class="version-glow">v23.1</span></h1>
+        <h1>Micro Frontend<br>Shell <span class="version-glow">v23.2</span></h1>
       </div>
     </div>
 
-    <p class="login-lead">Shell Angular con sidebar persistente, sedici micro frontend remoti indipendenti e command palette operativa. Ogni remote è deployabile separatamente; la navigazione globale resta nella shell.</p>
+    <p class="login-lead">Angular shell with a persistent sidebar, independently deployable micro frontends and an operational command palette. Each remote is shipped separately while global navigation remains in the shell.</p>
 
     <div class="login-mfe-tags">
       <span class="mfe-tag cyan">🐳 Docker</span>
@@ -47,7 +47,7 @@
 </section>
 
 <!-- ══════════════════════════════════════════════════════════
-     Shell Autenticata
+     Authenticated Shell
 ══════════════════════════════════════════════════════════ -->
 <main *ngIf="authenticated()" class="shell-layout" (window:keydown)="handleGlobalShortcut($event)">
   <section class="shell-live-banner" [ngClass]="shellStatusClass()">
@@ -60,6 +60,7 @@
       <span>Remotes <b>{{ remoteCount() }}</b></span>
       <span>Release/Gov <b>{{ releaseAndGovCount() }}</b></span>
       <span>Gateway <b>{{ quickHealth()['gateway'] }}</b></span>
+      <span>Diagnostics <b>{{ quickHealth()['diagnostics'] }}</b></span>
       <button type="button" (click)="refreshShellHealth()">Refresh</button>
     </div>
   </section>
@@ -78,7 +79,7 @@
       </div>
       <div class="sidebar-brand-text">
         <b>NebulaOps</b>
-        <small>Enterprise Platform v23.1</small>
+        <small>Enterprise Platform v23.2</small>
       </div>
     </div>
 
@@ -129,7 +130,7 @@
     <div class="sidebar-footer">
       <div class="sidebar-status-row">
         <span class="status-dot status-green"></span>
-        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v23.1</span>
+        <span class="status-label">{{ remoteCount() }} remotes · Keycloak SSO · v23.2</span>
       </div>
       <div class="neb-footer-actions">
         <button class="launcher-trigger" type="button" (click)="openLauncher()">
@@ -194,7 +195,7 @@
         </div>
         <div class="session-user">{{ currentUser() }}</div>
         <div class="session-info">JWT token shared with all remotes through localStorage and the Authorization Bearer header.</div>
-        <code class="session-code">nebulaops.v23_1.jwt</code>
+        <code class="session-code">nebulaops.v23_2.jwt</code>
       </div>
     </header>
 
@@ -256,7 +257,7 @@
         <div>
           <p class="kicker">NEBULAOPS COMMAND PALETTE</p>
           <h2>Global Search · MFE, services, routes</h2>
-          <small>Ricerca operativa centralizzata per navigare rapidamente la piattaforma v23.1.</small>
+          <small>Centralized operational search for fast navigation across the v23.2 platform.</small>
         </div>
         <button type="button" class="launcher-close" (click)="closeCommandPalette()" aria-label="Close">×</button>
       </header>

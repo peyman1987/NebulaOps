@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TOKEN_KEYS = ['nebulaops.v23_1.jwt', 'nebulaops.jwt', 'nebulaops.token'];
+  const TOKEN_KEYS = ['nebulaops.v23_2.jwt', 'nebulaops.jwt', 'nebulaops.token'];
   const ACTIONS = ['start', 'stop', 'restart', 'status', 'open'];
   const FORBIDDEN_EXTENSION_TITLES = new Set([
     'Runbook Center',

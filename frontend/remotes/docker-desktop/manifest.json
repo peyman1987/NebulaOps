@@ -1,7 +1,7 @@
 {
   "id": "docker-desktop",
   "title": "Docker Desktop",
-  "version": "23.1.0",
+  "version": "23.2.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-docker-desktop",
   "port": 4211,

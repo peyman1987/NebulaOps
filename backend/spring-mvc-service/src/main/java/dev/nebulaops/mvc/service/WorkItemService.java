@@ -15,7 +15,7 @@ public class WorkItemService {
     private final ConcurrentMap<String, WorkItem> items = new ConcurrentHashMap<>();
 
     public WorkItemService() {
-        // v23.1 live-only mode: no seeded/demo work items are created at startup.
+        // v23.2 live-only mode: no seeded/demo work items are created at startup.
         // Items are created only through the REST API during the current runtime.
     }
 
@@ -28,7 +28,7 @@ public class WorkItemService {
     public WorkItem findById(String id) {
         WorkItem item = items.get(id);
         if (item == null) {
-            throw new NoSuchElementException("Work item non trovato: " + id);
+            throw new NoSuchElementException("Work item not found: " + id);
         }
         return item;
     }
@@ -54,7 +54,7 @@ public class WorkItemService {
 
     public void delete(String id) {
         if (items.remove(id) == null) {
-            throw new NoSuchElementException("Work item non trovato: " + id);
+            throw new NoSuchElementException("Work item not found: " + id);
         }
     }
 }

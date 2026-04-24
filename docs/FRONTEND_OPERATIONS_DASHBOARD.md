@@ -1,6 +1,6 @@
 # Frontend Operations Dashboard
 
-NebulaOps includes an Angular operations dashboard designed for portfolio demonstrations and local engineering
+NebulaOps includes an Angular operations dashboard designed for engineering demonstrations and local engineering
 workflows. The frontend is no longer a simple static Kanban board: it now presents platform state, Kubernetes runtime
 resources, service logs and a persistent task workflow.
 
