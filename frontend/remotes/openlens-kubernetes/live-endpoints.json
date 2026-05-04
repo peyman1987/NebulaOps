@@ -1,0 +1,235 @@
+{
+  "endpoints": [
+    {
+      "label": "Cluster registry",
+      "url": "/api/kubernetes/kubeconfigs",
+      "kind": "kubeconfig",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Cluster",
+      "url": "/api/kubernetes/cluster",
+      "kind": "cluster"
+    },
+    {
+      "label": "Kubernetes problems",
+      "url": "/api/kubernetes/problems?namespace=all",
+      "kind": "KubernetesProblem",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Storage summary",
+      "url": "/api/kubernetes/storage/summary?namespace=all",
+      "kind": "StorageSummary",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Network summary",
+      "url": "/api/kubernetes/network/summary?namespace=all",
+      "kind": "NetworkSummary",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Network graph",
+      "url": "/api/kubernetes/network/graph?namespace=all",
+      "kind": "KubernetesNetworkGraph",
+      "itemsPath": "nodes"
+    },
+    {
+      "label": "Security summary",
+      "url": "/api/kubernetes/security/summary?namespace=all",
+      "kind": "SecuritySummary",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Node metrics",
+      "url": "/api/kubernetes/metrics/nodes",
+      "kind": "NodeMetrics",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Pod metrics",
+      "url": "/api/kubernetes/metrics/pods?namespace=all",
+      "kind": "PodMetrics",
+      "itemsPath": "items"
+    },
+    {
+      "label": "HPA summary",
+      "url": "/api/kubernetes/autoscaling/hpa?namespace=all",
+      "kind": "HorizontalPodAutoscaler",
+      "itemsPath": "items"
+    },
+    {
+      "label": "PDB summary",
+      "url": "/api/kubernetes/availability/pdb?namespace=all",
+      "kind": "PodDisruptionBudget",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Workload owners",
+      "url": "/api/kubernetes/workload-owners?namespace=all",
+      "kind": "WorkloadOwner",
+      "itemsPath": "items"
+    },
+    {
+      "label": "API resources",
+      "url": "/api/kubernetes/api-resources",
+      "kind": "ApiResource",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Network policies",
+      "url": "/api/kubernetes/network-policies?namespace=all",
+      "kind": "NetworkPolicy",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Ingress TLS",
+      "url": "/api/kubernetes/ingress/tls?namespace=all",
+      "kind": "IngressTLS",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Service endpoints",
+      "url": "/api/kubernetes/service-endpoints?namespace=all",
+      "kind": "ServiceEndpoint",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Events timeline",
+      "url": "/api/kubernetes/events/timeline?namespace=all&limit=200",
+      "kind": "EventTimeline",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Namespace quotas default",
+      "url": "/api/kubernetes/namespaces/default/quotas",
+      "kind": "NamespaceQuotas",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Connectivity summary",
+      "url": "/api/kubernetes/network/connectivity-summary?namespace=all",
+      "kind": "ConnectivitySummary",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Default namespace dependency map",
+      "url": "/api/kubernetes/namespaces/default/dependency-map",
+      "kind": "KubernetesDependencyMap",
+      "itemsPath": "nodes"
+    },
+    {
+      "label": "Nodes",
+      "url": "/api/kubernetes/nodes",
+      "kind": "node",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Namespaces",
+      "url": "/api/kubernetes/namespaces",
+      "kind": "namespace",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Pods",
+      "url": "/api/kubernetes/resources?kind=pods&namespace=all",
+      "kind": "Pod",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Deployments",
+      "url": "/api/kubernetes/resources?kind=deployments&namespace=all",
+      "kind": "Deployment",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "StatefulSets",
+      "url": "/api/kubernetes/resources?kind=statefulsets&namespace=all",
+      "kind": "StatefulSet",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Services",
+      "url": "/api/kubernetes/resources?kind=services&namespace=all",
+      "kind": "Service",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Ingress",
+      "url": "/api/kubernetes/resources?kind=ingress&namespace=all",
+      "kind": "Ingress",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "ConfigMaps",
+      "url": "/api/kubernetes/resources?kind=configmaps&namespace=all",
+      "kind": "ConfigMap",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "DaemonSets",
+      "url": "/api/kubernetes/resources?kind=daemonsets&namespace=all",
+      "kind": "DaemonSet",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Jobs",
+      "url": "/api/kubernetes/resources?kind=jobs&namespace=all",
+      "kind": "Job",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "CronJobs",
+      "url": "/api/kubernetes/resources?kind=cronjobs&namespace=all",
+      "kind": "CronJob",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Secrets masked",
+      "url": "/api/kubernetes/secrets?namespace=all",
+      "kind": "Secret",
+      "itemsPath": "items"
+    },
+    {
+      "label": "PersistentVolumeClaims",
+      "url": "/api/kubernetes/resources?kind=persistentvolumeclaims&namespace=all",
+      "kind": "PersistentVolumeClaim",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "StorageClasses",
+      "url": "/api/kubernetes/resources?kind=storageclasses&namespace=all",
+      "kind": "StorageClass",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Events",
+      "url": "/api/kubernetes/events?namespace=all",
+      "kind": "Event",
+      "itemsPath": "data.items"
+    },
+    {
+      "label": "Namespace overview default",
+      "url": "/api/kubernetes/namespaces/default/overview",
+      "kind": "NamespaceOverview"
+    },
+    {
+      "label": "Helm releases",
+      "url": "/api/kubernetes/helm/releases?namespace=all",
+      "kind": "HelmRelease"
+    },
+    {
+      "label": "Port forwards",
+      "url": "/api/kubernetes/port-forwards",
+      "kind": "PortForward",
+      "itemsPath": "items"
+    },
+    {
+      "label": "RBAC summary",
+      "url": "/api/kubernetes/rbac/summary?namespace=all",
+      "kind": "RBACSummary",
+      "itemsPath": "items"
+    }
+  ]
+}

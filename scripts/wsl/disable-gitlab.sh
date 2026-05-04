@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.2 — Disable/clean optional GitLab CE from the local NebulaOps runtime.
+# v23.3 — Disable/clean optional GitLab CE from the local NebulaOps runtime.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

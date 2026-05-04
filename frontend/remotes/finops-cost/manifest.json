@@ -1,7 +1,7 @@
 {
   "id": "finops-cost",
   "title": "FinOps Cost",
-  "version": "23.2.0",
+  "version": "23.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-finops-cost",
   "port": 4219,

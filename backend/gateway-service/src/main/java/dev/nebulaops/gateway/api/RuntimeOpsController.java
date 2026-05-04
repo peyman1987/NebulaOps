@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * v23.2 — Runtime endpoints.
+ * v23.3 — Runtime endpoints.
  * Normalizes Docker Engine API fields so Angular normalizeDockerContainer() works:
  *   Docker API: Id (64-char), Names (["/name"]), Image, State, Ports ([{PublicPort,PrivatePort}])
  *   Angular expects: id, name, image, status, ports (string)
@@ -65,6 +65,26 @@ public class RuntimeOpsController {
     @GetMapping("/docker/networks")public List networks() { return items(docker.networks()); }
     @GetMapping("/docker/builds")  public Map<String,Object> builds()   { return docker.builds(); }
     @GetMapping("/docker/events")  public Map<String,Object> events()   { return docker.events(); }
+    @GetMapping("/docker/projects") public Map<String,Object> dockerProjects() { return docker.projects(); }
+    @GetMapping("/docker/projects/{project}") public Map<String,Object> dockerProject(@PathVariable String project) { return docker.project(project); }
+    @GetMapping("/docker/port-conflicts") public Map<String,Object> dockerPortConflicts() { return docker.portConflicts(); }
+    @GetMapping("/docker/diagnostics") public Map<String,Object> dockerDiagnostics() { return docker.diagnostics(); }
+    @GetMapping("/docker/topology") public Map<String,Object> dockerTopology() { return docker.topology(); }
+    @GetMapping("/docker/prune/preview") public Map<String,Object> dockerPrunePreview() { return docker.prunePreview(); }
+    @GetMapping("/docker/resource-pressure") public Map<String,Object> dockerResourcePressure() { return docker.resourcePressure(); }
+    @GetMapping("/docker/project-risks") public Map<String,Object> dockerProjectRisks() { return docker.projectRisks(); }
+    @GetMapping("/docker/build-cache") public Map<String,Object> dockerBuildCache() { return docker.buildCache(); }
+    @GetMapping("/docker/volume-usage") public Map<String,Object> dockerVolumeUsage() { return docker.volumeUsage(); }
+    @GetMapping("/docker/system/info") public Map<String,Object> dockerInfo() { return docker.info(); }
+    @GetMapping("/docker/system/version") public Map<String,Object> dockerVersion() { return docker.version(); }
+    @GetMapping("/docker/network-exposure") public Map<String,Object> dockerNetworkExposure() { return docker.networkExposure(); }
+    @GetMapping("/docker/restart-policy-audit") public Map<String,Object> dockerRestartPolicyAudit() { return docker.restartPolicyAudit(); }
+    @GetMapping("/docker/environment-risk-audit") public Map<String,Object> dockerEnvironmentRiskAudit() { return docker.environmentRiskAudit(); }
+    @GetMapping("/docker/mount-risk-audit") public Map<String,Object> dockerMountRiskAudit() { return docker.mountRiskAudit(); }
+    @GetMapping("/docker/container-security-audit") public Map<String,Object> dockerContainerSecurityAudit() { return docker.containerSecurityAudit(); }
+    @GetMapping("/docker/image-hygiene-audit") public Map<String,Object> dockerImageHygieneAudit() { return docker.imageHygieneAudit(); }
+    @GetMapping("/docker/network-inventory") public Map<String,Object> dockerNetworkInventory() { return docker.networkInventory(); }
+    @GetMapping("/docker/unused-resource-candidates") public Map<String,Object> dockerUnusedResourceCandidates() { return docker.unusedResourceCandidates(); }
 
     @GetMapping("/helm/releases")
     public List helm(@RequestParam(required = false) String namespace) {

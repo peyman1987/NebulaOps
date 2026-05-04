@@ -1,18 +1,18 @@
 {
-  "name": "nebulaops-v23-2-shell-host",
-  "version": "23.2.0",
+  "name": "nebulaops-v23-3-shell-host",
+  "version": "23.3.0",
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4200",
-    "build": "ng build --configuration production",
+    "build": "ng build --configuration production --progress=false",
     "test": "ng test --watch=false",
     "lint": "ng lint",
-    "typecheck": "ng build --configuration production --aot",
-    "build:mfe:runtime": "ng build --configuration production --base-href /",
-    "build:mfe:tasks": "ng build --configuration production --base-href /",
-    "build:mfe:platform": "ng build --configuration production --base-href /",
+    "typecheck": "ng build --configuration production --aot --progress=false",
+    "build:mfe:runtime": "ng build --configuration production --base-href / --progress=false",
+    "build:mfe:tasks": "ng build --configuration production --base-href / --progress=false",
+    "build:mfe:platform": "ng build --configuration production --base-href / --progress=false",
     "build:microfrontends": "npm run build:shell && npm run build:remotes",
-    "build:shell": "ng build --configuration production",
+    "build:shell": "ng build --configuration production --progress=false",
     "build:remotes": "node tools/verify-remotes.mjs"
   },
   "dependencies": {

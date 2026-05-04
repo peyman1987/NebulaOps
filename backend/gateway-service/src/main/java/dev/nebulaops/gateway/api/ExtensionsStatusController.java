@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * v23.2 — installed extension discovery.
+ * v23.3 — installed extension discovery.
  *
  * The endpoint reports extensions from the live Docker runtime by inspecting
  * running/stopped NebulaOps MFE containers. If Docker is unavailable it returns

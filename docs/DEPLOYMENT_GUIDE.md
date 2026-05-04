@@ -3,7 +3,7 @@
 ## Local WSL/Docker start
 
 ```bash
-cd nebulaops-v23.2
+cd nebulaops-v23.3
 chmod +x scripts/wsl/*.sh scripts/*.sh
 ./scripts/wsl/start.sh --rebuild
 ./scripts/wsl/health.sh

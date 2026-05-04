@@ -1,6 +1,6 @@
 apiVersion: v2
 name: nebulaops-spring-mvc-addon
-description: Spring Boot MVC add-on service for NebulaOps v23.2
+description: Spring Boot MVC add-on service for NebulaOps v23.3
 type: application
 version: 0.1.0
-appVersion: "23.2.0"
+appVersion: "23.3.0"

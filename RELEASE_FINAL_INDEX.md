@@ -1,4 +1,4 @@
-# NebulaOps v23.2 release index
+# NebulaOps v23.3 release index
 
 Current package focus:
 
@@ -10,4 +10,4 @@ Current package focus:
 
 Start with `README.md`, `START_HERE.md` and `ARCHITECTURE.md`.
 
-- `V23.2_LOCALHOST_HOTFIX_5_DOCS_PREFLIGHT_REPORT.md` — documentation/preflight alignment report.
+- `V23.3_LOCALHOST_HOTFIX_5_DOCS_PREFLIGHT_REPORT.md` — documentation/preflight alignment report.

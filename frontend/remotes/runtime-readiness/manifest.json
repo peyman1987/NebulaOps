@@ -1,7 +1,7 @@
 {
   "id": "runtime-readiness",
   "title": "Runtime Readiness Dashboard",
-  "version": "23.2.0",
+  "version": "23.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-runtime-readiness",
   "port": 4228,

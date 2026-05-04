@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * v23.2 — Keycloak resource-server integration.
+ * v23.3 — Keycloak resource-server integration.
  *
  * When nebulaops.security.enabled=true, the service validates Bearer JWTs
  * issued by the NebulaOps Keycloak realm. Public endpoints are limited to
@@ -45,7 +45,7 @@ import java.util.Map;
 public class KeycloakResourceServerConfig {
 
     /**
-     * v23.2 local/Keycloak JWT bridge.
+     * v23.3 local/Keycloak JWT bridge.
      *
      * Standalone micro frontends call /api/auth/login through their own Nginx
      * origin and receive the NebulaOps local HS256 JWT issued by auth-service.
@@ -55,7 +55,7 @@ public class KeycloakResourceServerConfig {
      */
     @Bean
     public JwtDecoder jwtDecoder(
-            @Value("${jwt.secret:nebulaops-v23-2-dev-secret-key-min-32-chars!!}") String jwtSecret,
+            @Value("${jwt.secret:nebulaops-v23-3-dev-secret-key-min-32-chars!!}") String jwtSecret,
             @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:}") String jwkSetUri) {
 
         SecretKey localKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");

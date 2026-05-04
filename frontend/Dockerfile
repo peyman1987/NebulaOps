@@ -1,4 +1,4 @@
-# NebulaOps v23.2 frontend shell + reverse proxy runtime image.
+# NebulaOps v23.3 frontend shell + reverse proxy runtime image.
 # IMPORTANT: npm install/build is intentionally NOT executed inside Docker.
 # Build dist locally first with: ./scripts/wsl/build-frontend-local.sh
 FROM nginx:1.27-alpine

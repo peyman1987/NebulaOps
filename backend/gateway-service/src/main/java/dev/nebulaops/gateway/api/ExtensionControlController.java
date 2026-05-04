@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * NebulaOps v23.2 — UI-controlled extension control plane.
+ * NebulaOps v23.3 — UI-controlled extension control plane.
  *
  * Installed extensions are explicit and limited to APIForge, KubeBridge and Contract Hub.
  * The controller never creates mock data: status is read from kubectl, Docker/local-registry
@@ -66,9 +66,9 @@ public class ExtensionControlController {
         this.tools = tools;
         this.rest = rest;
         this.extensions = Map.of(
-                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-2-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
-                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-2-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
-                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-2-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
+                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-3-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
+                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-3-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
+                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-3-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
         );
     }
 
@@ -93,7 +93,7 @@ public class ExtensionControlController {
         List<Map<String, Object>> items = new ArrayList<>();
         int running = 0;
         for (ExtensionSpec spec : installedExtensions()) {
-            Map<String, Object> status = cachedStatusBody(spec, false);
+            Map<String, Object> status = cachedOrLightweightStatusBody(spec);
             items.add(status);
             if ("RUNNING".equals(status.get("state"))) running++;
         }
@@ -199,7 +199,7 @@ public class ExtensionControlController {
     </section>
   </div>
 <script>
-const token=localStorage.getItem('nebulaops.v23_2.jwt')||'';
+const token=localStorage.getItem('nebulaops.v23_3.jwt')||'';
 const headers=token?{Authorization:'Bearer '+token}:{};
 const log=document.getElementById('log');
 let items=[]; let selected=new URLSearchParams(location.search).get('extension') || 'apiforge';
@@ -362,6 +362,21 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
         return out;
     }
 
+    private Map<String, Object> cachedOrLightweightStatusBody(ExtensionSpec spec) {
+        long now = System.currentTimeMillis();
+        CachedExtensionStatus cached = statusCache.get(spec.slug());
+        if (cached != null && now - cached.cachedAt() < Math.max(1000L, statusCacheTtlMs)) {
+            Map<String, Object> hit = new LinkedHashMap<>(cached.payload());
+            hit.put("cache", "HIT");
+            hit.put("cacheAgeMs", now - cached.cachedAt());
+            return hit;
+        }
+        Map<String, Object> lightweight = lightweightStatusBody(spec);
+        lightweight.put("cache", "BYPASS_NO_BLOCKING_PROBE");
+        lightweight.put("message", "Cached deep status is not available yet. Call /api/extensions/" + spec.slug() + "/status?refresh=true when an operator explicitly requests a live probe.");
+        return lightweight;
+    }
+
     private Map<String, Object> cachedStatusBody(ExtensionSpec spec, boolean refresh) {
         long now = System.currentTimeMillis();
         CachedExtensionStatus cached = statusCache.get(spec.slug());
@@ -427,9 +442,9 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
     }
 
     private ToolResult ensureRegistry() {
-        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-2-registry || "
-                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-2-registry && docker start nebulaops-v23-2-registry >/dev/null) || "
-                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-2-registry registry:2 >/dev/null", 60);
+        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-3-registry || "
+                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-3-registry && docker start nebulaops-v23-3-registry >/dev/null) || "
+                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-3-registry registry:2 >/dev/null", 60);
     }
 
     private ToolResult applyManifest(ExtensionSpec spec, String deployedImage) {

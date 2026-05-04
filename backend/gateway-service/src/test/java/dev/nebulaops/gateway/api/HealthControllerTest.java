@@ -8,7 +8,7 @@ class HealthControllerTest {
     @Test
     void healthReportsVersion232() {
         HealthController controller = new HealthController();
-        assertThat(controller.health()).containsEntry("version", "23.2");
-        assertThat(controller.ping()).containsEntry("release", "NebulaOps v23.2");
+        assertThat(controller.health()).containsEntry("version", "23.3");
+        assertThat(controller.ping()).containsEntry("release", "NebulaOps v23.3");
     }
 }

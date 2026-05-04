@@ -1,9 +1,9 @@
 # Start here
 
-Use the v23.2 same-origin runtime.
+Use the v23.3 same-origin runtime.
 
 ```bash
-cd nebulaops-v23.2
+cd nebulaops-v23.3
 chmod +x scripts/wsl/*.sh scripts/*.sh
 ./scripts/wsl/start.sh --rebuild
 ./scripts/wsl/health.sh

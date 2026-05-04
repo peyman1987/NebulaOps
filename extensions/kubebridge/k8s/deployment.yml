@@ -16,7 +16,7 @@ metadata:
     app.kubernetes.io/name: kubebridge
     app.kubernetes.io/component: extension
     app.kubernetes.io/part-of: nebulaops
-    app.kubernetes.io/version: "23.2.0"
+    app.kubernetes.io/version: "23.3.0"
 spec:
   replicas: 0
   selector:
@@ -33,7 +33,7 @@ spec:
       serviceAccountName: kubebridge
       containers:
         - name: kubebridge
-          image: nebulaops-v23-2-kubebridge:latest
+          image: nebulaops-v23-3-kubebridge:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
