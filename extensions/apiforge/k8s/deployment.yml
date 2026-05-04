@@ -32,7 +32,7 @@ metadata:
     app.kubernetes.io/name: apiforge
     app.kubernetes.io/component: api-workspace
     app.kubernetes.io/part-of: nebulaops
-    app.kubernetes.io/version: "23.2.0"
+    app.kubernetes.io/version: "23.3.0"
 spec:
   replicas: 0
   selector:
@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
         - name: apiforge
-          image: nebulaops-v23-2-apiforge:latest
+          image: nebulaops-v23-3-apiforge:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

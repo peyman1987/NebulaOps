@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v23.2 local frontend builder.
+# NebulaOps v23.3 local frontend builder.
 # Builds Angular shell and all MFE dist folders on the host/WSL only when the packaged dist artifacts are missing or invalid.
 set -euo pipefail
 
@@ -42,7 +42,7 @@ file_has_classic_remote_contract() {
   if grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)' "$file"; then
     return 1
   fi
-  grep -Eq 'NebulaOps v23.2 auth bridge|nebulaopsAuthBridge' "$file" || return 1
+  grep -Eq 'NebulaOps v23.3 auth bridge|nebulaopsAuthBridge' "$file" || return 1
   grep -Eq 'customElements\.define|classic standalone custom element' "$file" || return 1
 }
 
@@ -58,7 +58,7 @@ existing_dist_is_valid() {
 }
 
 if [ "${NEBULAOPS_FORCE_FRONTEND_DIST_BUILD:-false}" != "true" ] && existing_dist_is_valid; then
-  echo "[NebulaOps] Existing v23.2 frontend/MFE dist artifacts are valid; skipping npm rebuild."
+  echo "[NebulaOps] Existing v23.3 frontend/MFE dist artifacts are valid; skipping npm rebuild."
   echo "[NebulaOps] To force a full Angular rebuild, run: NEBULAOPS_FORCE_FRONTEND_DIST_BUILD=true ./scripts/wsl/build-frontend-local.sh"
   exit 0
 fi

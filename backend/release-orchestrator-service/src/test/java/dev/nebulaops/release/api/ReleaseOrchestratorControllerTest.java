@@ -19,7 +19,7 @@ class ReleaseOrchestratorControllerTest {
     @Test
     void createThenPromoteReturnsDeterministicResponse() {
         ReleaseOrchestratorController controller = new ReleaseOrchestratorController("http://gitlab:80", "", "", "http://argocd", "", "http://gateway-service:8080", "http://policy-governance-service:8100", "http://audit-service:8101", "http://notification-service:8083");
-        ResponseEntity<Object> created = controller.create(Map.of("application", "gateway-service", "version", "23.2.0"));
+        ResponseEntity<Object> created = controller.create(Map.of("application", "gateway-service", "version", "23.3.0"));
         assertTrue(created.getStatusCode().is2xxSuccessful());
         assertTrue(String.valueOf(created.getBody()).contains("gateway-service"));
     }

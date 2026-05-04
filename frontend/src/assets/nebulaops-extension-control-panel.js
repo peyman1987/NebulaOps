@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TOKEN_KEYS = ['nebulaops.v23_2.jwt', 'nebulaops.jwt', 'nebulaops.token'];
+  const TOKEN_KEYS = ['nebulaops.v23_3.jwt', 'nebulaops.jwt', 'nebulaops.token'];
   const ACTIONS = ['start', 'stop', 'restart', 'status', 'open'];
   const FORBIDDEN_EXTENSION_TITLES = new Set([
     'Runbook Center',
@@ -204,7 +204,7 @@
   }
 
   async function refreshStatus(id = selected) {
-    const response = await fetch(`/api/extensions/${encodeURIComponent(id)}/status`, { headers: headers() });
+    const response = await fetch(`/api/extensions/${encodeURIComponent(id)}/status?refresh=true`, { headers: headers() });
     if (!response.ok) throw new Error(`Status returned HTTP ${response.status}`);
     const body = await response.json();
     const index = items.findIndex((item) => item.id === id);

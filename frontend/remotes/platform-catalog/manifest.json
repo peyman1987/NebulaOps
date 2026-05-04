@@ -1,0 +1,10 @@
+{
+  "id": "platform-catalog",
+  "title": "Platform Catalog & Service Registry",
+  "version": "23.3.0",
+  "remoteEntry": "remoteEntry.js",
+  "tag": "nebulaops-mfe-platform-catalog",
+  "port": 4220,
+  "scope": "Platform · Catalog · Service Registry",
+  "shellOwnedNavigation": true
+}

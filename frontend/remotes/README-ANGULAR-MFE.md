@@ -1,4 +1,4 @@
-# NebulaOps v23.2 — Angular Micro Frontends
+# NebulaOps v23.3 — Angular Micro Frontends
 
 Each remote is a standalone Angular 18 project compiled with `@angular/elements` to expose a Web Component registered in the shell host.
 
@@ -40,8 +40,8 @@ npm run build
 ## Docker execution
 
 ```bash
-docker build -t nebulaops-mfe-<name>:23.2 .
-docker run -p <port>:80 nebulaops-mfe-<name>:23.2
+docker build -t nebulaops-mfe-<name>:23.3 .
+docker run -p <port>:80 nebulaops-mfe-<name>:23.3
 ```
 
 ## How it works with the Angular shell
@@ -74,5 +74,5 @@ These tags are loaded dynamically by the shell through `loadRemote()`, which inj
 - **Standalone Components** — no NgModule
 - **New Control Flow** — `@for`, `@if`, `@let` (Angular 17+)
 - **Signals** — `signal()`, `computed()` for state management
-- **Shared JWT** — `localStorage.getItem('nebulaops.v23_2.jwt')` read by each MFE
+- **Shared JWT** — `localStorage.getItem('nebulaops.v23_3.jwt')` read by each MFE
 - **CORS** — nginx returns `Access-Control-Allow-Origin: *` for cross-origin embedding

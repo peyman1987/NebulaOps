@@ -6,6 +6,6 @@ COPY src ./src
 RUN mvn -q -DskipTests package
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/kubebridge-23.2.0.jar app.jar
+COPY --from=build /app/target/kubebridge-23.3.0.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]

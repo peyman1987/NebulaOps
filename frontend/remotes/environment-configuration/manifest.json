@@ -1,7 +1,7 @@
 {
   "id": "environment-configuration",
   "title": "Environment & Configuration Center",
-  "version": "23.2.0",
+  "version": "23.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-environment-configuration",
   "port": 4230,

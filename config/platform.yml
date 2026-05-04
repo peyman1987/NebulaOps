@@ -1,5 +1,5 @@
-version: 23.2.0
-release: v23.2
+version: 23.3.0
+release: v23.3
 services:
   auth:
     host: auth-service

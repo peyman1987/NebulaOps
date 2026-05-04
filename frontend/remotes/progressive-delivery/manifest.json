@@ -1,7 +1,7 @@
 {
   "id": "progressive-delivery",
   "title": "Progressive Delivery Center",
-  "version": "23.2.0",
+  "version": "23.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-progressive-delivery",
   "port": 4223,

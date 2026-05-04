@@ -6,6 +6,11 @@
       "kind": "docker-status"
     },
     {
+      "label": "Compose projects",
+      "url": "/api/runtime/docker/projects",
+      "kind": "docker-project"
+    },
+    {
       "label": "Containers",
       "url": "/api/runtime/docker/containers",
       "kind": "container"
@@ -29,6 +34,63 @@
       "label": "Runtime stats",
       "url": "/api/runtime/docker/stats",
       "kind": "stats"
+    },
+    {
+      "label": "Docker diagnostics",
+      "url": "/api/runtime/docker/diagnostics",
+      "kind": "docker-diagnostics"
+    },
+    {
+      "label": "Resource pressure",
+      "url": "/api/runtime/docker/resource-pressure",
+      "kind": "docker-resource-pressure",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Project risks",
+      "url": "/api/runtime/docker/project-risks",
+      "kind": "docker-project-risk",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Build cache",
+      "url": "/api/runtime/docker/build-cache",
+      "kind": "docker-build-cache",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Volume usage",
+      "url": "/api/runtime/docker/volume-usage",
+      "kind": "docker-volume-usage",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Published port conflicts",
+      "url": "/api/runtime/docker/port-conflicts",
+      "kind": "docker-port-conflict"
+    },
+    {
+      "label": "Docker topology",
+      "url": "/api/runtime/docker/topology",
+      "kind": "docker-topology",
+      "itemsPath": "nodes"
+    },
+    {
+      "label": "Prune preview",
+      "url": "/api/runtime/docker/prune/preview",
+      "kind": "prune-preview"
+    },
+    {
+      "label": "Docker system info",
+      "url": "/api/runtime/docker/system/info",
+      "kind": "system-info",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Docker version",
+      "url": "/api/runtime/docker/system/version",
+      "kind": "system-version",
+      "itemsPath": "items"
     },
     {
       "label": "Docker events",

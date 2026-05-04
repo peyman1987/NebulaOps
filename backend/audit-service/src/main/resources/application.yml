@@ -17,7 +17,7 @@ spring:
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v23-2-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v23-3-dev-secret-key-min-32-chars!!}
 management:
   endpoints:
     web:
@@ -35,6 +35,6 @@ nebulaops:
     task-routing-key: ${NEBULAOPS_TASK_ROUTING_KEY:task.event}
 
 
-# NebulaOps v23.2 SECURITY WARNING:
+# NebulaOps v23.3 SECURITY WARNING:
 # - JWT_SECRET default is development-only. Set a strong external secret in production.
 # - KEYCLOAK_AUTH_ENABLED=false disables resource-server protection and is only acceptable for local troubleshooting.

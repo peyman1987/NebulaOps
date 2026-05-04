@@ -1,7 +1,7 @@
 {
   "id": "release-center",
   "title": "Release Center",
-  "version": "23.2.0",
+  "version": "23.3.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-release-center",
   "port": 4222,

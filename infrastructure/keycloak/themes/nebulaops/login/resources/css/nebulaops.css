@@ -1,4 +1,4 @@
-/* NebulaOps v23.2 — Keycloak Login Theme */
+/* NebulaOps v23.3 — Keycloak Login Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 
@@ -110,7 +110,7 @@ div#kc-container {
 }
 
 #kc-page-title::before {
-  content: 'N23.2';
+  content: 'N23.3';
   display: grid;
   place-items: center;
   width: 56px;
@@ -125,7 +125,7 @@ div#kc-container {
 }
 
 #kc-page-title::after {
-  content: 'NebulaOps v23.2';
+  content: 'NebulaOps v23.3';
   font-size: 22px;
   font-weight: 900;
   color: #fff;
@@ -307,7 +307,7 @@ button[type="submit"]:hover,
 }
 
 
-/* v23.2 SSO patch: never hide the Keycloak login surface. Some Keycloak 24 render paths
+/* v23.3 SSO patch: never hide the Keycloak login surface. Some Keycloak 24 render paths
    use the parent template with this stylesheet, so hiding .login-pf-page produced a blank page. */
 .login-pf-page,
 #kc-container,
