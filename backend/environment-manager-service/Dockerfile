@@ -1,4 +1,4 @@
-# NebulaOps v23.3 runtime image for environment-manager-service.
+# NebulaOps v23.4 runtime image for environment-manager-service.
 # Java compilation is intentionally executed once before Docker image build by:
 #   ./scripts/wsl/build-backend-jars.sh
 # This avoids downloading Maven dependencies separately in every service image.

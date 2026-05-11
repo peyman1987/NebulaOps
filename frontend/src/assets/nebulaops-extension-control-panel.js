@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TOKEN_KEYS = ['nebulaops.v23_3.jwt', 'nebulaops.jwt', 'nebulaops.token'];
+  const TOKEN_KEYS = ['nebulaops.v23_4.jwt', 'nebulaops.jwt', 'nebulaops.token'];
   const ACTIONS = ['start', 'stop', 'restart', 'status', 'open'];
   const FORBIDDEN_EXTENSION_TITLES = new Set([
     'Runbook Center',
@@ -23,6 +23,8 @@
   let items = [];
   let selected = 'apiforge';
   let busy = false;
+  let activeOperation = null;
+  let operationPoll = null;
 
   function token() {
     for (const key of TOKEN_KEYS) {
@@ -88,6 +90,46 @@
       .neb-ext-action.danger{border-color:rgba(255,95,130,.32);background:rgba(255,95,130,.09);color:#ff9db2;}
       .neb-ext-action:disabled{opacity:.45;cursor:wait;}
       .neb-ext-log{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;color:#b7c7e8;min-height:210px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.45;}
+      .neb-ext-op{border:1px solid rgba(122,223,255,.18);background:rgba(122,223,255,.06);border-radius:18px;padding:14px;margin:0 0 14px;}
+      .neb-ext-op-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;}
+      .neb-ext-op-head b{font-size:13px;letter-spacing:.04em;text-transform:uppercase;}
+      .neb-ext-op-head small{color:#8ea0c3;line-height:1.45;}
+      .neb-ext-op-phase{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:950;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#dbeafe;}
+      .neb-ext-phases{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;}
+      .neb-ext-phase{border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px 7px;text-align:center;font-size:10px;font-weight:850;color:#7889ad;background:rgba(255,255,255,.045);}
+      .neb-ext-phase.done{color:#70f0b4;border-color:rgba(112,240,180,.28);background:rgba(112,240,180,.08);}
+      .neb-ext-phase.active{color:#7adfff;border-color:rgba(122,223,255,.42);background:rgba(122,223,255,.1);box-shadow:0 0 20px rgba(122,223,255,.08) inset;}
+      .neb-ext-phase.failed{color:#ff9db2;border-color:rgba(255,95,130,.36);background:rgba(255,95,130,.09);}
+
+      /* v23.4 Priority 7 · compact extension control plane density. */
+      .neb-ext-overlay{padding:14px;place-items:start center;overflow:auto;}
+      .neb-ext-panel{width:min(1320px,100%);max-height:calc(100vh - 28px);border-radius:20px;}
+      .neb-ext-head{padding:16px 16px 0;gap:12px;}
+      .neb-ext-head h2{font-size:clamp(19px,2vw,25px);margin-bottom:3px;}
+      .neb-ext-head small{font-size:11.5px;line-height:1.35;max-width:920px;}
+      .neb-ext-close{width:32px;height:32px;border-radius:10px;font-size:18px;}
+      .neb-ext-toolbar{position:sticky;top:0;z-index:3;margin:12px 16px;padding:8px 10px;border-radius:13px;background:rgba(12,20,44,.96);backdrop-filter:blur(12px);}
+      .neb-ext-toolbar input{font-size:12px;}
+      .neb-ext-toolbar button{padding:6px 9px;border-radius:9px;font-size:11.5px;}
+      .neb-ext-content{grid-template-columns:270px minmax(0,1fr);gap:10px;padding:0 16px 16px;}
+      .neb-ext-list,.neb-ext-detail{border-radius:16px;padding:10px;}
+      .neb-ext-list-inner{gap:7px;}
+      .neb-ext-item{border-radius:13px;padding:10px;}
+      .neb-ext-item b{font-size:12.5px;}
+      .neb-ext-item small{font-size:11px;line-height:1.32;}
+      .neb-ext-state{padding:4px 7px;font-size:9.5px;margin-top:6px;}
+      .neb-ext-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 10px;}
+      .neb-ext-metric{border-radius:12px;padding:9px;}
+      .neb-ext-metric small{font-size:9px;margin-bottom:3px;}
+      .neb-ext-metric b{font-size:12px;}
+      .neb-ext-actions{gap:6px;margin-bottom:10px;}
+      .neb-ext-action{border-radius:10px;padding:7px 9px;font-size:11.5px;}
+      .neb-ext-log{border-radius:12px;padding:10px;min-height:160px;font-size:11px;line-height:1.35;}
+      .neb-ext-op{border-radius:14px;padding:10px;margin-bottom:10px;}
+      .neb-ext-op-head{margin-bottom:7px;}
+      .neb-ext-op-phase{padding:4px 8px;font-size:9.5px;}
+      .neb-ext-phases{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;}
+      .neb-ext-phase{border-radius:10px;padding:6px 5px;font-size:9.5px;}
       .neb-ext-hidden-card{display:none!important;}
       @media(max-width:920px){.neb-ext-content{grid-template-columns:1fr}.neb-ext-metrics{grid-template-columns:1fr 1fr}.neb-footer-actions{grid-template-columns:1fr;}}
       @media(max-width:560px){.neb-ext-metrics{grid-template-columns:1fr}.neb-ext-overlay{padding:10px}.neb-ext-head{padding:18px 18px 0}.neb-ext-toolbar{margin:14px 18px}.neb-ext-content{padding:0 18px 18px;}}
@@ -150,6 +192,35 @@
     });
   }
 
+  function operationHtml(item) {
+    const op = activeOperation && activeOperation.extension === item?.id ? activeOperation : null;
+    if (!op) return '';
+    const phases = [
+      ['STARTING', 'Starting'],
+      ['PULLING_IMAGE', 'Pulling image'],
+      ['APPLYING_KUBERNETES_MANIFESTS', 'Applying Kubernetes manifests'],
+      ['WAITING_FOR_ROLLOUT', 'Waiting for rollout'],
+      ['PROBING_ENDPOINT', 'Probing endpoint'],
+      ['READY', 'Ready']
+    ];
+    const index = phases.findIndex(([key]) => key === op.phase);
+    const failed = ['FAILED', 'TIMEOUT'].includes(String(op.phase || op.state || '').toUpperCase());
+    return `<section class="neb-ext-op">
+      <div class="neb-ext-op-head">
+        <div><b>Async operation</b><small> ${esc(op.action || 'start')} · ${esc(op.operationId || '')}</small></div>
+        <span class="neb-ext-op-phase ${failed ? 'failed' : ''}">${esc(op.phaseLabel || op.phase || op.state || 'Starting')}</span>
+      </div>
+      <div class="neb-ext-phases">${phases.map(([key, label], i) => {
+        let cls = '';
+        if (failed) cls = ['READY'].includes(key) ? '' : (i <= Math.max(index, 0) ? 'failed' : '');
+        else if (key === op.phase) cls = 'active';
+        else if (index >= 0 && i < index) cls = 'done';
+        return `<div class="neb-ext-phase ${cls}">${esc(label)}</div>`;
+      }).join('')}</div>
+      <small style="display:block;color:#8ea0c3;margin-top:10px;line-height:1.45">${esc(op.message || 'Operation accepted. Waiting for live progress events.')}</small>
+    </section>`;
+  }
+
   function renderDetail(item) {
     const detail = modal?.querySelector('[data-ext-detail]');
     if (!detail) return;
@@ -169,6 +240,7 @@
         <div class="neb-ext-metric"><small>Service</small><b>${esc(item.service || 'UNKNOWN')}</b></div>
         <div class="neb-ext-metric"><small>Gateway proxy</small><b>${esc(item.gatewayProxy || 'UNKNOWN')}</b></div>
       </div>
+      ${operationHtml(item)}
       <div class="neb-ext-actions">
         <button class="neb-ext-action primary" data-ext-action="start">▶ Start</button>
         <button class="neb-ext-action danger" data-ext-action="stop">■ Stop</button>
@@ -216,10 +288,38 @@
     return body;
   }
 
+  async function pollOperation(operationId, id) {
+    if (operationPoll) clearInterval(operationPoll);
+    async function tick() {
+      const response = await fetch(`/api/extensions/operations/${encodeURIComponent(operationId)}`, { headers: headers() });
+      if (!response.ok) throw new Error(`Operation returned HTTP ${response.status}`);
+      const body = await response.json();
+      activeOperation = body;
+      render();
+      log(body);
+      const state = String(body.state || '').toUpperCase();
+      const phase = String(body.phase || '').toUpperCase();
+      if (['SUCCEEDED', 'FAILED', 'TIMEOUT'].includes(state) || ['READY', 'FAILED', 'TIMEOUT'].includes(phase)) {
+        if (operationPoll) clearInterval(operationPoll);
+        operationPoll = null;
+        setBusy(false);
+        await refreshStatus(id).catch(() => loadExtensions().catch(() => {}));
+      }
+      return body;
+    }
+    await tick();
+    operationPoll = setInterval(() => tick().catch((error) => {
+      if (operationPoll) clearInterval(operationPoll);
+      operationPoll = null;
+      setBusy(false);
+      log(String(error.message || error));
+    }), 1800);
+  }
+
   async function runAction(id, action) {
     if (!ACTIONS.includes(action) || action === 'open') return;
     setBusy(true);
-    log(`Executing ${action} for ${id} ...`);
+    log(action === 'start' || action === 'restart' ? `Scheduling async ${action} for ${id} ...` : `Executing ${action} for ${id} ...`);
     try {
       const response = await fetch(`/api/extensions/${encodeURIComponent(id)}/${action}`, {
         method: 'POST',
@@ -228,11 +328,20 @@
       });
       const body = await response.json().catch(() => ({}));
       log(body);
-      await loadExtensions();
       if (!response.ok || body.ok === false) throw new Error(body.error || body.code || `HTTP ${response.status}`);
-      return body;
-    } finally {
+      if (body.operationId) {
+        activeOperation = body;
+        selected = id;
+        render();
+        await pollOperation(body.operationId, id);
+        return body;
+      }
+      await loadExtensions();
       setBusy(false);
+      return body;
+    } catch (error) {
+      setBusy(false);
+      throw error;
     }
   }
 
@@ -275,6 +384,8 @@
   }
 
   function closePanel() {
+    if (operationPoll) clearInterval(operationPoll);
+    operationPoll = null;
     if (modal) modal.remove();
     modal = null;
   }

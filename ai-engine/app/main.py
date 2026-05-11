@@ -10,7 +10,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from jwt import PyJWKClient
 from pydantic import BaseModel, Field
 
-APP_VERSION = "23.3"
+APP_VERSION = "23.4"
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = os.getenv("ANTHROPIC_VERSION", "2023-06-01")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
@@ -105,7 +105,7 @@ def call_anthropic(req: AnalyzeRequest, api_key: str) -> dict[str, Any]:
         "max_tokens": ANTHROPIC_MAX_TOKENS,
         "temperature": 0.1,
         "system": (
-            "You are NebulaOps v23.3 AI Engine. Analyze only the runtime evidence supplied by the caller. "
+            "You are NebulaOps v23.4 AI Engine. Analyze only the runtime evidence supplied by the caller. "
             "Do not invent services, pods, metrics, dates, users or incidents. Return strict JSON only with keys: "
             "incidentId, summary, rootCause, confidence, severity, blastRadius, fix, yaml, events, nodes, evidence, recommendations. "
             "If evidence is insufficient, say that explicitly and set confidence below 0.5."
@@ -175,7 +175,7 @@ def fallback_analysis(req: AnalyzeRequest, reason: str) -> dict[str, Any]:
     nodes = nodes_from_input(req)
     has_runtime_input = bool(evidence or events or nodes)
     return normalize_response({
-        "incidentId": "AIOPS-23-3-" + datetime.now(timezone.utc).strftime("%H%M%S"),
+        "incidentId": "AIOPS-23-4-" + datetime.now(timezone.utc).strftime("%H%M%S"),
         "summary": "LLM provider is unavailable; returned deterministic live-input review without fabricated conclusions.",
         "rootCause": "LLM_UNAVAILABLE: configure ANTHROPIC_API_KEY to enable model-backed RCA." if not has_runtime_input else "Needs operator review: runtime evidence is available but no LLM provider is configured.",
         "confidence": 0.0 if not has_runtime_input else 0.35,
@@ -201,7 +201,7 @@ def fallback_analysis(req: AnalyzeRequest, reason: str) -> dict[str, Any]:
 
 def normalize_response(payload: dict[str, Any], req: AnalyzeRequest) -> dict[str, Any]:
     payload = dict(payload)
-    payload.setdefault("incidentId", "AIOPS-23-3-" + datetime.now(timezone.utc).strftime("%H%M%S"))
+    payload.setdefault("incidentId", "AIOPS-23-4-" + datetime.now(timezone.utc).strftime("%H%M%S"))
     payload.setdefault("summary", "Analysis completed.")
     payload.setdefault("rootCause", "No root cause provided by analysis provider.")
     payload["confidence"] = clamp_float(payload.get("confidence"), 0.0, 1.0)

@@ -1,0 +1,34 @@
+{
+  "endpoints": [
+    {
+      "label": "Operational issues",
+      "url": "/api/platform/issues",
+      "kind": "operational-issue",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Issues summary",
+      "url": "/api/platform/issues/summary",
+      "kind": "operational-issues-summary",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Docker issue source",
+      "url": "/api/runtime/docker/diagnostics",
+      "kind": "docker-diagnostics",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Kubernetes issue source",
+      "url": "/api/kubernetes/problems?namespace=all",
+      "kind": "kubernetes-problem",
+      "itemsPath": "items"
+    },
+    {
+      "label": "Helm issue source",
+      "url": "/api/kubernetes/helm/releases?namespace=all",
+      "kind": "helm-release",
+      "itemsPath": "items"
+    }
+  ]
+}

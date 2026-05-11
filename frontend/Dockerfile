@@ -1,4 +1,4 @@
-# NebulaOps v23.3 frontend shell + reverse proxy runtime image.
+# NebulaOps v23.4 frontend shell + reverse proxy runtime image.
 # IMPORTANT: npm install/build is intentionally NOT executed inside Docker.
 # Build dist locally first with: ./scripts/wsl/build-frontend-local.sh
 FROM nginx:1.27-alpine
@@ -13,6 +13,7 @@ COPY dist/nebulaops/browser/ /usr/share/nginx/html/
 # through sixteen separate MFE containers during local startup.
 COPY remotes/platform-catalog/dist/browser/ /usr/share/nginx/html/remotes/platform-catalog/
 COPY remotes/incident-command-center/dist/browser/ /usr/share/nginx/html/remotes/incident-command-center/
+COPY remotes/operational-issues/dist/browser/ /usr/share/nginx/html/remotes/operational-issues/
 COPY remotes/runtime-readiness/dist/browser/ /usr/share/nginx/html/remotes/runtime-readiness/
 COPY remotes/docker-storage-cleanup/dist/browser/ /usr/share/nginx/html/remotes/docker-storage-cleanup/
 COPY remotes/environment-configuration/dist/browser/ /usr/share/nginx/html/remotes/environment-configuration/

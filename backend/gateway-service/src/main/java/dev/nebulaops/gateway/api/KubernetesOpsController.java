@@ -17,7 +17,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * v23.3 — Kubernetes controller: live snapshot + all OpenLens actions.
+ * v23.4 — Kubernetes controller: live snapshot + all OpenLens actions.
  *
  * READ endpoints (no conflict with actions):
  *   GET /api/kubernetes/snapshot

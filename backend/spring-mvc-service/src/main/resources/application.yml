@@ -24,7 +24,7 @@ nebulaops:
   security:
     enabled: ${KEYCLOAK_AUTH_ENABLED:false}
 jwt:
-  secret: ${JWT_SECRET:nebulaops-v23-3-dev-secret-key-min-32-chars!!}
+  secret: ${JWT_SECRET:nebulaops-v23-4-dev-secret-key-min-32-chars!!}
 management:
   endpoint:
     health:
@@ -46,6 +46,6 @@ springdoc:
     tagsSorter: alpha
 
 
-# NebulaOps v23.3 SECURITY WARNING:
+# NebulaOps v23.4 SECURITY WARNING:
 # - JWT_SECRET default is development-only. Set a strong external secret in production.
 # - KEYCLOAK_AUTH_ENABLED=false disables resource-server protection and is only acceptable for local troubleshooting.

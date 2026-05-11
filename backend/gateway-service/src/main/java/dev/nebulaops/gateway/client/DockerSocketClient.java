@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v23.3 — Talks directly to /var/run/docker.sock via Unix socket HTTP.
+ * v23.4 — Talks directly to /var/run/docker.sock via Unix socket HTTP.
  * Bypasses the docker CLI binary entirely, so it works regardless of which
  * docker binary is on PATH (snap, wrapper, etc.).
  */

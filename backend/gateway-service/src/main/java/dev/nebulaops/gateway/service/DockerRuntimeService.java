@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * v23.3 — Docker runtime data via Docker Engine Unix socket.
+ * v23.4 — Docker runtime data via Docker Engine Unix socket.
  * The service returns live Docker API responses only. Empty collections mean the
  * engine returned no rows or the socket is unavailable; no seed/mock records are generated.
  */

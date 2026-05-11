@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.3 — Ensure NebulaOps Keycloak realm and all OIDC clients exist even when an old Keycloak DB volume is reused.
+# v23.4 — Ensure NebulaOps Keycloak realm and all OIDC clients exist even when an old Keycloak DB volume is reused.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
