@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * v23.3 — Platform Catalog & Service Registry.
+ * v23.4 — Platform Catalog & Service Registry.
  *
  * This controller centralizes MFE/MBE metadata and enriches it with live runtime probes.
  * It never returns frontend-owned mock rows: if a dependency, Docker socket, Kubernetes

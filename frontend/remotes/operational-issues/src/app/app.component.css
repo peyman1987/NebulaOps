@@ -1,0 +1,15 @@
+.live-only-source {
+  padding: 24px;
+  color: #eaf4ff;
+  background: #050816;
+  font-family: Inter, system-ui, sans-serif;
+}
+.live-only-source h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+.live-only-source p {
+  margin: 0;
+  color: #a8b7d8;
+  max-width: 760px;
+}

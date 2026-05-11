@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: NebulaOps Observability & Audit Center API
-  version: 23.3.0
+  version: 23.4.0
   description: Live-only operational API. Responses are aggregated from runtime services and external observability tools; no seeded or mock records are generated.
 servers:
   - url: /api/observability

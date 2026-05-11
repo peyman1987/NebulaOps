@@ -5,13 +5,13 @@
     <parent>
         <groupId>dev.nebulaops</groupId>
         <artifactId>nebulaops-backend</artifactId>
-        <version>23.3.0</version>
+        <version>23.4.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>spring-mvc-service</artifactId>
     <name>NebulaOps Spring MVC Service</name>
-    <description>Spring Boot MVC add-on service ready for NebulaOps v23.3 deployment.</description>
+    <description>Spring Boot MVC add-on service ready for NebulaOps v23.4 deployment.</description>
 
     <dependencies>
         <dependency>

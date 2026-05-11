@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.3 — Stop NebulaOps stack quickly.
+# v23.4 — Stop NebulaOps stack quickly.
 # GitLab CE is intentionally treated as optional/heavy and is killed first by default.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
@@ -36,7 +36,7 @@ force_remove_service() {
   fi
 }
 
-log_step "Stopping NebulaOps v23.3"
+log_step "Stopping NebulaOps v23.4"
 
 if [ -x "$ROOT_DIR/scripts/wsl/stop-extensions-port-forward.sh" ]; then
   "$ROOT_DIR/scripts/wsl/stop-extensions-port-forward.sh" >/dev/null 2>&1 || true

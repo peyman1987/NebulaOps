@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""NebulaOps v23.3 live-only guard.
+"""NebulaOps v23.4 live-only guard.
 
 The goal is not to reject configuration metadata, empty-state text, docs, or test mocks.
 It rejects bundled operational records, known demo endpoints, placeholder users, and
@@ -61,7 +61,7 @@ def rel(path: Path) -> str:
 
 def should_scan(path: Path) -> bool:
     r = rel(path)
-    if r in EXCLUDED_FILES or any(r.startswith(p) for p in EXCLUDED_PREFIXES) or path.name.startswith("V23.3_"):
+    if r in EXCLUDED_FILES or any(r.startswith(p) for p in EXCLUDED_PREFIXES) or path.name.startswith("V23.4_"):
         return False
     if any(part in EXCLUDED_PARTS for part in path.parts):
         return False

@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
@@ -22,13 +23,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * NebulaOps v23.3 — UI-controlled extension control plane.
+ * NebulaOps v23.4 — UI-controlled extension control plane.
  *
  * Installed extensions are explicit and limited to APIForge, KubeBridge and Contract Hub.
  * The controller never creates mock data: status is read from kubectl, Docker/local-registry
@@ -43,6 +49,13 @@ public class ExtensionControlController {
     private final RestTemplate rest;
     private final Map<String, ExtensionSpec> extensions;
     private final Map<String, CachedExtensionStatus> statusCache = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, Object>> operations = new ConcurrentHashMap<>();
+    private final Map<String, CopyOnWriteArrayList<Map<String, Object>>> extensionEvents = new ConcurrentHashMap<>();
+    private final ExecutorService extensionExecutor = Executors.newFixedThreadPool(3, task -> {
+        Thread thread = new Thread(task, "nebulaops-extension-operation");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     @Value("${nebulaops.extensions.workspace:/workspace}")
     private String workspace;
@@ -66,9 +79,9 @@ public class ExtensionControlController {
         this.tools = tools;
         this.rest = rest;
         this.extensions = Map.of(
-                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-3-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
-                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-3-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
-                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-3-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
+                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-4-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
+                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-4-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
+                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-4-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
         );
     }
 
@@ -81,8 +94,8 @@ public class ExtensionControlController {
         return Map.of(
                 "live", true,
                 "realDataOnly", true,
-                "mode", "FAST_EXTENSION_REGISTRY",
-                "message", "Installed extension registry returned without blocking kubectl probes. Use /api/extensions/{slug}/status for deep runtime status.",
+                "mode", "ASYNC_EXTENSION_CONTROL_PLANE",
+                "message", "Installed extension registry returned without blocking kubectl probes. Start/restart actions return 202 Accepted with an operationId; poll /api/extensions/operations/{operationId} and /api/extensions/{slug}/events for progress.",
                 "items", items,
                 "generatedAt", Instant.now().toString()
         );
@@ -127,20 +140,42 @@ public class ExtensionControlController {
         out.put("service", resultMap(run("kubectl -n " + q(NAMESPACE) + " get svc " + q(spec.slug()) + " -o wide", 4)));
         out.put("pods", resultMap(run("kubectl -n " + q(NAMESPACE) + " get pods -l app=" + q(spec.slug()) + " -o wide", 4)));
         out.put("status", cachedStatusBody(spec, true));
+        out.put("recentEvents", recentEvents(spec.slug()));
+        out.put("recentOperations", recentOperations(spec.slug()));
         out.put("generatedAt", Instant.now().toString());
         return out;
     }
 
     @PostMapping("/api/extensions/{slug}/start")
-    public Map<String, Object> startExtension(@PathVariable String slug) {
+    public ResponseEntity<Map<String, Object>> startExtension(@PathVariable String slug) {
         assertControlEnabled();
-        return startOrRestart(spec(slug), "start", false);
+        return acceptedOperation(spec(slug), "start", false);
     }
 
     @PostMapping("/api/extensions/{slug}/restart")
-    public Map<String, Object> restartExtension(@PathVariable String slug) {
+    public ResponseEntity<Map<String, Object>> restartExtension(@PathVariable String slug) {
         assertControlEnabled();
-        return startOrRestart(spec(slug), "restart", true);
+        return acceptedOperation(spec(slug), "restart", true);
+    }
+
+    @GetMapping("/api/extensions/operations/{operationId}")
+    public Map<String, Object> extensionOperation(@PathVariable String operationId) {
+        Map<String, Object> op = operations.get(operationId);
+        if (op == null) throw new IllegalArgumentException("Unknown extension operation: " + operationId);
+        return operationSnapshot(op);
+    }
+
+    @GetMapping("/api/extensions/{slug}/events")
+    public Map<String, Object> extensionEvents(@PathVariable String slug) {
+        ExtensionSpec spec = spec(slug);
+        return Map.of(
+                "extension", spec.slug(),
+                "title", spec.title(),
+                "realDataOnly", true,
+                "operations", recentOperations(spec.slug()),
+                "items", recentEvents(spec.slug()),
+                "generatedAt", Instant.now().toString()
+        );
     }
 
     @PostMapping("/api/extensions/{slug}/stop")
@@ -199,7 +234,7 @@ public class ExtensionControlController {
     </section>
   </div>
 <script>
-const token=localStorage.getItem('nebulaops.v23_3.jwt')||'';
+const token=localStorage.getItem('nebulaops.v23_4.jwt')||'';
 const headers=token?{Authorization:'Bearer '+token}:{};
 const log=document.getElementById('log');
 let items=[]; let selected=new URLSearchParams(location.search).get('extension') || 'apiforge';
@@ -210,7 +245,8 @@ function renderList(){ const box=document.getElementById('extensions'); box.inne
 function render(j){ const up=j.state==='RUNNING', stopped=j.state==='STOPPED'; document.getElementById('state').textContent=j.state||'UNKNOWN'; document.getElementById('dot').className='dot '+(up?'up':stopped?'down':'warn'); document.getElementById('selectedTitle').textContent=(j.title||j.id||'EXTENSION')+' CONTROL'; document.getElementById('deployment').textContent=j.deployment||'NOT_FOUND'; document.getElementById('ready').textContent=(j.readyReplicas??0)+'/'+(j.replicas??0); document.getElementById('service').textContent=j.service||'NOT_FOUND'; document.getElementById('proxy').textContent=j.gatewayProxy||'UNKNOWN'; document.getElementById('open').href=j.openUrl||('/'+selected+'/'); }
 async function loadAll(){ const r=await fetch('/api/extensions',{headers}); const j=await r.json(); items=j.items||[]; if(!items.find(x=>x.id===selected) && items[0]) selected=items[0].id; renderList(); const it=items.find(x=>x.id===selected); if(it) render(it); return j; }
 async function status(){ const r=await fetch('/api/extensions/'+selected+'/status',{headers}); const j=await r.json(); const ix=items.findIndex(x=>x.id===selected); if(ix>=0) items[ix]=j; renderList(); render(j); return j; }
-async function post(action){ setBusy(true); write('Executing '+action+' for '+selected+' ...'); try{ const r=await fetch('/api/extensions/'+selected+'/'+action,{method:'POST',headers:{...headers,'Content-Type':'application/json'}}); const j=await r.json(); write(j); await loadAll(); } catch(e){ write(String(e)); } finally{ setBusy(false); }}
+async function pollOperation(operationId){ async function tick(){ const r=await fetch('/api/extensions/operations/'+encodeURIComponent(operationId),{headers}); const j=await r.json(); write(j); const state=String(j.state||'').toUpperCase(); const phase=String(j.phase||'').toUpperCase(); if(['SUCCEEDED','FAILED','TIMEOUT'].includes(state)||['READY','FAILED','TIMEOUT'].includes(phase)){ await loadAll(); setBusy(false); return true; } return false; } if(await tick()) return; const timer=setInterval(()=>tick().then(done=>{if(done) clearInterval(timer);}).catch(e=>{clearInterval(timer); setBusy(false); write(String(e));}),1800); }
+async function post(action){ setBusy(true); write((action==='start'||action==='restart'?'Scheduling async ':'Executing ')+action+' for '+selected+' ...'); try{ const r=await fetch('/api/extensions/'+selected+'/'+action,{method:'POST',headers:{...headers,'Content-Type':'application/json'}}); const j=await r.json(); write(j); if(!r.ok||j.ok===false) throw new Error(j.error||j.code||('HTTP '+r.status)); if(j.operationId){ await pollOperation(j.operationId); return; } await loadAll(); setBusy(false); } catch(e){ setBusy(false); write(String(e)); }}
 document.getElementById('start').onclick=()=>post('start');
 document.getElementById('stop').onclick=()=>post('stop');
 document.getElementById('restart').onclick=()=>post('restart');
@@ -292,6 +328,211 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
 
     private static String escapeJson(String value) {
         return String.valueOf(value).replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+    }
+
+    private ResponseEntity<Map<String, Object>> acceptedOperation(ExtensionSpec spec, String action, boolean restartOnly) {
+        String operationId = UUID.randomUUID().toString();
+        Map<String, Object> op = new ConcurrentHashMap<>();
+        op.put("operationId", operationId);
+        op.put("extension", spec.slug());
+        op.put("title", spec.title());
+        op.put("action", action);
+        op.put("state", "RUNNING");
+        op.put("phase", "STARTING");
+        op.put("phaseLabel", "Starting");
+        op.put("ok", false);
+        op.put("startedAt", Instant.now().toString());
+        op.put("updatedAt", Instant.now().toString());
+        op.put("operationUrl", "/api/extensions/operations/" + operationId);
+        op.put("eventsUrl", "/api/extensions/" + spec.slug() + "/events");
+        op.put("diagnosticsUrl", "/api/extensions/" + spec.slug() + "/diagnostics");
+        operations.put(operationId, op);
+        appendEvent(op, spec, "STARTING", "RUNNING", "Starting", "Accepted " + action + " operation for " + spec.title(), Map.of());
+        extensionExecutor.submit(() -> runExtensionOperation(operationId, spec, action, restartOnly));
+        Map<String, Object> accepted = operationSnapshot(op);
+        accepted.put("accepted", true);
+        accepted.put("httpStatus", 202);
+        accepted.put("message", "Extension " + action + " accepted. Poll operationUrl or eventsUrl for live progress.");
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(accepted);
+    }
+
+    private void runExtensionOperation(String operationId, ExtensionSpec spec, String action, boolean restartOnly) {
+        Map<String, Object> op = operations.get(operationId);
+        if (op == null) return;
+        try {
+            setOperationPhase(op, spec, "STARTING", "Starting", "Ensuring local registry is available before deploying " + spec.title());
+            ToolResult registry = ensureRegistry();
+            putStep(op, "registry", registry);
+            if (!registry.ok()) {
+                failOperation(op, spec, "LOCAL_REGISTRY_UNAVAILABLE", registry);
+                return;
+            }
+
+            String deployedImage = localRegistry + "/" + spec.image();
+            setOperationPhase(op, spec, "PULLING_IMAGE", "Pulling image", "Building and publishing " + deployedImage + " through the local registry");
+            ToolResult build = run("docker build --platform " + q(platform)
+                    + " -t " + q(spec.image())
+                    + " -t " + q(deployedImage)
+                    + " " + q(workspace + "/extensions/" + spec.slug()), 600);
+            putStep(op, "build", build);
+            if (!build.ok()) {
+                failOperation(op, spec, "IMAGE_BUILD_FAILED", build);
+                return;
+            }
+
+            ToolResult push = run("docker push " + q(deployedImage), 300);
+            putStep(op, "push", push);
+            if (!push.ok()) {
+                failOperation(op, spec, "IMAGE_PUSH_FAILED", push);
+                return;
+            }
+
+            setOperationPhase(op, spec, "APPLYING_KUBERNETES_MANIFESTS", "Applying Kubernetes manifests", "Applying Deployment, Service and Ingress resources for " + spec.title());
+            ToolResult apply = applyManifest(spec, deployedImage);
+            putStep(op, "apply", apply);
+            if (!apply.ok()) {
+                failOperation(op, spec, "KUBERNETES_APPLY_FAILED", apply);
+                return;
+            }
+
+            setOperationPhase(op, spec, "WAITING_FOR_ROLLOUT", "Waiting for rollout", "Scaling the deployment and waiting for Kubernetes rollout status");
+            ToolResult scale = run("kubectl -n " + q(NAMESPACE) + " scale deployment/" + q(spec.slug()) + " --replicas=1", 90);
+            putStep(op, "scale", scale);
+            if (!scale.ok()) {
+                failOperation(op, spec, "KUBERNETES_SCALE_FAILED", scale);
+                return;
+            }
+
+            String restartCommand = restartOnly
+                    ? "kubectl -n " + q(NAMESPACE) + " rollout restart deployment/" + q(spec.slug())
+                    : "kubectl -n " + q(NAMESPACE) + " rollout restart deployment/" + q(spec.slug()) + " >/dev/null 2>&1 || true";
+            ToolResult rollout = run(restartCommand + "; kubectl -n " + q(NAMESPACE) + " rollout status deployment/" + q(spec.slug()) + " --timeout=300s", 330);
+            putStep(op, "rollout", rollout);
+            if (!rollout.ok()) {
+                failOperation(op, spec, "ROLLOUT_FAILED", rollout);
+                return;
+            }
+
+            setOperationPhase(op, spec, "PROBING_ENDPOINT", "Probing endpoint", "Opening the gateway port-forward and probing " + spec.healthPath());
+            ToolResult portForward = ensureGatewayPortForward(spec);
+            putStep(op, "gatewayPortForward", portForward);
+            if (!portForward.ok()) {
+                failOperation(op, spec, "GATEWAY_PROXY_UNAVAILABLE", portForward);
+                return;
+            }
+
+            Map<String, Object> status = cachedStatusBody(spec, true);
+            op.put("status", status);
+            op.put("openUrl", spec.openUrl());
+            op.put("state", "SUCCEEDED");
+            op.put("phase", "READY");
+            op.put("phaseLabel", "Ready");
+            op.put("ok", true);
+            op.put("completedAt", Instant.now().toString());
+            op.put("updatedAt", Instant.now().toString());
+            appendEvent(op, spec, "READY", "SUCCEEDED", "Ready", spec.title() + " is ready and reachable through the gateway", Map.of("openUrl", spec.openUrl(), "status", status));
+        } catch (Exception e) {
+            ToolResult result = new ToolResult(false, -1, e.getClass().getSimpleName() + ": " + e.getMessage(), "", "", 0, Instant.now().toString());
+            failOperation(op, spec, "FAILED", result);
+        }
+    }
+
+    private void setOperationPhase(Map<String, Object> op, ExtensionSpec spec, String phase, String label, String message) {
+        op.put("state", "RUNNING");
+        op.put("phase", phase);
+        op.put("phaseLabel", label);
+        op.put("message", message);
+        op.put("updatedAt", Instant.now().toString());
+        appendEvent(op, spec, phase, "RUNNING", label, message, Map.of());
+    }
+
+    private void failOperation(Map<String, Object> op, ExtensionSpec spec, String code, ToolResult result) {
+        boolean timeout = result.exitCode() == 124 || String.valueOf(result.stderr()).toLowerCase().contains("timeout") || String.valueOf(result.message()).toLowerCase().contains("timeout");
+        String phase = timeout ? "TIMEOUT" : "FAILED";
+        String label = timeout ? "Timeout" : "Failed";
+        op.put("state", timeout ? "TIMEOUT" : "FAILED");
+        op.put("phase", phase);
+        op.put("phaseLabel", label);
+        op.put("ok", false);
+        op.put("errorCode", code);
+        op.put("error", result.message());
+        op.put("completedAt", Instant.now().toString());
+        op.put("updatedAt", Instant.now().toString());
+        op.put("status", cachedStatusBody(spec, true));
+        appendEvent(op, spec, phase, timeout ? "TIMEOUT" : "FAILED", label, code + ": " + result.message(), Map.of("result", resultMap(result)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void putStep(Map<String, Object> op, String name, ToolResult result) {
+        Map<String, Object> steps = (Map<String, Object>) op.computeIfAbsent("steps", key -> new ConcurrentHashMap<String, Object>());
+        steps.put(name, resultMap(result));
+        op.put("updatedAt", Instant.now().toString());
+    }
+
+    private void appendEvent(Map<String, Object> op, ExtensionSpec spec, String phase, String state, String label, String message, Map<String, Object> data) {
+        Map<String, Object> event = new LinkedHashMap<>();
+        event.put("operationId", op.get("operationId"));
+        event.put("extension", spec.slug());
+        event.put("title", spec.title());
+        event.put("action", op.get("action"));
+        event.put("phase", phase);
+        event.put("phaseLabel", label);
+        event.put("state", state);
+        event.put("message", message);
+        event.put("data", data == null ? Map.of() : data);
+        event.put("createdAt", Instant.now().toString());
+        CopyOnWriteArrayList<Map<String, Object>> list = extensionEvents.computeIfAbsent(spec.slug(), key -> new CopyOnWriteArrayList<>());
+        list.add(event);
+        while (list.size() > 200) list.remove(0);
+    }
+
+    private List<Map<String, Object>> recentEvents(String slug) {
+        List<Map<String, Object>> list = extensionEvents.get(slug);
+        if (list == null) return List.of();
+        int from = Math.max(0, list.size() - 60);
+        return new ArrayList<>(list.subList(from, list.size()));
+    }
+
+    private List<Map<String, Object>> recentOperations(String slug) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Map<String, Object> op : operations.values()) {
+            if (slug.equals(op.get("extension"))) out.add(operationSummary(op));
+        }
+        out.sort((a, b) -> String.valueOf(b.get("startedAt")).compareTo(String.valueOf(a.get("startedAt"))));
+        return out.size() > 20 ? new ArrayList<>(out.subList(0, 20)) : out;
+    }
+
+    private Map<String, Object> operationSummary(Map<String, Object> op) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("operationId", op.get("operationId"));
+        out.put("extension", op.get("extension"));
+        out.put("title", op.get("title"));
+        out.put("action", op.get("action"));
+        out.put("state", op.get("state"));
+        out.put("phase", op.get("phase"));
+        out.put("phaseLabel", op.get("phaseLabel"));
+        out.put("ok", op.get("ok"));
+        out.put("message", op.get("message"));
+        out.put("startedAt", op.get("startedAt"));
+        out.put("updatedAt", op.get("updatedAt"));
+        out.put("completedAt", op.get("completedAt"));
+        out.put("operationUrl", op.get("operationUrl"));
+        out.put("eventsUrl", op.get("eventsUrl"));
+        out.put("diagnosticsUrl", op.get("diagnosticsUrl"));
+        return out;
+    }
+
+    private Map<String, Object> operationSnapshot(Map<String, Object> op) {
+        Map<String, Object> out = operationSummary(op);
+        out.put("realDataOnly", true);
+        out.put("steps", op.getOrDefault("steps", Map.of()));
+        out.put("status", op.get("status"));
+        out.put("openUrl", op.get("openUrl"));
+        out.put("errorCode", op.get("errorCode"));
+        out.put("error", op.get("error"));
+        out.put("events", recentEvents(String.valueOf(op.get("extension"))));
+        out.put("generatedAt", Instant.now().toString());
+        return out;
     }
 
     private Map<String, Object> startOrRestart(ExtensionSpec spec, String action, boolean restartOnly) {
@@ -442,9 +683,9 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
     }
 
     private ToolResult ensureRegistry() {
-        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-3-registry || "
-                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-3-registry && docker start nebulaops-v23-3-registry >/dev/null) || "
-                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-3-registry registry:2 >/dev/null", 60);
+        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-4-registry || "
+                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-4-registry && docker start nebulaops-v23-4-registry >/dev/null) || "
+                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-4-registry registry:2 >/dev/null", 60);
     }
 
     private ToolResult applyManifest(ExtensionSpec spec, String deployedImage) {

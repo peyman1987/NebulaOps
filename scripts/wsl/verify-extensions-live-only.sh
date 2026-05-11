@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v23.3 — extension source verification for live-only runtime behavior.
+# NebulaOps v23.4 — extension source verification for live-only runtime behavior.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

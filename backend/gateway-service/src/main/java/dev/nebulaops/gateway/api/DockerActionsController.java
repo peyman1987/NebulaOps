@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * v23.3 — Docker operational console endpoints.
+ * v23.4 — Docker operational console endpoints.
  *
  * All operations talk to the Docker Engine API through /var/run/docker.sock.
  * No Docker CLI wrapper and no mock/static runtime data are used.

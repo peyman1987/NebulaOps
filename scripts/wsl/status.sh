@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.3 — WSL status helper. Use health.sh for endpoint checks.
+# v23.4 — WSL status helper. Use health.sh for endpoint checks.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

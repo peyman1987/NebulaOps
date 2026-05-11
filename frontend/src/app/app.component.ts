@@ -15,9 +15,9 @@ import {
   PUBLIC_ORIGIN
 } from './api.config';
 
-const REMOTE_ENTRY_BUILD = 'v23.3.40-operational-excellence';
+const REMOTE_ENTRY_BUILD = 'v23.4.2-operational-issue-actions';
 
-type RemoteId = 'platform-catalog' | 'incident-command-center' | 'runtime-readiness' | 'docker-storage-cleanup' | 'environment-configuration' | 'dependency-impact' | 'test-quality-dashboard' | 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'progressive-delivery' | 'notification-center' | 'identity-admin';
+type RemoteId = 'platform-catalog' | 'incident-command-center' | 'operational-issues' | 'runtime-readiness' | 'docker-storage-cleanup' | 'environment-configuration' | 'dependency-impact' | 'test-quality-dashboard' | 'docker-desktop' | 'openlens-kubernetes' | 'task-management' | 'observability' | 'cicd-gitops' | 'terraform-studio' | 'devsecops' | 'ai-ops' | 'finops-cost' | 'infra-hub' | 'release-center' | 'policy-center' | 'progressive-delivery' | 'notification-center' | 'identity-admin';
 type ServiceGroup = 'Identity' | 'Runtime' | 'Observability' | 'Data' | 'DevOps' | 'Micro Frontend' | 'Release' | 'Governance' | 'Notifications' | 'Extensions';
 
 interface RemoteDefinition {
@@ -107,6 +107,20 @@ export class AppComponent implements OnInit {
       service: 'mfe-incident-command-center',
       path: '/remotes/incident-command-center/remoteEntry.js',
       status: 'remote app · live incident command center'
+    },
+    {
+      id: 'operational-issues',
+      tag: 'nebulaops-mfe-operational-issues',
+      title: 'Operational Issues Dashboard',
+      subtitle: 'Aggregated live issue board for Docker Engine, Kubernetes pods/events/services, Helm releases and extension runtime health.',
+      icon: '🛠️',
+      route: '/remotes/operational-issues/',
+      color: 'amber',
+      scope: 'SRE · Operational Issues',
+      group: 'SRE',
+      service: 'mfe-operational-issues',
+      path: '/remotes/operational-issues/remoteEntry.js',
+      status: 'remote app · live issue aggregation'
     },
     {
       id: 'runtime-readiness',
@@ -422,6 +436,23 @@ export class AppComponent implements OnInit {
         "subtitle": "Live SRE aggregation across Observability, AI Ops, Audit, Tasks, Release and Kubernetes",
         "url": "/api/incidents/command-center",
         "icon": "🚨",
+        "port": "8080",
+        "group": "Observability"
+},
+
+{
+        "title": "Operational Issues MFE",
+        "subtitle": "Aggregated Docker, Kubernetes, Helm and extension issue board",
+        "url": "/remotes/operational-issues/",
+        "icon": "🛠️",
+        "port": "/remotes",
+        "group": "Micro Frontend"
+},
+{
+        "title": "Operational Issues API",
+        "subtitle": "Live operational issue aggregation with explicit source health",
+        "url": "/api/platform/issues",
+        "icon": "🛠️",
         "port": "8080",
         "group": "Observability"
 },
@@ -832,9 +863,9 @@ export class AppComponent implements OnInit {
     try {
       const verifier = this.randomString(96);
       const challenge = await this.sha256Base64Url(verifier);
-      sessionStorage.setItem('nebulaops.v23_3.pkce', verifier);
+      sessionStorage.setItem('nebulaops.v23_4.pkce', verifier);
       const state = this.randomString(24);
-      sessionStorage.setItem('nebulaops.v23_3.state', state);
+      sessionStorage.setItem('nebulaops.v23_4.state', state);
       const params = new URLSearchParams({
         client_id: KC_CLIENT_ID,
         redirect_uri: KC_REDIRECT_URI,
@@ -854,8 +885,8 @@ export class AppComponent implements OnInit {
   logout(): void {
     localStorage.removeItem(JWT_KEY);
     localStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem('nebulaops.v23_3.pkce');
-    sessionStorage.removeItem('nebulaops.v23_3.state');
+    sessionStorage.removeItem('nebulaops.v23_4.pkce');
+    sessionStorage.removeItem('nebulaops.v23_4.state');
     this.authenticated.set(false);
     const params = new URLSearchParams({
       client_id: KC_CLIENT_ID,
@@ -920,12 +951,12 @@ export class AppComponent implements OnInit {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     if (!code) return;
-    const expectedState = sessionStorage.getItem('nebulaops.v23_3.state');
+    const expectedState = sessionStorage.getItem('nebulaops.v23_4.state');
     if (expectedState && state !== expectedState) {
       this.loginError.set('Invalid Keycloak response: state mismatch.');
       return;
     }
-    const verifier = sessionStorage.getItem('nebulaops.v23_3.pkce') || '';
+    const verifier = sessionStorage.getItem('nebulaops.v23_4.pkce') || '';
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: KC_CLIENT_ID,

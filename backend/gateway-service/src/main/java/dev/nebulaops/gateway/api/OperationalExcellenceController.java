@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * v23.3 — Operational excellence APIs.
+ * v23.4 — Operational excellence APIs.
  *
  * These endpoints power the new Runtime Readiness, Docker Storage & Cleanup,
  * Environment Configuration, Dependency Impact and Quality Dashboard views.
@@ -211,7 +211,7 @@ public class OperationalExcellenceController {
         Map<String, Object> out = base("test-quality-dashboard");
         out.put("items", items);
         out.put("summary", summary(items));
-        out.put("recommendedCommand", "./scripts/wsl/preflight-v23.3.sh");
+        out.put("recommendedCommand", "./scripts/wsl/preflight-v23.4.sh");
         return out;
     }
 
@@ -231,7 +231,7 @@ public class OperationalExcellenceController {
                 fileRow("frontend-build", "reports/frontend-build.json", true),
                 fileRow("backend-build", "reports/backend-build.json", true),
                 fileRow("smoke-test", "reports/smoke-test.json", true),
-                fileRow("v23.3-preflight-script", "scripts/wsl/preflight-v23.3.sh", true),
+                fileRow("v23.4-preflight-script", "scripts/wsl/preflight-v23.4.sh", true),
                 fileRow("remote-verifier", "frontend/tools/verify-remotes.mjs", true)
         );
         Map<String, Object> out = base("quality-preflight");
@@ -496,8 +496,8 @@ public class OperationalExcellenceController {
         rows.add(fileRow("remote-verification-tool", "frontend/tools/verify-remotes.mjs", true));
         rows.add(fileRow("package-validator", "scripts/validate-package.py", true));
         rows.add(fileRow("yaml-validator", "scripts/validate-yaml.py", true));
-        rows.add(fileRow("preflight-v23.3", "scripts/wsl/preflight-v23.3.sh", true));
-        rows.add(fileRow("presentation-live-data-audit", "V23.3_PRESENTATION_LIVE_DATA_AUDIT_REPORT.md", true));
+        rows.add(fileRow("preflight-v23.4", "scripts/wsl/preflight-v23.4.sh", true));
+        rows.add(fileRow("presentation-live-data-audit", "V23.4_PRESENTATION_LIVE_DATA_AUDIT_REPORT.md", true));
         rows.add(fileRow("frontend-build-report", "reports/frontend-build.json", false));
         rows.add(fileRow("backend-build-report", "reports/backend-build.json", false));
         rows.add(fileRow("smoke-test-report", "reports/smoke-test.json", false));
