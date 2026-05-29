@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v23.4 — verify APP BAR and EXTENSIONS are split cleanly.
+# NebulaOps v24.1 — verify APP BAR and EXTENSIONS are split cleanly.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

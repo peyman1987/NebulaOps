@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.4 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
+# v24.1 — Comprehensive platform health check with Keycloak-aware API and SSO proxy checks.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
@@ -52,7 +52,7 @@ check_required_service_endpoint() {
   elif running_service "$service"; then
     print_bad "$label" "service running but endpoint not reachable yet: $url"
   else
-    print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v23.4-red-endpoints.sh"
+    print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v24.1-red-endpoints.sh"
   fi
 }
 
@@ -61,14 +61,14 @@ check_mfe_remote() {
   body="$(curl -fsS --max-time 5 "$url" 2>/dev/null || true)"
   if [ -z "$body" ]; then
     if [ -n "$service" ] && ! running_service "$service"; then
-      print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v23.4-frontend-remotes.sh"
+      print_bad "$label" "service not running; repair: ./scripts/wsl/repair-v24.1-frontend-remotes.sh"
     else
       print_bad "$label" "remoteEntry.js not reachable: $url"
     fi
     return 0
   fi
   if printf '%s' "$body" | grep -Eq '\bexport[[:space:]]+(default|\{|class|function|const|let|var)'; then
-    print_bad "$label" "ESM remoteEntry served; run ./scripts/wsl/repair-v23.4-frontend-remotes.sh"
+    print_bad "$label" "ESM remoteEntry served; run ./scripts/wsl/repair-v24.1-frontend-remotes.sh"
     return 0
   fi
   if printf '%s' "$body" | grep -Eq 'customElements\.define|classic standalone custom element'; then

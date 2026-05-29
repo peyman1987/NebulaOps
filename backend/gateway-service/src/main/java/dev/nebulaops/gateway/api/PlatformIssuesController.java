@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * NebulaOps v23.4 — Operational Issues dashboard API.
+ * NebulaOps v24.1 — Operational Issues dashboard API.
  *
  * Issues are derived only from live runtime sources: Docker Engine, kubectl,
  * Helm and the extension control-plane status cache. The controller does not

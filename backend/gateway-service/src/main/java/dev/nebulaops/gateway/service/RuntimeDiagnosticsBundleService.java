@@ -17,7 +17,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * NebulaOps v23.4 — live diagnostics bundle exporter.
+ * NebulaOps v24.1 — live diagnostics bundle exporter.
  *
  * The bundle is assembled only from runtime sources available at request time:
  * Docker Engine, docker CLI logs, kubectl, Helm, gateway runtime state, extension
@@ -249,8 +249,8 @@ public class RuntimeDiagnosticsBundleService {
             if (file.ok) ok++; else failed++;
         }
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("name", "nebulaops-v23.4-diagnostics-bundle");
-        out.put("version", "23.4.0");
+        out.put("name", "nebulaops-v24.1-diagnostics-bundle");
+        out.put("version", "24.1.0");
         out.put("live", true);
         out.put("realDataOnly", true);
         out.put("generatedAt", assembly.generatedAt);

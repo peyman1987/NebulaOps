@@ -6,7 +6,7 @@ COPY src ./src
 RUN mvn -q -DskipTests package
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/apiforge-23.4.0.jar app.jar
+COPY --from=build /app/target/apiforge-24.1.0.jar app.jar
 EXPOSE 8080
 ENV APIFORGE_DATA_DIR=/var/lib/apiforge
 VOLUME ["/var/lib/apiforge"]

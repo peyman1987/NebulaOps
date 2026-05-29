@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * NebulaOps v23.4 — UI-controlled extension control plane.
+ * NebulaOps v24.1 — UI-controlled extension control plane.
  *
  * Installed extensions are explicit and limited to APIForge, KubeBridge and Contract Hub.
  * The controller never creates mock data: status is read from kubectl, Docker/local-registry
@@ -79,9 +79,9 @@ public class ExtensionControlController {
         this.tools = tools;
         this.rest = rest;
         this.extensions = Map.of(
-                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v23-4-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
-                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v23-4-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
-                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v23-4-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
+                "apiforge", new ExtensionSpec("apiforge", "APIForge", "⚒️", "API workspace", "nebulaops-v24-1-apiforge:latest", 18110, "/apiforge/actuator/health", "/apiforge/"),
+                "kubebridge", new ExtensionSpec("kubebridge", "KubeBridge", "☸️", "Kubernetes control", "nebulaops-v24-1-kubebridge:latest", 18111, "/kubebridge/healthz", "/kubebridge/"),
+                "contract-hub", new ExtensionSpec("contract-hub", "Contract Hub", "📜", "API contracts", "nebulaops-v24-1-contract-hub:latest", 18114, "/contract-hub/healthz", "/contract-hub/")
         );
     }
 
@@ -234,7 +234,7 @@ public class ExtensionControlController {
     </section>
   </div>
 <script>
-const token=localStorage.getItem('nebulaops.v23_4.jwt')||'';
+const token=localStorage.getItem('nebulaops.v24_1.jwt')||'';
 const headers=token?{Authorization:'Bearer '+token}:{};
 const log=document.getElementById('log');
 let items=[]; let selected=new URLSearchParams(location.search).get('extension') || 'apiforge';
@@ -683,9 +683,9 @@ loadAll().then(write).catch(e=>write(String(e))); setInterval(()=>loadAll().catc
     }
 
     private ToolResult ensureRegistry() {
-        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-4-registry || "
-                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v23-4-registry && docker start nebulaops-v23-4-registry >/dev/null) || "
-                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v23-4-registry registry:2 >/dev/null", 60);
+        return run("docker ps --format '{{.Names}}' | grep -qx nebulaops-v24-1-registry || "
+                + "(docker ps -a --format '{{.Names}}' | grep -qx nebulaops-v24-1-registry && docker start nebulaops-v24-1-registry >/dev/null) || "
+                + "docker run -d --restart unless-stopped -p 5001:5000 --name nebulaops-v24-1-registry registry:2 >/dev/null", 60);
     }
 
     private ToolResult applyManifest(ExtensionSpec spec, String deployedImage) {

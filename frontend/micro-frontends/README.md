@@ -1,6 +1,6 @@
-# NebulaOps v23.4 micro frontend architecture
+# NebulaOps v24.1 micro frontend architecture
 
-v23.4 uses an Angular host shell with a persistent side menu and remote micro frontends loaded through `remoteEntry.js`.
+v24.1 uses an Angular host shell with a persistent side menu and remote micro frontends loaded through `remoteEntry.js`.
 
 Il menu laterale non viene duplicato nei remote: resta responsabilita della shell. Ogni remote espone solo il contenuto della propria area funzionale ed e deployabile separatamente.
 

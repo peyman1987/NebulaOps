@@ -1,6 +1,6 @@
 {
-  "name": "nebulaops-v23-4-notification-center",
-  "version": "23.4.0",
+  "name": "nebulaops-v24-1-notification-center",
+  "version": "24.1.0",
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4223",

@@ -1,4 +1,4 @@
-export type NebulaStatus = 'PASS' | 'WARN' | 'FAIL' | 'INFO' | 'PENDING' | 'READY';
+export type NebulaStatus = 'PASS' | 'WARN' | 'FAIL' | 'INFO' | 'PENDING' | 'READY' | 'DEGRADED' | 'UNAVAILABLE' | 'NOT_CONFIGURED';
 
 export interface NebulaMetricCard {
   label: string;
@@ -26,7 +26,26 @@ export interface NebulaCommandItem {
   target: string;
 }
 
+export interface NebulaActionBarAction {
+  id: string;
+  label: string;
+  kind?: 'primary' | 'secondary' | 'safe' | 'danger';
+  disabled?: boolean;
+}
+
+export interface NebulaSidePanelSection {
+  title: string;
+  rows: Array<{label: string; value: string | number; status?: NebulaStatus}>;
+}
+
+export const NEBULAOPS_UI_KIT_VERSION = '2.0.0-v24.1';
+
 export const NEBULAOPS_UI_TOKENS = {
+  density: {
+    compactCardPadding: '12px',
+    compactRowHeight: '36px',
+    stickyActionBarTop: '0px'
+  },
   colors: {
     bg: '#050816',
     card: '#0b1b34',
@@ -37,8 +56,8 @@ export const NEBULAOPS_UI_TOKENS = {
     red: '#ff6b88'
   },
   radius: {
-    card: '22px',
+    card: '18px',
     pill: '999px',
-    modal: '28px'
+    modal: '24px'
   }
 } as const;

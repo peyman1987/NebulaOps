@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.4 — remove known stale release assets left behind when a new archive is extracted over an old workspace.
+# v24.1 — remove known stale release assets left behind when a new archive is extracted over an old workspace.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

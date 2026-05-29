@@ -58,7 +58,7 @@ for (const [name, tag] of remotes) {
       console.error(`Remote ${name} does not register expected custom element ${tag}`);
       failures += 1;
     }
-    if (!content.includes('nebulaops.v23_4.jwt')) {
+    if (!content.includes('nebulaops.v24_1.jwt')) {
       console.error(`Remote ${name} does not read the shared NebulaOps JWT key`);
       failures += 1;
     }
@@ -86,8 +86,8 @@ for (const [name, tag] of remotes) {
 
   if (existsSync(manifest)) {
     const manifestJson = JSON.parse(readFileSync(manifest, 'utf8'));
-    if (manifestJson.version !== '23.4.0') {
-      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 23.4.0`);
+    if (manifestJson.version !== '24.1.0') {
+      console.error(`Remote ${name} manifest version is ${manifestJson.version}, expected 24.1.0`);
       failures += 1;
     }
   }
@@ -95,8 +95,8 @@ for (const [name, tag] of remotes) {
 }
 
 if (failures > 0) {
-  console.error(`NebulaOps v23.4 remote verification failed: ${failures} issue(s)`);
+  console.error(`NebulaOps v24.1 remote verification failed: ${failures} issue(s)`);
   process.exit(1);
 }
 
-console.log('NebulaOps v23.4 classic micro frontends verified. Shell owns side navigation; each remote renders standalone content.');
+console.log('NebulaOps v24.1 classic micro frontends verified. Shell owns side navigation; each remote renders standalone content.');

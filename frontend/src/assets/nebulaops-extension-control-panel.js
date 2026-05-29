@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TOKEN_KEYS = ['nebulaops.v23_4.jwt', 'nebulaops.jwt', 'nebulaops.token'];
+  const TOKEN_KEYS = ['nebulaops.v24_1.jwt', 'nebulaops.jwt', 'nebulaops.token'];
   const ACTIONS = ['start', 'stop', 'restart', 'status', 'open'];
   const FORBIDDEN_EXTENSION_TITLES = new Set([
     'Runbook Center',
@@ -101,7 +101,7 @@
       .neb-ext-phase.active{color:#7adfff;border-color:rgba(122,223,255,.42);background:rgba(122,223,255,.1);box-shadow:0 0 20px rgba(122,223,255,.08) inset;}
       .neb-ext-phase.failed{color:#ff9db2;border-color:rgba(255,95,130,.36);background:rgba(255,95,130,.09);}
 
-      /* v23.4 Priority 7 · compact extension control plane density. */
+      /* v24.1 Priority 7 · compact extension control plane density. */
       .neb-ext-overlay{padding:14px;place-items:start center;overflow:auto;}
       .neb-ext-panel{width:min(1320px,100%);max-height:calc(100vh - 28px);border-radius:20px;}
       .neb-ext-head{padding:16px 16px 0;gap:12px;}

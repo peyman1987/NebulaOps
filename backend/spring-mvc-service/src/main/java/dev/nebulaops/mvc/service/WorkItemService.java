@@ -15,7 +15,7 @@ public class WorkItemService {
     private final ConcurrentMap<String, WorkItem> items = new ConcurrentHashMap<>();
 
     public WorkItemService() {
-        // v23.4 live-only mode: no seeded/demo work items are created at startup.
+        // v24.1 live-only mode: no seeded/demo work items are created at startup.
         // Items are created only through the REST API during the current runtime.
     }
 

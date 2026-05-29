@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 /**
- * NebulaOps v23.4 — downloadable live diagnostics bundle for support/debug.
+ * NebulaOps v24.1 — downloadable live diagnostics bundle for support/debug.
  */
 @RestController
 public class RuntimeDiagnosticsBundleController {
@@ -32,7 +32,7 @@ public class RuntimeDiagnosticsBundleController {
     public ResponseEntity<byte[]> bundleZip() {
         byte[] body = bundleService.bundleZip();
         String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now()).replace(":", "").replace(".", "-");
-        String filename = "nebulaops-v23.4-diagnostics-bundle-" + timestamp + ".zip";
+        String filename = "nebulaops-v24.1-diagnostics-bundle-" + timestamp + ".zip";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/zip"));
         headers.setContentLength(body.length);

@@ -1,6 +1,6 @@
 package nebulaops.governance
 
-# NebulaOps v23.4 Policy, Approval & Governance Center
+# NebulaOps v24.1 Policy, Approval & Governance Center
 # Runtime policy rules evaluated by OPA. These are configuration rules, not UI mock data.
 
 default allow = false
@@ -139,5 +139,5 @@ decision := {
   "reasons": reasons,
   "approvalReason": approval_reason,
   "policyPackage": "nebulaops.governance",
-  "policyVersion": "23.4-governance-center"
+  "policyVersion": "24.1-governance-center"
 }

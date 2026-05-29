@@ -1,7 +1,7 @@
 {
   "id": "docker-storage-cleanup",
   "title": "Docker Storage & Cleanup Center",
-  "version": "23.4.0",
+  "version": "24.1.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-docker-storage-cleanup",
   "port": 4229,

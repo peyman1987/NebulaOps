@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * NebulaOps v23.4 — Safe Action Plan gate.
+ * NebulaOps v24.1 — Safe Action Plan gate.
  *
  * Destructive or disruptive operations are planned first from live Docker,
  * kubectl and Helm evidence. The UI calls the plan endpoints, displays the

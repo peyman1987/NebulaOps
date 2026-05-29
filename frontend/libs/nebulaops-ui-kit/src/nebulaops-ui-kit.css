@@ -1,30 +1,44 @@
 :root {
   --nebula-bg: #050816;
   --nebula-card: #0b1b34;
+  --nebula-border: rgba(148, 163, 184, .18);
   --nebula-cyan: #2fe6ff;
   --nebula-purple: #9b5cff;
   --nebula-green: #70f0b4;
   --nebula-amber: #ffb347;
   --nebula-red: #ff6b88;
-  --nebula-border: rgba(130, 170, 255, .18);
-  --nebula-text: #f4f8ff;
-  --nebula-muted: #a8b7cf;
+  --nebula-card-radius: 18px;
+  --nebula-compact-row-height: 36px;
 }
-
-.nebula-status-pill {
-  display: inline-flex;
+.nebula-action-bar {
+  position: sticky;
+  top: var(--nebula-action-bar-top, 0);
+  z-index: 20;
+  display: flex;
   align-items: center;
-  gap: .45rem;
-  border-radius: 999px;
-  padding: .35rem .65rem;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
   border: 1px solid var(--nebula-border);
-  background: rgba(255,255,255,.055);
-  color: var(--nebula-text);
-  font-size: .75rem;
-  font-weight: 800;
+  border-radius: var(--nebula-card-radius);
+  background: rgba(5, 8, 22, .84);
+  backdrop-filter: blur(18px);
 }
-
-.nebula-status-pill[data-status="PASS"] { color: var(--nebula-green); border-color: rgba(112,240,180,.35); }
-.nebula-status-pill[data-status="WARN"] { color: var(--nebula-amber); border-color: rgba(255,179,71,.35); }
-.nebula-status-pill[data-status="FAIL"] { color: var(--nebula-red); border-color: rgba(255,107,136,.35); }
-.nebula-status-pill[data-status="PENDING"] { color: var(--nebula-purple); border-color: rgba(155,92,255,.35); }
+.nebula-action-bar__group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.nebula-side-panel {
+  border: 1px solid var(--nebula-border);
+  border-radius: var(--nebula-card-radius);
+  background: rgba(11, 27, 52, .78);
+  padding: 12px;
+}
+.nebula-side-panel__title { color: var(--nebula-cyan); font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+.nebula-source-state { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 900; border: 1px solid var(--nebula-border); }
+.nebula-source-state--ready { color: var(--nebula-green); border-color: rgba(112,240,180,.4); }
+.nebula-source-state--degraded { color: var(--nebula-amber); border-color: rgba(255,179,71,.42); }
+.nebula-source-state--unavailable,
+.nebula-source-state--error { color: var(--nebula-red); border-color: rgba(255,107,136,.42); }
+.nebula-source-state--not-configured { color: #c7d2fe; border-color: rgba(199,210,254,.36); }
+.nebula-empty-state { border: 1px dashed var(--nebula-border); border-radius: var(--nebula-card-radius); padding: 24px; color: #a8b7d8; text-align: center; background: rgba(2, 6, 23, .42); }
+.nebula-density-compact .nebula-card { padding: 12px; border-radius: var(--nebula-card-radius); }
+.nebula-density-compact .nebula-table th,
+.nebula-density-compact .nebula-table td { height: var(--nebula-compact-row-height); padding: 8px 10px; }

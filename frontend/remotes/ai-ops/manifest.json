@@ -1,7 +1,7 @@
 {
   "id": "ai-ops",
   "title": "AI Ops",
-  "version": "23.4.0",
+  "version": "24.1.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-ai-ops",
   "port": 4218,

@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   NebulaOps v23.4 · Shell Host · Global Styles
+   NebulaOps v24.1 · Shell Host · Global Styles
 ══════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ───────────────────────────────────────── */
@@ -644,7 +644,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .launcher-close { font-size: 24px; line-height: 1; }
 @media (max-width: 900px) { .command-results { grid-template-columns: 1fr; } }
 
-/* v23.4 FE hardening: live status banner */
+/* v24.1 FE hardening: live status banner */
 .shell-live-banner {
   margin: 14px 16px 0;
   padding: 12px 14px;
@@ -685,7 +685,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 }
 
 
-/* v23.4 shell layout: persistent left sidebar behavior. */
+/* v24.1 shell layout: persistent left sidebar behavior. */
 .shell-layout {
   grid-template-columns: 280px minmax(0, 1fr);
   grid-template-rows: 1fr;
@@ -717,7 +717,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
   .shell-main { grid-column: 1; grid-row: 1; }
 }
 
-/* v23.4 APP BAR / EXTENSIONS split */
+/* v24.1 APP BAR / EXTENSIONS split */
 .sidebar-footer.neb-footer-split,
 .sidebar-footer:has(.neb-footer-actions) {
   align-items: stretch;
@@ -747,7 +747,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 }
 
 
-/* v23.4 compact presentation density */
+/* v24.1 compact presentation density */
 :root { --nebula-density-scale: .88; }
 @media (min-width: 1200px) {
   html { font-size: 13px; }
@@ -774,7 +774,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 @media (max-width: 920px) { .shell-layout { grid-template-columns: 232px minmax(0,1fr); } }
 
 
-/* v23.4 compact operations density: improves information visibility without forcing browser zoom. */
+/* v24.1 compact operations density: improves information visibility without forcing browser zoom. */
 :host { --nebula-compact-sidebar: 256px; --nebula-compact-gap: 10px; }
 .shell-layout { grid-template-columns: var(--nebula-compact-sidebar) minmax(0, 1fr); }
 .sidebar-brand { padding: 14px 14px 12px; }

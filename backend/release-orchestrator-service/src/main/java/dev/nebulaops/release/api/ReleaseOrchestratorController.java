@@ -76,7 +76,7 @@ public class ReleaseOrchestratorController {
     @PostMapping
     public ResponseEntity<Object> create(@RequestBody Map<String,Object> body) {
         String app = String.valueOf(body.getOrDefault("application", "nebulaops-service"));
-        String version = String.valueOf(body.getOrDefault("version", "23.4.0"));
+        String version = String.valueOf(body.getOrDefault("version", "24.1.0"));
         Map<String,Object> r = new LinkedHashMap<>();
         r.put("id", "rel-" + UUID.randomUUID());
         r.put("application", app);

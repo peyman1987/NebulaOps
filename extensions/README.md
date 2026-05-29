@@ -1,4 +1,4 @@
-# NebulaOps v23.4 Extensions
+# NebulaOps v24.1 Extensions
 
 Installed extensions in this package:
 

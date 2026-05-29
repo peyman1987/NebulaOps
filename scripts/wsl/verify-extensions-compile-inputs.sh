@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.4 extension compile-input guard.
+# v24.1 extension compile-input guard.
 # Fast checks that catch broken Maven POM XML and source-level Java issues before Docker build.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NebulaOps v23.4 — Build and deploy all platform extensions directly to Kubernetes.
+# NebulaOps v24.1 — Build and deploy all platform extensions directly to Kubernetes.
 # start.sh --rebuild path: Docker Compose services + Kubernetes extensions.
 # k3s/containerd safe: uses a local Docker registry instead of fragile ctr image imports.
 set -euo pipefail
@@ -18,7 +18,7 @@ SKIP_IMAGE_LOAD=false
 LOCAL_REGISTRY_HOST="${NEBULAOPS_LOCAL_REGISTRY_HOST:-localhost}"
 LOCAL_REGISTRY_PORT="${NEBULAOPS_LOCAL_REGISTRY_PORT:-5001}"
 LOCAL_REGISTRY="${NEBULAOPS_LOCAL_REGISTRY:-${LOCAL_REGISTRY_HOST}:${LOCAL_REGISTRY_PORT}}"
-LOCAL_REGISTRY_CONTAINER="${NEBULAOPS_LOCAL_REGISTRY_CONTAINER:-nebulaops-v23-4-registry}"
+LOCAL_REGISTRY_CONTAINER="${NEBULAOPS_LOCAL_REGISTRY_CONTAINER:-nebulaops-v24-1-registry}"
 EXTENSIONS_IMAGE_MODE="${NEBULAOPS_EXTENSIONS_IMAGE_MODE:-auto}" # auto | registry | runtime
 PLATFORM="${NEBULAOPS_EXTENSIONS_PLATFORM:-linux/amd64}"
 
@@ -76,17 +76,17 @@ contains_extension() {
 
 image_for() {
   case "$1" in
-    apiforge) echo "nebulaops-v23-4-apiforge:latest" ;;
-    kubebridge) echo "nebulaops-v23-4-kubebridge:latest" ;;
-    runbook-center) echo "nebulaops-v23-4-runbook-center:latest" ;;
-    extension-registry) echo "nebulaops-v23-4-extension-registry:latest" ;;
-    contract-hub) echo "nebulaops-v23-4-contract-hub:latest" ;;
-    eventops-center) echo "nebulaops-v23-4-eventops-center:latest" ;;
-    observability-lens) echo "nebulaops-v23-4-observability-lens:latest" ;;
-    gitops-center) echo "nebulaops-v23-4-gitops-center:latest" ;;
-    secrets-config-center) echo "nebulaops-v23-4-secrets-config-center:latest" ;;
-    slo-center) echo "nebulaops-v23-4-slo-center:latest" ;;
-    backup-recovery-center) echo "nebulaops-v23-4-backup-recovery-center:latest" ;;
+    apiforge) echo "nebulaops-v24-1-apiforge:latest" ;;
+    kubebridge) echo "nebulaops-v24-1-kubebridge:latest" ;;
+    runbook-center) echo "nebulaops-v24-1-runbook-center:latest" ;;
+    extension-registry) echo "nebulaops-v24-1-extension-registry:latest" ;;
+    contract-hub) echo "nebulaops-v24-1-contract-hub:latest" ;;
+    eventops-center) echo "nebulaops-v24-1-eventops-center:latest" ;;
+    observability-lens) echo "nebulaops-v24-1-observability-lens:latest" ;;
+    gitops-center) echo "nebulaops-v24-1-gitops-center:latest" ;;
+    secrets-config-center) echo "nebulaops-v24-1-secrets-config-center:latest" ;;
+    slo-center) echo "nebulaops-v24-1-slo-center:latest" ;;
+    backup-recovery-center) echo "nebulaops-v24-1-backup-recovery-center:latest" ;;
     *) return 1 ;;
   esac
 }

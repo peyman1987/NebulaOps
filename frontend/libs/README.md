@@ -1,6 +1,6 @@
 # NebulaOps frontend shared libraries
 
-v23.4 introduces shared runtime/library boundaries for MFE work:
+v24.1 introduces shared runtime/library boundaries for MFE work:
 
 - `nebulaops-mfe-runtime`: runtime envelope, live-only payload validation and state normalization.
 - `nebulaops-api-client`: timeout-aware browser API helper with optional JWT forwarding.

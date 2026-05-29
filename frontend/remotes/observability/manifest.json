@@ -1,7 +1,7 @@
 {
   "id": "observability",
   "title": "Observability & Audit Center",
-  "version": "23.4.0",
+  "version": "24.1.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-observability",
   "port": 4214,

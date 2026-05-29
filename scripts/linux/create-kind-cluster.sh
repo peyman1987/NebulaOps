@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-CLUSTER=${1:-nebulaops-v23-4}
+CLUSTER=${1:-nebulaops-v24-1}
 kind get clusters | grep -qx "$CLUSTER" || kind create cluster --name "$CLUSTER" --config infrastructure/kind/cluster.yaml
 kubectl config use-context "kind-${CLUSTER}"
 kubectl create namespace nebulaops --dry-run=client -o yaml | kubectl apply -f -
