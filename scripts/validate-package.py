@@ -140,7 +140,12 @@ try:
     shell = (ROOT / "frontend/src/app/app.component.ts").read_text(encoding="utf-8")
     template = (ROOT / "frontend/src/app/app.component.html").read_text(encoding="utf-8")
     ext_panel = (ROOT / "frontend/src/assets/nebulaops-extension-control-panel.js").read_text(encoding="utf-8")
-    dist_index = (ROOT / "frontend/dist/nebulaops/browser/index.html").read_text(encoding="utf-8")
+    dist_index_path = ROOT / "frontend/dist/nebulaops/browser/index.html"
+    # CI clones the repository without ignored build artifacts such as frontend/dist.
+    # Validate the generated index when it exists locally, otherwise validate the
+    # source index that Angular uses to create the same script includes.
+    index_path = dist_index_path if dist_index_path.exists() else (ROOT / "frontend/src/index.html")
+    dist_index = index_path.read_text(encoding="utf-8")
     manifest = json.loads((ROOT / "extensions/extensions.manifest.json").read_text(encoding="utf-8"))
     apiprops = (ROOT / "extensions/apiforge/src/main/resources/application.properties").read_text(encoding="utf-8")
     if '"group": "Extensions"' in shell or "group: 'Extensions'" in shell:
