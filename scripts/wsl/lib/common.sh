@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# v23.4 — Shared helpers sourced by all WSL scripts.
+# v24.1 — Shared helpers sourced by all WSL scripts.
 # Provides logging, status indicators, project naming, compose helpers.
 
 # Project naming — derived once, consumed by all scripts
-export PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v23-4}"
+export PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v24-1}"
 export ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 export COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
 export CONFIG_FILE="$ROOT_DIR/config/platform.yml"

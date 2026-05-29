@@ -1,4 +1,4 @@
-# NebulaOps v23.4 diagrams
+# NebulaOps v24.1 diagrams
 
 The diagrams in this folder are the canonical SVG set used by the package preflight. They describe the current same-origin reverse-proxy runtime.
 
@@ -10,4 +10,4 @@ The diagrams in this folder are the canonical SVG set used by the package prefli
 | `kubernetes-helm-view.svg` | Kubernetes and Helm deployment model |
 | `request-flow-sequence.svg` | Browser-to-gateway request path |
 | `service-port-map.svg` | Public routes and retained local service ports |
-| `nebulaops-v23-4-reverse-proxy-runtime.svg` | Frontend Nginx same-origin runtime |
+| `nebulaops-v24-1-reverse-proxy-runtime.svg` | Frontend Nginx same-origin runtime |

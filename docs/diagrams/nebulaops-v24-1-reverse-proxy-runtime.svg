@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-label="NebulaOps v24.1 Reverse Proxy Runtime">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07111f"/><stop offset="1" stop-color="#110829"/></linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#58e7ff"/></marker>
+    <marker id="arrow2" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#b476ff"/></marker>
+    <marker id="arrow3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#63ffb3"/></marker>
+    <style><![CDATA[
+.title{font:800 34px Inter,Segoe UI,Arial;fill:#f6fbff}.sub{font:500 16px Inter,Segoe UI,Arial;fill:#a9bdd8}.label{font:800 18px Inter,Segoe UI,Arial;fill:#ffffff}.small{font:500 13px Inter,Segoe UI,Arial;fill:#c5d3e8}.chip{font:700 12px Inter,Segoe UI,Arial;fill:#07111f}.panel{fill:#10243a;stroke:#345b87;stroke-width:1.4}.core{fill:#09233b;stroke:#58e7ff;stroke-width:2.2}.soft{fill:#151b35;stroke:#8065ff;stroke-width:1.4}.data{fill:#102d29;stroke:#63ffb3;stroke-width:1.4}.warn{fill:#332315;stroke:#ffba66;stroke-width:1.4}.flow{fill:none;stroke:#58e7ff;stroke-width:3;marker-end:url(#arrow)}.dash{fill:none;stroke:#b476ff;stroke-width:3;stroke-dasharray:10 8;marker-end:url(#arrow2)}.metric{fill:none;stroke:#63ffb3;stroke-width:3;stroke-dasharray:4 7;marker-end:url(#arrow3)}.pulse{animation:pulse 2.8s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+]]></style>
+  </defs>
+  <rect width="1400" height="820" fill="url(#bg)"/>
+  <text x="64" y="76" class="title">NebulaOps v24.1 Reverse Proxy Runtime</text>
+  <text x="64" y="106" class="sub">Frontend Nginx serves shell and MFE assets, then proxies platform/API routes on the Docker network.</text>
+
+<rect x="64" y="124" width="180" height="28" rx="14" fill="#58e7ff"/><text x="78" y="143" class="chip">nebulaops.localhost</text>
+<rect x="238" y="124" width="204" height="28" rx="14" fill="#58e7ff"/><text x="252" y="143" class="chip">frontend-owned remotes</text>
+<path d="M330 245 C 370 245, 370 245, 410 245" class="flow"/>
+<path d="M710 245 C 750 245, 750 245, 790 245" class="flow"/>
+<path d="M710 245 C 895 245, 895 245, 1080 245" class="flow"/>
+<path d="M560 340 C 470 340, 470 470, 380 470" class="flow"/>
+<path d="M915 330 C 842 330, 842 470, 770 470" class="dash"/>
+<path d="M1200 330 C 1170 330, 1170 470, 1140 470" class="metric"/>
+<rect x="60" y="170" width="270" height="150" rx="20" class="core"/>
+<text x="84" y="208" class="label">Browser</text>
+<text x="84" y="236" class="small">Single origin</text>
+<text x="84" y="260" class="small">Shell navigation</text>
+<text x="84" y="284" class="small">Standalone MFE pages</text>
+<rect x="410" y="150" width="300" height="190" rx="20" class="panel"/>
+<text x="434" y="188" class="label">Frontend Nginx</text>
+<text x="434" y="216" class="small">Static Angular shell</text>
+<text x="434" y="240" class="small">Static /remotes/** bundles</text>
+<text x="434" y="264" class="small">Proxy /api, /keycloak, /grafana</text>
+<rect x="790" y="160" width="250" height="170" rx="20" class="soft"/>
+<text x="814" y="198" class="label">Gateway</text>
+<text x="814" y="226" class="small">/api/**</text>
+<text x="814" y="250" class="small">Actuator health</text>
+<text x="814" y="274" class="small">Downstream routing</text>
+<rect x="1080" y="160" width="250" height="170" rx="20" class="soft"/>
+<text x="1104" y="198" class="label">Platform</text>
+<text x="1104" y="226" class="small">Keycloak</text>
+<text x="1104" y="250" class="small">Grafana</text>
+<text x="1104" y="274" class="small">Prometheus</text>
+<rect x="250" y="470" width="260" height="150" rx="20" class="panel"/>
+<text x="274" y="508" class="label">MFE catalog</text>
+<text x="274" y="536" class="small">Docker, OpenLens, Tasks</text>
+<text x="274" y="560" class="small">Infra, Release, Policy</text>
+<text x="274" y="584" class="small">AI Ops, FinOps, Notifications</text>
+<rect x="640" y="470" width="260" height="150" rx="20" class="soft"/>
+<text x="664" y="508" class="label">Services</text>
+<text x="664" y="536" class="small">Spring Boot fleet</text>
+<text x="664" y="560" class="small">Go helpers</text>
+<text x="664" y="584" class="small">AI engine</text>
+<rect x="1010" y="470" width="260" height="150" rx="20" class="data"/>
+<text x="1034" y="508" class="label">State and telemetry</text>
+<text x="1034" y="536" class="small">MongoDB / RabbitMQ / Redis</text>
+<text x="1034" y="560" class="small">Loki / Tempo / OTel</text>
+</svg>

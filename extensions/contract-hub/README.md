@@ -1,6 +1,6 @@
 # Contract Hub
 
-NebulaOps v23.4 extension implemented as a Spring Boot MVC application.
+NebulaOps v24.1 extension implemented as a Spring Boot MVC application.
 
 ## Runtime
 

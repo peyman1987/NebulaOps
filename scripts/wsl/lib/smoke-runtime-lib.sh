@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared helpers for NebulaOps v23.4 runtime E2E smoke tests.
+# Shared helpers for NebulaOps v24.1 runtime E2E smoke tests.
 # The helpers intentionally validate live API contracts instead of accepting
 # fallback HTML/error pages or bundled offline records.
 

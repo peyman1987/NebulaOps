@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v23.4 — Focused diagnostics for Grafana/RabbitMQ/Mongo/Redis Keycloak SSO.
+# v24.1 — Focused diagnostics for Grafana/RabbitMQ/Mongo/Redis Keycloak SSO.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 cd "$ROOT_DIR"

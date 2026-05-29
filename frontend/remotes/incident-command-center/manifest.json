@@ -1,7 +1,7 @@
 {
   "id": "incident-command-center",
   "title": "Incident Command Center",
-  "version": "23.4.0",
+  "version": "24.1.0",
   "remoteEntry": "remoteEntry.js",
   "tag": "nebulaops-mfe-incident-command-center",
   "port": 4227,

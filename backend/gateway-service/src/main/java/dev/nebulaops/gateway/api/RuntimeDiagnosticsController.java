@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * NebulaOps v23.4 — compact runtime diagnostics with real tool output only.
+ * NebulaOps v24.1 — compact runtime diagnostics with real tool output only.
  */
 @RestController
 public class RuntimeDiagnosticsController {
@@ -34,7 +34,7 @@ public class RuntimeDiagnosticsController {
         checks.put("kubectl", probe("kubectl", "command -v kubectl >/dev/null 2>&1 && kubectl version --client=true --output=json >/dev/null 2>&1", 4));
         checks.put("kubernetesCluster", probe("kubernetesCluster", "kubectl --request-timeout=4s cluster-info >/dev/null", 5));
         checks.put("kubeConfig", probe("kubeConfig", "test -s /kube/config", 2));
-        checks.put("extensionRegistry", probe("extensionRegistry", "command -v docker >/dev/null 2>&1 && (docker ps --format '{{.Names}}' | grep -qx nebulaops-v23-4-registry)", 4));
+        checks.put("extensionRegistry", probe("extensionRegistry", "command -v docker >/dev/null 2>&1 && (docker ps --format '{{.Names}}' | grep -qx nebulaops-v24-1-registry)", 4));
         out.put("checks", checks);
 
         long unavailable = checks.values().stream()

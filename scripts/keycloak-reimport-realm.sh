@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# v23.4 — Reimport the NebulaOps Keycloak realm by removing the Keycloak DB volume.
+# v24.1 — Reimport the NebulaOps Keycloak realm by removing the Keycloak DB volume.
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
-PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v23-4}"
+PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nebulaops-v24-1}"
 WITH_SSO_PROXY=false
 for arg in "$@"; do
   case "$arg" in
@@ -17,7 +17,7 @@ docker compose -p "$PROJECT_NAME" -f docker-compose.yml down --remove-orphans ||
 echo "[keycloak] removing Keycloak DB volume so realm-nebulaops.json is imported again"
 for volume in \
   "${PROJECT_NAME}_keycloak-db-data" \
-  "nebulaops-v23-4_keycloak-db-data" \
+  "nebulaops-v24-1_keycloak-db-data" \
   "nebulaops_keycloak-db-data" \
   "keycloak-db-data"; do
   docker volume rm "$volume" 2>/dev/null || true

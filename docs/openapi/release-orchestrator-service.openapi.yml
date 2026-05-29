@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: NebulaOps Release Orchestrator API
-  version: 23.4.0
+  version: 24.1.0
 servers:
 - url: http://localhost:8098
 paths:

@@ -1,4 +1,4 @@
-name: nebulaops-v23-4
+name: nebulaops-v24-1
 services:
   prometheus:
     ports:

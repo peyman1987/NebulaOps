@@ -1,6 +1,6 @@
 {
-  "name": "nebulaops-v23-4-shell-host",
-  "version": "23.4.0",
+  "name": "nebulaops-v24-1-shell-host",
+  "version": "24.1.0",
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4200",
@@ -13,7 +13,10 @@
     "build:mfe:platform": "ng build --configuration production --base-href / --progress=false",
     "build:microfrontends": "npm run build:shell && npm run build:remotes",
     "build:shell": "ng build --configuration production --progress=false",
-    "build:remotes": "node tools/verify-remotes.mjs"
+    "build:remotes": "node tools/verify-remotes.mjs",
+    "build:changed": "node tools/build-changed-remotes.mjs",
+    "build:all": "ng build --configuration production --progress=false && node tools/build-all-remotes.mjs",
+    "verify:remotes": "node tools/verify-remotes.mjs"
   },
   "dependencies": {
     "@angular/animations": "^18.2.0",
@@ -27,7 +30,8 @@
     "@angular/cdk": "^18.2.0",
     "rxjs": "~7.8.1",
     "tslib": "^2.6.3",
-    "zone.js": "~0.14.10"
+    "zone.js": "~0.14.10",
+    "@angular/elements": "^18.2.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.2.0",

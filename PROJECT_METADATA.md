@@ -3,7 +3,7 @@
 | Key             | Value                                       |
 | --------------- | ------------------------------------------- |
 | name            | NebulaOps                                   |
-| version         | v23.4.0                                     |
+| version         | v24.1.0                                     |
 | release_date    | 2026-05                                     |
 | repo_layout     | monorepo (frontend + backend + infra)       |
 | maintainer      | Peyman Eshghi Malayeri                      |
@@ -40,7 +40,7 @@
 | `backend/gateway-service/.../application.yml` | Proxy targets                        |
 | `docker-compose.yml`                          | Stack composition                    |
 
-## API surface (v23.4)
+## API surface (v24.1)
 
 | Route group             | Endpoints                                      |
 | ----------------------- | ---------------------------------------------- |
@@ -50,12 +50,12 @@
 | `/api/runtime/**`       | docker containers/images/volumes, helm         |
 | `/api/platform/**`      | observability, gitops, devsecops, environments |
 | `/api/ai-ops/**`        | analyze, autofix                               |
-| `/api/pipeline/**`      | runs list, trigger (v23.4)                     |
-| `/api/cost/**`          | summary, breakdown, entries (v23.4)            |
-| `/api/notifications/**` | live, mark-read (v23.4)                        |
-| `/api/audit/**`         | events (v23.4)                                 |
-| `/api/secrets/**`       | list (v23.4)                                   |
-| `/api/registry/**`      | images (v23.4)                                 |
+| `/api/pipeline/**`      | runs list, trigger (v24.1)                     |
+| `/api/cost/**`          | summary, breakdown, entries (v24.1)            |
+| `/api/notifications/**` | live, mark-read (v24.1)                        |
+| `/api/audit/**`         | events (v24.1)                                 |
+| `/api/secrets/**`       | list (v24.1)                                   |
+| `/api/registry/**`      | images (v24.1)                                 |
 
 ## Entry points
 
@@ -64,17 +64,27 @@
 - `./scripts/wsl/restart-gateway.sh` — fast gateway restart
 
 
-## v23.4 Extension Set
+## v24.1 Extension Set
 
 - APIForge — `extensions/apiforge` — NodePort `31110`
 
-## v23.4 Extension Selection
+## v24.1 Extension Selection
 
 Installed UI-controlled extensions: APIForge, KubeBridge and Contract Hub.
 
 Control actions exposed through the NebulaOps gateway and the separate EXTENSIONS control panel: Start, Stop, Restart, Status and Open.
 
-## v23.4 release alignment guard
+## v24.1 release alignment guard
 
-- `scripts/validate-version-alignment-v23.4.py` — verifies docs, package metadata, Maven versions, Docker identifiers, WSL script names and frontend runtime assets.
-- `scripts/wsl/smoke-version-alignment-v23.4.sh` — WSL-friendly smoke wrapper for release identity checks.
+- `scripts/validate-version-alignment-v24.1.py` — verifies docs, package metadata, Maven versions, Docker identifiers, WSL script names and frontend runtime assets.
+- `scripts/wsl/smoke-version-alignment-v24.1.sh` — WSL-friendly smoke wrapper for release identity checks.
+
+## v24.1 build and frontend architecture controls
+
+- `./scripts/wsl/start.sh --core` starts the fast local core runtime.
+- `./scripts/wsl/start.sh --full` starts the complete profiled runtime.
+- `./scripts/wsl/build-frontend-changed.sh` runs the selective frontend build cache.
+- `frontend/libs/nebulaops-api-client` centralizes API calls and bearer token handling.
+- `frontend/libs/nebulaops-live-state` standardizes source states.
+- `frontend/libs/nebulaops-mfe-runtime` standardizes MFE bootstrap and live-only payload checks.
+- `frontend/libs/nebulaops-ui-kit` provides UI Kit v2 density, action bar and side panel contracts.

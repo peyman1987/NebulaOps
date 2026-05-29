@@ -1,4 +1,4 @@
-# NebulaOps v23.4 release index
+# NebulaOps v24.1 release index
 
 Current package focus:
 
@@ -10,12 +10,14 @@ Current package focus:
 
 Start with `README.md`, `START_HERE.md` and `ARCHITECTURE.md`.
 
-- `V23.4_OPERATIONAL_ISSUES_DASHBOARD_REPORT.md` — live Operational Issues dashboard report.
-- `V23.4_OPERATIONAL_ISSUES_ROW_ACTIONS_REPORT.md` — row-level troubleshooting actions report.
-- `V23.4_SAFE_ACTION_PLAN_REPORT.md` — Safe Action Plan gate for disruptive Docker, Kubernetes and Helm actions.
-- `V23.4_EXTENSION_ASYNC_CONTROL_PLANE_REPORT.md` — asynchronous extension start/restart operation model with operation polling, live events and diagnostics.
-- `V23.4_DIAGNOSTICS_BUNDLE_EXPORT_REPORT.md` — live diagnostics bundle endpoints and ZIP export.
-- `V23.4_E2E_RUNTIME_SMOKE_TESTS_REPORT.md` — E2E runtime smoke tests for core JSON contracts, Docker Desktop/OpenLens browser console checks and async extension start validation.
+- `V24.1_OPERATIONAL_ISSUES_DASHBOARD_REPORT.md` — live Operational Issues dashboard report.
+- `V24.1_OPERATIONAL_ISSUES_ROW_ACTIONS_REPORT.md` — row-level troubleshooting actions report.
+- `V24.1_SAFE_ACTION_PLAN_REPORT.md` — Safe Action Plan gate for disruptive Docker, Kubernetes and Helm actions.
+- `V24.1_EXTENSION_ASYNC_CONTROL_PLANE_REPORT.md` — asynchronous extension start/restart operation model with operation polling, live events and diagnostics.
+- `V24.1_DIAGNOSTICS_BUNDLE_EXPORT_REPORT.md` — live diagnostics bundle endpoints and ZIP export.
+- `V24.1_E2E_RUNTIME_SMOKE_TESTS_REPORT.md` — E2E runtime smoke tests for core JSON contracts, Docker Desktop/OpenLens browser console checks and async extension start validation.
 
-- `V23.4_UI_DENSITY_MODE_REPORT.md` — compact UI/UX density mode for 75% zoom, sticky action bars and side detail panels.
-- `V23.4_VERSION_ALIGNMENT_FINAL_REPORT.md` — final v23.4 / 23.4.0 release identity alignment across docs, packages, Maven, Docker, WSL scripts and frontend runtime assets.
+- `V24.1_UI_DENSITY_MODE_REPORT.md` — compact UI/UX density mode for 75% zoom, sticky action bars and side detail panels.
+- `V24.1_VERSION_ALIGNMENT_FINAL_REPORT.md` — final v24.1 / 24.1.0 release identity alignment across docs, packages, Maven, Docker, WSL scripts and frontend runtime assets.
+
+- `V24.1_FOUNDATION_BUILD_FRONTEND_ARCHITECTURE_UPGRADE_REPORT.md` — Foundation alignment, selective frontend build and UI Kit/API/source-state/MFE runtime architecture upgrade.
